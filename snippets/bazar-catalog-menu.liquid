@@ -84,13 +84,15 @@
                   aria-controls="{{ panel_id }}"
                   aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
                   {% if forloop.first %}
-                    aria-current="true"
+                  aria-current="true"
                   {% endif %}
                 >
                   <span
                     class="bazar-catalog-menu__category-icon"
                     aria-hidden="true"
-                  ></span>
+                  >
+                    {% render 'bazar-catalog-icon', label: category_title, variant: forloop.index %}
+                  </span>
                   <span class="bazar-catalog-menu__category-title">{{ category_title }}</span>
                   <span
                     class="bazar-catalog-menu__category-arrow"
@@ -138,8 +140,12 @@
                   class="bazar-catalog-menu__subcategory-grid"
                   role="list"
                 >
+                  {% assign category_index = forloop.index %}
                   {% for subcategory in subcategories %}
-                    {% assign subcategory_title = subcategory | strip %}
+                    {% liquid
+                      assign subcategory_title = subcategory | strip
+                      assign icon_variant = category_index | times: 30 | plus: forloop.index
+                    %}
                     <li class="bazar-catalog-menu__subcategory">
                       <a
                         class="bazar-catalog-menu__subcategory-link"
@@ -148,7 +154,9 @@
                         <span
                           class="bazar-catalog-menu__subcategory-icon"
                           aria-hidden="true"
-                        ></span>
+                        >
+                          {% render 'bazar-catalog-icon', label: subcategory_title, variant: icon_variant %}
+                        </span>
                         <span class="bazar-catalog-menu__subcategory-title">{{ subcategory_title }}</span>
                       </a>
                     </li>

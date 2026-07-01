@@ -3,6 +3,12 @@ const triggerSelector = '[data-bazar-catalog-trigger]';
 const panelSelector = '[data-bazar-catalog-panel]';
 const categorySelector = '[data-bazar-catalog-category]';
 const subpanelSelector = '[data-bazar-catalog-subpanel]';
+const scrollLockClass = 'bazar-catalog-scroll-lock';
+
+const updateScrollLock = () => {
+  const hasOpenCatalog = [...document.querySelectorAll(panelSelector)].some((panel) => !panel.hidden);
+  document.documentElement.classList.toggle(scrollLockClass, hasOpenCatalog);
+};
 
 const getParts = (root) => ({
   trigger: root.querySelector(triggerSelector),
@@ -13,6 +19,7 @@ const setActiveCategory = (root, category, focusCategory = false) => {
   const targetId = category?.getAttribute('data-bazar-catalog-target');
   const categories = [...root.querySelectorAll(categorySelector)];
   const subpanels = [...root.querySelectorAll(subpanelSelector)];
+  let activePanel = null;
 
   categories.forEach((item) => {
     const isActive = item === category;
@@ -30,7 +37,12 @@ const setActiveCategory = (root, category, focusCategory = false) => {
     const isActive = targetId && subpanel.id === targetId;
     subpanel.hidden = !isActive;
     subpanel.classList.toggle('is-active', isActive);
+    if (isActive) {
+      activePanel = subpanel;
+    }
   });
+
+  activePanel?.parentElement?.scrollTo({ top: 0, behavior: 'auto' });
 
   if (focusCategory) {
     category.focus({ preventScroll: true });
@@ -44,6 +56,7 @@ const openCatalog = (root) => {
   panel.hidden = false;
   root.classList.add('is-open');
   trigger.setAttribute('aria-expanded', 'true');
+  updateScrollLock();
 
   const activeCategory = root.querySelector(`${categorySelector}.is-active`) || root.querySelector(categorySelector);
   if (activeCategory) {
@@ -59,6 +72,7 @@ const closeCatalog = (root, returnFocus = false) => {
   panel.hidden = true;
   root.classList.remove('is-open');
   trigger.setAttribute('aria-expanded', 'false');
+  updateScrollLock();
 
   if (returnFocus) {
     trigger.focus({ preventScroll: true });
@@ -181,4 +195,6 @@ document.addEventListener('keydown', (event) => {
 });
 
 document.addEventListener('shopify:section:load', initCatalogs);
+document.addEventListener('shopify:section:unload', updateScrollLock);
 initCatalogs();
+updateScrollLock();
