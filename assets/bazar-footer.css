@@ -15,7 +15,6 @@
 .bazar-logo {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
   color: var(--bazar-color-navy);
   text-decoration: none;
 }
@@ -25,25 +24,15 @@
   text-decoration: none;
 }
 
-.bazar-logo__icon {
+.bazar-logo__asset {
   display: inline-flex;
-  width: 36px;
-  height: 36px;
-  color: var(--bazar-color-blue);
   flex: 0 0 auto;
 }
 
-.bazar-logo__icon svg {
+.bazar-logo__svg {
   display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.bazar-logo__text {
-  font-size: 24px;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: 0;
+  width: 144px;
+  height: auto;
 }
 
 .bazar-footer__brand {

@@ -37,8 +37,7 @@
 .bazar-header__logo {
   display: inline-flex;
   align-items: center;
-  gap: 11px;
-  min-width: 132px;
+  min-width: 146px;
   color: var(--bazar-header-navy);
 }
 
@@ -47,29 +46,15 @@
   text-decoration: none;
 }
 
-.bazar-header__logo .bazar-logo__icon,
-.bazar-header__logo-icon {
+.bazar-header__logo .bazar-logo__asset {
   display: inline-flex;
-  width: 38px;
-  height: 38px;
-  color: var(--bazar-header-blue);
   flex: 0 0 auto;
 }
 
-.bazar-header__logo .bazar-logo__icon svg,
-.bazar-header__logo-icon svg {
+.bazar-header__logo .bazar-logo__svg {
   display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.bazar-header__logo .bazar-logo__text,
-.bazar-header__logo-text {
-  color: var(--bazar-header-navy);
-  font-size: 24px;
-  font-weight: 900;
-  line-height: 1;
-  letter-spacing: 0;
+  width: 146px;
+  height: auto;
 }
 
 .bazar-header__catalog {
@@ -283,12 +268,11 @@
   }
 
   .bazar-header__logo {
-    min-width: 124px;
+    min-width: 132px;
   }
 
-  .bazar-header__logo .bazar-logo__text,
-  .bazar-header__logo-text {
-    font-size: 22px;
+  .bazar-header__logo .bazar-logo__svg {
+    width: 132px;
   }
 
   .bazar-header__catalog {
