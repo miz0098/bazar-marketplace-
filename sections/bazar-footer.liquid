@@ -1,0 +1,409 @@
+{{ 'bazar-footer.css' | asset_url | stylesheet_tag }}
+
+{% liquid
+  assign customer_links = 'Help Center|/pages/help,Delivery|/pages/delivery,Returns|/pages/returns' | split: ','
+  assign company_links = 'About BAZAR|/pages/about-bazar,Contacts|/pages/contact,Careers|/pages/careers' | split: ','
+  assign account_links = 'Profile|' | append: routes.account_url | append: ',Orders|' | append: routes.account_url | append: ',Favorites|/pages/wishlist' | split: ','
+  assign facebook_url = section.settings.facebook_url | default: 'https://www.facebook.com/'
+  assign instagram_url = section.settings.instagram_url | default: 'https://www.instagram.com/'
+  assign threads_url = section.settings.threads_url | default: 'https://www.threads.net/'
+  assign telegram_url = section.settings.telegram_url | default: 'https://telegram.org/'
+%}
+
+<section class="bazar-footer">
+  <div class="bazar-container">
+    <div class="bazar-footer__main">
+      <div class="bazar-footer__brand">
+        {% render 'bazar-logo', class: 'bazar-footer__logo' %}
+
+        <div
+          class="bazar-footer__social"
+          aria-label="Social links"
+        >
+          <a
+            class="bazar-footer__social-link"
+            href="{{ facebook_url }}"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Facebook"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                d="M14.2 8.3V6.8c0-.7.5-.9.9-.9h2.2V2.2L14.2 2c-3.5 0-4.3 2.6-4.3 4.2v2.1H7.2v3.9h2.7V22h4.1v-9.8h3.1l.5-3.9h-3.4Z"
+                fill="currentColor"
+              />
+            </svg>
+          </a>
+          <a
+            class="bazar-footer__social-link"
+            href="{{ instagram_url }}"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Instagram"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <rect
+                x="4"
+                y="4"
+                width="16"
+                height="16"
+                rx="4.6"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+              />
+              <circle
+                cx="12"
+                cy="12"
+                r="3.8"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+              />
+              <circle
+                cx="17.2"
+                cy="6.8"
+                r="1.1"
+                fill="currentColor"
+              />
+            </svg>
+          </a>
+          <a
+            class="bazar-footer__social-link"
+            href="{{ threads_url }}"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Threads"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                d="M12.3 3.1c4.4 0 7.2 2.7 7.2 8.1 0 5.8-3.1 9.7-7.7 9.7-4 0-7.3-2.7-7.3-7.1 0-4 2.9-6.2 6.2-6.2 2.7 0 4.7 1.5 4.9 3.9 1.1.4 1.9 1 2.4 1.6"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.8"
+              />
+              <path
+                d="M15.6 11.6c-.2 2.1-1.6 4-4 4-1.6 0-2.8-.8-2.8-2.1 0-1.5 1.4-2.2 3.2-2.2 1.5 0 2.9.4 3.6.8"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.8"
+              />
+            </svg>
+          </a>
+          <a
+            class="bazar-footer__social-link"
+            href="{{ telegram_url }}"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Telegram"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                d="M20.8 4.4 3.8 11c-1 .4-1 1.7.1 2l4.2 1.3 1.6 5c.3.9 1.4 1.1 2 .4l2.4-2.5 4.3 3.2c.8.6 2 .1 2.1-.9l2.3-13.4c.2-1.1-.9-2-2-1.6Z"
+                fill="none"
+                stroke="currentColor"
+                stroke-linejoin="round"
+                stroke-width="1.8"
+              />
+              <path
+                d="m8.1 14.2 8.4-5.1-5.5 6.8"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.8"
+              />
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      <nav
+        class="bazar-footer__nav"
+        aria-label="Customer"
+      >
+        <h2 class="bazar-footer__heading">Customer</h2>
+        <ul class="bazar-footer__list">
+          {% for item in customer_links %}
+            {% assign link_parts = item | split: '|' %}
+            <li>
+              <a
+                class="bazar-footer__link"
+                href="{{ link_parts[1] }}"
+              >
+                {{ link_parts[0] }}
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </nav>
+
+      <nav
+        class="bazar-footer__nav"
+        aria-label="Company"
+      >
+        <h2 class="bazar-footer__heading">Company</h2>
+        <ul class="bazar-footer__list">
+          {% for item in company_links %}
+            {% assign link_parts = item | split: '|' %}
+            <li>
+              <a
+                class="bazar-footer__link"
+                href="{{ link_parts[1] }}"
+              >
+                {{ link_parts[0] }}
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </nav>
+
+      <nav
+        class="bazar-footer__nav"
+        aria-label="Account"
+      >
+        <h2 class="bazar-footer__heading">Account</h2>
+        <ul class="bazar-footer__list">
+          {% for item in account_links %}
+            {% assign link_parts = item | split: '|' %}
+            <li>
+              <a
+                class="bazar-footer__link"
+                href="{{ link_parts[1] }}"
+              >
+                {{ link_parts[0] }}
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </nav>
+
+      <div class="bazar-footer__downloads">
+        <h2 class="bazar-footer__heading">Mobile App</h2>
+        <div class="bazar-footer__apps">
+          <a
+            class="bazar-footer__app-button"
+            {% if section.settings.app_store_url != blank %}
+              href="{{ section.settings.app_store_url }}"
+            {% else %}
+              role="link"
+              aria-disabled="true"
+            {% endif %}
+          >
+            <span
+              class="bazar-footer__app-icon"
+              aria-hidden="true"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                focusable="false"
+              >
+                <path
+                  d="M16.4 12.6c0-2 1.6-3 1.7-3.1-1-1.4-2.4-1.6-2.9-1.6-1.2-.1-2.4.7-3 .7-.7 0-1.7-.7-2.8-.7-1.4 0-2.8.9-3.5 2.2-1.5 2.6-.4 6.5 1.1 8.6.7 1 1.6 2.2 2.7 2.1 1.1 0 1.5-.7 2.8-.7s1.7.7 2.9.7 1.9-1 2.6-2.1c.8-1.2 1.2-2.4 1.2-2.5 0-.1-2.8-1.1-2.8-3.6ZM14.4 6.7c.6-.8 1-1.8.9-2.8-.9 0-1.9.6-2.5 1.3-.6.7-1 1.7-.9 2.7.9.1 1.9-.5 2.5-1.2Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </span>
+            <span class="bazar-footer__app-text">
+              <span class="bazar-footer__app-kicker">Download on the</span>
+              <span class="bazar-footer__app-name">App Store</span>
+            </span>
+          </a>
+
+          <a
+            class="bazar-footer__app-button"
+            {% if section.settings.google_play_url != blank %}
+              href="{{ section.settings.google_play_url }}"
+            {% else %}
+              role="link"
+              aria-disabled="true"
+            {% endif %}
+          >
+            <span
+              class="bazar-footer__app-icon"
+              aria-hidden="true"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                focusable="false"
+              >
+                <path
+                  d="m4.2 3.1 10.2 8.9L4.2 20.9c-.2-.3-.3-.7-.3-1.1V4.2c0-.4.1-.8.3-1.1Z"
+                  fill="currentColor"
+                />
+                <path
+                  d="m15.6 10.9 2.6-2.3 2.5 1.4c1 .6 1 2 0 2.6L18.2 14l-2.6-2.3Z"
+                  fill="currentColor"
+                />
+                <path
+                  d="m5.4 2.4 11.3 5.5-2.6 2.3L5.4 2.4Zm8.7 11.4 2.6 2.3-11.3 5.5 8.7-7.8Z"
+                  fill="currentColor"
+                  opacity=".72"
+                />
+              </svg>
+            </span>
+            <span class="bazar-footer__app-text">
+              <span class="bazar-footer__app-kicker">Get it on</span>
+              <span class="bazar-footer__app-name">Google Play</span>
+            </span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="bazar-footer__bottom">
+      <div class="bazar-footer__selectors">
+        {%- form 'localization', class: 'bazar-footer__selector-form' -%}
+          <label
+            class="visually-hidden"
+            for="BazarFooterLanguage-{{ section.id }}"
+          >
+            Language
+          </label>
+          <div class="bazar-footer__selector">
+            <select
+              id="BazarFooterLanguage-{{ section.id }}"
+              class="bazar-select"
+              name="language_code"
+              onchange="this.form.submit()"
+              aria-label="Language"
+            >
+              {% for language in localization.available_languages %}
+                <option
+                  value="{{ language.iso_code }}"
+                  {% if language.iso_code == localization.language.iso_code %}
+                    selected
+                  {% endif %}
+                >
+                  {{ language.endonym_name | capitalize }}
+                </option>
+              {% endfor %}
+            </select>
+            <span class="bazar-footer__selector-icon">{{ 'icon-caret.svg' | inline_asset_content }}</span>
+          </div>
+        {%- endform -%}
+
+        {%- form 'localization', class: 'bazar-footer__selector-form' -%}
+          <label
+            class="visually-hidden"
+            for="BazarFooterCurrency-{{ section.id }}"
+          >
+            Currency
+          </label>
+          <div class="bazar-footer__selector">
+            <select
+              id="BazarFooterCurrency-{{ section.id }}"
+              class="bazar-select"
+              name="country_code"
+              onchange="this.form.submit()"
+              aria-label="Currency"
+            >
+              {% for country in localization.available_countries %}
+                <option
+                  value="{{ country.iso_code }}"
+                  {% if country.iso_code == localization.country.iso_code %}
+                    selected
+                  {% endif %}
+                >
+                  {{ country.currency.iso_code }}
+                </option>
+              {% endfor %}
+            </select>
+            <span class="bazar-footer__selector-icon">{{ 'icon-caret.svg' | inline_asset_content }}</span>
+          </div>
+        {%- endform -%}
+      </div>
+
+      <nav
+        class="bazar-footer__legal"
+        aria-label="Legal"
+      >
+        <a
+          class="bazar-footer__legal-link"
+          href="/pages/public-offer"
+        >
+          Public Offer
+        </a>
+        <a
+          class="bazar-footer__legal-link"
+          href="/policies/privacy-policy"
+        >
+          Privacy Policy
+        </a>
+        <a
+          class="bazar-footer__legal-link"
+          href="/policies/terms-of-service"
+        >
+          Terms of Use
+        </a>
+      </nav>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "BAZAR Footer",
+  "class": "section-wrapper",
+  "enabled_on": {
+    "groups": ["footer"]
+  },
+  "settings": [
+    {
+      "type": "url",
+      "id": "facebook_url",
+      "label": "Facebook"
+    },
+    {
+      "type": "url",
+      "id": "instagram_url",
+      "label": "Instagram"
+    },
+    {
+      "type": "url",
+      "id": "threads_url",
+      "label": "Threads"
+    },
+    {
+      "type": "url",
+      "id": "telegram_url",
+      "label": "Telegram"
+    },
+    {
+      "type": "url",
+      "id": "app_store_url",
+      "label": "App Store URL"
+    },
+    {
+      "type": "url",
+      "id": "google_play_url",
+      "label": "Google Play URL"
+    }
+  ],
+  "presets": [
+    {
+      "name": "BAZAR Footer"
+    }
+  ]
+}
+{% endschema %}

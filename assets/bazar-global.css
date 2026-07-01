@@ -1,0 +1,176 @@
+:root {
+  --bazar-color-blue: #1173f5;
+  --bazar-color-blue-hover: #0d63d5;
+  --bazar-color-blue-soft: #eaf3ff;
+  --bazar-color-navy: #0f172a;
+  --bazar-color-text: #1f2937;
+  --bazar-color-muted: #64748b;
+  --bazar-color-border: #e5eaf2;
+  --bazar-color-border-strong: #d7e0ec;
+  --bazar-color-surface: #ffffff;
+  --bazar-color-surface-soft: #f6f8fb;
+  --bazar-font-family: Inter, var(--font-body--family), var(--font-paragraph--family), system-ui, sans-serif;
+  --bazar-font-size-xs: 0.75rem;
+  --bazar-font-size-sm: 0.875rem;
+  --bazar-font-size-md: 1rem;
+  --bazar-font-size-lg: 1.125rem;
+  --bazar-font-size-xl: 1.5rem;
+  --bazar-line-height-tight: 1.15;
+  --bazar-line-height-base: 1.5;
+  --bazar-space-2xs: 4px;
+  --bazar-space-xs: 8px;
+  --bazar-space-sm: 12px;
+  --bazar-space-md: 16px;
+  --bazar-space-lg: 24px;
+  --bazar-space-xl: 32px;
+  --bazar-space-2xl: 48px;
+  --bazar-space-3xl: 64px;
+  --bazar-container-width: 1440px;
+  --bazar-container-padding: 24px;
+  --bazar-grid-gap: 24px;
+  --bazar-radius-sm: 8px;
+  --bazar-radius-md: 12px;
+  --bazar-radius-lg: 16px;
+  --bazar-radius-pill: 999px;
+  --bazar-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --bazar-shadow-md: 0 12px 32px rgba(15, 23, 42, 0.1);
+  --bazar-focus-ring: 0 0 0 3px rgba(17, 115, 245, 0.24);
+}
+
+body {
+  font-family: var(--bazar-font-family);
+  color: var(--bazar-color-text);
+}
+
+.bazar-container {
+  width: min(100% - calc(var(--bazar-container-padding) * 2), var(--bazar-container-width));
+  margin-inline: auto;
+}
+
+.bazar-grid {
+  display: grid;
+  gap: var(--bazar-grid-gap);
+}
+
+.bazar-grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.bazar-grid--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.bazar-grid--4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.bazar-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--bazar-space-xs);
+  min-height: 44px;
+  padding: 0 var(--bazar-space-lg);
+  border: 1px solid transparent;
+  border-radius: var(--bazar-radius-md);
+  background: var(--bazar-color-blue);
+  color: #ffffff;
+  font-family: var(--bazar-font-family);
+  font-size: var(--bazar-font-size-sm);
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
+}
+
+.bazar-button:hover {
+  background: var(--bazar-color-blue-hover);
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.bazar-button:focus-visible,
+.bazar-input:focus,
+.bazar-select:focus,
+.bazar-field:focus-within {
+  outline: none;
+  box-shadow: var(--bazar-focus-ring);
+}
+
+.bazar-button--secondary {
+  border-color: var(--bazar-color-border-strong);
+  background: var(--bazar-color-surface);
+  color: var(--bazar-color-navy);
+}
+
+.bazar-button--secondary:hover {
+  border-color: var(--bazar-color-blue);
+  background: var(--bazar-color-blue-soft);
+  color: var(--bazar-color-blue);
+}
+
+.bazar-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bazar-space-xs);
+}
+
+.bazar-field__label {
+  color: var(--bazar-color-navy);
+  font-size: var(--bazar-font-size-sm);
+  font-weight: 700;
+  line-height: var(--bazar-line-height-tight);
+}
+
+.bazar-input,
+.bazar-select,
+.bazar-textarea {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--bazar-color-border-strong);
+  border-radius: var(--bazar-radius-md);
+  background: var(--bazar-color-surface);
+  color: var(--bazar-color-navy);
+  font-family: var(--bazar-font-family);
+  font-size: var(--bazar-font-size-sm);
+  line-height: var(--bazar-line-height-base);
+}
+
+.bazar-input,
+.bazar-select {
+  padding: 0 var(--bazar-space-md);
+}
+
+.bazar-textarea {
+  min-height: 120px;
+  padding: var(--bazar-space-sm) var(--bazar-space-md);
+  resize: vertical;
+}
+
+.bazar-input::placeholder,
+.bazar-textarea::placeholder {
+  color: var(--bazar-color-muted);
+  opacity: 1;
+}
+
+.bazar-select {
+  appearance: none;
+  padding-inline-end: var(--bazar-space-2xl);
+  cursor: pointer;
+}
+
+.bazar-card {
+  border: 1px solid var(--bazar-color-border);
+  border-radius: var(--bazar-radius-md);
+  background: var(--bazar-color-surface);
+  box-shadow: var(--bazar-shadow-sm);
+}
+
+@media screen and (max-width: 989px) {
+  .bazar-grid--2,
+  .bazar-grid--3,
+  .bazar-grid--4 {
+    grid-template-columns: 1fr;
+  }
+}
