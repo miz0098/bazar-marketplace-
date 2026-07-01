@@ -1,0 +1,31 @@
+<section
+  class="bazar-product-recently"
+  data-bazar-recently-viewed
+  data-current-product-id="{{ product.id }}"
+>
+  <div class="bazar-container">
+    <div class="bazar-product-section-header">
+      <p class="bazar-product-section-header__eyebrow">Історія</p>
+      <h2>Нещодавно переглянуті</h2>
+    </div>
+
+    <div class="bazar-product-carousel" data-bazar-recently-grid role="list"></div>
+    <p class="bazar-product__empty-text" data-bazar-recently-empty>
+      Після перегляду інших товарів вони з’являться тут.
+    </p>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "BAZAR Нещодавно переглянуті",
+  "enabled_on": {
+    "templates": ["product"]
+  },
+  "presets": [
+    {
+      "name": "BAZAR Нещодавно переглянуті"
+    }
+  ]
+}
+{% endschema %}

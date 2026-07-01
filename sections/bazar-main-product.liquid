@@ -1,0 +1,430 @@
+{{ 'bazar-product.js' | asset_url | script_tag }}
+
+{% liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign compare_at_price = current_variant.compare_at_price
+  assign current_price = current_variant.price
+  assign has_discount = false
+  assign discount_percent = 0
+  assign savings_amount = 0
+
+  if compare_at_price > current_price
+    assign has_discount = true
+    assign savings_amount = compare_at_price | minus: current_price
+    assign discount_percent = savings_amount | times: 100 | divided_by: compare_at_price
+  endif
+
+  assign rating_value = product.metafields.reviews.rating.value.rating | default: product.metafields.reviews.rating.value | default: 0
+  assign rating_count = product.metafields.reviews.rating_count.value | default: product.metafields.reviews.rating_count | default: 0
+  assign cart_add_url = routes.cart_add_url | append: '.js'
+  assign checkout_url = routes.root_url | append: 'checkout'
+  assign wishlist_url = routes.root_url | append: 'pages/wishlist'
+%}
+
+<script type="application/ld+json">
+  {{ product | structured_data }}
+</script>
+
+<section
+  class="bazar-product"
+  data-bazar-product
+  data-product-url="{{ product.url }}"
+  data-cart-add-url="{{ cart_add_url }}"
+  data-checkout-url="{{ checkout_url }}"
+  data-section-id="{{ section.id }}"
+>
+  <div class="bazar-container">
+    <nav class="bazar-product__breadcrumbs" aria-label="Навігаційний шлях">
+      <a href="{{ routes.root_url }}">Головна</a>
+      <span aria-hidden="true">/</span>
+      {% if collection != blank %}
+        <a href="{{ collection.url }}">{{ collection.title }}</a>
+        <span aria-hidden="true">/</span>
+      {% endif %}
+      <span>{{ product.title }}</span>
+    </nav>
+
+    <div class="bazar-product__top">
+      {% render 'bazar-product-gallery', product: product, current_variant: current_variant %}
+
+      <div class="bazar-product__summary">
+        <div class="bazar-product__headline">
+          <h1 class="bazar-product__title">{{ product.title }}</h1>
+
+          <div class="bazar-product__meta-row">
+            <div class="bazar-product__rating" aria-label="Рейтинг товару">
+              <span class="bazar-product__stars" aria-hidden="true">★★★★★</span>
+              {% if rating_count > 0 %}
+                <span>{{ rating_value }}/5</span>
+                <a href="#bazar-product-reviews">{{ rating_count }} відгуків</a>
+              {% else %}
+                <span>Немає відгуків</span>
+              {% endif %}
+            </div>
+
+            <div class="bazar-product__sku">
+              <span>Артикул:</span>
+              <span data-bazar-sku>{{ current_variant.sku | default: 'не вказано' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bazar-product__price-panel">
+          <div class="bazar-product__price-row">
+            <span class="bazar-product__price" data-bazar-price>{{ current_price | money }}</span>
+            <s
+              class="bazar-product__compare{% unless has_discount %} is-hidden{% endunless %}"
+              data-bazar-compare
+            >
+              {{ compare_at_price | money }}
+            </s>
+            <span
+              class="bazar-product__discount{% unless has_discount %} is-hidden{% endunless %}"
+              data-bazar-discount
+            >
+              -{{ discount_percent }}%
+            </span>
+          </div>
+          <p
+            class="bazar-product__savings{% unless has_discount %} is-hidden{% endunless %}"
+            data-bazar-savings
+          >
+            Економія {{ savings_amount | money }}
+          </p>
+        </div>
+
+        <form class="bazar-product__form" data-bazar-product-form>
+          <input type="hidden" name="id" value="{{ current_variant.id }}" data-bazar-variant-id>
+
+          {% unless product.has_only_default_variant %}
+            <div class="bazar-product__options">
+              {% for option in product.options_with_values %}
+                {% liquid
+                  assign option_name_downcase = option.name | downcase
+                  assign option_label = 'Опція ' | append: option.position
+                  assign option_kind = 'default'
+
+                  if option_name_downcase contains 'color' or option_name_downcase contains 'colour' or option_name_downcase contains 'колір' or option_name_downcase contains 'цвет'
+                    assign option_label = 'Колір'
+                    assign option_kind = 'color'
+                  elsif option_name_downcase contains 'memory' or option_name_downcase contains 'пам' or option_name_downcase contains 'пам’ять'
+                    assign option_label = 'Пам’ять'
+                  elsif option_name_downcase contains 'storage' or option_name_downcase contains 'накопичувач' or option_name_downcase contains 'ємність'
+                    assign option_label = 'Накопичувач'
+                  elsif option_name_downcase contains 'size' or option_name_downcase contains 'розмір'
+                    assign option_label = 'Розмір'
+                  endif
+                %}
+
+                <fieldset class="bazar-product-option" data-option-position="{{ option.position }}">
+                  <legend class="bazar-product-option__label">{{ option_label }}</legend>
+                  <div class="bazar-product-option__values">
+                    {% for value in option.values %}
+                      {% liquid
+                        assign input_id = section.id | append: '-Option-' | append: option.position | append: '-' | append: forloop.index
+                      %}
+                      <label class="bazar-product-option__choice{% if option_kind == 'color' %} bazar-product-option__choice--color{% endif %}">
+                        <input
+                          type="radio"
+                          name="option-{{ option.position }}"
+                          value="{{ value | escape }}"
+                          data-bazar-option
+                          data-option-position="{{ option.position }}"
+                          id="{{ input_id }}"
+                          {% if option.selected_value == value %}
+                            checked
+                          {% endif %}
+                        >
+                        {% if option_kind == 'color' %}
+                          <span class="bazar-product-option__swatch" aria-hidden="true"></span>
+                        {% endif %}
+                        <span>{{ value }}</span>
+                      </label>
+                    {% endfor %}
+                  </div>
+                </fieldset>
+              {% endfor %}
+            </div>
+          {% endunless %}
+
+          <div class="bazar-product__purchase-row">
+            <label class="bazar-product-quantity" for="BazarQuantity-{{ section.id }}">
+              <span class="bazar-product-quantity__label">Кількість</span>
+              <span class="bazar-product-quantity__control">
+                <button type="button" data-bazar-quantity-minus aria-label="Зменшити кількість">-</button>
+                <input
+                  id="BazarQuantity-{{ section.id }}"
+                  name="quantity"
+                  type="number"
+                  min="{{ current_variant.quantity_rule.min | default: 1 }}"
+                  value="{{ current_variant.quantity_rule.min | default: 1 }}"
+                  inputmode="numeric"
+                  data-bazar-quantity
+                >
+                <button type="button" data-bazar-quantity-plus aria-label="Збільшити кількість">+</button>
+              </span>
+            </label>
+
+            <a
+              href="{{ wishlist_url }}"
+              class="bazar-product__wishlist"
+              aria-label="Обране"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M20.2 5.1a5.4 5.4 0 0 0-7.6 0l-.6.6-.6-.6a5.4 5.4 0 0 0-7.6 7.6l.6.6L12 20.9l7.6-7.6.6-.6a5.4 5.4 0 0 0 0-7.6Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/>
+              </svg>
+            </a>
+          </div>
+
+          <div class="bazar-product__buttons">
+            <button
+              class="bazar-button bazar-product__buy-now"
+              type="button"
+              data-bazar-buy-now
+              {% unless current_variant.available %}
+                disabled
+              {% endunless %}
+            >
+              Купити зараз
+            </button>
+            <button
+              class="bazar-button bazar-button--secondary bazar-product__add-cart"
+              type="submit"
+              data-bazar-add-to-cart
+              {% unless current_variant.available %}
+                disabled
+              {% endunless %}
+            >
+              Додати в кошик
+            </button>
+          </div>
+
+          <p class="bazar-product__form-message" data-bazar-form-message role="status" aria-live="polite"></p>
+        </form>
+
+        <div class="bazar-product__service-panel">
+          <div
+            class="bazar-product-service bazar-product-service--availability"
+            data-bazar-availability
+            data-available-text="Є в наявності"
+            data-unavailable-text="Немає в наявності"
+          >
+            <span class="bazar-product-service__icon" aria-hidden="true">✓</span>
+            <div>
+              <h2>Наявність</h2>
+              <p data-bazar-availability-text>
+                {% if current_variant.available %}Є в наявності{% else %}Немає в наявності{% endif %}
+              </p>
+            </div>
+          </div>
+
+          <div class="bazar-product-service">
+            <span class="bazar-product-service__icon" aria-hidden="true">↗</span>
+            <div>
+              <h2>Доставка</h2>
+              <p>{{ section.settings.delivery_text }}</p>
+            </div>
+          </div>
+
+          <div class="bazar-product-service">
+            <span class="bazar-product-service__icon" aria-hidden="true">₴</span>
+            <div>
+              <h2>Оплата</h2>
+              <p>{{ section.settings.payment_text }}</p>
+            </div>
+          </div>
+
+          <div class="bazar-product-service">
+            <span class="bazar-product-service__icon" aria-hidden="true">↺</span>
+            <div>
+              <h2>Повернення</h2>
+              <p>{{ section.settings.return_text }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bazar-product__guarantee">
+          <strong>Гарантія BAZAR</strong>
+          <span>{{ section.settings.guarantee_text }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bazar-product-tabs" data-bazar-tabs>
+      <div class="bazar-product-tabs__list" role="tablist" aria-label="Інформація про товар">
+        <button class="is-active" type="button" role="tab" aria-selected="true" aria-controls="BazarTabDescription-{{ section.id }}" data-bazar-tab="description">Опис</button>
+        <button type="button" role="tab" aria-selected="false" aria-controls="BazarTabSpecs-{{ section.id }}" data-bazar-tab="specs">Характеристики</button>
+        <button type="button" role="tab" aria-selected="false" aria-controls="BazarTabReviews-{{ section.id }}" data-bazar-tab="reviews">Відгуки</button>
+        <button type="button" role="tab" aria-selected="false" aria-controls="BazarTabQuestions-{{ section.id }}" data-bazar-tab="questions">Питання та відповіді</button>
+        <button type="button" role="tab" aria-selected="false" aria-controls="BazarTabDelivery-{{ section.id }}" data-bazar-tab="delivery">Доставка та оплата</button>
+      </div>
+
+      <div class="bazar-product-tabs__panel is-active" role="tabpanel" id="BazarTabDescription-{{ section.id }}" data-bazar-panel="description">
+        {% if product.description != blank %}
+          <div class="bazar-product__description rte">{{ product.description }}</div>
+        {% else %}
+          <p class="bazar-product__empty-text">Опис товару не вказано.</p>
+        {% endif %}
+      </div>
+
+      <div class="bazar-product-tabs__panel" role="tabpanel" id="BazarTabSpecs-{{ section.id }}" data-bazar-panel="specs" hidden>
+        <table class="bazar-product-specs">
+          <tbody>
+            {% if product.vendor != blank %}
+              <tr>
+                <th>Продавець</th>
+                <td>{{ product.vendor }}</td>
+              </tr>
+            {% endif %}
+            {% if product.type != blank %}
+              <tr>
+                <th>Тип товару</th>
+                <td>{{ product.type }}</td>
+              </tr>
+            {% endif %}
+            <tr>
+              <th>Артикул</th>
+              <td data-bazar-sku-spec>{{ current_variant.sku | default: 'не вказано' }}</td>
+            </tr>
+            {% if current_variant.barcode != blank %}
+              <tr>
+                <th>Штрихкод</th>
+                <td data-bazar-barcode>{{ current_variant.barcode }}</td>
+              </tr>
+            {% endif %}
+            {% if current_variant.weight > 0 %}
+              <tr>
+                <th>Вага</th>
+                <td>{{ current_variant.weight | weight_with_unit }}</td>
+              </tr>
+            {% endif %}
+            {% for option in product.options_with_values %}
+              {% liquid
+                assign spec_option_name_downcase = option.name | downcase
+                assign spec_option_label = 'Опція ' | append: option.position
+
+                if spec_option_name_downcase contains 'color' or spec_option_name_downcase contains 'colour' or spec_option_name_downcase contains 'колір' or spec_option_name_downcase contains 'цвет'
+                  assign spec_option_label = 'Колір'
+                elsif spec_option_name_downcase contains 'memory' or spec_option_name_downcase contains 'пам' or spec_option_name_downcase contains 'пам’ять'
+                  assign spec_option_label = 'Пам’ять'
+                elsif spec_option_name_downcase contains 'storage' or spec_option_name_downcase contains 'накопичувач' or spec_option_name_downcase contains 'ємність'
+                  assign spec_option_label = 'Накопичувач'
+                elsif spec_option_name_downcase contains 'size' or spec_option_name_downcase contains 'розмір'
+                  assign spec_option_label = 'Розмір'
+                endif
+              %}
+              <tr>
+                <th>{{ spec_option_label }}</th>
+                <td data-bazar-option-spec="{{ option.position }}">{{ option.selected_value }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="bazar-product-tabs__panel" role="tabpanel" id="BazarTabReviews-{{ section.id }}" data-bazar-panel="reviews" hidden>
+        <div class="bazar-product-reviews" id="bazar-product-reviews">
+          <div class="bazar-product-reviews__summary">
+            <strong>{% if rating_count > 0 %}{{ rating_value }}/5{% else %}0/5{% endif %}</strong>
+            <span>{% if rating_count > 0 %}На основі {{ rating_count }} відгуків{% else %}Відгуків поки що немає{% endif %}</span>
+          </div>
+          <div class="bazar-product-reviews__content">
+            {% content_for 'blocks' %}
+            {% if rating_count == 0 %}
+              <p class="bazar-product__empty-text">Станьте першим, хто залишить відгук про цей товар.</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="bazar-product-tabs__panel" role="tabpanel" id="BazarTabQuestions-{{ section.id }}" data-bazar-panel="questions" hidden>
+        <p class="bazar-product__empty-text">Питання щодо товару поки що відсутні.</p>
+      </div>
+
+      <div class="bazar-product-tabs__panel" role="tabpanel" id="BazarTabDelivery-{{ section.id }}" data-bazar-panel="delivery" hidden>
+        <div class="bazar-product-delivery">
+          <p><strong>Доставка:</strong> {{ section.settings.delivery_text }}</p>
+          <p><strong>Оплата:</strong> {{ section.settings.payment_text }}</p>
+          <p><strong>Повернення:</strong> {{ section.settings.return_text }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="application/json" data-bazar-product-variants>
+    [
+      {% for variant in product.variants %}
+        {
+          "id": {{ variant.id | json }},
+          "available": {{ variant.available | json }},
+          "options": {{ variant.options | json }},
+          "price": {{ variant.price | json }},
+          "priceText": {{ variant.price | money | json }},
+          "compareAtPrice": {{ variant.compare_at_price | json }},
+          "compareAtPriceText": {{ variant.compare_at_price | money | json }},
+          "savingsText": {% if variant.compare_at_price > variant.price %}{{ variant.compare_at_price | minus: variant.price | money | json }}{% else %}null{% endif %},
+          "sku": {{ variant.sku | json }},
+          "barcode": {{ variant.barcode | json }},
+          "url": {{ variant.url | json }},
+          "featuredMediaId": {{ variant.featured_media.id | json }},
+          "quantityMin": {{ variant.quantity_rule.min | default: 1 | json }}
+        }{% unless forloop.last %},{% endunless %}
+      {% endfor %}
+    ]
+  </script>
+
+  <script type="application/json" data-bazar-current-product>
+    {
+      "id": {{ product.id | json }},
+      "title": {{ product.title | json }},
+      "url": {{ product.url | json }},
+      "price": {{ current_price | money | json }},
+      "image": {% if product.featured_image != blank %}{{ product.featured_image | image_url: width: 520 | json }}{% else %}null{% endif %}
+    }
+  </script>
+</section>
+
+{% schema %}
+{
+  "name": "BAZAR Сторінка товару",
+  "enabled_on": {
+    "templates": ["product"]
+  },
+  "blocks": [
+    {
+      "type": "@app"
+    }
+  ],
+  "settings": [
+    {
+      "type": "text",
+      "id": "delivery_text",
+      "label": "Текст доставки",
+      "default": "Доставка по Україні зручним для вас способом."
+    },
+    {
+      "type": "text",
+      "id": "payment_text",
+      "label": "Текст оплати",
+      "default": "Оплата карткою, онлайн або під час отримання."
+    },
+    {
+      "type": "text",
+      "id": "return_text",
+      "label": "Текст повернення",
+      "default": "Повернення згідно з умовами магазину та законодавством України."
+    },
+    {
+      "type": "text",
+      "id": "guarantee_text",
+      "label": "Текст гарантії",
+      "default": "Ми перевіряємо продавців і допомагаємо з підтримкою після покупки."
+    }
+  ],
+  "presets": [
+    {
+      "name": "BAZAR Сторінка товару"
+    }
+  ]
+}
+{% endschema %}

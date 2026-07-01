@@ -1,0 +1,81 @@
+<script src="{{ 'product-recommendations.js' | asset_url }}" type="module" fetchpriority="low"></script>
+
+{% liquid
+  assign max_products = section.settings.max_products
+%}
+
+<product-recommendations
+  id="product-recommendations-{{ section.id }}"
+  class="bazar-product-related"
+  data-url="{{ routes.product_recommendations_url }}?limit={{ max_products }}"
+  data-section-id="{{ section.id }}"
+  data-product-id="{{ product.id }}"
+  data-intent="related"
+  data-recommendations-performed="{{ recommendations.performed }}"
+>
+  <div class="bazar-container">
+    <div class="bazar-product-section-header">
+      <p class="bazar-product-section-header__eyebrow">Добірка</p>
+      <h2>Рекомендовані товари</h2>
+    </div>
+
+    {% if recommendations.performed %}
+      {% liquid
+        assign recommended_products = recommendations.products
+        if recommendations.products_count == 0
+          assign recommended_products = collections.all.products | reject: 'id', product.id
+        endif
+      %}
+
+      {% if recommended_products.size > 0 %}
+        <div class="bazar-product-carousel" role="list">
+          {% for recommended_product in recommended_products limit: max_products %}
+            <div class="bazar-product-carousel__item" role="listitem">
+              {% render 'bazar-product-card', product: recommended_product, show_vendor: false %}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="bazar-product__empty-text">Рекомендовані товари поки що відсутні.</p>
+      {% endif %}
+    {% else %}
+      <div class="bazar-product-carousel bazar-product-carousel--loading" aria-label="Завантаження рекомендованих товарів">
+        {% for index in (1..4) %}
+          <div class="bazar-product-card bazar-product-card--placeholder" aria-hidden="true">
+            <span class="bazar-product-card__media"></span>
+            <span class="bazar-product-card__body">
+              <span class="bazar-product-card__placeholder-line"></span>
+              <span class="bazar-product-card__placeholder-line bazar-product-card__placeholder-line--short"></span>
+              <span class="bazar-product-card__placeholder-line bazar-product-card__placeholder-line--price"></span>
+            </span>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+</product-recommendations>
+
+{% schema %}
+{
+  "name": "BAZAR Рекомендовані товари",
+  "enabled_on": {
+    "templates": ["product"]
+  },
+  "settings": [
+    {
+      "type": "range",
+      "id": "max_products",
+      "label": "Кількість товарів",
+      "min": 4,
+      "max": 12,
+      "step": 4,
+      "default": 8
+    }
+  ],
+  "presets": [
+    {
+      "name": "BAZAR Рекомендовані товари"
+    }
+  ]
+}
+{% endschema %}

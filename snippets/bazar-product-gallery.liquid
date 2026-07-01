@@ -1,0 +1,121 @@
+{% doc %}
+  BAZAR product gallery with vertical thumbnails, main media and image zoom.
+
+  @param {product} product - Shopify product object.
+  @param {variant} current_variant - Selected or first available variant.
+{% enddoc %}
+
+{% liquid
+  assign featured_media = current_variant.featured_media | default: product.featured_media
+  assign active_media_id = featured_media.id | default: product.media.first.id
+%}
+
+<div class="bazar-product-gallery" data-bazar-gallery>
+  {% if product.media.size > 1 %}
+    <div class="bazar-product-gallery__thumbs" aria-label="Медіа товару">
+      {% for media in product.media %}
+        {% liquid
+          assign thumb_alt = media.alt | default: product.title
+          assign thumb_image = media.preview_image
+        %}
+        <button
+          class="bazar-product-gallery__thumb{% if media.id == active_media_id %} is-active{% endif %}"
+          type="button"
+          data-bazar-thumb
+          data-media-id="{{ media.id }}"
+          aria-label="Показати медіа {{ forloop.index }}"
+          aria-pressed="{% if media.id == active_media_id %}true{% else %}false{% endif %}"
+        >
+          {% if thumb_image != blank %}
+            {{
+              thumb_image
+              | image_url: width: 160
+              | image_tag: class: 'bazar-product-gallery__thumb-image', loading: 'lazy', alt: thumb_alt
+            }}
+          {% else %}
+            {{ 'product-apparel-1' | placeholder_svg_tag }}
+          {% endif %}
+
+          {% if media.media_type == 'video' or media.media_type == 'external_video' %}
+            <span class="bazar-product-gallery__media-badge" aria-hidden="true">
+              {{ 'icon-play.svg' | inline_asset_content }}
+            </span>
+          {% endif %}
+        </button>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="bazar-product-gallery__main">
+    {% if product.media.size > 0 %}
+      {% for media in product.media %}
+        <div
+          class="bazar-product-gallery__item{% unless media.id == active_media_id %} is-hidden{% endunless %}"
+          data-bazar-media
+          data-media-id="{{ media.id }}"
+          data-media-type="{{ media.media_type }}"
+        >
+          {% case media.media_type %}
+            {% when 'image' %}
+              {% liquid
+                assign image_alt = media.alt | default: product.title
+                assign main_image = media.preview_image
+                assign zoom_src = main_image | image_url: width: 1800
+                assign image_loading = 'lazy'
+                if forloop.first
+                  assign image_loading = 'eager'
+                endif
+              %}
+              <button
+                class="bazar-product-gallery__zoom-button"
+                type="button"
+                data-bazar-zoom
+                data-zoom-src="{{ zoom_src }}"
+                data-zoom-alt="{{ image_alt | escape }}"
+                aria-label="Збільшити зображення"
+              >
+                {{
+                  main_image
+                  | image_url: width: 1100
+                  | image_tag:
+                    class: 'bazar-product-gallery__image',
+                    loading: image_loading,
+                    alt: image_alt,
+                    sizes: '(min-width: 990px) 52vw, 100vw'
+                }}
+              </button>
+            {% when 'video' %}
+              {{
+                media
+                | video_tag:
+                  controls: true,
+                  image_size: '1100x',
+                  class: 'bazar-product-gallery__video'
+              }}
+            {% when 'external_video' %}
+              {{
+                media
+                | external_video_tag: class: 'bazar-product-gallery__video'
+              }}
+            {% when 'model' %}
+              {{
+                media
+                | model_viewer_tag: class: 'bazar-product-gallery__model'
+              }}
+          {% endcase %}
+        </div>
+      {% endfor %}
+    {% elsif request.design_mode or request.visual_preview_mode %}
+      <div class="bazar-product-gallery__item">
+        {{ 'product-apparel-1' | placeholder_svg_tag }}
+      </div>
+    {% endif %}
+  </div>
+
+  <dialog class="bazar-product-gallery__dialog" data-bazar-zoom-dialog aria-label="Збільшене зображення">
+    <button class="bazar-product-gallery__dialog-close" type="button" data-bazar-zoom-close aria-label="Закрити">
+      ×
+    </button>
+    <img class="bazar-product-gallery__dialog-image" data-bazar-zoom-image alt="">
+  </dialog>
+</div>
