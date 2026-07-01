@@ -334,7 +334,7 @@ html.bazar-catalog-scroll-lock body {
 .bazar-catalog-menu__main,
 .bazar-catalog-menu__subcategories {
   min-width: 0;
-  padding: 18px;
+  padding: 16px 18px 18px;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-color: rgba(17, 115, 245, 0.38) transparent;
@@ -360,16 +360,9 @@ html.bazar-catalog-scroll-lock body {
 }
 
 .bazar-catalog-menu__main {
+  padding-block-start: 12px;
   border-inline-end: 1px solid var(--bazar-header-border);
   background: #fbfdff;
-}
-
-.bazar-catalog-menu__eyebrow {
-  margin: 0 0 12px;
-  color: var(--bazar-header-navy);
-  font-size: 14px;
-  font-weight: 900;
-  line-height: 1.2;
 }
 
 .bazar-catalog-menu__categories,
@@ -423,8 +416,10 @@ html.bazar-catalog-scroll-lock body {
   flex: 0 0 auto;
   overflow: hidden;
   border-radius: 14px;
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px rgba(17, 115, 245, 0.12);
   color: var(--bazar-header-blue);
-  transition: color 150ms ease, transform 150ms ease;
+  transition: box-shadow 150ms ease, color 150ms ease, transform 150ms ease;
 }
 
 .bazar-catalog-menu__category-icon {
@@ -510,14 +505,18 @@ html.bazar-catalog-scroll-lock body {
 .bazar-catalog-menu__category-link:hover .bazar-catalog-menu__category-icon,
 .bazar-catalog-menu__category-link:focus-visible .bazar-catalog-menu__category-icon,
 .bazar-catalog-menu__category-link.is-active .bazar-catalog-menu__category-icon,
-.bazar-catalog-menu__subcategory-link:hover,
-.bazar-catalog-menu__subcategory-link:focus-visible {
-  color: #ffffff;
+.bazar-catalog-menu__subcategory-link:hover .bazar-catalog-menu__subcategory-icon,
+.bazar-catalog-menu__subcategory-link:focus-visible .bazar-catalog-menu__subcategory-icon {
+  box-shadow:
+    inset 0 0 0 1px rgba(17, 115, 245, 0.18),
+    0 0 0 2px rgba(255, 255, 255, 0.9);
+  color: var(--bazar-header-blue);
 }
 
 .bazar-catalog-menu__subcategory-link:hover,
 .bazar-catalog-menu__subcategory-link:focus-visible {
   background: var(--bazar-header-blue);
+  color: #ffffff;
   outline: none;
   text-decoration: none;
   transform: translateY(-1px);

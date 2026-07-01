@@ -8,7 +8,6 @@
 {% liquid
   assign icon_label = label | strip
   assign icon_type = 'box'
-  assign icon_mark = icon_label | slice: 0, 2 | upcase
 
   case icon_label
     when 'Електроніка'
@@ -22,7 +21,7 @@
     when 'Дім та сад'
       assign icon_type = 'home'
     when 'Будівництво та ремонт'
-      assign icon_type = 'tools'
+      assign icon_type = 'construction'
     when 'Авто та мото'
       assign icon_type = 'car'
     when 'Спорт та відпочинок'
@@ -30,7 +29,7 @@
     when "Краса та здоров'я"
       assign icon_type = 'beauty'
     when 'Дитячі товари'
-      assign icon_type = 'kids'
+      assign icon_type = 'baby'
     when 'Зоотовари'
       assign icon_type = 'pets'
     when 'Книги'
@@ -77,8 +76,12 @@
       assign icon_type = 'charger'
     when 'Power Bank'
       assign icon_type = 'powerbank'
-    when 'Аксесуари', 'Автоаксесуари', 'Мотоаксесуари'
-      assign icon_type = 'accessory'
+    when 'Аксесуари'
+      assign icon_type = 'phone-case'
+    when 'Автоаксесуари'
+      assign icon_type = 'car-accessory'
+    when 'Мотоаксесуари'
+      assign icon_type = 'helmet'
     when 'Холодильники'
       assign icon_type = 'fridge'
     when 'Пральні машини'
@@ -164,7 +167,7 @@
     when 'Електроінструмент'
       assign icon_type = 'drill'
     when 'Ручний інструмент'
-      assign icon_type = 'hammer'
+      assign icon_type = 'hand-tool'
     when 'Будівельні матеріали'
       assign icon_type = 'bricks'
     when 'Лакофарбові матеріали'
@@ -174,7 +177,7 @@
     when 'Електрика'
       assign icon_type = 'bolt'
     when 'Кріплення'
-      assign icon_type = 'fastener'
+      assign icon_type = 'screw'
     when 'Драбини'
       assign icon_type = 'ladder'
     when 'Автозапчастини'
@@ -204,7 +207,7 @@
     when 'Риболовля'
       assign icon_type = 'fish'
     when 'Полювання'
-      assign icon_type = 'target'
+      assign icon_type = 'binoculars'
     when "М'ячі"
       assign icon_type = 'ball'
     when 'Косметика'
@@ -236,7 +239,7 @@
     when 'Підгузки'
       assign icon_type = 'diaper'
     when 'Харчування'
-      assign icon_type = 'food'
+      assign icon_type = 'baby-food'
     when 'Шкільне приладдя'
       assign icon_type = 'school'
     when 'Корм для собак'
@@ -252,19 +255,19 @@
     when 'Товари для гризунів'
       assign icon_type = 'hamster'
     when 'Товари для птахів'
-      assign icon_type = 'bird'
+      assign icon_type = 'bird-cage'
     when 'Художня література'
-      assign icon_type = 'fiction'
+      assign icon_type = 'book'
     when 'Бізнес'
-      assign icon_type = 'briefcase'
+      assign icon_type = 'book'
     when 'Саморозвиток'
-      assign icon_type = 'star'
+      assign icon_type = 'book'
     when 'Навчальна література'
-      assign icon_type = 'education'
+      assign icon_type = 'book'
     when 'Дитячі книги'
-      assign icon_type = 'kids-book'
+      assign icon_type = 'book'
     when 'Комікси'
-      assign icon_type = 'comics'
+      assign icon_type = 'book'
     when 'Папір'
       assign icon_type = 'paper'
     when 'Ручки'
@@ -366,6 +369,11 @@
       {% when 'accessory' %}
         <path d="M18 20h20l10 10-24 24-10-10 24-24" />
         <circle cx="32" cy="26" r="3" />
+      {% when 'phone-case' %}
+        <rect x="21" y="13" width="22" height="38" rx="7" />
+        <rect x="26" y="19" width="12" height="24" rx="3" />
+        <circle cx="36" cy="18" r="2" />
+        <path d="M29 48h6" />
       {% when 'phone' %}
         <rect x="23" y="13" width="18" height="38" rx="5" />
         <path d="M29 45h6" />
@@ -428,10 +436,14 @@
       {% when 'fridge' %}
         <rect x="21" y="10" width="22" height="44" rx="4" />
         <path d="M21 29h22M27 19v4M27 36v6" />
-      {% when 'washer', 'dishwasher' %}
+      {% when 'washer' %}
         <rect x="18" y="13" width="28" height="38" rx="5" />
         <path d="M18 24h28M24 19h.1M30 19h.1" />
         <circle cx="32" cy="37" r="9" />
+      {% when 'dishwasher' %}
+        <rect x="18" y="13" width="28" height="38" rx="5" />
+        <path d="M18 24h28M24 19h.1M30 19h.1M24 32h16M24 39h16" />
+        <path d="M26 32v9M32 32v9M38 32v9" />
       {% when 'cooktop' %}
         <rect x="15" y="16" width="34" height="32" rx="5" />
         <circle cx="25" cy="27" r="5" />
@@ -455,9 +467,14 @@
       {% when 'heater' %}
         <rect x="18" y="16" width="28" height="34" rx="5" />
         <path d="M24 26h16M24 34h16M24 42h16" />
-      {% when 'coffee', 'kettle' %}
+      {% when 'coffee' %}
+        <rect x="21" y="17" width="22" height="31" rx="4" />
+        <path d="M26 17v-4h12v4M25 27h14M28 48h8" />
+        <path d="M43 31h4v8h-4" />
+        <circle cx="32" cy="37" r="5" />
+      {% when 'kettle' %}
         <path d="M19 25h25v13a10 10 0 0 1-10 10h-5a10 10 0 0 1-10-10V25Z" />
-        <path d="M44 29h3a5 5 0 0 1 0 10h-3M25 16c-2 3 2 4 0 7M33 16c-2 3 2 4 0 7" />
+        <path d="M44 29h3a5 5 0 0 1 0 10h-3M19 27l-5 6M25 16c-2 3 2 4 0 7M33 16c-2 3 2 4 0 7" />
       {% when 'pot' %}
         <path d="M17 28h30l-3 20H20l-3-20Z" />
         <path d="M24 21h16M29 17h6M13 31h4M47 31h4" />
@@ -523,10 +540,18 @@
       {% when 'plant' %}
         <path d="M32 49V29" />
         <path d="M32 30c-12 0-14-12-14-12 11 0 14 8 14 12ZM32 36c12 0 14-12 14-12-11 0-14 8-14 12Z" />
+      {% when 'construction' %}
+        <path d="M18 33a14 14 0 0 1 28 0" />
+        <path d="M14 36h36" />
+        <path d="M23 33v-9M32 33V20M41 33v-9" />
+        <path d="M21 48 43 26M39 48l-8-8" />
       {% when 'tools', 'drill' %}
         <path d="M18 22h22l8 8-8 8H29v12H19V38h-4V28h4V22Z" />
       {% when 'hammer' %}
         <path d="M24 17h16l6 6-6 6-6-6-18 18-6-6 18-18Z" />
+      {% when 'hand-tool' %}
+        <path d="M22 18h16l5 5-5 5-5-5-17 17-6-6 17-17Z" />
+        <path d="M38 42l8 8M46 42l-8 8" />
       {% when 'bricks' %}
         <path d="M14 20h16v10H14zM34 20h16v10H34zM24 34h16v10H24zM14 34h6v10h-6zM44 34h6v10h-6z" />
       {% when 'paint' %}
@@ -536,9 +561,9 @@
         <path d="M18 20h18v10H18zM36 25h10v22H27V35" />
       {% when 'bolt' %}
         <path d="M35 10 18 34h12l-2 20 18-27H34l1-17Z" />
-      {% when 'fastener' %}
-        <circle cx="32" cy="32" r="15" />
-        <path d="M23 32h18M32 23v18" />
+      {% when 'screw' %}
+        <path d="M22 42 42 22l5 5-20 20-8 3 3-8Z" />
+        <path d="M37 27 42 32M31 33l5 5M25 39l5 5" />
       {% when 'ladder' %}
         <path d="M23 13 17 51M41 13l6 38M21 25h22M19 36h26M18 47h28" />
       {% when 'car' %}
@@ -546,6 +571,11 @@
         <circle cx="23" cy="43" r="5" />
         <circle cx="41" cy="43" r="5" />
         <path d="M18 37h28" />
+      {% when 'car-accessory' %}
+        <path d="M15 36h25l-3-10H19l-4 10Z" />
+        <circle cx="22" cy="42" r="4" />
+        <circle cx="36" cy="42" r="4" />
+        <path d="M45 21v14M38 28h14" />
       {% when 'gear' %}
         <circle cx="32" cy="32" r="8" />
         <path d="M32 13v8M32 43v8M13 32h8M43 32h8M19 19l6 6M39 39l6 6M45 19l-6 6M25 39l-6 6" />
@@ -565,6 +595,9 @@
         <circle cx="25" cy="45" r="4" />
         <circle cx="40" cy="45" r="4" />
         <path d="M26 29v-8h12v8" />
+      {% when 'helmet' %}
+        <path d="M16 35a16 16 0 0 1 32-1v10H30a14 14 0 0 1-14-9Z" />
+        <path d="M31 28h17M40 34h8M25 44h13" />
       {% when 'bike' %}
         <circle cx="20" cy="42" r="8" />
         <circle cx="46" cy="42" r="8" />
@@ -586,6 +619,10 @@
         <circle cx="32" cy="32" r="18" />
         <circle cx="32" cy="32" r="10" />
         <circle cx="32" cy="32" r="3" />
+      {% when 'binoculars' %}
+        <path d="M18 25h10l4 8 4-8h10v23H34l-2-8-2 8H18V25Z" />
+        <circle cx="24" cy="39" r="5" />
+        <circle cx="40" cy="39" r="5" />
       {% when 'ball' %}
         <circle cx="32" cy="32" r="18" />
         <path d="M20 20c7 6 17 6 24 0M20 44c7-6 17-6 24 0M32 14v36" />
@@ -612,6 +649,10 @@
         <circle cx="23" cy="24" r="7" />
         <circle cx="41" cy="24" r="7" />
         <path d="M23 31v18M41 31v18M23 40h18" />
+      {% when 'baby' %}
+        <circle cx="32" cy="31" r="13" />
+        <path d="M24 23c-2-5 4-8 8-4 4-4 10-1 8 4M22 48c4-5 16-5 20 0" />
+        <path d="M27 33h.1M37 33h.1M29 39c2 2 4 2 6 0" />
       {% when 'kids', 'toy' %}
         <path d="M22 24h20v20H22z" />
         <path d="M22 24 16 18M42 24l6-6M25 44l-4 7M39 44l4 7" />
@@ -635,6 +676,9 @@
       {% when 'food' %}
         <path d="M21 19h22l-3 31H24L21 19Z" />
         <path d="M25 13h14M26 31h12" />
+      {% when 'baby-food' %}
+        <path d="M25 18h14v7l5 8v16H20V33l5-8V18Z" />
+        <path d="M27 13h10v5H27zM25 35h14M26 43h12" />
       {% when 'school' %}
         <path d="M32 14 12 25l20 11 20-11-20-11Z" />
         <path d="M20 30v12c7 6 17 6 24 0V30" />
@@ -659,6 +703,10 @@
       {% when 'bird' %}
         <path d="M21 37c5-16 25-16 27 0-8 4-18 4-27 0Z" />
         <path d="M25 32 15 25M39 25l10-7M31 44v7" />
+      {% when 'bird-cage' %}
+        <path d="M20 50V28a12 12 0 0 1 24 0v22H20Z" />
+        <path d="M20 38h24M26 29v21M32 22v28M38 29v21" />
+        <path d="M29 36c3-4 8-4 11 0-4 3-8 3-11 0Z" />
       {% when 'book', 'fiction', 'education', 'kids-book', 'comics' %}
         <path d="M18 15h18a8 8 0 0 1 8 8v28H26a8 8 0 0 0-8-8V15Z" />
         <path d="M18 43a8 8 0 0 1 8-8h18M26 23h12M26 30h12" />
@@ -695,25 +743,4 @@
         <path d="M24 30h16M24 38h12" />
     {% endcase %}
   </g>
-
-  <rect
-    x="21"
-    y="49"
-    width="22"
-    height="10"
-    rx="5"
-    fill="#ffffff"
-    opacity=".9"
-  />
-  <text
-    x="32"
-    y="56.5"
-    text-anchor="middle"
-    fill="currentColor"
-    font-family="Inter, system-ui, sans-serif"
-    font-size="6.8"
-    font-weight="800"
-  >
-    {{ icon_mark }}
-  </text>
 </svg>
