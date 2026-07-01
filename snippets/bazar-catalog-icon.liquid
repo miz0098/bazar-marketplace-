@@ -297,16 +297,34 @@
     when 0
       assign accent_x = 47
       assign accent_y = 16
+      assign accent_color = '#1173f5'
+      assign object_start = '#f8fbff'
+      assign object_end = '#8bbdff'
+      assign detail_color = '#0f3f86'
     when 1
       assign accent_x = 49
       assign accent_y = 47
+      assign accent_color = '#14b8a6'
+      assign object_start = '#f7fffd'
+      assign object_end = '#87e2d6'
+      assign detail_color = '#0f5d68'
     when 2
       assign accent_x = 16
       assign accent_y = 49
+      assign accent_color = '#f59e0b'
+      assign object_start = '#fffaf0'
+      assign object_end = '#f8c76c'
+      assign detail_color = '#7a4b09'
     else
       assign accent_x = 16
       assign accent_y = 16
+      assign accent_color = '#f9737a'
+      assign object_start = '#fff7f8'
+      assign object_end = '#f7a6ad'
+      assign detail_color = '#82303e'
   endcase
+
+  assign icon_id = 'bazar-catalog-icon-' | append: icon_type | append: '-' | append: icon_variant
 %}
 
 <svg
@@ -316,38 +334,83 @@
   focusable="false"
   aria-label="{{ icon_label | escape }}"
 >
+  <defs>
+    <linearGradient
+      id="{{ icon_id }}-card"
+      x1="12"
+      y1="6"
+      x2="52"
+      y2="58"
+      gradientUnits="userSpaceOnUse"
+    >
+      <stop stop-color="#ffffff" />
+      <stop offset=".58" stop-color="#f8fafc" />
+      <stop offset="1" stop-color="#eef3f9" />
+    </linearGradient>
+    <linearGradient
+      id="{{ icon_id }}-object"
+      x1="18"
+      y1="12"
+      x2="46"
+      y2="52"
+      gradientUnits="userSpaceOnUse"
+    >
+      <stop stop-color="{{ object_start }}" />
+      <stop offset=".42" stop-color="{{ accent_color }}" />
+      <stop offset="1" stop-color="{{ object_end }}" />
+    </linearGradient>
+    <filter
+      id="{{ icon_id }}-object-shadow"
+      x="-24%"
+      y="-18%"
+      width="148%"
+      height="150%"
+      color-interpolation-filters="sRGB"
+    >
+      <feDropShadow
+        dx="0"
+        dy="2.2"
+        stdDeviation="1.4"
+        flood-color="#0f172a"
+        flood-opacity=".16"
+      />
+    </filter>
+  </defs>
+
   <rect
-    x="3"
-    y="3"
-    width="58"
-    height="58"
-    rx="18"
-    fill="#eff6ff"
-  />
-  <rect
-    x="3.5"
-    y="3.5"
-    width="57"
-    height="57"
-    rx="17.5"
-    fill="none"
-    stroke="#d8e8ff"
+    x="5"
+    y="5"
+    width="54"
+    height="54"
+    rx="17"
+    fill="url(#{{ icon_id }}-card)"
+    stroke="#e5edf7"
   />
   <circle
     cx="{{ accent_x }}"
     cy="{{ accent_y }}"
-    r="4"
-    fill="#1173f5"
-    opacity=".18"
+    r="8"
+    fill="{{ accent_color }}"
+    opacity=".1"
+  />
+  <ellipse
+    cx="32"
+    cy="51"
+    rx="13"
+    ry="3.2"
+    fill="#0f172a"
+    opacity=".09"
   />
 
   <g
     class="bazar-catalog-icon__glyph"
-    fill="none"
-    stroke="currentColor"
+    fill="url(#{{ icon_id }}-object)"
+    fill-opacity=".95"
+    stroke="{{ detail_color }}"
     stroke-linecap="round"
     stroke-linejoin="round"
-    stroke-width="3"
+    stroke-width="2.35"
+    filter="url(#{{ icon_id }}-object-shadow)"
   >
     {% case icon_type %}
       {% when 'devices' %}
