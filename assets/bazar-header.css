@@ -433,9 +433,25 @@ html.bazar-catalog-scroll-lock body {
 }
 
 .bazar-catalog-icon {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   height: 100%;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  font-size: 23px;
+  line-height: 1;
+  filter: drop-shadow(0 1px 1px rgba(15, 23, 42, 0.14));
+  transform: translateY(-0.5px);
+  user-select: none;
+}
+
+.bazar-catalog-menu__category-icon .bazar-catalog-icon {
+  font-size: 19px;
+}
+
+.bazar-catalog-menu__subcategory-icon .bazar-catalog-icon {
+  font-size: 25px;
 }
 
 .bazar-catalog-menu__category-title {
