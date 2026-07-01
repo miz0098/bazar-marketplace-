@@ -1,0 +1,41 @@
+<svg
+  class="bazar-logo__svg"
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 246 72"
+  fill="none"
+  aria-hidden="true"
+  focusable="false"
+>
+  <g transform="translate(12.3 3.6) scale(0.9)">
+    <path
+      d="M22 21v-6C22 7.3 28.3 1 36 1s14 6.3 14 14v6"
+      stroke="#2563ff"
+      stroke-width="8"
+      stroke-linecap="round"
+    />
+    <path
+      d="M12.4 22h47.2c4.1 0 7.5 3.1 7.9 7.2l3.5 33.9c.5 4.7-3.2 8.9-7.9 8.9H8.9C4.2 72 .5 67.8 1 63.1L4.5 29.2C4.9 25.1 8.3 22 12.4 22Z"
+      fill="#2563ff"
+    />
+    <text
+      x="36"
+      y="48"
+      fill="#fff"
+      dominant-baseline="middle"
+      font-family="Inter, Arial, Helvetica, sans-serif"
+      font-size="38"
+      font-weight="900"
+      text-anchor="middle"
+    >B</text>
+    <text
+      x="91"
+      y="50"
+      fill="#07143b"
+      dominant-baseline="middle"
+      font-family="Inter, Arial, Helvetica, sans-serif"
+      font-size="48"
+      font-weight="900"
+      letter-spacing="2"
+    >BAZAR</text>
+  </g>
+</svg>
