@@ -1,0 +1,63 @@
+{% doc %}
+  BAZAR product card for collection-driven home sections.
+
+  @param {product} [product] - Shopify product object.
+  @param {boolean} [show_vendor] - Whether to show the product vendor.
+  @param {number} [placeholder_index] - Placeholder image index for preview mode.
+{% enddoc %}
+
+{% liquid
+  assign show_placeholder = false
+  if product == blank and request.design_mode
+    assign show_placeholder = true
+  elsif product == blank and request.visual_preview_mode
+    assign show_placeholder = true
+  endif
+%}
+
+{% if product != blank %}
+  {% liquid
+    assign product_image_alt = product.featured_image.alt | default: product.title
+  %}
+  <a
+    class="bazar-product-card"
+    href="{{ product.url }}"
+  >
+    <span class="bazar-product-card__media">
+      {% if product.featured_image != blank %}
+        {{
+          product.featured_image
+          | image_url: width: 640
+          | image_tag: class: 'bazar-product-card__image', loading: 'lazy', alt: product_image_alt
+        }}
+      {% endif %}
+    </span>
+    <span class="bazar-product-card__body">
+      {% if show_vendor and product.vendor != blank %}
+        <span class="bazar-product-card__vendor">{{ product.vendor }}</span>
+      {% endif %}
+      <span class="bazar-product-card__title">{{ product.title }}</span>
+      <span class="bazar-product-card__price">
+        <span>{{ product.price | money }}</span>
+      </span>
+    </span>
+  </a>
+{% elsif show_placeholder %}
+  {% liquid
+    assign placeholder_number = placeholder_index | default: 1 | modulo: 3 | plus: 1
+    assign placeholder_name = 'product-apparel-' | append: placeholder_number
+  %}
+  <div
+    class="bazar-product-card bazar-product-card--placeholder"
+    aria-hidden="true"
+  >
+    <span class="bazar-product-card__media">
+      {{ placeholder_name | placeholder_svg_tag }}
+    </span>
+    <span class="bazar-product-card__body">
+      <span class="bazar-product-card__placeholder-line"></span>
+      <span class="bazar-product-card__placeholder-line bazar-product-card__placeholder-line--short"></span>
+      <span class="bazar-product-card__placeholder-line bazar-product-card__placeholder-line--price"></span>
+    </span>
+  </div>
+{% endif %}

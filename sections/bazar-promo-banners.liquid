@@ -1,0 +1,141 @@
+<section class="bazar-home bazar-home__section">
+  <div class="bazar-container">
+    {% if section.settings.heading != blank %}
+      <div class="bazar-home__header">
+        <div>
+          {% if section.settings.eyebrow != blank %}
+            <p class="bazar-home__eyebrow">{{ section.settings.eyebrow }}</p>
+          {% endif %}
+          <h2 class="bazar-home__title">{{ section.settings.heading }}</h2>
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="bazar-promo-grid">
+      {% for block in section.blocks %}
+        <article
+          class="bazar-promo-card bazar-promo-card--{{ block.settings.style }}"
+          {{ block.shopify_attributes }}
+        >
+          <div class="bazar-promo-card__content">
+            {% if block.settings.heading != blank %}
+              <h3 class="bazar-promo-card__title">{{ block.settings.heading }}</h3>
+            {% endif %}
+            {% if block.settings.text != blank %}
+              <p class="bazar-promo-card__text">{{ block.settings.text }}</p>
+            {% endif %}
+            {% if block.settings.link_label != blank %}
+              <a
+                class="bazar-button bazar-promo-card__link"
+                {% if block.settings.link != blank %}
+                  href="{{ block.settings.link }}"
+                {% else %}
+                  role="link"
+                  aria-disabled="true"
+                {% endif %}
+              >
+                {{ block.settings.link_label }}
+              </a>
+            {% endif %}
+          </div>
+          <div class="bazar-promo-card__media">
+            {% if block.settings.image != blank %}
+              {% liquid
+                assign promo_image_alt = block.settings.image.alt | default: block.settings.heading
+              %}
+              {{
+                block.settings.image
+                | image_url: width: 520
+                | image_tag: loading: 'lazy', class: 'bazar-promo-card__image', alt: promo_image_alt
+              }}
+            {% elsif request.design_mode or request.visual_preview_mode %}
+              {{ 'product-apparel-2' | placeholder_svg_tag }}
+            {% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "BAZAR Promo banners",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "Промо"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Актуальні пропозиції"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "banner",
+      "name": "Banner",
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading"
+        },
+        {
+          "type": "textarea",
+          "id": "text",
+          "label": "Text"
+        },
+        {
+          "type": "text",
+          "id": "link_label",
+          "label": "Link label"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "select",
+          "id": "style",
+          "label": "Style",
+          "options": [
+            {
+              "value": "blue",
+              "label": "Blue"
+            },
+            {
+              "value": "soft",
+              "label": "Soft"
+            }
+          ],
+          "default": "blue"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "BAZAR Promo banners",
+      "blocks": [
+        {
+          "type": "banner"
+        },
+        {
+          "type": "banner"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

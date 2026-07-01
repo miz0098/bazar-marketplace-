@@ -1,0 +1,118 @@
+<section class="bazar-home bazar-home-hero">
+  <div class="bazar-container">
+    <div class="bazar-home-hero__panel">
+      <div class="bazar-home-hero__content">
+        {% if section.settings.eyebrow != blank %}
+          <p class="bazar-home-hero__eyebrow">{{ section.settings.eyebrow }}</p>
+        {% endif %}
+        {% if section.settings.heading != blank %}
+          <h1 class="bazar-home-hero__title">{{ section.settings.heading }}</h1>
+        {% endif %}
+        {% if section.settings.text != blank %}
+          <p class="bazar-home-hero__text">{{ section.settings.text }}</p>
+        {% endif %}
+        <div class="bazar-home-hero__actions">
+          {% if section.settings.primary_label != blank %}
+            <a
+              class="bazar-button"
+              {% if section.settings.primary_link != blank %}
+                href="{{ section.settings.primary_link }}"
+              {% else %}
+                role="link"
+                aria-disabled="true"
+              {% endif %}
+            >
+              {{ section.settings.primary_label }}
+            </a>
+          {% endif %}
+          {% if section.settings.secondary_label != blank %}
+            <a
+              class="bazar-button bazar-button--secondary"
+              {% if section.settings.secondary_link != blank %}
+                href="{{ section.settings.secondary_link }}"
+              {% else %}
+                role="link"
+                aria-disabled="true"
+              {% endif %}
+            >
+              {{ section.settings.secondary_label }}
+            </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="bazar-home-hero__media">
+        {% if section.settings.image != blank %}
+          {% liquid
+            assign hero_image_alt = section.settings.image.alt | default: section.settings.heading
+          %}
+          {{
+            section.settings.image
+            | image_url: width: 1000
+            | image_tag: loading: 'eager', class: 'bazar-home-hero__image', alt: hero_image_alt
+          }}
+        {% elsif request.design_mode or request.visual_preview_mode %}
+          {{ 'hero-apparel-1' | placeholder_svg_tag }}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "BAZAR Home hero",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "BAZAR Marketplace"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Все для щоденних покупок"
+    },
+    {
+      "type": "textarea",
+      "id": "text",
+      "label": "Text",
+      "default": "Знаходьте товари, бренди та категорії в одному зручному маркетплейсі."
+    },
+    {
+      "type": "text",
+      "id": "primary_label",
+      "label": "Primary button label",
+      "default": "До каталогу"
+    },
+    {
+      "type": "url",
+      "id": "primary_link",
+      "label": "Primary button link"
+    },
+    {
+      "type": "text",
+      "id": "secondary_label",
+      "label": "Secondary button label",
+      "default": "Новинки"
+    },
+    {
+      "type": "url",
+      "id": "secondary_link",
+      "label": "Secondary button link"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Hero image"
+    }
+  ],
+  "presets": [
+    {
+      "name": "BAZAR Home hero"
+    }
+  ]
+}
+{% endschema %}
