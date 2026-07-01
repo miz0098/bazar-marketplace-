@@ -1,56 +1,57 @@
 {% liquid
+  assign selected_products = section.settings.product_list
   assign selected_collection = section.settings.collection
   assign products_to_show = section.settings.products_to_show
   assign has_products = false
-  if selected_collection != blank and selected_collection.products.size > 0
-    assign has_products = true
-  endif
 
-  assign show_placeholders = false
-  if has_products == false and request.design_mode
-    assign show_placeholders = true
-  elsif has_products == false and request.visual_preview_mode
-    assign show_placeholders = true
+  if selected_products != blank and selected_products.count > 0
+    assign has_products = true
+  elsif selected_collection != blank and selected_collection.products.size > 0
+    assign has_products = true
   endif
 %}
 
-{% if has_products or show_placeholders %}
-  <section class="bazar-home bazar-home__section{% if section.settings.background_style == 'soft' %} bazar-home__section--soft{% endif %}">
-    <div class="bazar-container">
-      <div class="bazar-home__header">
-        <div>
-          {% if section.settings.eyebrow != blank %}
-            <p class="bazar-home__eyebrow">{{ section.settings.eyebrow }}</p>
-          {% endif %}
-          <h2 class="bazar-home__title">{{ section.settings.heading }}</h2>
-          {% if section.settings.text != blank %}
-            <p class="bazar-home__text">{{ section.settings.text }}</p>
-          {% endif %}
-        </div>
-        {% if selected_collection != blank and section.settings.show_view_all %}
-          <a
-            class="bazar-button bazar-button--secondary"
-            href="{{ selected_collection.url }}"
-          >
-            {{ section.settings.view_all_label }}
-          </a>
+<section class="bazar-home bazar-home__section{% if section.settings.background_style == 'soft' %} bazar-home__section--soft{% endif %}">
+  <div class="bazar-container">
+    <div class="bazar-home__header">
+      <div>
+        {% if section.settings.eyebrow != blank %}
+          <p class="bazar-home__eyebrow">{{ section.settings.eyebrow }}</p>
+        {% endif %}
+        <h2 class="bazar-home__title">{{ section.settings.heading }}</h2>
+        {% if section.settings.text != blank %}
+          <p class="bazar-home__text">{{ section.settings.text }}</p>
         {% endif %}
       </div>
+      {% if selected_collection != blank and section.settings.show_view_all %}
+        <a
+          class="bazar-button bazar-button--secondary"
+          href="{{ selected_collection.url }}"
+        >
+          {{ section.settings.view_all_label }}
+        </a>
+      {% endif %}
+    </div>
 
+    {% if has_products %}
       <div class="bazar-product-rail__grid">
-        {% if has_products %}
+        {% if selected_products != blank and selected_products.count > 0 %}
+          {% for product in selected_products limit: products_to_show %}
+            {% render 'bazar-product-card', product: product, show_vendor: section.settings.show_vendor %}
+          {% endfor %}
+        {% elsif selected_collection != blank %}
           {% for product in selected_collection.products limit: products_to_show %}
             {% render 'bazar-product-card', product: product, show_vendor: section.settings.show_vendor %}
           {% endfor %}
-        {% else %}
-          {% for index in (1..4) %}
-            {% render 'bazar-product-card', product: blank, placeholder_index: index %}
-          {% endfor %}
         {% endif %}
       </div>
-    </div>
-  </section>
-{% endif %}
+    {% else %}
+      <div class="bazar-product-rail__empty">
+        <p>Товари для цієї добірки ще не обрано.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
 
 {% schema %}
 {
@@ -73,9 +74,15 @@
       "label": "Текст"
     },
     {
+      "type": "product_list",
+      "id": "product_list",
+      "label": "Обрані товари",
+      "limit": 12
+    },
+    {
       "type": "collection",
       "id": "collection",
-      "label": "Колекція"
+      "label": "Колекція як запасне джерело"
     },
     {
       "type": "range",

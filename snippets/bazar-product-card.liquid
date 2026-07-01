@@ -18,11 +18,16 @@
 {% if product != blank %}
   {% liquid
     assign product_image_alt = product.featured_image.alt | default: product.title
+    assign product_url = product.url
   %}
-  <a
-    class="bazar-product-card"
-    href="{{ product.url }}"
-  >
+  {% if product_url != blank %}
+    <a
+      class="bazar-product-card"
+      href="{{ product_url }}"
+    >
+  {% else %}
+    <article class="bazar-product-card bazar-product-card--disabled">
+  {% endif %}
     <span class="bazar-product-card__media">
       {% if product.featured_image != blank %}
         {{
@@ -41,7 +46,11 @@
         <span>{{ product.price | money }}</span>
       </span>
     </span>
-  </a>
+  {% if product_url != blank %}
+    </a>
+  {% else %}
+    </article>
+  {% endif %}
 {% elsif show_placeholder %}
   {% liquid
     assign placeholder_number = placeholder_index | default: 1 | modulo: 3 | plus: 1

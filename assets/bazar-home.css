@@ -205,6 +205,10 @@
   text-decoration: none;
 }
 
+.bazar-product-card--disabled {
+  pointer-events: none;
+}
+
 .bazar-product-card__media {
   position: relative;
   overflow: hidden;
@@ -280,6 +284,22 @@
 .bazar-product-card__placeholder-line--price {
   width: 34%;
   height: 16px;
+}
+
+.bazar-product-rail__empty {
+  padding: var(--bazar-space-xl);
+  border: 1px solid var(--bazar-color-border);
+  border-radius: var(--bazar-radius-sm);
+  background: var(--bazar-color-surface);
+  color: var(--bazar-color-muted);
+  font-size: var(--bazar-font-size-md);
+  font-weight: 700;
+  line-height: var(--bazar-line-height-base);
+  text-align: center;
+}
+
+.bazar-product-rail__empty p {
+  margin: 0;
 }
 
 .bazar-promo-grid {
