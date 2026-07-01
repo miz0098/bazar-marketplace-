@@ -7,7 +7,7 @@
 
 .bazar-footer__main {
   display: grid;
-  grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.9fr) minmax(168px, 0.55fr);
+  grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.9fr) minmax(160px, 0.55fr);
   gap: var(--bazar-space-2xl);
   padding-block: var(--bazar-space-3xl) var(--bazar-space-2xl);
 }
@@ -199,7 +199,7 @@ a.bazar-footer__support-item:hover .bazar-footer__support-link {
   display: inline-flex;
   align-items: center;
   gap: var(--bazar-space-sm);
-  width: 168px;
+  width: 160px;
   min-height: 48px;
   padding: 0 14px;
   border: 1px solid var(--bazar-color-border);
@@ -273,7 +273,7 @@ a.bazar-footer__support-item:hover .bazar-footer__support-link {
   }
 
   .bazar-footer__apps {
-    grid-template-columns: repeat(2, 168px);
+    grid-template-columns: repeat(2, 160px);
   }
 }
 
@@ -304,6 +304,6 @@ a.bazar-footer__support-item:hover .bazar-footer__support-link {
   }
 
   .bazar-footer__app-button {
-    width: min(100%, 168px);
+    width: min(100%, 160px);
   }
 }
