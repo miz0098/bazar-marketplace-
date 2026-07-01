@@ -1,0 +1,8 @@
+root: .
+
+ignore:
+  - node_modules/**
+  - .git/**
+  - .shopify/**
+  - dist/**
+  - coverage/**

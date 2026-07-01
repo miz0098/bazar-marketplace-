@@ -1,0 +1,15 @@
+{
+  "name": "bazar-marketplace-theme",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shopify Online Store 2.0 theme foundation for BAZAR Marketplace.",
+  "scripts": {
+    "theme:dev": "shopify theme dev",
+    "theme:check": "shopify theme check",
+    "theme:pull": "shopify theme pull",
+    "theme:push": "shopify theme push"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

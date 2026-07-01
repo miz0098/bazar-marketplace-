@@ -1,0 +1,15 @@
+.git/
+.github/
+.shopify/
+.DS_Store
+.env
+.env.*
+.editorconfig
+.gitignore
+.theme-check.yml
+README.md
+package.json
+node_modules/
+coverage/
+dist/
+**/.gitkeep

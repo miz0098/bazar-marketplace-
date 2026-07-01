@@ -1,0 +1,15 @@
+.DS_Store
+.env
+.env.*
+.shopify/
+node_modules/
+dist/
+coverage/
+
+# Merchant/store-specific Shopify data
+config/settings_data.json
+
+# Local dependency lock files can be added once the package manager is chosen.
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
