@@ -53,28 +53,6 @@
         >
       </div>
 
-      <label
-        class="visually-hidden"
-        for="BazarHeaderCategory-{{ section.id }}"
-      >
-        Категорія
-      </label>
-      <div class="bazar-header__category">
-        <select
-          id="BazarHeaderCategory-{{ section.id }}"
-          class="bazar-header__category-select"
-          aria-label="Категорія пошуку"
-        >
-          <option selected>Усі категорії</option>
-        </select>
-        <span
-          class="bazar-header__category-icon"
-          aria-hidden="true"
-        >
-          {{ 'icon-caret.svg' | inline_asset_content }}
-        </span>
-      </div>
-
       <button
         class="bazar-header__search-submit"
         type="submit"

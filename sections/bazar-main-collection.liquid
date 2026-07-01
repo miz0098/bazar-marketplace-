@@ -23,7 +23,7 @@
 
 <section class="bazar-catalog" data-bazar-catalog>
   <div class="bazar-container">
-    <nav class="bazar-catalog__breadcrumbs" aria-label="Breadcrumbs">
+    <nav class="bazar-catalog__breadcrumbs" aria-label="Навігаційний шлях">
       <a href="{{ routes.root_url }}">Головна</a>
       <span aria-hidden="true">/</span>
       <span>{{ collection.title | default: 'Каталог' }}</span>
@@ -42,7 +42,7 @@
     </header>
 
     <div class="bazar-catalog__layout">
-      <aside class="bazar-catalog__sidebar" aria-label="Catalog filters">
+      <aside class="bazar-catalog__sidebar" aria-label="Фільтри каталогу">
         {% if category_count > 0 %}
           <section class="bazar-catalog__panel">
             <h2 class="bazar-catalog__panel-title">Категорії</h2>
@@ -145,7 +145,7 @@
           </div>
 
           {% if active_filter_count > 0 %}
-            <div class="bazar-catalog__active-filters" aria-label="Active filters">
+            <div class="bazar-catalog__active-filters" aria-label="Активні фільтри">
               {% for filter in collection.filters %}
                 {% if filter.type == 'price_range' %}
                   {% if filter.min_value.value != null or filter.max_value.value != null %}
@@ -200,7 +200,7 @@
 
 {% schema %}
 {
-  "name": "BAZAR Catalog",
+  "name": "BAZAR Каталог",
   "enabled_on": {
     "templates": ["collection"]
   },
@@ -208,13 +208,13 @@
     {
       "type": "link_list",
       "id": "category_menu",
-      "label": "Category menu",
+      "label": "Меню категорій",
       "default": "main-menu"
     },
     {
       "type": "range",
       "id": "max_categories",
-      "label": "Maximum categories",
+      "label": "Максимум категорій",
       "min": 4,
       "max": 16,
       "step": 1,
@@ -223,7 +223,7 @@
     {
       "type": "range",
       "id": "products_per_page",
-      "label": "Products per page",
+      "label": "Товарів на сторінці",
       "min": 12,
       "max": 36,
       "step": 4,
@@ -232,13 +232,13 @@
     {
       "type": "checkbox",
       "id": "show_vendor",
-      "label": "Show vendor",
+      "label": "Показувати продавця",
       "default": false
     }
   ],
   "presets": [
     {
-      "name": "BAZAR Catalog"
+      "name": "BAZAR Каталог"
     }
   ]
 }

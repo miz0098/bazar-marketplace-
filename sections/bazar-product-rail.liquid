@@ -54,33 +54,33 @@
 
 {% schema %}
 {
-  "name": "BAZAR Product rail",
+  "name": "BAZAR Товарна добірка",
   "settings": [
     {
       "type": "text",
       "id": "eyebrow",
-      "label": "Eyebrow"
+      "label": "Надзаголовок"
     },
     {
       "type": "text",
       "id": "heading",
-      "label": "Heading",
-      "default": "Products"
+      "label": "Заголовок",
+      "default": "Товари"
     },
     {
       "type": "textarea",
       "id": "text",
-      "label": "Text"
+      "label": "Текст"
     },
     {
       "type": "collection",
       "id": "collection",
-      "label": "Collection"
+      "label": "Колекція"
     },
     {
       "type": "range",
       "id": "products_to_show",
-      "label": "Products to show",
+      "label": "Кількість товарів",
       "min": 4,
       "max": 12,
       "step": 4,
@@ -89,33 +89,33 @@
     {
       "type": "checkbox",
       "id": "show_vendor",
-      "label": "Show vendor",
+      "label": "Показувати продавця",
       "default": false
     },
     {
       "type": "checkbox",
       "id": "show_view_all",
-      "label": "Show view all",
+      "label": "Показувати посилання на всі товари",
       "default": true
     },
     {
       "type": "text",
       "id": "view_all_label",
-      "label": "View all label",
+      "label": "Текст посилання на всі товари",
       "default": "Дивитися всі"
     },
     {
       "type": "select",
       "id": "background_style",
-      "label": "Background",
+      "label": "Фон",
       "options": [
         {
           "value": "default",
-          "label": "Default"
+          "label": "Звичайний"
         },
         {
           "value": "soft",
-          "label": "Soft"
+          "label": "М’який"
         }
       ],
       "default": "default"
@@ -123,7 +123,7 @@
   ],
   "presets": [
     {
-      "name": "BAZAR Product rail"
+      "name": "BAZAR Товарна добірка"
     }
   ]
 }

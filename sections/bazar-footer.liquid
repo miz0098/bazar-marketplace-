@@ -1,9 +1,9 @@
 {{ 'bazar-footer.css' | asset_url | stylesheet_tag }}
 
 {% liquid
-  assign customer_links = 'Help Center|/pages/help,Delivery|/pages/delivery,Returns|/pages/returns' | split: ','
-  assign company_links = 'About BAZAR|/pages/about-bazar,Contacts|/pages/contact,Careers|/pages/careers' | split: ','
-  assign account_links = 'Profile|' | append: routes.account_url | append: ',Orders|' | append: routes.account_url | append: ',Favorites|/pages/wishlist' | split: ','
+  assign customer_links = 'Центр допомоги|/pages/help,Доставка|/pages/delivery,Повернення|/pages/returns' | split: ','
+  assign company_links = 'Про BAZAR|/pages/about-bazar,Контакти|/pages/contact,Кар’єра|/pages/careers,Публічна оферта|/pages/public-offer,Політика конфіденційності|/policies/privacy-policy,Умови використання|/policies/terms-of-service' | split: ','
+  assign account_links = 'Профіль|' | append: routes.account_url | append: ',Замовлення|' | append: routes.account_url | append: ',Обране|/pages/wishlist' | split: ','
   assign facebook_url = section.settings.facebook_url | default: 'https://www.facebook.com/'
   assign instagram_url = section.settings.instagram_url | default: 'https://www.instagram.com/'
   assign threads_url = section.settings.threads_url | default: 'https://www.threads.net/'
@@ -18,7 +18,7 @@
 
         <div
           class="bazar-footer__social"
-          aria-label="Social links"
+          aria-label="Соціальні мережі"
         >
           <a
             class="bazar-footer__social-link"
@@ -140,9 +140,9 @@
 
       <nav
         class="bazar-footer__nav"
-        aria-label="Customer"
+        aria-label="Покупцям"
       >
-        <h2 class="bazar-footer__heading">Customer</h2>
+        <h2 class="bazar-footer__heading">Покупцям</h2>
         <ul class="bazar-footer__list">
           {% for item in customer_links %}
             {% assign link_parts = item | split: '|' %}
@@ -160,9 +160,9 @@
 
       <nav
         class="bazar-footer__nav"
-        aria-label="Company"
+        aria-label="Про компанію"
       >
-        <h2 class="bazar-footer__heading">Company</h2>
+        <h2 class="bazar-footer__heading">Про компанію</h2>
         <ul class="bazar-footer__list">
           {% for item in company_links %}
             {% assign link_parts = item | split: '|' %}
@@ -180,9 +180,9 @@
 
       <nav
         class="bazar-footer__nav"
-        aria-label="Account"
+        aria-label="Обліковий запис"
       >
-        <h2 class="bazar-footer__heading">Account</h2>
+        <h2 class="bazar-footer__heading">Обліковий запис</h2>
         <ul class="bazar-footer__list">
           {% for item in account_links %}
             {% assign link_parts = item | split: '|' %}
@@ -199,7 +199,7 @@
       </nav>
 
       <div class="bazar-footer__downloads">
-        <h2 class="bazar-footer__heading">Mobile App</h2>
+        <h2 class="bazar-footer__heading">Мобільний застосунок</h2>
         <div class="bazar-footer__apps">
           <a
             class="bazar-footer__app-button"
@@ -225,7 +225,7 @@
               </svg>
             </span>
             <span class="bazar-footer__app-text">
-              <span class="bazar-footer__app-kicker">Download on the</span>
+              <span class="bazar-footer__app-kicker">Завантажити в</span>
               <span class="bazar-footer__app-name">App Store</span>
             </span>
           </a>
@@ -263,107 +263,19 @@
               </svg>
             </span>
             <span class="bazar-footer__app-text">
-              <span class="bazar-footer__app-kicker">Get it on</span>
+              <span class="bazar-footer__app-kicker">Доступно в</span>
               <span class="bazar-footer__app-name">Google Play</span>
             </span>
           </a>
         </div>
       </div>
     </div>
-
-    <div class="bazar-footer__bottom">
-      <div class="bazar-footer__selectors">
-        {%- form 'localization', class: 'bazar-footer__selector-form' -%}
-          <label
-            class="visually-hidden"
-            for="BazarFooterLanguage-{{ section.id }}"
-          >
-            Language
-          </label>
-          <div class="bazar-footer__selector">
-            <select
-              id="BazarFooterLanguage-{{ section.id }}"
-              class="bazar-select"
-              name="language_code"
-              onchange="this.form.submit()"
-              aria-label="Language"
-            >
-              {% for language in localization.available_languages %}
-                <option
-                  value="{{ language.iso_code }}"
-                  {% if language.iso_code == localization.language.iso_code %}
-                    selected
-                  {% endif %}
-                >
-                  {{ language.endonym_name | capitalize }}
-                </option>
-              {% endfor %}
-            </select>
-            <span class="bazar-footer__selector-icon">{{ 'icon-caret.svg' | inline_asset_content }}</span>
-          </div>
-        {%- endform -%}
-
-        {%- form 'localization', class: 'bazar-footer__selector-form' -%}
-          <label
-            class="visually-hidden"
-            for="BazarFooterCurrency-{{ section.id }}"
-          >
-            Currency
-          </label>
-          <div class="bazar-footer__selector">
-            <select
-              id="BazarFooterCurrency-{{ section.id }}"
-              class="bazar-select"
-              name="country_code"
-              onchange="this.form.submit()"
-              aria-label="Currency"
-            >
-              {% for country in localization.available_countries %}
-                <option
-                  value="{{ country.iso_code }}"
-                  {% if country.iso_code == localization.country.iso_code %}
-                    selected
-                  {% endif %}
-                >
-                  {{ country.currency.iso_code }}
-                </option>
-              {% endfor %}
-            </select>
-            <span class="bazar-footer__selector-icon">{{ 'icon-caret.svg' | inline_asset_content }}</span>
-          </div>
-        {%- endform -%}
-      </div>
-
-      <nav
-        class="bazar-footer__legal"
-        aria-label="Legal"
-      >
-        <a
-          class="bazar-footer__legal-link"
-          href="/pages/public-offer"
-        >
-          Public Offer
-        </a>
-        <a
-          class="bazar-footer__legal-link"
-          href="/policies/privacy-policy"
-        >
-          Privacy Policy
-        </a>
-        <a
-          class="bazar-footer__legal-link"
-          href="/policies/terms-of-service"
-        >
-          Terms of Use
-        </a>
-      </nav>
-    </div>
   </div>
 </section>
 
 {% schema %}
 {
-  "name": "BAZAR Footer",
+  "name": "BAZAR Футер",
   "class": "section-wrapper",
   "enabled_on": {
     "groups": ["footer"]
@@ -392,17 +304,17 @@
     {
       "type": "url",
       "id": "app_store_url",
-      "label": "App Store URL"
+      "label": "Посилання App Store"
     },
     {
       "type": "url",
       "id": "google_play_url",
-      "label": "Google Play URL"
+      "label": "Посилання Google Play"
     }
   ],
   "presets": [
     {
-      "name": "BAZAR Footer"
+      "name": "BAZAR Футер"
     }
   ]
 }
