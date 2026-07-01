@@ -1,5 +1,0 @@
-@layer bazar.sections {
-  [data-bazar-section] {
-    scroll-margin-block-start: var(--bazar-sticky-offset, 0);
-  }
-}

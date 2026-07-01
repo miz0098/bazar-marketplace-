@@ -8,6 +8,7 @@
 .gitignore
 .theme-check.yml
 README.md
+docs/
 package.json
 node_modules/
 coverage/

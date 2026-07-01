@@ -1,14 +1,14 @@
 # BAZAR Marketplace Shopify Theme
 
-BAZAR Marketplace is a Shopify Online Store 2.0 theme project built on Dawn. This repository starts as a clean development foundation for future BAZAR storefront work.
+BAZAR Marketplace is a Shopify Online Store 2.0 theme project built on Shopify Horizon. This repository starts as a clean development foundation for future BAZAR storefront work.
 
 ## Base Theme
 
 - Platform: Shopify Online Store 2.0
-- Base theme target: Dawn 15.5.0, latest stable release checked on 2026-07-01
+- Base theme: Shopify Horizon
 - Languages: Liquid, HTML, CSS, JavaScript
 
-This foundation does not redesign Dawn, create placeholder pages, or add fake storefront content. Dawn source files should be introduced intentionally before feature work begins, then BAZAR customizations should stay namespaced and modular.
+This foundation does not redesign Horizon, create placeholder pages, or add fake storefront content. Horizon source files should be preserved as the technical base, and BAZAR customizations should stay namespaced and modular.
 
 ## Project Structure
 
@@ -22,6 +22,8 @@ assets/
   bazar-events.js
   bazar-sections.js
 config/
+docs/
+  horizon-base.md
 layout/
 locales/
 sections/
@@ -33,7 +35,8 @@ templates/
 
 ## Architecture Guidelines
 
-- Keep Dawn files close to upstream and isolate BAZAR-specific work with the `bazar-` prefix.
+- Preserve native Shopify and Horizon files. Do not replace Horizon with Dawn or another base theme.
+- Keep Horizon files close to the store theme and isolate BAZAR-specific work with the `bazar-` prefix.
 - Use Shopify theme folders directly. Shopify theme assets are flat, so organize assets by filename convention rather than nested asset folders.
 - Keep section behavior self-contained and initialize it through `data-bazar-section` attributes.
 - Place reusable Liquid fragments in `snippets/` before duplicating markup across sections.
@@ -51,4 +54,4 @@ npm run theme:pull
 npm run theme:push
 ```
 
-Before building features, import the approved Dawn version and wire `{% render 'bazar-assets' %}` into the Dawn layout so BAZAR assets load consistently.
+Before building features, pull or import the approved Horizon theme from Shopify and wire `{% render 'bazar-assets' %}` into the Horizon layout only after confirming the store theme integration point.

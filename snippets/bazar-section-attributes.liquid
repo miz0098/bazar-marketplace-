@@ -1,5 +1,0 @@
-{%- liquid
-  assign bazar_section_id = id | default: section.id
-  assign bazar_section_type = type | default: section.type
--%}
-data-bazar-section{% if bazar_section_id != blank %} data-bazar-section-id="{{ bazar_section_id | escape }}"{% endif %}{% if bazar_section_type != blank %} data-bazar-section-type="{{ bazar_section_type | escape }}"{% endif %}

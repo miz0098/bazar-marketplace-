@@ -2,7 +2,7 @@
   "name": "bazar-marketplace-theme",
   "version": "0.1.0",
   "private": true,
-  "description": "Shopify Online Store 2.0 theme foundation for BAZAR Marketplace.",
+  "description": "Shopify Horizon theme foundation for BAZAR Marketplace.",
   "scripts": {
     "theme:dev": "shopify theme dev",
     "theme:check": "shopify theme check",
