@@ -7,7 +7,7 @@
 
 .bazar-footer__main {
   display: grid;
-  grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.9fr) minmax(210px, 0.65fr);
+  grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.9fr) minmax(168px, 0.55fr);
   gap: var(--bazar-space-2xl);
   padding-block: var(--bazar-space-3xl) var(--bazar-space-2xl);
 }
@@ -120,6 +120,7 @@
   min-width: 0;
   margin: 0;
   font-style: normal;
+  align-self: start;
 }
 
 .bazar-footer__support-list {
@@ -130,7 +131,7 @@
 .bazar-footer__support-item {
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr);
-  align-items: start;
+  align-items: center;
   gap: var(--bazar-space-sm);
   color: var(--bazar-color-muted);
   font-size: var(--bazar-font-size-sm);
@@ -198,7 +199,7 @@ a.bazar-footer__support-item:hover .bazar-footer__support-link {
   display: inline-flex;
   align-items: center;
   gap: var(--bazar-space-sm);
-  width: 210px;
+  width: 168px;
   min-height: 48px;
   padding: 0 14px;
   border: 1px solid var(--bazar-color-border);
@@ -272,7 +273,7 @@ a.bazar-footer__support-item:hover .bazar-footer__support-link {
   }
 
   .bazar-footer__apps {
-    grid-template-columns: repeat(2, minmax(180px, 210px));
+    grid-template-columns: repeat(2, 168px);
   }
 }
 
@@ -303,6 +304,6 @@ a.bazar-footer__support-item:hover .bazar-footer__support-link {
   }
 
   .bazar-footer__app-button {
-    width: min(100%, 210px);
+    width: min(100%, 168px);
   }
 }
