@@ -101,9 +101,51 @@
   justify-content: center;
 }
 
-.bazar-header__catalog-icon svg {
+.bazar-header__catalog-icon {
+  position: relative;
+  flex: 0 0 18px;
   width: 18px;
   height: 18px;
+}
+
+.bazar-header__catalog-icon::before,
+.bazar-header__catalog-icon::after {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  transition: inset-block-start 220ms ease, transform 220ms ease;
+}
+
+.bazar-header__catalog-icon::before {
+  inset-block-start: 5px;
+}
+
+.bazar-header__catalog-icon::after {
+  inset-block-start: 11px;
+}
+
+.bazar-header__catalog[aria-expanded='true'] .bazar-header__catalog-icon::before,
+.bazar-header__catalog[aria-expanded='true'] .bazar-header__catalog-icon::after {
+  inset-block-start: 8px;
+}
+
+.bazar-header__catalog[aria-expanded='true'] .bazar-header__catalog-icon::before {
+  transform: rotate(45deg);
+}
+
+.bazar-header__catalog[aria-expanded='true'] .bazar-header__catalog-icon::after {
+  transform: rotate(-45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bazar-header__catalog-icon::before,
+  .bazar-header__catalog-icon::after {
+    transition-duration: 1ms;
+  }
 }
 
 .bazar-header__search {
