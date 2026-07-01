@@ -4,10 +4,6 @@
   Preserves Horizon's header component while providing the approved BAZAR desktop layout.
 {% enddoc %}
 
-{% liquid
-  assign catalog_url = routes.collections_url | default: '/collections'
-%}
-
 <div
   class="bazar-header"
   data-bazar-header-row
@@ -15,19 +11,7 @@
   <div class="bazar-header__inner">
     {% render 'bazar-logo', class: 'bazar-header__logo' %}
 
-    <a
-      href="{{ catalog_url }}"
-      class="bazar-header__catalog"
-      aria-label="Каталог"
-    >
-      <span
-        class="bazar-header__catalog-icon"
-        aria-hidden="true"
-      >
-        {{ 'icon-menu.svg' | inline_asset_content }}
-      </span>
-      <span>Каталог</span>
-    </a>
+    {% render 'bazar-catalog-menu', section: section %}
 
     <form
       action="{{ routes.search_url }}"

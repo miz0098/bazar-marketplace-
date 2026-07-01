@@ -136,70 +136,172 @@
             </svg>
           </a>
         </div>
+
+        <p class="bazar-footer__copyright">© BAZAR — маркетплейс України, 2026</p>
       </div>
 
-      <nav
-        class="bazar-footer__nav"
-        aria-label="Покупцям"
-      >
-        <h2 class="bazar-footer__heading">Покупцям</h2>
-        <ul class="bazar-footer__list">
-          {% for item in customer_links %}
-            {% assign link_parts = item | split: '|' %}
-            <li>
-              <a
-                class="bazar-footer__link"
-                href="{{ link_parts[1] }}"
-              >
-                {{ link_parts[0] }}
-              </a>
-            </li>
-          {% endfor %}
-        </ul>
-      </nav>
+      <div class="bazar-footer__nav-group">
+        <nav
+          class="bazar-footer__nav"
+          aria-label="Покупцям"
+        >
+          <h2 class="bazar-footer__heading">Покупцям</h2>
+          <ul class="bazar-footer__list">
+            {% for item in customer_links %}
+              {% assign link_parts = item | split: '|' %}
+              <li>
+                <a
+                  class="bazar-footer__link"
+                  href="{{ link_parts[1] }}"
+                >
+                  {{ link_parts[0] }}
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        </nav>
 
-      <nav
-        class="bazar-footer__nav"
-        aria-label="Про компанію"
-      >
-        <h2 class="bazar-footer__heading">Про компанію</h2>
-        <ul class="bazar-footer__list">
-          {% for item in company_links %}
-            {% assign link_parts = item | split: '|' %}
-            <li>
-              <a
-                class="bazar-footer__link"
-                href="{{ link_parts[1] }}"
-              >
-                {{ link_parts[0] }}
-              </a>
-            </li>
-          {% endfor %}
-        </ul>
-      </nav>
+        <nav
+          class="bazar-footer__nav"
+          aria-label="Про компанію"
+        >
+          <h2 class="bazar-footer__heading">Про компанію</h2>
+          <ul class="bazar-footer__list">
+            {% for item in company_links %}
+              {% assign link_parts = item | split: '|' %}
+              <li>
+                <a
+                  class="bazar-footer__link"
+                  href="{{ link_parts[1] }}"
+                >
+                  {{ link_parts[0] }}
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        </nav>
 
-      <nav
-        class="bazar-footer__nav"
-        aria-label="Обліковий запис"
-      >
-        <h2 class="bazar-footer__heading">Обліковий запис</h2>
-        <ul class="bazar-footer__list">
-          {% for item in account_links %}
-            {% assign link_parts = item | split: '|' %}
-            <li>
-              <a
-                class="bazar-footer__link"
-                href="{{ link_parts[1] }}"
+        <nav
+          class="bazar-footer__nav"
+          aria-label="Обліковий запис"
+        >
+          <h2 class="bazar-footer__heading">Обліковий запис</h2>
+          <ul class="bazar-footer__list">
+            {% for item in account_links %}
+              {% assign link_parts = item | split: '|' %}
+              <li>
+                <a
+                  class="bazar-footer__link"
+                  href="{{ link_parts[1] }}"
+                >
+                  {{ link_parts[0] }}
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        </nav>
+
+        <address
+          class="bazar-footer__support"
+          aria-label="Служба підтримки"
+        >
+          <h2 class="bazar-footer__heading">Підтримка</h2>
+          <div class="bazar-footer__support-list">
+            <div class="bazar-footer__support-item">
+              <span
+                class="bazar-footer__support-icon"
+                aria-hidden="true"
               >
-                {{ link_parts[0] }}
-              </a>
-            </li>
-          {% endfor %}
-        </ul>
-      </nav>
+                <svg
+                  viewBox="0 0 24 24"
+                  focusable="false"
+                >
+                  <path
+                    d="M7.3 4.4 9 8.2c.3.6.1 1.3-.4 1.8l-1.2 1.1c.9 2 2.5 3.6 4.5 4.5l1.1-1.2c.5-.5 1.2-.7 1.8-.4l3.8 1.7c.8.4 1.2 1.3.9 2.1-.5 1.6-2 2.6-3.7 2.4C9.4 19.5 4.5 14.6 3.8 8.2 3.6 6.5 4.6 5 6.2 4.5c.4-.2.8-.2 1.1-.1Z"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                  />
+                </svg>
+              </span>
+              <span class="bazar-footer__support-text">
+                <span class="bazar-footer__support-link">0 800 ХХ ХХ ХХХ</span>
+                <span class="bazar-footer__support-note">Щодня з 9:00 до 21:00</span>
+              </span>
+            </div>
+
+            <a
+              class="bazar-footer__support-item"
+              href="mailto:bazar-test-support@test.ua"
+            >
+              <span
+                class="bazar-footer__support-icon"
+                aria-hidden="true"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  focusable="false"
+                >
+                  <path
+                    d="M4.5 6.5h15v11h-15v-11Z"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                  />
+                  <path
+                    d="m5 7 7 6 7-6"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                  />
+                </svg>
+              </span>
+              <span class="bazar-footer__support-link">bazar-test-support@test.ua</span>
+            </a>
+
+            <a
+              class="bazar-footer__support-item"
+              href="https://t.me/test_baraz_support"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span
+                class="bazar-footer__support-icon"
+                aria-hidden="true"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  focusable="false"
+                >
+                  <path
+                    d="M20.8 4.4 3.8 11c-1 .4-1 1.7.1 2l4.2 1.3 1.6 5c.3.9 1.4 1.1 2 .4l2.4-2.5 4.3 3.2c.8.6 2 .1 2.1-.9l2.3-13.4c.2-1.1-.9-2-2-1.6Z"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                  />
+                  <path
+                    d="m8.1 14.2 8.4-5.1-5.5 6.8"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                  />
+                </svg>
+              </span>
+              <span class="bazar-footer__support-link">@test_baraz_support</span>
+            </a>
+          </div>
+        </address>
+      </div>
 
       <div class="bazar-footer__downloads">
-        <h2 class="bazar-footer__heading">Мобільний застосунок</h2>
         <div class="bazar-footer__apps">
           <a
             class="bazar-footer__app-button"

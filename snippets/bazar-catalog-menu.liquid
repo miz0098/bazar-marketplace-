@@ -1,0 +1,163 @@
+{% doc %}
+  BAZAR desktop catalog dropdown.
+
+  @param {section} section - Header section object.
+{% enddoc %}
+
+{% liquid
+  assign catalog_menu = blank
+
+  for block in section.blocks
+    if catalog_menu == blank and block.type == '_header-menu' and block.settings.menu != blank
+      assign catalog_menu = block.settings.menu
+    endif
+  endfor
+
+  if catalog_menu == blank
+    assign catalog_menu = linklists['main-menu']
+  endif
+
+  assign catalog_links_count = 0
+  if catalog_menu != blank
+    assign catalog_links_count = catalog_menu.links.size
+  endif
+%}
+
+<div
+  class="bazar-header__catalog-wrap"
+  data-bazar-catalog
+>
+  <button
+    type="button"
+    class="bazar-header__catalog"
+    aria-label="Відкрити каталог"
+    aria-haspopup="dialog"
+    aria-expanded="false"
+    aria-controls="BazarCatalogMenu-{{ section.id }}"
+    data-bazar-catalog-trigger
+  >
+    <span
+      class="bazar-header__catalog-icon"
+      aria-hidden="true"
+    >
+      {{ 'icon-menu.svg' | inline_asset_content }}
+    </span>
+    <span>Каталог</span>
+  </button>
+
+  <div
+    id="BazarCatalogMenu-{{ section.id }}"
+    class="bazar-catalog-menu"
+    role="dialog"
+    aria-label="Каталог товарів"
+    aria-modal="false"
+    data-bazar-catalog-panel
+    hidden
+  >
+    <div class="bazar-catalog-menu__content">
+      <div class="bazar-catalog-menu__main">
+        <p class="bazar-catalog-menu__eyebrow">Каталог</p>
+
+        {% if catalog_links_count > 0 %}
+          <ul
+            class="bazar-catalog-menu__categories"
+            role="list"
+          >
+            {% for link in catalog_menu.links %}
+              {% capture panel_id %}BazarCatalogPanel-{{ section.id }}-{{ forloop.index }}{% endcapture %}
+              <li>
+                <a
+                  class="bazar-catalog-menu__category-link{% if forloop.first %} is-active{% endif %}"
+                  href="{{ link.url }}"
+                  data-bazar-catalog-category
+                  data-bazar-catalog-target="{{ panel_id }}"
+                  aria-controls="{{ panel_id }}"
+                  {% if forloop.first %}
+                    aria-current="true"
+                  {% endif %}
+                >
+                  <span>{{ link.title }}</span>
+                  {% if link.links.size > 0 %}
+                    <span
+                      class="bazar-catalog-menu__category-arrow"
+                      aria-hidden="true"
+                    >
+                      {{ 'icon-arrow.svg' | inline_asset_content }}
+                    </span>
+                  {% endif %}
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="bazar-catalog-menu__empty">Категорії ще не налаштовано.</p>
+        {% endif %}
+      </div>
+
+      <div class="bazar-catalog-menu__subcategories">
+        {% if catalog_links_count > 0 %}
+          {% for link in catalog_menu.links %}
+            {% capture panel_id %}BazarCatalogPanel-{{ section.id }}-{{ forloop.index }}{% endcapture %}
+            <div
+              id="{{ panel_id }}"
+              class="bazar-catalog-menu__panel{% if forloop.first %} is-active{% endif %}"
+              data-bazar-catalog-subpanel
+              {% unless forloop.first %}
+                hidden
+              {% endunless %}
+            >
+              <div class="bazar-catalog-menu__panel-header">
+                <a
+                  class="bazar-catalog-menu__panel-title"
+                  href="{{ link.url }}"
+                >
+                  {{ link.title }}
+                </a>
+              </div>
+
+              {% if link.links.size > 0 %}
+                <ul
+                  class="bazar-catalog-menu__subcategory-grid"
+                  role="list"
+                >
+                  {% for child_link in link.links %}
+                    <li class="bazar-catalog-menu__subcategory">
+                      <a
+                        class="bazar-catalog-menu__subcategory-link"
+                        href="{{ child_link.url }}"
+                      >
+                        {{ child_link.title }}
+                      </a>
+
+                      {% if child_link.links.size > 0 %}
+                        <ul
+                          class="bazar-catalog-menu__nested-list"
+                          role="list"
+                        >
+                          {% for grandchild_link in child_link.links %}
+                            <li>
+                              <a
+                                class="bazar-catalog-menu__nested-link"
+                                href="{{ grandchild_link.url }}"
+                              >
+                                {{ grandchild_link.title }}
+                              </a>
+                            </li>
+                          {% endfor %}
+                        </ul>
+                      {% endif %}
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <p class="bazar-catalog-menu__empty">Підкатегорії ще не налаштовано.</p>
+              {% endif %}
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="bazar-catalog-menu__empty">Додайте категорії в меню Shopify.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
