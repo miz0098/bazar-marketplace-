@@ -13,41 +13,7 @@
   data-bazar-header-row
 >
   <div class="bazar-header__inner">
-    <a
-      href="{{ routes.root_url }}"
-      class="bazar-header__logo"
-      aria-label="BAZAR"
-    >
-      <span
-        class="bazar-header__logo-icon"
-        aria-hidden="true"
-      >
-        <svg
-          viewBox="0 0 36 36"
-          focusable="false"
-        >
-          <path
-            d="M10.5 12.2h15l1.6 17.3H8.9l1.6-17.3Z"
-            fill="currentColor"
-          />
-          <path
-            d="M13.8 13.1V11a4.2 4.2 0 0 1 8.4 0v2.1"
-            fill="none"
-            stroke="#fff"
-            stroke-linecap="round"
-            stroke-width="2.2"
-          />
-          <path
-            d="M13.7 18.4h8.7"
-            fill="none"
-            stroke="#fff"
-            stroke-linecap="round"
-            stroke-width="2.2"
-          />
-        </svg>
-      </span>
-      <span class="bazar-header__logo-text">BAZAR</span>
-    </a>
+    {% render 'bazar-logo', class: 'bazar-header__logo' %}
 
     <a
       href="{{ catalog_url }}"
