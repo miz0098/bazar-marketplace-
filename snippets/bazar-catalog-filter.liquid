@@ -1,0 +1,113 @@
+{% doc %}
+  Renders one BAZAR catalog filter group.
+
+  @param {filter} filter - Shopify storefront filter object.
+  @param {string} section_id - Parent section id.
+  @param {number} index - Filter position.
+{% enddoc %}
+
+{% liquid
+  assign active_count = filter.active_values.size
+  assign has_price_value = false
+  if filter.type == 'price_range'
+    if filter.min_value.value != null or filter.max_value.value != null
+      assign has_price_value = true
+      assign active_count = 1
+    endif
+  endif
+
+  assign should_open = false
+  if active_count > 0 or index <= 3
+    assign should_open = true
+  endif
+
+  assign filter_id = 'BazarCatalogFilter-' | append: section_id | append: '-' | append: index
+%}
+
+<details
+  class="bazar-catalog-filter"
+  {% if should_open %}
+    open
+  {% endif %}
+>
+  <summary class="bazar-catalog-filter__summary">
+    <span>{{ filter.label }}</span>
+    {% if active_count > 0 %}
+      <span class="bazar-catalog-filter__count">{{ active_count }}</span>
+    {% endif %}
+  </summary>
+
+  <div class="bazar-catalog-filter__body">
+    {% case filter.type %}
+      {% when 'price_range' %}
+        <div class="bazar-catalog-filter__price">
+          <label class="bazar-field" for="{{ filter_id }}-Min">
+            <span class="bazar-field__label">Від</span>
+            <input
+              class="bazar-input"
+              id="{{ filter_id }}-Min"
+              name="{{ filter.min_value.param_name }}"
+              type="text"
+              inputmode="decimal"
+              autocomplete="off"
+              placeholder="0"
+              {% if filter.min_value.value != null %}
+                value="{{ filter.min_value.value | money_without_currency }}"
+              {% endif %}
+            >
+          </label>
+
+          <label class="bazar-field" for="{{ filter_id }}-Max">
+            <span class="bazar-field__label">До</span>
+            <input
+              class="bazar-input"
+              id="{{ filter_id }}-Max"
+              name="{{ filter.max_value.param_name }}"
+              type="text"
+              inputmode="decimal"
+              autocomplete="off"
+              placeholder="{{ filter.range_max | money_without_currency }}"
+              {% if filter.max_value.value != null %}
+                value="{{ filter.max_value.value | money_without_currency }}"
+              {% endif %}
+            >
+          </label>
+        </div>
+
+        {% if filter.range_max != blank %}
+          <p class="bazar-catalog-filter__hint">
+            Максимум: {{ filter.range_max | money }}
+          </p>
+        {% endif %}
+
+      {% else %}
+        <ul class="bazar-catalog-filter__list" role="list">
+          {% for value in filter.values %}
+            {% liquid
+              assign is_disabled = false
+              if value.count == 0 and value.active == false
+                assign is_disabled = true
+              endif
+            %}
+            <li>
+              <label class="bazar-catalog-filter__option{% if is_disabled %} bazar-catalog-filter__option--disabled{% endif %}">
+                <input
+                  type="checkbox"
+                  name="{{ value.param_name }}"
+                  value="{{ value.value }}"
+                  {% if value.active %}
+                    checked
+                  {% endif %}
+                  {% if is_disabled %}
+                    disabled
+                  {% endif %}
+                >
+                <span class="bazar-catalog-filter__option-label">{{ value.label }}</span>
+                <span class="bazar-catalog-filter__option-count">{{ value.count }}</span>
+              </label>
+            </li>
+          {% endfor %}
+        </ul>
+    {% endcase %}
+  </div>
+</details>

@@ -1,0 +1,245 @@
+{% liquid
+  assign current_sort_by = collection.sort_by | default: collection.default_sort_by
+  assign products_per_page = section.settings.products_per_page
+  assign category_menu = section.settings.category_menu
+  assign category_count = 0
+  if category_menu != blank
+    assign category_count = category_menu.links.size
+  endif
+
+  assign active_filter_count = 0
+  for filter in collection.filters
+    if filter.type == 'price_range'
+      if filter.min_value.value != null or filter.max_value.value != null
+        assign active_filter_count = active_filter_count | plus: 1
+      endif
+    else
+      assign active_filter_count = active_filter_count | plus: filter.active_values.size
+    endif
+  endfor
+
+  assign clear_filters_url = collection.url | append: '?sort_by=' | append: current_sort_by
+%}
+
+<section class="bazar-catalog" data-bazar-catalog>
+  <div class="bazar-container">
+    <nav class="bazar-catalog__breadcrumbs" aria-label="Breadcrumbs">
+      <a href="{{ routes.root_url }}">Головна</a>
+      <span aria-hidden="true">/</span>
+      <span>{{ collection.title | default: 'Каталог' }}</span>
+    </nav>
+
+    <header class="bazar-catalog__header">
+      <div>
+        <p class="bazar-catalog__eyebrow">Каталог</p>
+        <h1 class="bazar-catalog__title">{{ collection.title | default: 'Каталог' }}</h1>
+        {% if collection.description != blank %}
+          <div class="bazar-catalog__description">
+            {{ collection.description }}
+          </div>
+        {% endif %}
+      </div>
+    </header>
+
+    <div class="bazar-catalog__layout">
+      <aside class="bazar-catalog__sidebar" aria-label="Catalog filters">
+        {% if category_count > 0 %}
+          <section class="bazar-catalog__panel">
+            <h2 class="bazar-catalog__panel-title">Категорії</h2>
+            <ul class="bazar-catalog__category-list" role="list">
+              {% for link in category_menu.links limit: section.settings.max_categories %}
+                <li>
+                  <a
+                    class="bazar-catalog__category-link{% if link.active or link.child_active %} bazar-catalog__category-link--active{% endif %}"
+                    href="{{ link.url }}"
+                  >
+                    <span>{{ link.title }}</span>
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+          </section>
+        {% endif %}
+
+        {% if collection.filters.size > 0 %}
+          <section class="bazar-catalog__panel">
+            <div class="bazar-catalog__panel-header">
+              <h2 class="bazar-catalog__panel-title">Фільтри</h2>
+              {% if active_filter_count > 0 %}
+                <a class="bazar-catalog__clear-link" href="{{ collection.url }}">Очистити</a>
+              {% endif %}
+            </div>
+
+            <form class="bazar-catalog__filters-form" method="get" action="{{ collection.url }}">
+              <input type="hidden" name="sort_by" value="{{ current_sort_by }}">
+
+              {% for filter in collection.filters %}
+                {% render 'bazar-catalog-filter', filter: filter, section_id: section.id, index: forloop.index %}
+              {% endfor %}
+
+              <div class="bazar-catalog__filters-actions">
+                <button class="bazar-button" type="submit">Застосувати</button>
+                {% if active_filter_count > 0 %}
+                  <a class="bazar-button bazar-button--secondary" href="{{ clear_filters_url }}">Скинути</a>
+                {% endif %}
+              </div>
+            </form>
+          </section>
+        {% endif %}
+      </aside>
+
+      <div class="bazar-catalog__main">
+        {% paginate collection.products by products_per_page %}
+          <div class="bazar-catalog__toolbar">
+            <div class="bazar-catalog__result-meta" role="status">
+              {% if paginate.items == 1 %}
+                1 товар
+              {% else %}
+                {{ paginate.items }} товарів
+              {% endif %}
+            </div>
+
+            <form class="bazar-catalog__sort-form" method="get" action="{{ collection.url }}">
+              {% for filter in collection.filters %}
+                {% if filter.type == 'price_range' %}
+                  {% if filter.min_value.value != null %}
+                    <input
+                      type="hidden"
+                      name="{{ filter.min_value.param_name }}"
+                      value="{{ filter.min_value.value | money_without_currency }}"
+                    >
+                  {% endif %}
+                  {% if filter.max_value.value != null %}
+                    <input
+                      type="hidden"
+                      name="{{ filter.max_value.param_name }}"
+                      value="{{ filter.max_value.value | money_without_currency }}"
+                    >
+                  {% endif %}
+                {% else %}
+                  {% for value in filter.active_values %}
+                    <input type="hidden" name="{{ value.param_name }}" value="{{ value.value }}">
+                  {% endfor %}
+                {% endif %}
+              {% endfor %}
+
+              <label class="bazar-catalog__sort-label" for="BazarCatalogSort-{{ section.id }}">Сортування</label>
+              <select
+                class="bazar-select bazar-catalog__sort-select"
+                id="BazarCatalogSort-{{ section.id }}"
+                name="sort_by"
+              >
+                {% for option in collection.sort_options %}
+                  <option
+                    value="{{ option.value }}"
+                    {% if option.value == current_sort_by %}
+                      selected
+                    {% endif %}
+                  >
+                    {{ option.name }}
+                  </option>
+                {% endfor %}
+              </select>
+              <button class="bazar-button bazar-catalog__sort-submit" type="submit">ОК</button>
+            </form>
+          </div>
+
+          {% if active_filter_count > 0 %}
+            <div class="bazar-catalog__active-filters" aria-label="Active filters">
+              {% for filter in collection.filters %}
+                {% if filter.type == 'price_range' %}
+                  {% if filter.min_value.value != null or filter.max_value.value != null %}
+                    <a class="bazar-catalog__active-filter" href="{{ filter.url_to_remove }}">
+                      <span>
+                        {% if filter.min_value.value != null and filter.max_value.value != null %}
+                          {{ filter.min_value.value | money }} - {{ filter.max_value.value | money }}
+                        {% elsif filter.min_value.value != null %}
+                          {{ filter.min_value.value | money }}+
+                        {% else %}
+                          до {{ filter.max_value.value | money }}
+                        {% endif %}
+                      </span>
+                      <span aria-hidden="true">x</span>
+                    </a>
+                  {% endif %}
+                {% else %}
+                  {% for value in filter.active_values %}
+                    <a class="bazar-catalog__active-filter" href="{{ value.url_to_remove }}">
+                      <span>{{ value.label }}</span>
+                      <span aria-hidden="true">x</span>
+                    </a>
+                  {% endfor %}
+                {% endif %}
+              {% endfor %}
+              <a class="bazar-catalog__active-clear" href="{{ collection.url }}">Очистити все</a>
+            </div>
+          {% endif %}
+
+          {% if paginate.items > 0 %}
+            <div class="bazar-catalog__grid">
+              {% for product in collection.products %}
+                {% render 'bazar-product-card', product: product, show_vendor: section.settings.show_vendor %}
+              {% endfor %}
+            </div>
+
+            <div class="bazar-catalog__pagination">
+              {% render 'pagination-controls', paginate: paginate %}
+            </div>
+          {% else %}
+            <div class="bazar-catalog__empty">
+              <h2>Товарів не знайдено</h2>
+              <p>Спробуйте змінити фільтри або повернутися до всіх товарів каталогу.</p>
+              <a class="bazar-button" href="{{ collection.url }}">Показати всі товари</a>
+            </div>
+          {% endif %}
+        {% endpaginate %}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "BAZAR Catalog",
+  "enabled_on": {
+    "templates": ["collection"]
+  },
+  "settings": [
+    {
+      "type": "link_list",
+      "id": "category_menu",
+      "label": "Category menu",
+      "default": "main-menu"
+    },
+    {
+      "type": "range",
+      "id": "max_categories",
+      "label": "Maximum categories",
+      "min": 4,
+      "max": 16,
+      "step": 1,
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "label": "Products per page",
+      "min": 12,
+      "max": 36,
+      "step": 4,
+      "default": 24
+    },
+    {
+      "type": "checkbox",
+      "id": "show_vendor",
+      "label": "Show vendor",
+      "default": false
+    }
+  ],
+  "presets": [
+    {
+      "name": "BAZAR Catalog"
+    }
+  ]
+}
+{% endschema %}
