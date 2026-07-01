@@ -1,0 +1,319 @@
+.bazar-header {
+  --bazar-header-blue: #1173f5;
+  --bazar-header-blue-hover: #0d63d5;
+  --bazar-header-navy: #0f172a;
+  --bazar-header-muted: #64748b;
+  --bazar-header-border: #e5eaf2;
+  --bazar-header-soft-border: #d7e0ec;
+  --bazar-header-background: #ffffff;
+
+  display: none;
+  position: relative;
+  z-index: var(--layer-flat);
+  background: var(--bazar-header-background);
+  border-bottom: 1px solid var(--bazar-header-border);
+  color: var(--bazar-header-navy);
+  font-family: Inter, var(--font-body--family), var(--font-paragraph--family), system-ui, sans-serif;
+}
+
+.bazar-header__inner {
+  display: grid;
+  grid-template-columns: auto auto minmax(360px, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  width: min(100% - 48px, 1440px);
+  min-height: 76px;
+  margin-inline: auto;
+}
+
+.bazar-header__logo,
+.bazar-header__catalog,
+.bazar-header-action,
+.bazar-header__search-submit {
+  color: inherit;
+  text-decoration: none;
+}
+
+.bazar-header__logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 126px;
+}
+
+.bazar-header__logo:hover {
+  text-decoration: none;
+}
+
+.bazar-header__logo-icon {
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  color: var(--bazar-header-blue);
+  flex: 0 0 auto;
+}
+
+.bazar-header__logo-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.bazar-header__logo-text {
+  color: var(--bazar-header-navy);
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.bazar-header__catalog {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 122px;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 12px;
+  background: var(--bazar-header-blue);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  transition: background-color 150ms ease;
+}
+
+.bazar-header__catalog:hover {
+  background: var(--bazar-header-blue-hover);
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.bazar-header__catalog-icon,
+.bazar-header__search-submit svg,
+.bazar-header-action__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bazar-header__catalog-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.bazar-header__search {
+  display: grid;
+  grid-template-columns: minmax(230px, 1fr) 168px 52px;
+  align-items: center;
+  min-width: 0;
+  height: 46px;
+}
+
+.bazar-header__search-field,
+.bazar-header__category,
+.bazar-header__search-submit {
+  height: 46px;
+}
+
+.bazar-header__search-field {
+  min-width: 0;
+}
+
+.bazar-header__search-input,
+.bazar-header__category-select {
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--bazar-header-soft-border);
+  background: #ffffff;
+  color: var(--bazar-header-navy);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.bazar-header__search-input {
+  border-radius: 12px 0 0 12px;
+  padding: 0 16px;
+}
+
+.bazar-header__search-input::placeholder {
+  color: var(--bazar-header-muted);
+  opacity: 1;
+}
+
+.bazar-header__search-input:focus,
+.bazar-header__category-select:focus,
+.bazar-header__search-submit:focus-visible,
+.bazar-header__catalog:focus-visible,
+.bazar-header-action:focus-visible {
+  outline: 2px solid rgba(17, 115, 245, 0.32);
+  outline-offset: 2px;
+}
+
+.bazar-header__category {
+  position: relative;
+  margin-inline-start: -1px;
+}
+
+.bazar-header__category-select {
+  appearance: none;
+  border-radius: 0;
+  padding: 0 38px 0 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.bazar-header__category-icon {
+  position: absolute;
+  inset-inline-end: 14px;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  color: var(--bazar-header-muted);
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.bazar-header__category-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.bazar-header__search-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  border: 0;
+  border-radius: 0 12px 12px 0;
+  background: var(--bazar-header-blue);
+  color: #ffffff;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.bazar-header__search-submit:hover {
+  background: var(--bazar-header-blue-hover);
+}
+
+.bazar-header__search-submit svg {
+  width: 20px;
+  height: 20px;
+}
+
+.bazar-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-inline-start: -6px;
+}
+
+.bazar-header-action {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 58px;
+  min-height: 50px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--bazar-header-navy);
+  cursor: pointer;
+  font: inherit;
+  padding: 4px 2px;
+  text-align: center;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+
+.bazar-header-action:hover {
+  background: #f5f8fc;
+  color: var(--bazar-header-blue);
+  text-decoration: none;
+}
+
+.bazar-header-action__icon {
+  width: 22px;
+  height: 22px;
+}
+
+.bazar-header-action__icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.bazar-header-action__label {
+  max-width: 100%;
+  color: currentColor;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.bazar-header-action__badge {
+  position: absolute;
+  top: 2px;
+  inset-inline-end: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  background: var(--bazar-header-blue);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+@media screen and (min-width: 990px) {
+  #header-component[data-bazar-header] > .bazar-header {
+    display: block;
+  }
+
+  #header-component[data-bazar-header] > .header__row,
+  #header-component[data-bazar-header] > .header__navigation-bar-row {
+    display: none;
+  }
+}
+
+@media screen and (min-width: 990px) and (max-width: 1180px) {
+  .bazar-header__inner {
+    grid-template-columns: auto auto minmax(300px, 1fr) auto;
+    gap: 10px;
+    width: min(100% - 32px, 1440px);
+  }
+
+  .bazar-header__logo {
+    min-width: 116px;
+  }
+
+  .bazar-header__logo-text {
+    font-size: 22px;
+  }
+
+  .bazar-header__catalog {
+    min-width: 112px;
+    padding-inline: 14px;
+  }
+
+  .bazar-header__search {
+    grid-template-columns: minmax(180px, 1fr) 148px 48px;
+  }
+
+  .bazar-header-action {
+    width: 54px;
+  }
+}

@@ -1,0 +1,119 @@
+{% doc %}
+  BAZAR Header v1.2 action group.
+
+  Only renders the approved desktop actions: favorites, profile, and cart.
+{% enddoc %}
+
+{% liquid
+  assign favorites_url = routes.root_url | append: 'pages/wishlist'
+  assign account_url = routes.account_url
+
+  if customer == blank and routes.account_login_url != blank
+    assign account_url = routes.account_login_url
+  endif
+%}
+
+<div
+  class="bazar-header-actions"
+  aria-label="Дії користувача"
+>
+  <a
+    href="{{ favorites_url }}"
+    class="bazar-header-action"
+    aria-label="Обране"
+  >
+    <span
+      class="bazar-header-action__icon"
+      aria-hidden="true"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        focusable="false"
+      >
+        <path
+          d="M20.2 5.1a5.4 5.4 0 0 0-7.6 0l-.6.6-.6-.6a5.4 5.4 0 0 0-7.6 7.6l.6.6L12 20.9l7.6-7.6.6-.6a5.4 5.4 0 0 0 0-7.6Z"
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.8"
+        />
+      </svg>
+    </span>
+    <span class="bazar-header-action__label">Обране</span>
+  </a>
+
+  <a
+    href="{{ account_url }}"
+    class="bazar-header-action"
+    aria-label="Профіль"
+  >
+    <span
+      class="bazar-header-action__icon"
+      aria-hidden="true"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        focusable="false"
+      >
+        <path
+          d="M12 12.1a4.3 4.3 0 1 0 0-8.6 4.3 4.3 0 0 0 0 8.6Z"
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.8"
+        />
+        <path
+          d="M4.4 20.5a7.6 7.6 0 0 1 15.2 0"
+          fill="none"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.8"
+        />
+      </svg>
+    </span>
+    <span class="bazar-header-action__label">Профіль</span>
+  </a>
+
+  {% if settings.cart_type == 'drawer' and template.name != 'cart' %}
+    <button
+      class="bazar-header-action bazar-header-action--cart"
+      type="button"
+      on:click="#cart-drawer/toggle"
+      aria-haspopup="dialog"
+      aria-expanded="false"
+      aria-controls="cart-drawer"
+      aria-label="Кошик{% if cart.item_count > 0 %}: {{ cart.item_count }}{% endif %}"
+    >
+      <span
+        class="bazar-header-action__icon"
+        aria-hidden="true"
+      >
+        {{ 'icon-cart.svg' | inline_asset_content }}
+      </span>
+      <span class="bazar-header-action__label">Кошик</span>
+      {% if cart.item_count > 0 %}
+        <span class="bazar-header-action__badge">{{ cart.item_count }}</span>
+      {% endif %}
+    </button>
+  {% else %}
+    <a
+      href="{{ routes.cart_url }}"
+      class="bazar-header-action bazar-header-action--cart"
+      aria-label="Кошик{% if cart.item_count > 0 %}: {{ cart.item_count }}{% endif %}"
+    >
+      <span
+        class="bazar-header-action__icon"
+        aria-hidden="true"
+      >
+        {{ 'icon-cart.svg' | inline_asset_content }}
+      </span>
+      <span class="bazar-header-action__label">Кошик</span>
+      {% if cart.item_count > 0 %}
+        <span class="bazar-header-action__badge">{{ cart.item_count }}</span>
+      {% endif %}
+    </a>
+  {% endif %}
+</div>

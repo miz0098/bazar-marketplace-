@@ -323,9 +323,12 @@
   }
 </script>
 
+{{ 'bazar-header.css' | asset_url | stylesheet_tag }}
+
 <header-component
   id="header-component"
   class="{{ class }}"
+  data-bazar-header
   data-theme-color="rgb({{ section.settings.background_color_top.rgb | default: settings.page_background_color.rgb }})"
   data-bubble-style="{{ section.settings.bubble_style }}"
   {% if transparent %}
@@ -369,6 +372,7 @@
   {%- if request.page_type == 'index' -%}
     <h1 class="visually-hidden">{{ shop.name }}</h1>
   {%- endif -%}
+  {% render 'bazar-header-desktop', section: section %}
   {% for row in rows %}
     {% liquid
       assign background = 'background_color_' | append: row

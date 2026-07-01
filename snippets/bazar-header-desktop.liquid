@@ -1,0 +1,123 @@
+{% doc %}
+  Desktop-only BAZAR Header v1.2 markup.
+
+  Preserves Horizon's header component while providing the approved BAZAR desktop layout.
+{% enddoc %}
+
+{% liquid
+  assign catalog_url = routes.collections_url | default: '/collections'
+%}
+
+<div
+  class="bazar-header"
+  data-bazar-header-row
+>
+  <div class="bazar-header__inner">
+    <a
+      href="{{ routes.root_url }}"
+      class="bazar-header__logo"
+      aria-label="BAZAR"
+    >
+      <span
+        class="bazar-header__logo-icon"
+        aria-hidden="true"
+      >
+        <svg
+          viewBox="0 0 36 36"
+          focusable="false"
+        >
+          <path
+            d="M10.5 12.2h15l1.6 17.3H8.9l1.6-17.3Z"
+            fill="currentColor"
+          />
+          <path
+            d="M13.8 13.1V11a4.2 4.2 0 0 1 8.4 0v2.1"
+            fill="none"
+            stroke="#fff"
+            stroke-linecap="round"
+            stroke-width="2.2"
+          />
+          <path
+            d="M13.7 18.4h8.7"
+            fill="none"
+            stroke="#fff"
+            stroke-linecap="round"
+            stroke-width="2.2"
+          />
+        </svg>
+      </span>
+      <span class="bazar-header__logo-text">BAZAR</span>
+    </a>
+
+    <a
+      href="{{ catalog_url }}"
+      class="bazar-header__catalog"
+      aria-label="Каталог"
+    >
+      <span
+        class="bazar-header__catalog-icon"
+        aria-hidden="true"
+      >
+        {{ 'icon-menu.svg' | inline_asset_content }}
+      </span>
+      <span>Каталог</span>
+    </a>
+
+    <form
+      action="{{ routes.search_url }}"
+      method="get"
+      role="search"
+      class="bazar-header__search"
+    >
+      <label
+        class="visually-hidden"
+        for="BazarHeaderSearch-{{ section.id }}"
+      >
+        Пошук
+      </label>
+      <div class="bazar-header__search-field">
+        <input
+          id="BazarHeaderSearch-{{ section.id }}"
+          class="bazar-header__search-input"
+          type="search"
+          name="q"
+          value="{% if search.performed %}{{ search.terms | escape }}{% endif %}"
+          placeholder="Пошук товарів, брендів, категорій..."
+          autocomplete="off"
+        >
+      </div>
+
+      <label
+        class="visually-hidden"
+        for="BazarHeaderCategory-{{ section.id }}"
+      >
+        Категорія
+      </label>
+      <div class="bazar-header__category">
+        <select
+          id="BazarHeaderCategory-{{ section.id }}"
+          class="bazar-header__category-select"
+          aria-label="Категорія пошуку"
+        >
+          <option selected>Усі категорії</option>
+        </select>
+        <span
+          class="bazar-header__category-icon"
+          aria-hidden="true"
+        >
+          {{ 'icon-caret.svg' | inline_asset_content }}
+        </span>
+      </div>
+
+      <button
+        class="bazar-header__search-submit"
+        type="submit"
+        aria-label="Пошук"
+      >
+        {{ 'icon-search.svg' | inline_asset_content }}
+      </button>
+    </form>
+
+    {% render 'bazar-header-actions' %}
+  </div>
+</div>
