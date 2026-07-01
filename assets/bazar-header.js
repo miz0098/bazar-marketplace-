@@ -19,8 +19,10 @@ const setActiveCategory = (root, category, focusCategory = false) => {
     item.classList.toggle('is-active', isActive);
     if (isActive) {
       item.setAttribute('aria-current', 'true');
+      item.setAttribute('aria-selected', 'true');
     } else {
       item.removeAttribute('aria-current');
+      item.setAttribute('aria-selected', 'false');
     }
   });
 
@@ -104,6 +106,13 @@ const initCatalog = (root) => {
   });
 
   root.addEventListener('focusin', (event) => {
+    const category = event.target.closest(categorySelector);
+    if (category && root.contains(category)) {
+      setActiveCategory(root, category);
+    }
+  });
+
+  root.addEventListener('click', (event) => {
     const category = event.target.closest(categorySelector);
     if (category && root.contains(category)) {
       setActiveCategory(root, category);
