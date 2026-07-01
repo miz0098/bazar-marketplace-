@@ -19,6 +19,7 @@
 html.bazar-catalog-scroll-lock,
 html.bazar-catalog-scroll-lock body {
   overflow: hidden;
+  overscroll-behavior: none;
 }
 
 .bazar-header__inner {
@@ -319,6 +320,7 @@ html.bazar-catalog-scroll-lock body {
   width: min(1040px, calc(100vw - 48px));
   max-height: 82vh;
   overflow: hidden;
+  overscroll-behavior: none;
   border: 1px solid var(--bazar-header-border);
   border-radius: 18px;
   background: #ffffff;
@@ -329,6 +331,7 @@ html.bazar-catalog-scroll-lock body {
   display: grid;
   grid-template-columns: minmax(250px, 280px) minmax(0, 1fr);
   height: clamp(360px, 78vh, 640px);
+  overscroll-behavior: none;
 }
 
 .bazar-catalog-menu__main,
@@ -336,7 +339,7 @@ html.bazar-catalog-scroll-lock body {
   min-width: 0;
   padding: 16px 18px 18px;
   overflow-y: auto;
-  overscroll-behavior: contain;
+  overscroll-behavior: none;
   scrollbar-color: rgba(17, 115, 245, 0.38) transparent;
   scrollbar-width: thin;
 }

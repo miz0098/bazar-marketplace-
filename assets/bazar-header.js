@@ -3,11 +3,63 @@ const triggerSelector = '[data-bazar-catalog-trigger]';
 const panelSelector = '[data-bazar-catalog-panel]';
 const categorySelector = '[data-bazar-catalog-category]';
 const subpanelSelector = '[data-bazar-catalog-subpanel]';
+const scrollContainerSelector = '.bazar-catalog-menu__main, .bazar-catalog-menu__subcategories';
 const scrollLockClass = 'bazar-catalog-scroll-lock';
+let scrollLockState = null;
+
+const lockPageScroll = () => {
+  if (scrollLockState || !document.body) return;
+
+  const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+  const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+
+  scrollLockState = {
+    scrollY,
+    htmlOverflow: document.documentElement.style.overflow,
+    bodyOverflow: document.body.style.overflow,
+    bodyPaddingRight: document.body.style.paddingRight,
+    bodyPosition: document.body.style.position,
+    bodyTop: document.body.style.top,
+    bodyWidth: document.body.style.width,
+  };
+
+  document.documentElement.classList.add(scrollLockClass);
+  document.documentElement.style.overflow = 'hidden';
+  document.body.style.overflow = 'hidden';
+  document.body.style.position = 'fixed';
+  document.body.style.top = `-${scrollY}px`;
+  document.body.style.width = '100%';
+
+  if (scrollbarWidth > 0) {
+    document.body.style.paddingRight = `${scrollbarWidth}px`;
+  }
+};
+
+const unlockPageScroll = () => {
+  if (!scrollLockState || !document.body) return;
+
+  const { scrollY } = scrollLockState;
+
+  document.documentElement.classList.remove(scrollLockClass);
+  document.documentElement.style.overflow = scrollLockState.htmlOverflow;
+  document.body.style.overflow = scrollLockState.bodyOverflow;
+  document.body.style.paddingRight = scrollLockState.bodyPaddingRight;
+  document.body.style.position = scrollLockState.bodyPosition;
+  document.body.style.top = scrollLockState.bodyTop;
+  document.body.style.width = scrollLockState.bodyWidth;
+
+  scrollLockState = null;
+  window.scrollTo(0, scrollY);
+};
 
 const updateScrollLock = () => {
   const hasOpenCatalog = [...document.querySelectorAll(panelSelector)].some((panel) => !panel.hidden);
-  document.documentElement.classList.toggle(scrollLockClass, hasOpenCatalog);
+
+  if (hasOpenCatalog) {
+    lockPageScroll();
+  } else {
+    unlockPageScroll();
+  }
 };
 
 const getParts = (root) => ({
@@ -95,6 +147,64 @@ const focusFirstSubcategory = (root) => {
   firstLink?.focus({ preventScroll: true });
 };
 
+const getModalScrollContainer = (root, target) => {
+  const panel = root.querySelector(panelSelector);
+  if (!panel || !target || !panel.contains(target)) return null;
+
+  const targetElement = target instanceof Element ? target : target.parentElement;
+  return targetElement?.closest(scrollContainerSelector) || null;
+};
+
+const getWheelDeltaY = (event, scrollContainer) => {
+  if (event.deltaMode === 1) return event.deltaY * 16;
+  if (event.deltaMode === 2) return event.deltaY * scrollContainer.clientHeight;
+  return event.deltaY;
+};
+
+const isolateModalWheel = (root, event) => {
+  const { panel } = getParts(root);
+  if (!panel || panel.hidden || !panel.contains(event.target)) return;
+
+  event.stopPropagation();
+
+  const scrollContainer = getModalScrollContainer(root, event.target);
+  if (!scrollContainer) {
+    event.preventDefault();
+    return;
+  }
+
+  const canScroll = scrollContainer.scrollHeight > scrollContainer.clientHeight;
+  if (!canScroll) {
+    event.preventDefault();
+    return;
+  }
+
+  event.preventDefault();
+  scrollContainer.scrollTop += getWheelDeltaY(event, scrollContainer);
+};
+
+const scrollModalPanelByKey = (root, event) => {
+  const keyScrollMap = {
+    ArrowDown: 44,
+    ArrowUp: -44,
+    PageDown: 0.86,
+    PageUp: -0.86,
+  };
+
+  if (!(event.key in keyScrollMap)) return false;
+
+  const scrollContainer = getModalScrollContainer(root, event.target);
+  if (!scrollContainer || scrollContainer.scrollHeight <= scrollContainer.clientHeight) return false;
+
+  const scrollAmount = keyScrollMap[event.key];
+  const top =
+    Math.abs(scrollAmount) < 1 ? scrollContainer.clientHeight * scrollAmount : scrollAmount;
+
+  event.preventDefault();
+  scrollContainer.scrollBy({ top, behavior: 'smooth' });
+  return true;
+};
+
 const initCatalog = (root) => {
   if (root.dataset.bazarCatalogReady === 'true') return;
 
@@ -133,6 +243,8 @@ const initCatalog = (root) => {
     }
   });
 
+  root.addEventListener('wheel', (event) => isolateModalWheel(root, event), { passive: false });
+
   root.addEventListener('keydown', (event) => {
     const currentCategory = event.target.closest(categorySelector);
 
@@ -142,7 +254,15 @@ const initCatalog = (root) => {
       return;
     }
 
-    if (!currentCategory) return;
+    if (event.key === 'PageDown' || event.key === 'PageUp') {
+      scrollModalPanelByKey(root, event);
+      return;
+    }
+
+    if (!currentCategory) {
+      scrollModalPanelByKey(root, event);
+      return;
+    }
 
     if (event.key === 'ArrowDown') {
       event.preventDefault();
@@ -171,6 +291,7 @@ const initCatalog = (root) => {
       event.preventDefault();
       focusFirstSubcategory(root);
     }
+
   });
 };
 
