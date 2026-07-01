@@ -119,6 +119,7 @@
 .bazar-footer__support {
   min-width: 0;
   margin: 0;
+  margin-inline-start: 24px;
   font-style: normal;
   align-self: start;
 }
@@ -265,6 +266,7 @@ a.bazar-footer__support-item:hover .bazar-footer__support-link {
 
   .bazar-footer__support {
     grid-column: 1 / -1;
+    margin-inline-start: 0;
     max-width: 360px;
   }
 
