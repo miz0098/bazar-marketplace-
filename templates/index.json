@@ -10,14 +10,83 @@
   "sections": {
     "bazar_home_hero": {
       "type": "bazar-home-hero",
+      "blocks": {
+        "slide_daily": {
+          "type": "slide",
+          "settings": {
+            "eyebrow": "BAZAR МАРКЕТПЛЕЙС",
+            "heading": "Все для щоденних покупок",
+            "text": "Знаходьте товари, бренди та категорії в одному зручному маркетплейсі.",
+            "primary_label": "До каталогу",
+            "primary_link": "shopify://collections/all",
+            "secondary_label": "Новинки",
+            "secondary_link": "/collections/новинки"
+          }
+        },
+        "slide_deals": {
+          "type": "slide",
+          "settings": {
+            "eyebrow": "Акційні пропозиції",
+            "heading": "Вигідні покупки щодня",
+            "text": "Переглядайте добірки зі спеціальними цінами та сезонними пропозиціями.",
+            "primary_label": "Переглянути акції",
+            "primary_link": "/collections/акції",
+            "secondary_label": "До каталогу",
+            "secondary_link": "shopify://collections/all"
+          }
+        },
+        "slide_new": {
+          "type": "slide",
+          "settings": {
+            "eyebrow": "Новинки",
+            "heading": "Нові товари вже на BAZAR",
+            "text": "Знаходьте свіжі надходження у популярних категоріях маркетплейсу.",
+            "primary_label": "Дивитися новинки",
+            "primary_link": "/collections/новинки",
+            "secondary_label": "Популярне",
+            "secondary_link": "shopify://collections/all"
+          }
+        },
+        "slide_home": {
+          "type": "slide",
+          "settings": {
+            "eyebrow": "Для дому",
+            "heading": "Оновіть дім без зайвих пошуків",
+            "text": "Техніка, декор, текстиль і корисні товари для щоденного комфорту.",
+            "primary_label": "Товари для дому",
+            "primary_link": "/collections/дім-та-сад",
+            "secondary_label": "Побутова техніка",
+            "secondary_link": "/collections/побутова-техніка"
+          }
+        },
+        "slide_gifts": {
+          "type": "slide",
+          "settings": {
+            "eyebrow": "Подарунки",
+            "heading": "Ідеї для приємних покупок",
+            "text": "Обирайте подарунки, сертифікати та корисні дрібниці для близьких.",
+            "primary_label": "Обрати подарунки",
+            "primary_link": "/collections/подарунки",
+            "secondary_label": "До каталогу",
+            "secondary_link": "shopify://collections/all"
+          }
+        }
+      },
+      "block_order": [
+        "slide_daily",
+        "slide_deals",
+        "slide_new",
+        "slide_home",
+        "slide_gifts"
+      ],
       "settings": {
-        "eyebrow": "BAZAR Маркетплейс",
+        "eyebrow": "BAZAR МАРКЕТПЛЕЙС",
         "heading": "Все для щоденних покупок",
         "text": "Знаходьте товари, бренди та категорії в одному зручному маркетплейсі.",
         "primary_label": "До каталогу",
         "primary_link": "shopify://collections/all",
         "secondary_label": "Новинки",
-        "secondary_link": "shopify://collections/all"
+        "secondary_link": "/collections/новинки"
       }
     },
     "bazar_categories": {

@@ -1,68 +1,237 @@
+{% liquid
+  assign slide_count = section.blocks.size
+
+  if slide_count == 0
+    assign slide_count = 1
+  endif
+%}
+
 <section class="bazar-home bazar-home-hero">
   <div class="bazar-container">
-    <div class="bazar-home-hero__panel">
-      <div class="bazar-home-hero__content">
-        {% if section.settings.eyebrow != blank %}
-          <p class="bazar-home-hero__eyebrow">{{ section.settings.eyebrow }}</p>
-        {% endif %}
-        {% if section.settings.heading != blank %}
-          <h1 class="bazar-home-hero__title">{{ section.settings.heading }}</h1>
-        {% endif %}
-        {% if section.settings.text != blank %}
-          <p class="bazar-home-hero__text">{{ section.settings.text }}</p>
-        {% endif %}
-        <div class="bazar-home-hero__actions">
-          {% if section.settings.primary_label != blank %}
-            <a
-              class="bazar-button"
-              {% if section.settings.primary_link != blank %}
-                href="{{ section.settings.primary_link }}"
-              {% else %}
-                role="link"
-                aria-disabled="true"
-              {% endif %}
+    <div
+      class="bazar-home-hero__slider"
+      data-bazar-home-hero-slider
+    >
+      <div
+        class="bazar-home-hero__viewport"
+        data-bazar-home-hero-viewport
+        aria-label="Головний банер BAZAR"
+        aria-roledescription="слайдер"
+        tabindex="0"
+      >
+        <div class="bazar-home-hero__track">
+          {% if section.blocks.size > 0 %}
+            {% for block in section.blocks limit: 5 %}
+              {% liquid
+                assign slide_index = forloop.index
+                assign slide_eyebrow = block.settings.eyebrow
+                assign slide_heading = block.settings.heading
+                assign slide_text = block.settings.text
+                assign primary_label = block.settings.primary_label
+                assign primary_link = block.settings.primary_link
+                assign secondary_label = block.settings.secondary_label
+                assign secondary_link = block.settings.secondary_link
+              %}
+
+              <article
+                class="bazar-home-hero__panel"
+                data-bazar-home-hero-slide
+                aria-label="Слайд {{ slide_index }} з {{ slide_count }}"
+                {{ block.shopify_attributes }}
+              >
+                <div class="bazar-home-hero__content">
+                  {% if slide_eyebrow != blank %}
+                    <p class="bazar-home-hero__eyebrow">{{ slide_eyebrow }}</p>
+                  {% endif %}
+                  {% if slide_heading != blank %}
+                    {% if forloop.first %}
+                      <h1 class="bazar-home-hero__title">{{ slide_heading }}</h1>
+                    {% else %}
+                      <h2 class="bazar-home-hero__title">{{ slide_heading }}</h2>
+                    {% endif %}
+                  {% endif %}
+                  {% if slide_text != blank %}
+                    <p class="bazar-home-hero__text">{{ slide_text }}</p>
+                  {% endif %}
+                  <div class="bazar-home-hero__actions">
+                    {% if primary_label != blank %}
+                      <a
+                        class="bazar-button"
+                        {% if primary_link != blank %}
+                          href="{{ primary_link }}"
+                        {% else %}
+                          role="link"
+                          aria-disabled="true"
+                        {% endif %}
+                      >
+                        {{ primary_label }}
+                      </a>
+                    {% endif %}
+                    {% if secondary_label != blank %}
+                      <a
+                        class="bazar-button bazar-button--secondary"
+                        {% if secondary_link != blank %}
+                          href="{{ secondary_link }}"
+                        {% else %}
+                          role="link"
+                          aria-disabled="true"
+                        {% endif %}
+                      >
+                        {{ secondary_label }}
+                      </a>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div class="bazar-home-hero__media">
+                  {% if block.settings.image != blank %}
+                    {% liquid
+                      assign hero_image_alt = block.settings.image.alt | default: slide_heading
+                    %}
+                    {{
+                      block.settings.image
+                      | image_url: width: 1000
+                      | image_tag: loading: 'eager', class: 'bazar-home-hero__image', alt: hero_image_alt
+                    }}
+                  {% else %}
+                    <div
+                      class="bazar-home-hero__fallback bazar-home-hero__fallback--{{ slide_index }}"
+                      aria-hidden="true"
+                    >
+                      <span class="bazar-home-hero__shape bazar-home-hero__shape--bag"></span>
+                      <span class="bazar-home-hero__shape bazar-home-hero__shape--box"></span>
+                      <span class="bazar-home-hero__shape bazar-home-hero__shape--card"></span>
+                      <span class="bazar-home-hero__shape bazar-home-hero__shape--spark"></span>
+                    </div>
+                  {% endif %}
+                </div>
+              </article>
+            {% endfor %}
+          {% else %}
+            <article
+              class="bazar-home-hero__panel"
+              data-bazar-home-hero-slide
+              aria-label="Слайд 1 з 1"
             >
-              {{ section.settings.primary_label }}
-            </a>
-          {% endif %}
-          {% if section.settings.secondary_label != blank %}
-            <a
-              class="bazar-button bazar-button--secondary"
-              {% if section.settings.secondary_link != blank %}
-                href="{{ section.settings.secondary_link }}"
-              {% else %}
-                role="link"
-                aria-disabled="true"
-              {% endif %}
-            >
-              {{ section.settings.secondary_label }}
-            </a>
+              <div class="bazar-home-hero__content">
+                {% if section.settings.eyebrow != blank %}
+                  <p class="bazar-home-hero__eyebrow">{{ section.settings.eyebrow }}</p>
+                {% endif %}
+                {% if section.settings.heading != blank %}
+                  <h1 class="bazar-home-hero__title">{{ section.settings.heading }}</h1>
+                {% endif %}
+                {% if section.settings.text != blank %}
+                  <p class="bazar-home-hero__text">{{ section.settings.text }}</p>
+                {% endif %}
+                <div class="bazar-home-hero__actions">
+                  {% if section.settings.primary_label != blank %}
+                    <a
+                      class="bazar-button"
+                      {% if section.settings.primary_link != blank %}
+                        href="{{ section.settings.primary_link }}"
+                      {% else %}
+                        role="link"
+                        aria-disabled="true"
+                      {% endif %}
+                    >
+                      {{ section.settings.primary_label }}
+                    </a>
+                  {% endif %}
+                  {% if section.settings.secondary_label != blank %}
+                    <a
+                      class="bazar-button bazar-button--secondary"
+                      {% if section.settings.secondary_link != blank %}
+                        href="{{ section.settings.secondary_link }}"
+                      {% else %}
+                        role="link"
+                        aria-disabled="true"
+                      {% endif %}
+                    >
+                      {{ section.settings.secondary_label }}
+                    </a>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="bazar-home-hero__media">
+                {% if section.settings.image != blank %}
+                  {% liquid
+                    assign hero_image_alt = section.settings.image.alt | default: section.settings.heading
+                  %}
+                  {{
+                    section.settings.image
+                    | image_url: width: 1000
+                    | image_tag: loading: 'eager', class: 'bazar-home-hero__image', alt: hero_image_alt
+                  }}
+                {% else %}
+                  <div
+                    class="bazar-home-hero__fallback bazar-home-hero__fallback--1"
+                    aria-hidden="true"
+                  >
+                    <span class="bazar-home-hero__shape bazar-home-hero__shape--bag"></span>
+                    <span class="bazar-home-hero__shape bazar-home-hero__shape--box"></span>
+                    <span class="bazar-home-hero__shape bazar-home-hero__shape--card"></span>
+                    <span class="bazar-home-hero__shape bazar-home-hero__shape--spark"></span>
+                  </div>
+                {% endif %}
+              </div>
+            </article>
           {% endif %}
         </div>
       </div>
 
-      <div class="bazar-home-hero__media">
-        {% if section.settings.image != blank %}
-          {% liquid
-            assign hero_image_alt = section.settings.image.alt | default: section.settings.heading
-          %}
-          {{
-            section.settings.image
-            | image_url: width: 1000
-            | image_tag: loading: 'eager', class: 'bazar-home-hero__image', alt: hero_image_alt
-          }}
-        {% elsif request.design_mode or request.visual_preview_mode %}
-          {{ 'hero-apparel-1' | placeholder_svg_tag }}
-        {% endif %}
-      </div>
+      {% if slide_count > 1 %}
+        <div
+          class="bazar-home-hero__nav"
+          aria-label="Навігація головного банера"
+        >
+          <button
+            type="button"
+            class="bazar-home-hero__arrow"
+            aria-label="Попередній слайд"
+            data-bazar-home-hero-prev
+          >
+            ‹
+          </button>
+          <div
+            class="bazar-home-hero__dots"
+            aria-label="Слайди головного банера"
+          >
+            {% for block in section.blocks limit: 5 %}
+              <button
+                type="button"
+                class="bazar-home-hero__dot{% if forloop.first %} is-active{% endif %}"
+                aria-label="Показати слайд {{ forloop.index }}"
+                aria-current="{% if forloop.first %}true{% else %}false{% endif %}"
+                data-bazar-home-hero-dot
+                data-slide-index="{{ forloop.index0 }}"
+              ></button>
+            {% endfor %}
+          </div>
+          <button
+            type="button"
+            class="bazar-home-hero__arrow"
+            aria-label="Наступний слайд"
+            data-bazar-home-hero-next
+          >
+            ›
+          </button>
+        </div>
+      {% endif %}
     </div>
   </div>
 </section>
+
+<script src="{{ 'bazar-home-hero.js' | asset_url }}" defer="defer"></script>
 
 {% schema %}
 {
   "name": "BAZAR Головний банер",
   "settings": [
+    {
+      "type": "header",
+      "content": "Резервний слайд"
+    },
     {
       "type": "text",
       "id": "eyebrow",
@@ -109,9 +278,80 @@
       "label": "Зображення банера"
     }
   ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Слайд",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Зображення"
+        },
+        {
+          "type": "text",
+          "id": "eyebrow",
+          "label": "Надзаголовок",
+          "default": "BAZAR Маркетплейс"
+        },
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Заголовок",
+          "default": "Все для щоденних покупок"
+        },
+        {
+          "type": "textarea",
+          "id": "text",
+          "label": "Опис",
+          "default": "Знаходьте товари, бренди та категорії в одному зручному маркетплейсі."
+        },
+        {
+          "type": "text",
+          "id": "primary_label",
+          "label": "Текст основної кнопки",
+          "default": "До каталогу"
+        },
+        {
+          "type": "url",
+          "id": "primary_link",
+          "label": "Посилання основної кнопки"
+        },
+        {
+          "type": "text",
+          "id": "secondary_label",
+          "label": "Текст додаткової кнопки",
+          "default": "Новинки"
+        },
+        {
+          "type": "url",
+          "id": "secondary_link",
+          "label": "Посилання додаткової кнопки"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 5,
   "presets": [
     {
-      "name": "BAZAR Головний банер"
+      "name": "BAZAR Головний банер",
+      "blocks": [
+        {
+          "type": "slide"
+        },
+        {
+          "type": "slide"
+        },
+        {
+          "type": "slide"
+        },
+        {
+          "type": "slide"
+        },
+        {
+          "type": "slide"
+        }
+      ]
     }
   ]
 }
