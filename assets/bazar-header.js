@@ -308,7 +308,6 @@ const updateSearchSubmitState = (form) => {
   if (!input || !submit) return;
 
   const hasSearchTerm = input.value.trim().length > 0;
-  submit.disabled = !hasSearchTerm;
   submit.setAttribute('aria-disabled', hasSearchTerm ? 'false' : 'true');
 };
 

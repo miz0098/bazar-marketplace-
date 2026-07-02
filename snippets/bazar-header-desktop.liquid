@@ -43,10 +43,8 @@
         class="bazar-header__search-submit"
         type="submit"
         aria-label="Пошук"
+        aria-disabled="{% if search.performed and search.terms != blank %}false{% else %}true{% endif %}"
         data-bazar-header-search-submit
-        {% unless search.performed and search.terms != blank %}
-          disabled
-        {% endunless %}
       >
         {{ 'icon-search.svg' | inline_asset_content }}
       </button>
