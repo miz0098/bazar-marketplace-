@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 360" role="img" aria-labelledby="title desc">
+  <title id="title">Промо-ілюстрація BAZAR</title>
+  <desc id="desc">Покупки, пакунки, товарні картки та акційні елементи у синьому стилі маркетплейсу.</desc>
+  <defs>
+    <linearGradient id="bg" x1="60" y1="22" x2="454" y2="330" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f8fbff"/>
+      <stop offset=".55" stop-color="#e8f2ff"/>
+      <stop offset="1" stop-color="#cfe4ff"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="170" y1="86" x2="298" y2="250" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4ba3ff"/>
+      <stop offset="1" stop-color="#1173f5"/>
+    </linearGradient>
+    <linearGradient id="lightBlue" x1="284" y1="80" x2="410" y2="214" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#acd0ff"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="150%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#0f3f86" flood-opacity=".18"/>
+    </filter>
+    <filter id="smallShadow" x="-20%" y="-20%" width="140%" height="150%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="6" stdDeviation="7" flood-color="#0f3f86" flood-opacity=".16"/>
+    </filter>
+  </defs>
+
+  <rect width="520" height="360" rx="28" fill="url(#bg)"/>
+  <circle cx="438" cy="62" r="44" fill="#ffffff" opacity=".45"/>
+  <circle cx="84" cy="282" r="54" fill="#ffffff" opacity=".42"/>
+  <path d="M75 255c58 37 121 56 190 56 76 0 138-23 187-68" fill="none" stroke="#ffffff" stroke-width="18" stroke-linecap="round" opacity=".42"/>
+
+  <g filter="url(#softShadow)">
+    <rect x="172" y="96" width="150" height="184" rx="24" fill="url(#blue)"/>
+    <path d="M210 106V82c0-24 18-42 42-42s42 18 42 42v24" fill="none" stroke="#ffffff" stroke-width="16" stroke-linecap="round"/>
+    <path d="M214 154h70M214 188h84M214 222h58" stroke="#ffffff" stroke-width="14" stroke-linecap="round" opacity=".9"/>
+    <circle cx="210" cy="124" r="8" fill="#ffffff" opacity=".9"/>
+    <circle cx="292" cy="124" r="8" fill="#ffffff" opacity=".9"/>
+  </g>
+
+  <g filter="url(#smallShadow)">
+    <rect x="66" y="144" width="118" height="98" rx="18" fill="#ffffff"/>
+    <rect x="86" y="126" width="78" height="34" rx="12" fill="#dbeafe"/>
+    <path d="M90 172h70M90 200h50" stroke="#1173f5" stroke-width="11" stroke-linecap="round"/>
+    <path d="M91 242h86l20 40H70l21-40Z" fill="#0f3f86" opacity=".12"/>
+  </g>
+
+  <g filter="url(#smallShadow)">
+    <rect x="322" y="118" width="116" height="128" rx="22" fill="url(#lightBlue)"/>
+    <path d="M354 116V98c0-17 12-30 29-30s29 13 29 30v18" fill="none" stroke="#1173f5" stroke-width="11" stroke-linecap="round"/>
+    <circle cx="354" cy="139" r="7" fill="#1173f5"/>
+    <circle cx="412" cy="139" r="7" fill="#1173f5"/>
+    <path d="M356 178h50M356 205h34" stroke="#0f3f86" stroke-width="10" stroke-linecap="round" opacity=".72"/>
+  </g>
+
+  <g filter="url(#smallShadow)">
+    <rect x="337" y="236" width="96" height="70" rx="14" fill="#ffffff"/>
+    <path d="M337 258h96" stroke="#cfe4ff" stroke-width="4"/>
+    <circle cx="361" cy="279" r="12" fill="#1173f5"/>
+    <path d="M389 274h26M389 292h18" stroke="#0f3f86" stroke-width="7" stroke-linecap="round" opacity=".72"/>
+  </g>
+
+  <g filter="url(#smallShadow)">
+    <rect x="95" y="76" width="72" height="72" rx="20" fill="#ffffff"/>
+    <path d="M111 116l40-40M113 84a12 12 0 1 0 0 24 12 12 0 0 0 0-24ZM149 116a12 12 0 1 0 0 24 12 12 0 0 0 0-24Z" stroke="#1173f5" stroke-width="8" stroke-linecap="round"/>
+  </g>
+
+  <g filter="url(#smallShadow)">
+    <path d="M242 288h90l24 34H218l24-34Z" fill="#ffffff"/>
+    <path d="M234 250h112v46H234z" fill="#dbeafe"/>
+    <path d="M234 250l56 31 56-31" fill="#ffffff" opacity=".7"/>
+    <path d="M234 250h112v46H234zM234 250l56 31 56-31" fill="none" stroke="#1173f5" stroke-width="7" stroke-linejoin="round"/>
+  </g>
+
+  <path d="M442 198l17 8 8 17 8-17 17-8-17-8-8-17-8 17-17 8Z" fill="#ffffff" opacity=".86"/>
+  <path d="M54 118l12 6 6 12 6-12 12-6-12-6-6-12-6 12-12 6Z" fill="#ffffff" opacity=".78"/>
+  <circle cx="453" cy="290" r="8" fill="#1173f5" opacity=".35"/>
+  <circle cx="59" cy="218" r="7" fill="#1173f5" opacity=".28"/>
+</svg>

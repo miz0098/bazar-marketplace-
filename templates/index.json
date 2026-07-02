@@ -51,7 +51,7 @@
             "heading": "Спеціальні пропозиції",
             "text": "Добірки та акції для покупок на BAZAR.",
             "link_label": "Переглянути",
-            "link": "shopify://collections/all",
+            "link": "/collections/акції",
             "style": "blue"
           }
         },

@@ -13,6 +13,20 @@
 
     <div class="bazar-promo-grid">
       {% for block in section.blocks %}
+        {% liquid
+          assign is_special_offers_banner = false
+          assign promo_link = block.settings.link
+
+          if block.settings.heading == 'Спеціальні пропозиції' and block.settings.link_label == 'Переглянути'
+            assign is_special_offers_banner = true
+            assign promo_link = '/collections/акції'
+            assign promo_collection = collections['акції']
+
+            if promo_collection != blank
+              assign promo_link = promo_collection.url
+            endif
+          endif
+        %}
         <article
           class="bazar-promo-card bazar-promo-card--{{ block.settings.style }}"
           {{ block.shopify_attributes }}
@@ -27,8 +41,8 @@
             {% if block.settings.link_label != blank %}
               <a
                 class="bazar-button bazar-promo-card__link"
-                {% if block.settings.link != blank %}
-                  href="{{ block.settings.link }}"
+                {% if promo_link != blank %}
+                  href="{{ promo_link }}"
                 {% else %}
                   role="link"
                   aria-disabled="true"
@@ -48,6 +62,15 @@
                 | image_url: width: 520
                 | image_tag: loading: 'lazy', class: 'bazar-promo-card__image', alt: promo_image_alt
               }}
+            {% elsif is_special_offers_banner %}
+              <img
+                src="{{ 'bazar-promo-special-offers.svg' | asset_url }}"
+                alt="Промо-ілюстрація BAZAR"
+                loading="lazy"
+                class="bazar-promo-card__image"
+                width="520"
+                height="360"
+              >
             {% elsif request.design_mode or request.visual_preview_mode %}
               {{ 'product-apparel-2' | placeholder_svg_tag }}
             {% endif %}
