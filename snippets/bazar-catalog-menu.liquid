@@ -69,7 +69,7 @@
                 assign category_parts = category_record | split: '::'
                 assign category_title = category_parts[0] | strip
                 assign category_handle = category_title | strip | downcase | replace: "'", '' | replace: '’', '' | replace: 'ʼ', '' | replace: ',', '' | replace: '.', '' | replace: ':', '' | replace: ';', '' | replace: '!', '' | replace: '?', '' | replace: '(', '' | replace: ')', '' | replace: '/', '-' | replace: ' ', '-'
-                assign category_url = '/collections/' | append: category_handle
+                assign category_url = '/catalog/' | append: category_handle
               %}
               {% capture category_id %}BazarCatalogCategory-{{ section.id }}-{{ forloop.index }}{% endcapture %}
               {% capture panel_id %}BazarCatalogPanel-{{ section.id }}-{{ forloop.index }}{% endcapture %}
@@ -140,7 +140,7 @@
                       assign subcategory_title = subcategory | strip
                       assign icon_variant = category_index | times: 30 | plus: forloop.index
                       assign subcategory_handle = subcategory_title | strip | downcase | replace: "'", '' | replace: '’', '' | replace: 'ʼ', '' | replace: ',', '' | replace: '.', '' | replace: ':', '' | replace: ';', '' | replace: '!', '' | replace: '?', '' | replace: '(', '' | replace: ')', '' | replace: '/', '-' | replace: ' ', '-'
-                      assign subcategory_url = '/collections/' | append: subcategory_handle
+                      assign subcategory_url = '/catalog/' | append: subcategory_handle
                     %}
                     <li class="bazar-catalog-menu__subcategory">
                       <a
