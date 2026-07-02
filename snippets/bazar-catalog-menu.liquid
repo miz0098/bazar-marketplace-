@@ -68,12 +68,14 @@
                 assign category_record = category_item | strip
                 assign category_parts = category_record | split: '::'
                 assign category_title = category_parts[0] | strip
+                assign category_handle = category_title | strip | downcase | replace: "'", '' | replace: '’', '' | replace: 'ʼ', '' | replace: ',', '' | replace: '.', '' | replace: '/', '-' | replace: ' ', '-'
+                assign category_url = '/collections/' | append: category_handle
               %}
               {% capture category_id %}BazarCatalogCategory-{{ section.id }}-{{ forloop.index }}{% endcapture %}
               {% capture panel_id %}BazarCatalogPanel-{{ section.id }}-{{ forloop.index }}{% endcapture %}
               <li role="presentation">
-                <button
-                  type="button"
+                <a
+                  href="{{ category_url }}"
                   id="{{ category_id }}"
                   class="bazar-catalog-menu__category-link{% if forloop.first %} is-active{% endif %}"
                   role="tab"
@@ -92,13 +94,7 @@
                     {% render 'bazar-catalog-icon', label: category_title, variant: forloop.index %}
                   </span>
                   <span class="bazar-catalog-menu__category-title">{{ category_title }}</span>
-                  <span
-                    class="bazar-catalog-menu__category-arrow"
-                    aria-hidden="true"
-                  >
-                    {{ 'icon-arrow.svg' | inline_asset_content }}
-                  </span>
-                </button>
+                </a>
               </li>
             {% endfor %}
           </ul>
@@ -143,11 +139,13 @@
                     {% liquid
                       assign subcategory_title = subcategory | strip
                       assign icon_variant = category_index | times: 30 | plus: forloop.index
+                      assign subcategory_handle = subcategory_title | strip | downcase | replace: "'", '' | replace: '’', '' | replace: 'ʼ', '' | replace: ',', '' | replace: '.', '' | replace: '/', '-' | replace: ' ', '-'
+                      assign subcategory_url = '/collections/' | append: subcategory_handle
                     %}
                     <li class="bazar-catalog-menu__subcategory">
                       <a
                         class="bazar-catalog-menu__subcategory-link"
-                        href="{{ routes.search_url }}?q={{ subcategory_title | url_encode }}"
+                        href="{{ subcategory_url }}"
                       >
                         <span
                           class="bazar-catalog-menu__subcategory-icon"

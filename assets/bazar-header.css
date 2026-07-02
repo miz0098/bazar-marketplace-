@@ -382,7 +382,7 @@ html.bazar-catalog-scroll-lock body {
 
 .bazar-catalog-menu__category-link {
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr) auto;
+  grid-template-columns: 34px minmax(0, 1fr);
   align-items: center;
   gap: 8px;
   width: 100%;
@@ -460,18 +460,6 @@ html.bazar-catalog-scroll-lock body {
 .bazar-catalog-menu__category-title {
   min-width: 0;
   overflow-wrap: anywhere;
-}
-
-.bazar-catalog-menu__category-arrow {
-  display: inline-flex;
-  width: 14px;
-  height: 14px;
-  transform: rotate(-90deg);
-}
-
-.bazar-catalog-menu__category-arrow svg {
-  width: 100%;
-  height: 100%;
 }
 
 .bazar-catalog-menu__panel {
