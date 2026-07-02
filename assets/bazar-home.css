@@ -51,12 +51,12 @@
 .bazar-home-hero__slider {
   position: relative;
   width: 100%;
-  margin-inline: auto;
+  margin-inline: 0 auto;
 }
 
 @media screen and (min-width: 990px) {
   .bazar-home-hero__slider {
-    width: 80%;
+    width: 70%;
   }
 }
 
@@ -86,7 +86,7 @@
   grid-template-columns: minmax(0, 1fr) minmax(320px, 0.72fr);
   align-items: stretch;
   flex: 0 0 100%;
-  min-height: 420px;
+  min-height: 357px;
   overflow: hidden;
   border-radius: var(--bazar-radius-lg);
   background: linear-gradient(135deg, #0f5fe8 0%, #1173f5 48%, #5aa7ff 100%);
@@ -100,7 +100,7 @@
   flex-direction: column;
   justify-content: center;
   max-width: 680px;
-  padding: clamp(32px, 5vw, 72px);
+  padding: clamp(28px, 4vw, 56px);
 }
 
 .bazar-home-hero__eyebrow,
@@ -161,7 +161,7 @@
   display: block;
   width: 100%;
   height: 100%;
-  min-height: 420px;
+  min-height: 357px;
   object-fit: cover;
 }
 
