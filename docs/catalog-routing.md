@@ -1,5 +1,15 @@
 # BAZAR Catalog Routing
 
+Status: Future SEO architecture — not used in MVP.
+
+For the MVP, BAZAR uses stable native Shopify collection URLs:
+
+- `/collections/{handle}`
+
+The storefront must not use `/catalog/{handle}` links until a real routing layer is implemented.
+
+## Future Goal
+
 BAZAR uses customer-friendly catalog URLs in theme-generated navigation:
 
 - `/catalog`
@@ -8,17 +18,13 @@ BAZAR uses customer-friendly catalog URLs in theme-generated navigation:
 - `/catalog/смартфони-та-телефони`
 - `/catalog/косметика`
 
-Shopify collections still live at the native Shopify route:
+Shopify collections would still live at the native Shopify route:
 
 - `/collections/{handle}`
 
-## Architecture
+## Future Architecture
 
-The theme has one catalog URL builder:
-
-- `snippets/bazar-catalog-url.liquid`
-
-Any theme code that needs a public catalog URL should render that snippet instead of hardcoding `/collections/{handle}` or duplicating handle logic.
+Future theme code that needs a public catalog URL should use one centralized URL builder instead of duplicating handle logic.
 
 The Horizon collection template remains the single source for collection rendering:
 
@@ -27,7 +33,7 @@ The Horizon collection template remains the single source for collection renderi
 
 No duplicate collection template is created. Filtering, sorting, pagination, product count, collection media where rendered, collection description, breadcrumbs, and SEO data continue to come from Shopify's native collection object.
 
-## Routing Flow
+## Future Routing Flow
 
 Recommended production flow:
 
@@ -60,17 +66,16 @@ Official Shopify references:
 - App proxy route shape and allowed prefixes: https://shopify.dev/docs/apps/build/online-store/app-proxies
 - URL redirect limitations: https://help.shopify.com/en/manual/online-store/menus-and-links/url-redirect
 
-## Implemented Solution
+## MVP Implementation
 
-The theme implements the maintainable part of the architecture:
+The MVP intentionally uses Shopify's native collection URLs:
 
-- catalog modal links use `/catalog/{handle}`;
-- collection sidebar category links are normalized to `/catalog/{handle}` where possible;
-- collection filter and sorting forms submit to `/catalog/{handle}`;
-- active-filter removal links and pagination links are rewritten to the `/catalog/{handle}` public path;
-- native `/collections/{handle}` pages remain intact.
+- catalog modal links use `/collections/{handle}`;
+- collection sidebar links use native Shopify menu URLs;
+- collection filters, sorting, active filter removal, and pagination use `collection.url`;
+- no active storefront links use `/catalog/{handle}`.
 
-This makes the theme ready for a real routing layer without duplicating collection templates or weakening Horizon compatibility.
+This keeps the MVP stable and preserves native Shopify collection behavior.
 
 ## Production Routing Options
 
@@ -92,7 +97,7 @@ To make `/catalog/{handle}` return a real server-side `200` page with SEO-friend
 - No duplicated collection templates.
 - Native Shopify collection features are preserved.
 - Horizon architecture stays intact.
-- The catalog modal already points to the future public URL structure.
+- The future `/catalog/{handle}` path can be implemented later without changing collection handles.
 
 ## Limitations
 
