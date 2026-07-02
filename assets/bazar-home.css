@@ -335,16 +335,41 @@
   justify-content: center;
   width: 42px;
   height: 42px;
+  padding: 0;
   border: 1px solid rgba(255, 255, 255, 0.58);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.18);
   color: #ffffff;
   cursor: pointer;
   font: inherit;
-  font-size: 30px;
   font-weight: 500;
-  line-height: 1;
-  transition: background-color 160ms ease, transform 160ms ease;
+  line-height: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: background-color 180ms ease, opacity 220ms ease, transform 180ms ease;
+}
+
+.bazar-home-hero__arrow::before {
+  content: '';
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-block-start: 2px solid currentColor;
+  border-inline-start: 2px solid currentColor;
+}
+
+.bazar-home-hero__arrow[data-bazar-home-hero-prev]::before {
+  transform: translateX(2px) rotate(-45deg);
+}
+
+.bazar-home-hero__arrow[data-bazar-home-hero-next]::before {
+  transform: translateX(-2px) rotate(135deg);
+}
+
+.bazar-home-hero__slider:hover .bazar-home-hero__arrow,
+.bazar-home-hero__slider:focus-within .bazar-home-hero__arrow {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .bazar-home-hero__arrow:hover,
