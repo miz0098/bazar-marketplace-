@@ -5,6 +5,9 @@ const categorySelector = '[data-bazar-catalog-category]';
 const subpanelSelector = '[data-bazar-catalog-subpanel]';
 const scrollContainerSelector = '.bazar-catalog-menu__main, .bazar-catalog-menu__subcategories';
 const scrollLockClass = 'bazar-catalog-scroll-lock';
+const searchFormSelector = '[data-bazar-header-search]';
+const searchInputSelector = '[data-bazar-header-search-input]';
+const searchSubmitSelector = '[data-bazar-header-search-submit]';
 let scrollLockState = null;
 
 const lockPageScroll = () => {
@@ -299,6 +302,39 @@ const initCatalogs = () => {
   document.querySelectorAll(catalogSelector).forEach(initCatalog);
 };
 
+const updateSearchSubmitState = (form) => {
+  const input = form.querySelector(searchInputSelector);
+  const submit = form.querySelector(searchSubmitSelector);
+  if (!input || !submit) return;
+
+  const hasSearchTerm = input.value.trim().length > 0;
+  submit.disabled = !hasSearchTerm;
+  submit.setAttribute('aria-disabled', hasSearchTerm ? 'false' : 'true');
+};
+
+const initHeaderSearch = (form) => {
+  if (form.dataset.bazarHeaderSearchReady === 'true') return;
+
+  const input = form.querySelector(searchInputSelector);
+  if (!input) return;
+
+  form.dataset.bazarHeaderSearchReady = 'true';
+  updateSearchSubmitState(form);
+
+  input.addEventListener('input', () => updateSearchSubmitState(form));
+
+  form.addEventListener('submit', (event) => {
+    if (input.value.trim().length > 0) return;
+
+    event.preventDefault();
+    updateSearchSubmitState(form);
+  });
+};
+
+const initHeaderSearchForms = () => {
+  document.querySelectorAll(searchFormSelector).forEach(initHeaderSearch);
+};
+
 document.addEventListener('click', (event) => {
   document.querySelectorAll(catalogSelector).forEach((root) => {
     if (!root.contains(event.target)) {
@@ -315,7 +351,11 @@ document.addEventListener('keydown', (event) => {
   });
 });
 
-document.addEventListener('shopify:section:load', initCatalogs);
+document.addEventListener('shopify:section:load', () => {
+  initCatalogs();
+  initHeaderSearchForms();
+});
 document.addEventListener('shopify:section:unload', updateScrollLock);
 initCatalogs();
+initHeaderSearchForms();
 updateScrollLock();

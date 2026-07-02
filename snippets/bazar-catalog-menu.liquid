@@ -5,20 +5,7 @@
 {% enddoc %}
 
 {% capture catalog_tree_data %}
-Електроніка::Смартфони та телефони|Смартгодинники|Планшети|Ноутбуки|Комп'ютери|Монітори|Комплектуючі ПК|Навушники|Аудіотехніка|Телевізори|Проєктори|Фото та відео|Ігрові приставки|Мережеве обладнання|Принтери та МФУ|Накопичувачі|Кабелі та перехідники|Зарядні пристрої|Power Bank|Аксесуари
-||Побутова техніка::Холодильники|Пральні машини|Посудомийні машини|Варильні поверхні|Духові шафи|Витяжки|Мікрохвильові печі|Пилососи|Праски|Кондиціонери|Обігрівачі|Кавоварки|Чайники|Мультиварки|Блендери
-||Комп'ютери та офіс::Ноутбуки|Настільні ПК|Монітори|Клавіатури|Миші|Вебкамери|Принтери|Сканери|UPS|Сервери|Офісна техніка
-||Одяг, взуття та аксесуари::Жіночий одяг|Чоловічий одяг|Дитячий одяг|Взуття|Сумки|Рюкзаки|Гаманці|Головні убори|Білизна|Прикраси|Годинники
-||Дім та сад::Меблі|Освітлення|Декор|Текстиль|Посуд|Кухонне приладдя|Побутова хімія|Садова техніка|Садові меблі|Рослини
-||Будівництво та ремонт::Електроінструмент|Ручний інструмент|Будівельні матеріали|Лакофарбові матеріали|Сантехніка|Електрика|Кріплення|Драбини
-||Авто та мото::Автозапчастини|Автоаксесуари|Шини|Диски|Акумулятори|Автохімія|Мастила|Відеореєстратори|Компресори|Мотоаксесуари
-||Спорт та відпочинок::Велосипеди|Самокати|Тренажери|Фітнес|Туризм|Риболовля|Полювання|Кемпінг|М'ячі|Спортивний одяг
-||Краса та здоров'я::Косметика|Парфуми|Догляд за обличчям|Догляд за тілом|Догляд за волоссям|Гоління|Медичні товари|Вітаміни|Масажери
-||Дитячі товари::Іграшки|Конструктори|Візочки|Автокрісла|Одяг|Взуття|Підгузки|Харчування|Шкільне приладдя
-||Зоотовари::Корм для собак|Корм для котів|Вітаміни|Іграшки|Лежанки|Переноски|Акваріуми|Товари для гризунів|Товари для птахів
-||Книги::Художня література|Бізнес|Саморозвиток|Навчальна література|Дитячі книги|Комікси
-||Канцелярія::Папір|Ручки|Олівці|Щоденники|Зошити|Папки|Офісне приладдя
-||Подарунки::Подарункові набори|Сертифікати|Сувеніри|Святковий декор|Листівки
+  {% render 'bazar-catalog-data' %}
 {% endcapture %}
 
 {% liquid
@@ -68,14 +55,12 @@
                 assign category_record = category_item | strip
                 assign category_parts = category_record | split: '::'
                 assign category_title = category_parts[0] | strip
-                assign category_handle = category_title | strip | downcase | replace: "'", '' | replace: '’', '' | replace: 'ʼ', '' | replace: ',', '' | replace: '.', '' | replace: ':', '' | replace: ';', '' | replace: '!', '' | replace: '?', '' | replace: '(', '' | replace: ')', '' | replace: '/', '-' | replace: ' ', '-'
-                assign category_url = '/collections/' | append: category_handle
               %}
               {% capture category_id %}BazarCatalogCategory-{{ section.id }}-{{ forloop.index }}{% endcapture %}
               {% capture panel_id %}BazarCatalogPanel-{{ section.id }}-{{ forloop.index }}{% endcapture %}
               <li role="presentation">
                 <a
-                  href="{{ category_url }}"
+                  href="{%- render 'bazar-collection-url', title: category_title -%}"
                   id="{{ category_id }}"
                   class="bazar-catalog-menu__category-link{% if forloop.first %} is-active{% endif %}"
                   role="tab"
@@ -139,13 +124,11 @@
                     {% liquid
                       assign subcategory_title = subcategory | strip
                       assign icon_variant = category_index | times: 30 | plus: forloop.index
-                      assign subcategory_handle = subcategory_title | strip | downcase | replace: "'", '' | replace: '’', '' | replace: 'ʼ', '' | replace: ',', '' | replace: '.', '' | replace: ':', '' | replace: ';', '' | replace: '!', '' | replace: '?', '' | replace: '(', '' | replace: ')', '' | replace: '/', '-' | replace: ' ', '-'
-                      assign subcategory_url = '/collections/' | append: subcategory_handle
                     %}
                     <li class="bazar-catalog-menu__subcategory">
                       <a
                         class="bazar-catalog-menu__subcategory-link"
-                        href="{{ subcategory_url }}"
+                        href="{%- render 'bazar-collection-url', title: subcategory_title -%}"
                       >
                         <span
                           class="bazar-catalog-menu__subcategory-icon"

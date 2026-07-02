@@ -231,6 +231,18 @@ html.bazar-catalog-scroll-lock body {
   background: var(--bazar-header-blue-hover);
 }
 
+.bazar-header__search-submit:disabled,
+.bazar-header__search-submit[aria-disabled='true'] {
+  background: var(--bazar-header-blue);
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.bazar-header__search-submit:disabled:hover,
+.bazar-header__search-submit[aria-disabled='true']:hover {
+  background: var(--bazar-header-blue);
+}
+
 .bazar-header__search-submit svg {
   width: 20px;
   height: 20px;

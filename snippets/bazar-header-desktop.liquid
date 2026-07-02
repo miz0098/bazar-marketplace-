@@ -18,6 +18,7 @@
       method="get"
       role="search"
       class="bazar-header__search"
+      data-bazar-header-search
     >
       <label
         class="visually-hidden"
@@ -34,6 +35,7 @@
           value="{% if search.performed %}{{ search.terms | escape }}{% endif %}"
           placeholder="Пошук товарів, брендів, категорій..."
           autocomplete="off"
+          data-bazar-header-search-input
         >
       </div>
 
@@ -41,6 +43,10 @@
         class="bazar-header__search-submit"
         type="submit"
         aria-label="Пошук"
+        data-bazar-header-search-submit
+        {% unless search.performed and search.terms != blank %}
+          disabled
+        {% endunless %}
       >
         {{ 'icon-search.svg' | inline_asset_content }}
       </button>

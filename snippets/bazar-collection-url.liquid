@@ -1,0 +1,16 @@
+{% doc %}
+  Outputs a Shopify collection URL for a BAZAR catalog title or handle.
+
+  @param {string} [title] - Visible category title used to derive a handle.
+  @param {string} [handle] - Existing Shopify collection handle.
+{% enddoc %}
+
+{% liquid
+  assign collection_handle = handle | default: ''
+
+  if collection_handle == blank and title != blank
+    assign collection_handle = title | strip | downcase | replace: "'", '' | replace: '’', '' | replace: 'ʼ', '' | replace: ',', '' | replace: '.', '' | replace: ':', '' | replace: ';', '' | replace: '!', '' | replace: '?', '' | replace: '(', '' | replace: ')', '' | replace: '/', '-' | replace: ' ', '-'
+  endif
+
+  echo '/collections/' | append: collection_handle
+%}

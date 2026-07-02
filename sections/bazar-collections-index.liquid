@@ -1,24 +1,11 @@
 {{ 'bazar-collections-index.css' | asset_url | stylesheet_tag }}
 
-{% capture bazar_main_categories %}
-Електроніка::електроніка
-||Побутова техніка::побутова-техніка
-||Комп'ютери та офіс::компютери-та-офіс
-||Одяг, взуття та аксесуари::одяг-взуття-та-аксесуари
-||Дім та сад::дім-та-сад
-||Будівництво та ремонт::будівництво-та-ремонт
-||Авто та мото::авто-та-мото
-||Краса та здоров'я::краса-та-здоровя
-||Дитячі товари::дитячі-товари
-||Спорт та відпочинок::спорт-та-відпочинок
-||Зоотовари::зоотовари
-||Продукти харчування::продукти-харчування
-||Книги::книги
-||Канцелярія::канцелярія
+{% capture catalog_tree_data %}
+  {% render 'bazar-catalog-data' %}
 {% endcapture %}
 
 {% liquid
-  assign category_items = bazar_main_categories | strip | split: '||'
+  assign category_items = catalog_tree_data | strip | split: '||'
 %}
 
 <section class="bazar-collections-index" aria-labelledby="BazarCollectionsIndexTitle-{{ section.id }}">
@@ -33,16 +20,48 @@
           assign category_record = item | strip
           assign category_parts = category_record | split: '::'
           assign category_title = category_parts[0] | strip
-          assign category_handle = category_parts[1] | strip
-          assign category_url = '/collections/' | append: category_handle
+          assign subcategories_data = category_parts[1] | strip
+          assign subcategories = subcategories_data | split: '|'
         %}
         <li class="bazar-collections-index__item">
-          <a class="bazar-collections-index__card" href="{{ category_url }}">
+          <a
+            class="bazar-collections-index__card"
+            href="{%- render 'bazar-collection-url', title: category_title -%}"
+          >
             <span class="bazar-collections-index__image" aria-hidden="true">
-              {% render 'bazar-category-visual', title: category_title %}
+              {% render 'bazar-catalog-icon', label: category_title, variant: forloop.index %}
             </span>
             <span class="bazar-collections-index__name">{{ category_title }}</span>
           </a>
+
+          {% if subcategories_data != blank %}
+            <div
+              id="BazarCollectionsSubcategories-{{ section.id }}-{{ forloop.index }}"
+              class="bazar-collections-index__subcategories"
+              aria-label="Підкатегорії {{ category_title | escape }}"
+            >
+              <ul class="bazar-collections-index__subcategory-list" role="list">
+                {% assign category_index = forloop.index %}
+                {% for subcategory in subcategories %}
+                  {% liquid
+                    assign subcategory_title = subcategory | strip
+                    assign icon_variant = category_index | times: 30 | plus: forloop.index
+                  %}
+                  <li>
+                    <a
+                      class="bazar-collections-index__subcategory-link"
+                      href="{%- render 'bazar-collection-url', title: subcategory_title -%}"
+                    >
+                      <span class="bazar-collections-index__subcategory-icon" aria-hidden="true">
+                        {% render 'bazar-catalog-icon', label: subcategory_title, variant: icon_variant %}
+                      </span>
+                      <span>{{ subcategory_title }}</span>
+                    </a>
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
         </li>
       {% endfor %}
     </ul>
