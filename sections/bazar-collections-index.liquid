@@ -1,0 +1,65 @@
+{{ 'bazar-collections-index.css' | asset_url | stylesheet_tag }}
+
+{% capture bazar_main_categories %}
+Електроніка::електроніка
+||Побутова техніка::побутова-техніка
+||Комп'ютери та офіс::компютери-та-офіс
+||Одяг, взуття та аксесуари::одяг-взуття-та-аксесуари
+||Дім та сад::дім-та-сад
+||Будівництво та ремонт::будівництво-та-ремонт
+||Авто та мото::авто-та-мото
+||Краса та здоров'я::краса-та-здоровя
+||Дитячі товари::дитячі-товари
+||Спорт та відпочинок::спорт-та-відпочинок
+||Зоотовари::зоотовари
+||Продукти харчування::продукти-харчування
+||Книги::книги
+||Канцелярія::канцелярія
+{% endcapture %}
+
+{% liquid
+  assign category_items = bazar_main_categories | strip | split: '||'
+%}
+
+<section class="bazar-collections-index" aria-labelledby="BazarCollectionsIndexTitle-{{ section.id }}">
+  <div class="bazar-container">
+    <header class="bazar-collections-index__header">
+      <h1 id="BazarCollectionsIndexTitle-{{ section.id }}" class="bazar-collections-index__title">Категорії</h1>
+    </header>
+
+    <ul class="bazar-collections-index__grid" role="list">
+      {% for item in category_items %}
+        {% liquid
+          assign category_record = item | strip
+          assign category_parts = category_record | split: '::'
+          assign category_title = category_parts[0] | strip
+          assign category_handle = category_parts[1] | strip
+          assign category_url = '/collections/' | append: category_handle
+        %}
+        <li class="bazar-collections-index__item">
+          <a class="bazar-collections-index__card" href="{{ category_url }}">
+            <span class="bazar-collections-index__image" aria-hidden="true">
+              {% render 'bazar-category-visual', title: category_title %}
+            </span>
+            <span class="bazar-collections-index__name">{{ category_title }}</span>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "BAZAR Категорії",
+  "enabled_on": {
+    "templates": ["list-collections"]
+  },
+  "settings": [],
+  "presets": [
+    {
+      "name": "BAZAR Категорії"
+    }
+  ]
+}
+{% endschema %}

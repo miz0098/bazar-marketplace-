@@ -1,0 +1,111 @@
+.bazar-collections-index {
+  padding-block: var(--bazar-space-2xl) var(--bazar-space-3xl);
+  background: var(--bazar-color-surface);
+  color: var(--bazar-color-text);
+  font-family: var(--bazar-font-family);
+}
+
+.bazar-collections-index__header {
+  margin-block-end: var(--bazar-space-xl);
+}
+
+.bazar-collections-index__title {
+  margin: 0;
+  color: var(--bazar-color-navy);
+  font-size: clamp(2rem, 3vw, 2.75rem);
+  font-weight: 900;
+  line-height: var(--bazar-line-height-tight);
+  letter-spacing: 0;
+}
+
+.bazar-collections-index__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 20px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bazar-collections-index__item {
+  min-width: 0;
+}
+
+.bazar-collections-index__card {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: var(--bazar-space-sm);
+  min-height: 148px;
+  padding: var(--bazar-space-md) var(--bazar-space-sm);
+  border: 1px solid var(--bazar-color-border);
+  border-radius: var(--bazar-radius-sm);
+  background: var(--bazar-color-surface);
+  color: var(--bazar-color-navy);
+  text-align: center;
+  text-decoration: none;
+  box-shadow: var(--bazar-shadow-sm);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.bazar-collections-index__card:hover {
+  border-color: var(--bazar-color-blue);
+  color: var(--bazar-color-blue);
+  text-decoration: none;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
+}
+
+.bazar-collections-index__card:focus-visible {
+  outline: none;
+  border-color: var(--bazar-color-blue);
+  box-shadow: var(--bazar-focus-ring), var(--bazar-shadow-sm);
+}
+
+.bazar-collections-index__image {
+  display: grid;
+  place-items: center;
+  width: 92px;
+  height: 92px;
+  border: 1px solid var(--bazar-color-border);
+  border-radius: var(--bazar-radius-sm);
+  background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+}
+
+.bazar-category-visual {
+  display: block;
+  width: 70px;
+  height: 70px;
+}
+
+.bazar-collections-index__name {
+  display: block;
+  width: 100%;
+  color: inherit;
+  font-size: var(--bazar-font-size-sm);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
+@media screen and (max-width: 1199px) {
+  .bazar-collections-index__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media screen and (max-width: 749px) {
+  .bazar-collections-index {
+    padding-block: var(--bazar-space-xl) var(--bazar-space-2xl);
+  }
+
+  .bazar-collections-index__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--bazar-space-md);
+  }
+
+  .bazar-collections-index__card {
+    min-height: 140px;
+  }
+}
