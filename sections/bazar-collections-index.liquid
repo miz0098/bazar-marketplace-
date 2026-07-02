@@ -1,4 +1,8 @@
 {{ 'bazar-collections-index.css' | asset_url | stylesheet_tag }}
+<script
+  src="{{ 'bazar-collections-index.js' | asset_url }}"
+  type="module"
+></script>
 
 {% capture catalog_tree_data %}
   {% render 'bazar-catalog-data' %}
