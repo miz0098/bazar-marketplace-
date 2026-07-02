@@ -1,0 +1,24 @@
+{% doc %}
+  Outputs the public BAZAR catalog URL for a Shopify collection handle.
+
+  Shopify still owns the real collection resource at /collections/{handle}.
+  This snippet centralizes the public /catalog/{handle} URL format so theme
+  links can be changed in one place when BAZAR moves to a custom route layer.
+
+  @param {string} [handle] - Existing Shopify collection handle.
+  @param {string} [title] - Visible category title used to derive a handle.
+{% enddoc %}
+
+{% liquid
+  assign catalog_handle = handle | default: ''
+
+  if catalog_handle == blank and title != blank
+    assign catalog_handle = title | strip | downcase | replace: "'", '' | replace: '’', '' | replace: 'ʼ', '' | replace: ',', '' | replace: '.', '' | replace: ':', '' | replace: ';', '' | replace: '!', '' | replace: '?', '' | replace: '(', '' | replace: ')', '' | replace: '/', '-' | replace: ' ', '-'
+  endif
+
+  if catalog_handle == blank or catalog_handle == 'all'
+    echo '/catalog'
+  else
+    echo '/catalog/' | append: catalog_handle
+  endif
+%}

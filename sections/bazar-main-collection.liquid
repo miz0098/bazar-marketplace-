@@ -18,7 +18,11 @@
     endif
   endfor
 
-  assign clear_filters_url = collection.url | append: '?sort_by=' | append: current_sort_by
+  capture bazar_collection_url
+    render 'bazar-catalog-url', handle: collection.handle
+  endcapture
+  assign bazar_collection_url = bazar_collection_url | strip
+  assign clear_filters_url = bazar_collection_url | append: '?sort_by=' | append: current_sort_by
 %}
 
 <section class="bazar-catalog" data-bazar-catalog>
@@ -48,10 +52,25 @@
             <h2 class="bazar-catalog__panel-title">Категорії</h2>
             <ul class="bazar-catalog__category-list" role="list">
               {% for link in category_menu.links limit: section.settings.max_categories %}
+                {% liquid
+                  assign category_link_url = link.url
+                  if link.object.handle != blank
+                    capture category_link_url
+                      render 'bazar-catalog-url', handle: link.object.handle
+                    endcapture
+                    assign category_link_url = category_link_url | strip
+                  elsif category_link_url == '/collections/all'
+                    assign category_link_url = '/catalog'
+                  elsif category_link_url contains '/collections/all?'
+                    assign category_link_url = category_link_url | replace_first: '/collections/all', '/catalog'
+                  elsif category_link_url contains '/collections/'
+                    assign category_link_url = category_link_url | replace_first: '/collections/', '/catalog/'
+                  endif
+                %}
                 <li>
                   <a
                     class="bazar-catalog__category-link{% if link.active or link.child_active %} bazar-catalog__category-link--active{% endif %}"
-                    href="{{ link.url }}"
+                    href="{{ category_link_url }}"
                   >
                     <span>{{ link.title }}</span>
                   </a>
@@ -66,11 +85,11 @@
             <div class="bazar-catalog__panel-header">
               <h2 class="bazar-catalog__panel-title">Фільтри</h2>
               {% if active_filter_count > 0 %}
-                <a class="bazar-catalog__clear-link" href="{{ collection.url }}">Очистити</a>
+                <a class="bazar-catalog__clear-link" href="{{ bazar_collection_url }}">Очистити</a>
               {% endif %}
             </div>
 
-            <form class="bazar-catalog__filters-form" method="get" action="{{ collection.url }}">
+            <form class="bazar-catalog__filters-form" method="get" action="{{ bazar_collection_url }}">
               <input type="hidden" name="sort_by" value="{{ current_sort_by }}">
 
               {% for filter in collection.filters %}
@@ -99,7 +118,7 @@
               {% endif %}
             </div>
 
-            <form class="bazar-catalog__sort-form" method="get" action="{{ collection.url }}">
+            <form class="bazar-catalog__sort-form" method="get" action="{{ bazar_collection_url }}">
               {% for filter in collection.filters %}
                 {% if filter.type == 'price_range' %}
                   {% if filter.min_value.value != null %}
@@ -149,7 +168,8 @@
               {% for filter in collection.filters %}
                 {% if filter.type == 'price_range' %}
                   {% if filter.min_value.value != null or filter.max_value.value != null %}
-                    <a class="bazar-catalog__active-filter" href="{{ filter.url_to_remove }}">
+                    {% assign filter_remove_url = filter.url_to_remove | replace_first: collection.url, bazar_collection_url %}
+                    <a class="bazar-catalog__active-filter" href="{{ filter_remove_url }}">
                       <span>
                         {% if filter.min_value.value != null and filter.max_value.value != null %}
                           {{ filter.min_value.value | money }} - {{ filter.max_value.value | money }}
@@ -164,14 +184,15 @@
                   {% endif %}
                 {% else %}
                   {% for value in filter.active_values %}
-                    <a class="bazar-catalog__active-filter" href="{{ value.url_to_remove }}">
+                    {% assign value_remove_url = value.url_to_remove | replace_first: collection.url, bazar_collection_url %}
+                    <a class="bazar-catalog__active-filter" href="{{ value_remove_url }}">
                       <span>{{ value.label }}</span>
                       <span aria-hidden="true">x</span>
                     </a>
                   {% endfor %}
                 {% endif %}
               {% endfor %}
-              <a class="bazar-catalog__active-clear" href="{{ collection.url }}">Очистити все</a>
+              <a class="bazar-catalog__active-clear" href="{{ bazar_collection_url }}">Очистити все</a>
             </div>
           {% endif %}
 
@@ -183,13 +204,13 @@
             </div>
 
             <div class="bazar-catalog__pagination">
-              {% render 'pagination-controls', paginate: paginate %}
+              {% render 'pagination-controls', paginate: paginate, url_from: collection.url, url_to: bazar_collection_url %}
             </div>
           {% else %}
             <div class="bazar-catalog__empty">
               <h2>Товарів не знайдено</h2>
               <p>Спробуйте змінити фільтри або повернутися до всіх товарів каталогу.</p>
-              <a class="bazar-button" href="{{ collection.url }}">Показати всі товари</a>
+              <a class="bazar-button" href="{{ bazar_collection_url }}">Показати всі товари</a>
             </div>
           {% endif %}
         {% endpaginate %}

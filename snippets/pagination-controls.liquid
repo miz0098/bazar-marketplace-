@@ -4,6 +4,8 @@
   @param {object} paginate - The paginate object
   @param {string} [ref] - Component reference attribute for the pagination nav element
   @param {string} [on_click_handler] - Component function to handle pagination clicks.
+  @param {string} [url_from] - Optional URL prefix to replace in generated pagination links.
+  @param {string} [url_to] - Optional public URL prefix for generated pagination links.
 
   When provided the handler will receive URL search params as data. It extracts URL parameters from each pagination link
   and passes them through the onclick attribute in the format: "on:click='handler?params'". This allows components to
@@ -31,9 +33,15 @@
     >
       <li class="pagination__item">
         {%- if paginate.previous -%}
-          {%- assign prev_params = paginate.previous.url | split: '?' | last -%}
+          {%- liquid
+            assign previous_url = paginate.previous.url
+            if url_from != blank and url_to != blank
+              assign previous_url = previous_url | replace_first: url_from, url_to
+            endif
+            assign prev_params = previous_url | split: '?' | last
+          -%}
           <a
-            href="{{ paginate.previous.url }}"
+            href="{{ previous_url }}"
             aria-label="{{ 'content.pagination.previous' | t }}"
             class="pagination__link pagination__link--arrow"
             {% if on_click_handler != blank %}
@@ -104,9 +112,15 @@
         %}
         <li class="{{ li_classes }}">
           {%- if part.is_link -%}
-            {%- assign part_params = part.url | split: '?' | last -%}
+            {%- liquid
+              assign part_url = part.url
+              if url_from != blank and url_to != blank
+                assign part_url = part_url | replace_first: url_from, url_to
+              endif
+              assign part_params = part_url | split: '?' | last
+            -%}
             <a
-              href="{{ part.url }}"
+              href="{{ part_url }}"
               aria-label="{{ 'content.pagination.page' | t: page: part.title }}"
               class="pagination__link pagination__link--page"
               {% if on_click_handler != blank %}
@@ -136,9 +150,15 @@
 
       <li class="pagination__item">
         {%- if paginate.next -%}
-          {%- assign next_params = paginate.next.url | split: '?' | last -%}
+          {%- liquid
+            assign next_url = paginate.next.url
+            if url_from != blank and url_to != blank
+              assign next_url = next_url | replace_first: url_from, url_to
+            endif
+            assign next_params = next_url | split: '?' | last
+          -%}
           <a
-            href="{{ paginate.next.url }}"
+            href="{{ next_url }}"
             aria-label="{{ 'content.pagination.next' | t }}"
             class="pagination__link pagination__link--arrow"
             {% if on_click_handler != blank %}
