@@ -284,7 +284,7 @@ const updateTimerText = (root) => {
     return;
   }
 
-  timer.textContent = 'Відправити код повторно через 00:00';
+  timer.textContent = '';
   showResendButton(root);
 };
 
@@ -732,13 +732,13 @@ const initAuthRoot = (root) => {
   });
 
   root.querySelectorAll('[data-bazar-auth-resend]').forEach((button) => {
-    button.addEventListener('click', async () => {
+    button.addEventListener('click', () => {
       const state = getState(root);
 
       if (!state.phoneFull) return;
 
-      await requestSmsCode(state.phoneFull);
       showResendStatus(root);
+      requestSmsCode(state.phoneFull);
     });
   });
 

@@ -212,7 +212,35 @@
 }
 
 [data-bazar-auth-register-profile-form] {
+  gap: 6px;
+}
+
+[data-bazar-auth-step='register-profile'] {
   gap: 8px;
+}
+
+[data-bazar-auth-register-profile-form] .bazar-auth-form__row {
+  gap: 6px;
+}
+
+[data-bazar-auth-register-profile-form] .bazar-auth-field {
+  gap: 4px;
+}
+
+[data-bazar-auth-register-profile-form] .bazar-auth-field__input {
+  min-height: 44px;
+}
+
+[data-bazar-auth-register-profile-form] .bazar-auth-checkbox {
+  margin-block-start: -2px;
+}
+
+[data-bazar-auth-register-profile-form] .bazar-auth-checkboxes__error {
+  min-height: 0;
+}
+
+[data-bazar-auth-register-profile-form] .bazar-auth-field__error {
+  min-height: 0;
 }
 
 .bazar-auth-form__row {
