@@ -1,0 +1,99 @@
+{% doc %}
+  BAZAR account provider bootstrap.
+
+  Shopify is used only as the temporary session/data source for the account module.
+  TODO: Replace Shopify implementation with api.bazar.
+{% enddoc %}
+
+{% liquid
+  assign customer_display_name = customer.name | strip
+  if customer_display_name == blank
+    assign customer_display_name = customer.first_name | default: customer.email
+  endif
+
+  assign default_address_id = ''
+  if customer.default_address
+    assign default_address_id = customer.default_address.id
+  endif
+%}
+
+<script type="application/json" id="BazarAccountProviderData">
+{
+  "session": {
+    "isAuthenticated": true,
+    "source": "shopify_customer_accounts"
+  },
+  "urls": {
+    "account": {{ routes.account_url | json }},
+    "logout": {{ routes.account_logout_url | json }},
+    "addresses": {{ routes.account_addresses_url | default: routes.account_url | json }}
+  },
+  "customer": {
+    "id": {{ customer.id | json }},
+    "firstName": {{ customer.first_name | default: '' | json }},
+    "lastName": {{ customer.last_name | default: '' | json }},
+    "displayName": {{ customer_display_name | json }},
+    "email": {{ customer.email | default: '' | json }},
+    "phone": {{ customer.phone | default: '' | json }},
+    "birthday": "",
+    "gender": "",
+    "avatar": ""
+  },
+  "orders": [
+    {% paginate customer.orders by 20 %}
+      {% for order in customer.orders %}
+        {
+          "id": {{ order.id | json }},
+          "name": {{ order.name | json }},
+          "orderNumber": {{ order.order_number | json }},
+          "createdAt": {{ order.created_at | date: '%s' | json }},
+          "date": {{ order.created_at | date: '%d.%m.%Y' | json }},
+          "financialStatus": {{ order.financial_status_label | default: 'Очікує оплати' | json }},
+          "fulfillmentStatus": {{ order.fulfillment_status_label | default: 'В обробці' | json }},
+          "total": {{ order.total_price | money | json }},
+          "totalValue": {{ order.total_price | default: 0 }},
+          "customerUrl": {{ order.customer_url | json }},
+          "itemsCount": {{ order.line_items.size | default: 0 }},
+          "tracking": "",
+          "invoiceUrl": "",
+          "products": [
+            {% for line_item in order.line_items %}
+              {
+                "title": {{ line_item.title | json }},
+                "quantity": {{ line_item.quantity | default: 1 }},
+                "price": {{ line_item.final_line_price | money | json }},
+                "url": {{ line_item.url | default: '' | json }},
+                "image": {% if line_item.image %}{{ line_item.image | image_url: width: 160 | json }}{% else %}""{% endif %}
+              }{% unless forloop.last %},{% endunless %}
+            {% endfor %}
+          ]
+        }{% unless forloop.last %},{% endunless %}
+      {% endfor %}
+    {% endpaginate %}
+  ],
+  "addresses": [
+    {% for address in customer.addresses limit: 20 %}
+      {
+        "id": {{ address.id | json }},
+        "name": {{ address.name | default: customer_display_name | json }},
+        "company": {{ address.company | default: '' | json }},
+        "address1": {{ address.address1 | default: '' | json }},
+        "address2": {{ address.address2 | default: '' | json }},
+        "city": {{ address.city | default: '' | json }},
+        "zip": {{ address.zip | default: '' | json }},
+        "country": {{ address.country | default: '' | json }},
+        "phone": {{ address.phone | default: customer.phone | default: '' | json }},
+        "deliveryType": "Нова Пошта",
+        "isDefault": {% if address.id == default_address_id %}true{% else %}false{% endif %},
+        "formatted": {{ address | format_address | strip_html | strip | json }}
+      }{% unless forloop.last %},{% endunless %}
+    {% endfor %}
+  ],
+  "wishlist": [],
+  "messages": [],
+  "notifications": [],
+  "reviews": [],
+  "supportTickets": [],
+  "paymentMethods": []
+}
+</script>

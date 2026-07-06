@@ -1,0 +1,893 @@
+.bazar-account-module {
+  --account-blue: #2962ff;
+  --account-blue-dark: #1747c7;
+  --account-blue-soft: #edf3ff;
+  --account-ink: #061334;
+  --account-muted: #66728a;
+  --account-border: #dfe6f2;
+  --account-border-strong: #cdd8ea;
+  --account-surface: #ffffff;
+  --account-bg: #f5f7fb;
+  --account-green: #0f9f6e;
+  --account-orange: #f59e0b;
+  --account-red: #e5484d;
+  --account-radius: 18px;
+  --account-shadow: 0 18px 45px rgba(6, 19, 52, 0.08);
+  background: var(--account-bg);
+  color: var(--account-ink);
+  min-height: 72vh;
+  padding: 32px 0 56px;
+}
+
+.bazar-account-module *,
+.bazar-account-module *::before,
+.bazar-account-module *::after {
+  box-sizing: border-box;
+}
+
+.bazar-account-module__container {
+  width: min(1440px, calc(100% - 32px));
+  margin: 0 auto;
+}
+
+.bazar-account-shell {
+  align-items: start;
+  display: grid;
+  gap: 24px;
+  grid-template-columns: 280px minmax(0, 1fr);
+}
+
+.bazar-account-sidebar {
+  background: var(--account-surface);
+  border: 1px solid var(--account-border);
+  border-radius: var(--account-radius);
+  box-shadow: 0 14px 32px rgba(6, 19, 52, 0.06);
+  max-height: calc(100vh - 116px);
+  overflow-y: auto;
+  padding: 18px;
+  position: sticky;
+  top: 92px;
+  width: 280px;
+  z-index: 4;
+}
+
+.bazar-account-sidebar__top {
+  align-items: start;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.bazar-account-sidebar__eyebrow {
+  color: var(--account-blue);
+  font-size: 12px;
+  font-weight: 800;
+  margin: 0 0 4px;
+  text-transform: uppercase;
+}
+
+.bazar-account-sidebar__title {
+  color: var(--account-ink);
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.15;
+  margin: 0;
+}
+
+.bazar-account-sidebar__close {
+  align-items: center;
+  background: var(--account-blue-soft);
+  border: 0;
+  border-radius: 999px;
+  color: var(--account-blue);
+  cursor: pointer;
+  display: none;
+  height: 40px;
+  justify-content: center;
+  width: 40px;
+}
+
+.bazar-account-sidebar__close svg,
+.bazar-account-mobile-toggle svg {
+  height: 20px;
+  width: 20px;
+}
+
+.bazar-account-nav {
+  display: grid;
+  gap: 8px;
+}
+
+.bazar-account-nav__item {
+  align-items: center;
+  background: #fff;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  color: var(--account-ink);
+  display: flex;
+  font-size: 15px;
+  font-weight: 700;
+  gap: 12px;
+  min-height: 46px;
+  padding: 10px 12px;
+  text-decoration: none;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.bazar-account-nav__item:hover,
+.bazar-account-nav__item:focus-visible {
+  background: var(--account-blue-soft);
+  border-color: #cfe0ff;
+  color: var(--account-blue-dark);
+  outline: none;
+}
+
+.bazar-account-nav__item.is-active {
+  background: var(--account-blue);
+  border-color: var(--account-blue);
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(41, 98, 255, 0.22);
+}
+
+.bazar-account-nav__item--logout {
+  color: var(--account-red);
+  margin-top: 8px;
+}
+
+.bazar-account-nav__icon {
+  align-items: center;
+  border-radius: 12px;
+  display: inline-flex;
+  flex: 0 0 24px;
+  height: 24px;
+  justify-content: center;
+  width: 24px;
+}
+
+.bazar-account-nav__icon svg {
+  display: block;
+  height: 22px;
+  width: 22px;
+}
+
+.bazar-account-content {
+  min-width: 0;
+  outline: none;
+  position: relative;
+}
+
+.bazar-account-content.is-transitioning {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+
+.bazar-account-content.is-ready {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+
+.bazar-account-page-head {
+  align-items: end;
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+
+.bazar-account-kicker {
+  color: var(--account-blue);
+  font-size: 13px;
+  font-weight: 800;
+  margin: 0 0 6px;
+  text-transform: uppercase;
+}
+
+.bazar-account-page-title {
+  color: var(--account-ink);
+  font-size: 32px;
+  font-weight: 850;
+  line-height: 1.12;
+  margin: 0;
+}
+
+.bazar-account-page-text {
+  color: var(--account-muted);
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 8px 0 0;
+  max-width: 680px;
+}
+
+.bazar-account-button,
+.bazar-account-icon-button {
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  gap: 8px;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 18px;
+  text-decoration: none;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.bazar-account-button:hover,
+.bazar-account-icon-button:hover {
+  transform: translateY(-1px);
+}
+
+.bazar-account-button:disabled,
+.bazar-account-icon-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+}
+
+.bazar-account-button:focus-visible,
+.bazar-account-icon-button:focus-visible,
+.bazar-account-field input:focus-visible,
+.bazar-account-field select:focus-visible,
+.bazar-account-field textarea:focus-visible,
+.bazar-account-filter:focus-visible {
+  outline: 3px solid rgba(41, 98, 255, 0.2);
+  outline-offset: 2px;
+}
+
+.bazar-account-button--primary {
+  background: var(--account-blue);
+  color: #fff;
+}
+
+.bazar-account-button--primary:hover {
+  background: var(--account-blue-dark);
+}
+
+.bazar-account-button--secondary {
+  background: var(--account-blue-soft);
+  color: var(--account-blue-dark);
+}
+
+.bazar-account-button--ghost {
+  background: #fff;
+  border-color: var(--account-border);
+  color: var(--account-ink);
+}
+
+.bazar-account-button--danger {
+  background: #fff1f1;
+  color: var(--account-red);
+}
+
+.bazar-account-icon-button {
+  background: #fff;
+  border-color: var(--account-border);
+  color: var(--account-ink);
+  height: 44px;
+  padding: 0;
+  width: 44px;
+}
+
+.bazar-account-icon-button svg,
+.bazar-account-button svg {
+  height: 18px;
+  width: 18px;
+}
+
+.bazar-account-stats-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 22px;
+}
+
+.bazar-account-stat-card,
+.bazar-account-card,
+.bazar-account-panel,
+.bazar-account-empty,
+.bazar-account-error,
+.bazar-account-guest {
+  background: var(--account-surface);
+  border: 1px solid var(--account-border);
+  border-radius: var(--account-radius);
+  box-shadow: 0 12px 28px rgba(6, 19, 52, 0.05);
+}
+
+.bazar-account-stat-card {
+  align-items: center;
+  color: inherit;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  min-height: 116px;
+  padding: 18px;
+  text-align: left;
+  text-decoration: none;
+}
+
+.bazar-account-stat-card:hover {
+  border-color: #b8ccff;
+  transform: translateY(-2px);
+}
+
+.bazar-account-stat-card__icon,
+.bazar-account-card__icon,
+.bazar-account-empty__icon,
+.bazar-account-profile-avatar,
+.bazar-account-payment-brand {
+  align-items: center;
+  background: var(--account-blue-soft);
+  border-radius: 16px;
+  color: var(--account-blue);
+  display: inline-flex;
+  justify-content: center;
+}
+
+.bazar-account-stat-card__icon,
+.bazar-account-card__icon {
+  height: 48px;
+  width: 48px;
+}
+
+.bazar-account-stat-card__icon svg,
+.bazar-account-card__icon svg,
+.bazar-account-empty__icon svg {
+  height: 24px;
+  width: 24px;
+}
+
+.bazar-account-stat-card__value {
+  display: block;
+  font-size: 30px;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.bazar-account-stat-card__label {
+  color: var(--account-muted);
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  margin-top: 5px;
+}
+
+.bazar-account-section-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.8fr);
+}
+
+.bazar-account-card,
+.bazar-account-panel {
+  padding: 20px;
+}
+
+.bazar-account-card__head,
+.bazar-account-panel__head {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.bazar-account-card__title,
+.bazar-account-panel__title {
+  color: var(--account-ink);
+  font-size: 18px;
+  font-weight: 850;
+  margin: 0;
+}
+
+.bazar-account-card__text,
+.bazar-account-panel__text,
+.bazar-account-muted {
+  color: var(--account-muted);
+  font-size: 14px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.bazar-account-toolbar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.bazar-account-filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bazar-account-filter {
+  background: #fff;
+  border: 1px solid var(--account-border);
+  border-radius: 999px;
+  color: var(--account-ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  min-height: 38px;
+  padding: 0 14px;
+}
+
+.bazar-account-filter.is-active {
+  background: var(--account-blue);
+  border-color: var(--account-blue);
+  color: #fff;
+}
+
+.bazar-account-field {
+  display: grid;
+  gap: 7px;
+}
+
+.bazar-account-field span {
+  color: var(--account-ink);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.bazar-account-field input,
+.bazar-account-field select,
+.bazar-account-field textarea {
+  background: #fff;
+  border: 1px solid var(--account-border);
+  border-radius: 14px;
+  color: var(--account-ink);
+  font: inherit;
+  min-height: 44px;
+  padding: 0 14px;
+  width: 100%;
+}
+
+.bazar-account-field textarea {
+  min-height: 112px;
+  padding: 12px 14px;
+  resize: vertical;
+}
+
+.bazar-account-toolbar .bazar-account-field {
+  min-width: 210px;
+}
+
+.bazar-account-form-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.bazar-account-form-grid .bazar-account-field--full,
+.bazar-account-form-actions {
+  grid-column: 1 / -1;
+}
+
+.bazar-account-form-actions {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-start;
+  margin-top: 4px;
+}
+
+.bazar-account-list {
+  display: grid;
+  gap: 12px;
+}
+
+.bazar-account-order-card,
+.bazar-account-row-card {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--account-border);
+  border-radius: 16px;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 1fr auto;
+  padding: 16px;
+}
+
+.bazar-account-order-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.bazar-account-pill {
+  align-items: center;
+  background: #f3f6fb;
+  border-radius: 999px;
+  color: var(--account-muted);
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 800;
+  min-height: 28px;
+  padding: 0 10px;
+}
+
+.bazar-account-pill--green {
+  background: #e8f8f1;
+  color: var(--account-green);
+}
+
+.bazar-account-pill--orange {
+  background: #fff7e6;
+  color: #a96800;
+}
+
+.bazar-account-pill--blue {
+  background: var(--account-blue-soft);
+  color: var(--account-blue-dark);
+}
+
+.bazar-account-order-card__title,
+.bazar-account-row-card__title {
+  font-size: 16px;
+  font-weight: 850;
+  margin: 0;
+}
+
+.bazar-account-order-card__total {
+  color: var(--account-ink);
+  font-size: 18px;
+  font-weight: 850;
+  text-align: right;
+}
+
+.bazar-account-pagination {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.bazar-account-detail-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
+}
+
+.bazar-account-timeline {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+}
+
+.bazar-account-timeline__item {
+  align-items: start;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 18px 1fr;
+  list-style: none;
+}
+
+.bazar-account-timeline__dot {
+  background: var(--account-blue);
+  border: 4px solid var(--account-blue-soft);
+  border-radius: 50%;
+  height: 18px;
+  margin-top: 2px;
+  width: 18px;
+}
+
+.bazar-account-product-row {
+  align-items: center;
+  border-top: 1px solid var(--account-border);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 56px 1fr auto;
+  padding: 14px 0;
+}
+
+.bazar-account-product-row:first-child {
+  border-top: 0;
+}
+
+.bazar-account-product-thumb {
+  align-items: center;
+  background: #f3f6fb;
+  border: 1px solid var(--account-border);
+  border-radius: 14px;
+  display: flex;
+  height: 56px;
+  justify-content: center;
+  overflow: hidden;
+  width: 56px;
+}
+
+.bazar-account-product-thumb img {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.bazar-account-product-thumb svg {
+  color: var(--account-muted);
+  height: 22px;
+  width: 22px;
+}
+
+.bazar-account-empty,
+.bazar-account-error,
+.bazar-account-guest {
+  align-items: center;
+  display: grid;
+  justify-items: center;
+  padding: 40px 28px;
+  text-align: center;
+}
+
+.bazar-account-empty__icon,
+.bazar-account-guest__icon {
+  height: 64px;
+  margin-bottom: 14px;
+  width: 64px;
+}
+
+.bazar-account-empty h2,
+.bazar-account-error h2,
+.bazar-account-guest h1 {
+  font-size: 24px;
+  font-weight: 850;
+  margin: 0 0 8px;
+}
+
+.bazar-account-empty p,
+.bazar-account-error p,
+.bazar-account-guest p {
+  color: var(--account-muted);
+  margin: 0 0 18px;
+}
+
+.bazar-account-guest {
+  margin: 0 auto;
+  max-width: 520px;
+}
+
+.bazar-account-guest__eyebrow {
+  color: var(--account-blue) !important;
+  font-size: 13px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.bazar-account-loading {
+  display: grid;
+  gap: 16px;
+}
+
+.bazar-account-skeleton {
+  animation: bazar-account-pulse 1.2s ease-in-out infinite;
+  background: linear-gradient(90deg, #edf1f7 0%, #f8fafc 50%, #edf1f7 100%);
+  background-size: 220% 100%;
+  border-radius: 16px;
+  display: block;
+}
+
+.bazar-account-skeleton--title {
+  height: 38px;
+  max-width: 360px;
+}
+
+.bazar-account-skeleton--line {
+  height: 18px;
+  max-width: 640px;
+}
+
+.bazar-account-skeleton-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.bazar-account-skeleton--card {
+  height: 160px;
+}
+
+@keyframes bazar-account-pulse {
+  0% {
+    background-position: 120% 0;
+  }
+  100% {
+    background-position: -120% 0;
+  }
+}
+
+.bazar-account-profile-layout {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: 220px minmax(0, 1fr);
+}
+
+.bazar-account-profile-avatar {
+  color: var(--account-blue);
+  font-size: 36px;
+  font-weight: 850;
+  height: 136px;
+  width: 136px;
+}
+
+.bazar-account-payment-grid,
+.bazar-account-address-grid,
+.bazar-account-support-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.bazar-account-payment-brand {
+  color: var(--account-ink);
+  font-size: 14px;
+  font-weight: 850;
+  height: 48px;
+  width: 72px;
+}
+
+.bazar-account-stars {
+  color: var(--account-orange);
+  font-size: 18px;
+}
+
+.bazar-account-notification-tabs,
+.bazar-account-support-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.bazar-account-unread-badge {
+  background: var(--account-red);
+  border-radius: 999px;
+  color: #fff;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 850;
+  margin-left: 6px;
+  min-width: 20px;
+  padding: 2px 6px;
+}
+
+.bazar-account-mobile-toggle {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--account-border);
+  border-radius: 14px;
+  color: var(--account-ink);
+  cursor: pointer;
+  display: none;
+  font: inherit;
+  font-weight: 850;
+  gap: 10px;
+  margin-bottom: 16px;
+  min-height: 48px;
+  padding: 0 16px;
+}
+
+.bazar-account-drawer-backdrop {
+  background: rgba(6, 19, 52, 0.42);
+  inset: 0;
+  position: fixed;
+  z-index: 98;
+}
+
+.bazar-account-module.is-sidebar-open {
+  overflow: hidden;
+}
+
+@media (max-width: 1180px) {
+  .bazar-account-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bazar-account-section-grid,
+  .bazar-account-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 920px) {
+  .bazar-account-module {
+    padding-top: 22px;
+  }
+
+  .bazar-account-shell {
+    display: block;
+  }
+
+  .bazar-account-mobile-toggle {
+    display: inline-flex;
+  }
+
+  .bazar-account-sidebar {
+    border-radius: 0 22px 22px 0;
+    height: 100vh;
+    left: 0;
+    max-height: none;
+    padding: 20px;
+    position: fixed;
+    top: 0;
+    transform: translateX(-105%);
+    transition: transform 220ms ease;
+    width: min(320px, calc(100vw - 48px));
+    z-index: 99;
+  }
+
+  .bazar-account-module.is-sidebar-open .bazar-account-sidebar {
+    transform: translateX(0);
+  }
+
+  .bazar-account-sidebar__close {
+    display: inline-flex;
+  }
+
+  .bazar-account-page-head {
+    align-items: start;
+    display: grid;
+  }
+
+  .bazar-account-page-title {
+    font-size: 28px;
+  }
+
+  .bazar-account-profile-layout,
+  .bazar-account-payment-grid,
+  .bazar-account-address-grid,
+  .bazar-account-support-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .bazar-account-module__container {
+    width: min(100% - 20px, 1440px);
+  }
+
+  .bazar-account-stats-grid,
+  .bazar-account-skeleton-grid,
+  .bazar-account-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bazar-account-card,
+  .bazar-account-panel,
+  .bazar-account-empty,
+  .bazar-account-error {
+    padding: 16px;
+  }
+
+  .bazar-account-order-card,
+  .bazar-account-row-card,
+  .bazar-account-product-row {
+    grid-template-columns: 1fr;
+  }
+
+  .bazar-account-order-card__total {
+    text-align: left;
+  }
+
+  .bazar-account-toolbar {
+    align-items: stretch;
+    display: grid;
+  }
+
+  .bazar-account-toolbar .bazar-account-field {
+    min-width: 0;
+  }
+}
