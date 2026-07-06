@@ -8,7 +8,7 @@
 }
 
 .bazar-auth-widget {
-  --bazar-auth-panel-width: 460px;
+  --bazar-auth-panel-width: 414px;
 
   color: var(--bazar-color-text);
   font-family: var(--bazar-font-family);
@@ -26,7 +26,7 @@
   z-index: 1000;
   display: grid;
   place-items: center;
-  padding: var(--bazar-space-lg);
+  padding: var(--bazar-space-md);
   isolation: isolate;
 }
 
@@ -50,7 +50,7 @@
 }
 
 .bazar-auth-widget--modal .bazar-auth-widget__panel {
-  max-height: min(720px, calc(100vh - 48px));
+  max-height: min(648px, calc(100vh - 32px));
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -63,8 +63,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   border: 1px solid var(--bazar-color-border);
   border-radius: var(--bazar-radius-pill);
   background: #ffffff;
@@ -82,15 +82,15 @@
 }
 
 .bazar-auth-widget__close svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
 }
 
 .bazar-auth-card,
 .bazar-account-card,
 .bazar-account-summary {
   border: 1px solid var(--bazar-color-border);
-  border-radius: 22px;
+  border-radius: 20px;
   background: rgba(255, 255, 255, 0.98);
   box-shadow: 0 24px 70px rgba(15, 23, 42, 0.12);
 }
@@ -98,9 +98,9 @@
 .bazar-auth-card {
   display: grid;
   justify-items: center;
-  gap: var(--bazar-space-md);
+  gap: var(--bazar-space-sm);
   width: 100%;
-  padding: clamp(26px, 4vw, 40px);
+  padding: clamp(22px, 3vw, 32px);
   text-align: center;
 }
 
@@ -108,26 +108,12 @@
   display: none;
 }
 
-.bazar-auth-card__badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 30px;
-  padding: 0 12px;
-  border-radius: var(--bazar-radius-pill);
-  background: var(--bazar-color-blue-soft);
-  color: var(--bazar-color-blue);
-  font-size: var(--bazar-font-size-xs);
-  font-weight: 900;
-  line-height: 1;
-}
-
 .bazar-auth-card__icon,
 .bazar-auth-card__success-icon {
   display: grid;
   place-items: center;
-  width: 78px;
-  height: 78px;
+  width: 66px;
+  height: 66px;
   border-radius: 50%;
 }
 
@@ -143,8 +129,8 @@
 
 .bazar-auth-card__icon svg,
 .bazar-auth-card__success-icon svg {
-  width: 36px;
-  height: 36px;
+  width: 31px;
+  height: 31px;
 }
 
 .bazar-auth-card__title,
@@ -157,6 +143,10 @@
   letter-spacing: 0;
 }
 
+.bazar-auth-card__title {
+  font-size: clamp(1.65rem, 2.4vw, 2.35rem);
+}
+
 .bazar-auth-card__text,
 .bazar-account__text,
 .bazar-account-card__text {
@@ -164,6 +154,10 @@
   color: var(--bazar-color-muted);
   font-size: var(--bazar-font-size-md);
   line-height: var(--bazar-line-height-base);
+}
+
+.bazar-auth-card__text {
+  font-size: var(--bazar-font-size-sm);
 }
 
 .bazar-auth-card__phone {
@@ -176,7 +170,8 @@
 
 .bazar-auth-card__bottom,
 .bazar-auth-card__timer,
-.bazar-auth-card__help {
+.bazar-auth-card__help,
+.bazar-auth-card__resend-status {
   margin: 0;
 }
 
@@ -188,9 +183,15 @@
 
 .bazar-auth-card__timer {
   color: var(--bazar-color-muted);
-  font-size: var(--bazar-font-size-sm);
+  font-size: var(--bazar-font-size-xs);
   font-weight: 800;
   margin-block-start: -2px;
+}
+
+.bazar-auth-card__resend-status {
+  color: var(--bazar-color-muted);
+  font-size: var(--bazar-font-size-xs);
+  font-weight: 900;
 }
 
 .bazar-auth-flow {
@@ -202,22 +203,22 @@
 
 [data-bazar-auth-login-phone-form],
 [data-bazar-auth-register-phone-form] {
-  gap: 10px;
+  gap: 8px;
 }
 
 [data-bazar-auth-login-code-form],
 [data-bazar-auth-register-code-form] {
-  gap: 8px;
+  gap: 6px;
 }
 
 [data-bazar-auth-register-profile-form] {
-  gap: 10px;
+  gap: 8px;
 }
 
 .bazar-auth-form__row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--bazar-space-sm);
+  gap: var(--bazar-space-xs);
 }
 
 .bazar-phone-field,
@@ -236,11 +237,15 @@
   line-height: var(--bazar-line-height-tight);
 }
 
+.bazar-auth-field {
+  gap: 6px;
+}
+
 .bazar-phone-field__control {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  min-height: 52px;
+  min-height: 47px;
   overflow: hidden;
   border: 1px solid var(--bazar-color-border-strong);
   border-radius: 16px;
@@ -268,12 +273,12 @@
 .bazar-phone-field__input,
 .bazar-auth-field__input {
   width: 100%;
-  min-height: 52px;
+  min-height: 47px;
   border: 0;
   background: transparent;
   color: var(--bazar-color-navy);
   font: inherit;
-  font-size: var(--bazar-font-size-md);
+  font-size: var(--bazar-font-size-sm);
   line-height: var(--bazar-line-height-base);
 }
 
@@ -285,7 +290,7 @@
 .bazar-auth-field__input {
   padding: 0 var(--bazar-space-md);
   border: 1px solid var(--bazar-color-border-strong);
-  border-radius: 16px;
+  border-radius: 14px;
   background: var(--bazar-color-surface);
   transition: border-color 150ms ease, box-shadow 150ms ease;
 }
@@ -326,7 +331,7 @@
 
 .bazar-sms-code {
   display: grid;
-  gap: 6px;
+  gap: 4px;
 }
 
 .bazar-sms-code__label {
@@ -339,18 +344,18 @@
 .bazar-sms-code__inputs {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 8px;
+  gap: 6px;
 }
 
 .bazar-sms-code__input {
   width: 100%;
   aspect-ratio: 1;
   border: 1px solid var(--bazar-color-border-strong);
-  border-radius: 14px;
+  border-radius: 12px;
   background: var(--bazar-color-surface);
   color: var(--bazar-color-navy);
   font: inherit;
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   font-weight: 900;
   line-height: 1;
   text-align: center;
@@ -373,14 +378,14 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 52px;
+  min-height: 47px;
   padding: 0 var(--bazar-space-lg);
   border: 1px solid transparent;
   border-radius: 16px;
   background: var(--bazar-color-blue);
   color: #ffffff;
   cursor: pointer;
-  font-size: var(--bazar-font-size-md);
+  font-size: var(--bazar-font-size-sm);
   font-weight: 900;
   line-height: 1;
   text-decoration: none;
@@ -411,8 +416,8 @@
 .bazar-auth-alternatives {
   display: grid;
   justify-items: center;
-  gap: 9px;
-  margin-block-start: 2px;
+  gap: 8px;
+  margin-block-start: 0;
   text-align: center;
 }
 
@@ -438,7 +443,7 @@
   justify-content: center;
   gap: var(--bazar-space-xs);
   width: 100%;
-  min-height: 48px;
+  min-height: 43px;
   padding: 0 var(--bazar-space-md);
   border: 1px solid var(--bazar-color-border-strong);
   border-radius: 16px;
@@ -695,7 +700,7 @@ a.bazar-account-card:hover {
   }
 
   .bazar-auth-widget--modal {
-    padding: var(--bazar-space-sm);
+    padding: var(--bazar-space-xs);
   }
 
   .bazar-auth-card,

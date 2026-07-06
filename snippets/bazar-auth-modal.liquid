@@ -1,0 +1,386 @@
+{% doc %}
+  BAZAR phone + SMS authentication flow.
+
+  @param {string} id
+  @param {string} [surface] - modal or page
+  @param {string} [initial_flow] - login or register
+{% enddoc %}
+
+{% liquid
+  assign auth_id = id | default: 'BazarAuth'
+  assign auth_surface = surface | default: 'modal'
+  assign auth_initial_flow = initial_flow | default: 'login'
+  assign is_modal = false
+
+  if auth_surface == 'modal'
+    assign is_modal = true
+  endif
+%}
+
+{{ 'bazar-auth.css' | asset_url | stylesheet_tag }}
+<script
+  src="{{ 'bazar-auth.js' | asset_url }}"
+  defer
+></script>
+
+<div
+  id="{{ auth_id }}"
+  class="bazar-auth-widget bazar-auth-widget--{{ auth_surface }}"
+  data-bazar-auth
+  data-bazar-auth-surface="{{ auth_surface }}"
+  data-bazar-auth-initial-flow="{{ auth_initial_flow }}"
+  data-bazar-auth-home-url="{{ routes.root_url }}"
+  {% if is_modal %}
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="{{ auth_id }}-title"
+    aria-hidden="true"
+    hidden
+  {% endif %}
+>
+  {% if is_modal %}
+    <button
+      class="bazar-auth-widget__backdrop"
+      type="button"
+      aria-label="Закрити вхід"
+      data-bazar-auth-close
+    ></button>
+  {% endif %}
+
+  <div class="bazar-auth-widget__panel">
+    {% if is_modal %}
+      <button
+        class="bazar-auth-widget__close"
+        type="button"
+        aria-label="Закрити"
+        data-bazar-auth-close
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    {% endif %}
+
+    <article
+      class="bazar-auth-card{% if auth_initial_flow == 'login' %} bazar-auth-card--active{% endif %}"
+      data-bazar-auth-step="login-phone"
+      {% if auth_initial_flow != 'login' %}
+        hidden
+      {% endif %}
+    >
+      <span class="bazar-auth-card__icon">
+        {% render 'bazar-auth-icon', name: 'phone' %}
+      </span>
+      <h2
+        id="{{ auth_id }}-title"
+        class="bazar-auth-card__title"
+      >
+        Вхід
+      </h2>
+      <p class="bazar-auth-card__text">Введіть номер телефону, щоб отримати код для входу</p>
+
+      <form class="bazar-auth-flow" data-bazar-auth-login-phone-form novalidate>
+        {% render 'bazar-phone-input', id: auth_id | append: '-LoginPhone' %}
+        <button
+          class="bazar-auth-button"
+          type="submit"
+          disabled
+          data-bazar-auth-phone-submit
+        >
+          Продовжити
+        </button>
+
+        <div class="bazar-auth-alternatives" aria-label="Додаткові способи входу">
+          <p class="bazar-auth-alternatives__notice">
+            Продовжуючи, ви підтверджуєте, що надаєте згоду на обробку персональних даних.
+          </p>
+          <span class="bazar-auth-alternatives__divider">або</span>
+          <button
+            class="bazar-auth-oauth"
+            type="button"
+            data-bazar-oauth-provider="google"
+          >
+            <span class="bazar-auth-oauth__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M21.6 12.2c0-.7-.1-1.3-.2-1.9H12v3.6h5.4a4.7 4.7 0 0 1-2 3.1v2.6h3.2c1.9-1.8 3-4.3 3-7.4Z" fill="#4285f4"/>
+                <path d="M12 22c2.7 0 5-0.9 6.6-2.4L15.4 17c-.9.6-2 .9-3.4.9a5.9 5.9 0 0 1-5.6-4.1H3.1v2.7A10 10 0 0 0 12 22Z" fill="#34a853"/>
+                <path d="M6.4 13.8a6 6 0 0 1 0-3.6V7.5H3.1a10 10 0 0 0 0 9l3.3-2.7Z" fill="#fbbc05"/>
+                <path d="M12 6.1c1.5 0 2.8.5 3.8 1.5l2.9-2.9A9.7 9.7 0 0 0 12 2a10 10 0 0 0-8.9 5.5l3.3 2.7A5.9 5.9 0 0 1 12 6.1Z" fill="#ea4335"/>
+              </svg>
+            </span>
+            Продовжити з Google
+          </button>
+          <button
+            class="bazar-auth-oauth"
+            type="button"
+            data-bazar-oauth-provider="apple"
+          >
+            <span class="bazar-auth-oauth__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M16.8 12.6c0-2 1.7-3 1.8-3.1-1-1.4-2.4-1.6-2.9-1.6-1.2-.1-2.4.7-3 0.7-.6 0-1.6-.7-2.6-.7-1.3 0-2.6.8-3.3 2-1.4 2.5-.4 6.2 1 8.2.7 1 1.5 2.1 2.6 2 1 0 1.4-.7 2.7-.7 1.2 0 1.6.7 2.7.7s1.8-1 2.5-2c.8-1.1 1.1-2.2 1.1-2.3 0 0-2.6-1-2.6-3.2ZM14.9 6.6c.6-.7 1-1.7.9-2.6-.9 0-1.9.6-2.5 1.3-.6.6-1 1.6-.9 2.5 1 0 1.9-.5 2.5-1.2Z" fill="currentColor"/>
+              </svg>
+            </span>
+            Продовжити з Apple
+          </button>
+        </div>
+      </form>
+
+      <p class="bazar-auth-card__bottom">
+        Ще не маєте акаунту?
+        <button
+          class="bazar-auth-link-button"
+          type="button"
+          data-bazar-auth-flow-switch="register"
+        >
+          Зареєструватися
+        </button>
+      </p>
+    </article>
+
+    <article
+      class="bazar-auth-card"
+      data-bazar-auth-step="login-code"
+      hidden
+    >
+      <span class="bazar-auth-card__icon">
+        {% render 'bazar-auth-icon', name: 'sms' %}
+      </span>
+      <h2 class="bazar-auth-card__title">Код з SMS</h2>
+      <p class="bazar-auth-card__text">Ми відправили 6-значний код на номер</p>
+      <p class="bazar-auth-card__phone" data-bazar-auth-phone-display></p>
+      <button
+        class="bazar-auth-link-button"
+        type="button"
+        data-bazar-auth-change-phone
+      >
+        Змінити номер
+      </button>
+
+      <form class="bazar-auth-flow" data-bazar-auth-login-code-form novalidate>
+        {% render 'bazar-sms-code-input', id: auth_id | append: '-LoginCode' %}
+        <p class="bazar-auth-card__timer" data-bazar-auth-resend-timer>Відправити код повторно через 02:00</p>
+        <p
+          class="bazar-auth-card__resend-status"
+          data-bazar-auth-resend-status
+          hidden
+        >
+          Код відправлено повторно
+        </p>
+        <button
+          class="bazar-auth-button"
+          type="submit"
+          disabled
+          data-bazar-auth-code-submit
+        >
+          Увійти
+        </button>
+      </form>
+
+      <button
+        class="bazar-auth-link-button bazar-auth-card__help"
+        type="button"
+        data-bazar-auth-resend
+        hidden
+      >
+        Не отримали код?
+      </button>
+    </article>
+
+    <article
+      class="bazar-auth-card{% if auth_initial_flow == 'register' %} bazar-auth-card--active{% endif %}"
+      data-bazar-auth-step="register-phone"
+      {% if auth_initial_flow != 'register' %}
+        hidden
+      {% endif %}
+    >
+      <span class="bazar-auth-card__icon">
+        {% render 'bazar-auth-icon', name: 'phone' %}
+      </span>
+      <h2 class="bazar-auth-card__title">Створити акаунт</h2>
+      <p class="bazar-auth-card__text">Введіть номер телефону, щоб почати реєстрацію</p>
+
+      <form class="bazar-auth-flow" data-bazar-auth-register-phone-form novalidate>
+        {% render 'bazar-phone-input', id: auth_id | append: '-RegisterPhone' %}
+        <button
+          class="bazar-auth-button"
+          type="submit"
+          disabled
+          data-bazar-auth-phone-submit
+        >
+          Продовжити
+        </button>
+
+        <div class="bazar-auth-alternatives" aria-label="Додаткові способи реєстрації">
+          <p class="bazar-auth-alternatives__notice">
+            Продовжуючи, ви підтверджуєте, що надаєте згоду на обробку персональних даних.
+          </p>
+          <span class="bazar-auth-alternatives__divider">або</span>
+          <button
+            class="bazar-auth-oauth"
+            type="button"
+            data-bazar-oauth-provider="google"
+          >
+            <span class="bazar-auth-oauth__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M21.6 12.2c0-.7-.1-1.3-.2-1.9H12v3.6h5.4a4.7 4.7 0 0 1-2 3.1v2.6h3.2c1.9-1.8 3-4.3 3-7.4Z" fill="#4285f4"/>
+                <path d="M12 22c2.7 0 5-0.9 6.6-2.4L15.4 17c-.9.6-2 .9-3.4.9a5.9 5.9 0 0 1-5.6-4.1H3.1v2.7A10 10 0 0 0 12 22Z" fill="#34a853"/>
+                <path d="M6.4 13.8a6 6 0 0 1 0-3.6V7.5H3.1a10 10 0 0 0 0 9l3.3-2.7Z" fill="#fbbc05"/>
+                <path d="M12 6.1c1.5 0 2.8.5 3.8 1.5l2.9-2.9A9.7 9.7 0 0 0 12 2a10 10 0 0 0-8.9 5.5l3.3 2.7A5.9 5.9 0 0 1 12 6.1Z" fill="#ea4335"/>
+              </svg>
+            </span>
+            Продовжити з Google
+          </button>
+          <button
+            class="bazar-auth-oauth"
+            type="button"
+            data-bazar-oauth-provider="apple"
+          >
+            <span class="bazar-auth-oauth__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M16.8 12.6c0-2 1.7-3 1.8-3.1-1-1.4-2.4-1.6-2.9-1.6-1.2-.1-2.4.7-3 0.7-.6 0-1.6-.7-2.6-.7-1.3 0-2.6.8-3.3 2-1.4 2.5-.4 6.2 1 8.2.7 1 1.5 2.1 2.6 2 1 0 1.4-.7 2.7-.7 1.2 0 1.6.7 2.7.7s1.8-1 2.5-2c.8-1.1 1.1-2.2 1.1-2.3 0 0-2.6-1-2.6-3.2ZM14.9 6.6c.6-.7 1-1.7.9-2.6-.9 0-1.9.6-2.5 1.3-.6.6-1 1.6-.9 2.5 1 0 1.9-.5 2.5-1.2Z" fill="currentColor"/>
+              </svg>
+            </span>
+            Продовжити з Apple
+          </button>
+        </div>
+      </form>
+
+      <p class="bazar-auth-card__bottom">
+        Вже маєте акаунт?
+        <button
+          class="bazar-auth-link-button"
+          type="button"
+          data-bazar-auth-flow-switch="login"
+        >
+          Увійти
+        </button>
+      </p>
+    </article>
+
+    <article
+      class="bazar-auth-card"
+      data-bazar-auth-step="register-code"
+      hidden
+    >
+      <span class="bazar-auth-card__icon">
+        {% render 'bazar-auth-icon', name: 'sms' %}
+      </span>
+      <h2 class="bazar-auth-card__title">Код з SMS</h2>
+      <p class="bazar-auth-card__text">Ми відправили 6-значний код на номер</p>
+      <p class="bazar-auth-card__phone" data-bazar-auth-phone-display></p>
+      <button
+        class="bazar-auth-link-button"
+        type="button"
+        data-bazar-auth-change-phone
+      >
+        Змінити номер
+      </button>
+
+      <form class="bazar-auth-flow" data-bazar-auth-register-code-form novalidate>
+        {% render 'bazar-sms-code-input', id: auth_id | append: '-RegisterCode' %}
+        <p class="bazar-auth-card__timer" data-bazar-auth-resend-timer>Відправити код повторно через 02:00</p>
+        <p
+          class="bazar-auth-card__resend-status"
+          data-bazar-auth-resend-status
+          hidden
+        >
+          Код відправлено повторно
+        </p>
+        <button
+          class="bazar-auth-button"
+          type="submit"
+          disabled
+          data-bazar-auth-code-submit
+        >
+          Продовжити
+        </button>
+      </form>
+
+      <button
+        class="bazar-auth-link-button bazar-auth-card__help"
+        type="button"
+        data-bazar-auth-resend
+        hidden
+      >
+        Не отримали код?
+      </button>
+    </article>
+
+    <article
+      class="bazar-auth-card"
+      data-bazar-auth-step="register-profile"
+      hidden
+    >
+      <span class="bazar-auth-card__icon">
+        {% render 'bazar-auth-icon', name: 'user' %}
+      </span>
+      <h2 class="bazar-auth-card__title">Особиста інформація</h2>
+      <p class="bazar-auth-card__text">Заповніть дані для акаунта BAZAR</p>
+
+      <form class="bazar-auth-flow" data-bazar-auth-register-profile-form novalidate>
+        <div class="bazar-auth-form__row">
+          <div class="bazar-auth-field" data-bazar-profile-field>
+            <label class="bazar-auth-field__label" for="{{ auth_id }}-FirstName">Імʼя</label>
+            <input
+              id="{{ auth_id }}-FirstName"
+              class="bazar-auth-field__input"
+              type="text"
+              autocomplete="given-name"
+              required
+              data-bazar-profile-first-name
+            >
+            <span class="bazar-auth-field__error" data-bazar-profile-error aria-live="polite"></span>
+          </div>
+
+          <div class="bazar-auth-field" data-bazar-profile-field>
+            <label class="bazar-auth-field__label" for="{{ auth_id }}-LastName">Прізвище</label>
+            <input
+              id="{{ auth_id }}-LastName"
+              class="bazar-auth-field__input"
+              type="text"
+              autocomplete="family-name"
+              required
+              data-bazar-profile-last-name
+            >
+            <span class="bazar-auth-field__error" data-bazar-profile-error aria-live="polite"></span>
+          </div>
+        </div>
+
+        <div class="bazar-auth-field" data-bazar-profile-field>
+          <label class="bazar-auth-field__label" for="{{ auth_id }}-Email">Електронна пошта <span>(необовʼязково)</span></label>
+          <input
+            id="{{ auth_id }}-Email"
+            class="bazar-auth-field__input"
+            type="email"
+            autocomplete="email"
+            data-bazar-profile-email
+          >
+          <span class="bazar-auth-field__error" data-bazar-profile-error aria-live="polite"></span>
+        </div>
+
+        <label class="bazar-auth-checkbox">
+          <input
+            class="bazar-auth-checkbox__input"
+            type="checkbox"
+            required
+            data-bazar-profile-terms
+          >
+          <span class="bazar-auth-checkbox__label">
+            Я погоджуюсь з
+            <a href="/policies/terms-of-service">Умовами використання</a>
+            та
+            <a href="/policies/privacy-policy">Політикою конфіденційності</a>
+          </span>
+        </label>
+        <span class="bazar-auth-checkboxes__error" data-bazar-profile-terms-error aria-live="polite"></span>
+
+        <button
+          class="bazar-auth-button"
+          type="submit"
+        >
+          Зареєструватися
+        </button>
+      </form>
+    </article>
+  </div>
+</div>

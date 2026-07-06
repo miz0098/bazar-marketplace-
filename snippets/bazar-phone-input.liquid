@@ -1,0 +1,42 @@
+{% doc %}
+  BAZAR Ukrainian phone input with fixed +380 prefix.
+
+  @param {string} id
+  @param {string} [label]
+{% enddoc %}
+
+{% liquid
+  assign input_label = label | default: 'Номер телефону'
+%}
+
+<div
+  class="bazar-phone-field"
+  data-bazar-phone-field
+>
+  <label
+    class="bazar-phone-field__label"
+    for="{{ id }}"
+  >
+    {{ input_label }}
+  </label>
+  <div class="bazar-phone-field__control">
+    <span class="bazar-phone-field__prefix">+380</span>
+    <input
+      id="{{ id }}"
+      class="bazar-phone-field__input"
+      type="tel"
+      inputmode="numeric"
+      autocomplete="tel-national"
+      maxlength="12"
+      placeholder="XX XXX XX XX"
+      aria-describedby="{{ id }}-error"
+      data-bazar-phone-input
+    >
+  </div>
+  <span
+    id="{{ id }}-error"
+    class="bazar-phone-field__error"
+    data-bazar-phone-error
+    aria-live="polite"
+  ></span>
+</div>

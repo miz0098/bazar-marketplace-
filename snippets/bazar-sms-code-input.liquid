@@ -1,0 +1,36 @@
+{% doc %}
+  BAZAR six-digit SMS code input.
+
+  @param {string} id
+{% enddoc %}
+
+<div
+  class="bazar-sms-code"
+  data-bazar-sms-code
+  aria-labelledby="{{ id }}-label"
+>
+  <span
+    id="{{ id }}-label"
+    class="bazar-sms-code__label"
+  >
+    Код підтвердження
+  </span>
+  <div class="bazar-sms-code__inputs">
+    {% for index in (1..6) %}
+      <input
+        class="bazar-sms-code__input"
+        type="text"
+        inputmode="numeric"
+        autocomplete="{% if index == 1 %}one-time-code{% else %}off{% endif %}"
+        maxlength="1"
+        aria-label="Цифра {{ index }} з 6"
+        data-bazar-sms-code-input
+      >
+    {% endfor %}
+  </div>
+  <span
+    class="bazar-sms-code__error"
+    data-bazar-sms-code-error
+    aria-live="polite"
+  ></span>
+</div>

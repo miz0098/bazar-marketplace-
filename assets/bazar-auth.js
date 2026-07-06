@@ -18,6 +18,8 @@ const codeErrorMessage = 'Введіть 6 цифр з SMS.';
 const requiredMessage = 'Заповніть це поле.';
 const emailErrorMessage = 'Введіть коректну електронну пошту.';
 const termsErrorMessage = 'Підтвердьте згоду з умовами.';
+const resendDurationSeconds = 120;
+const resendRestartDelay = 120000;
 
 async function checkCustomerByPhone(phone, context = {}) {
   // TODO: connect to api.bazar SMS authentication.
@@ -71,7 +73,8 @@ const getState = (root) => {
       phoneDigits: '',
       phoneFull: '',
       timerId: null,
-      timerRemaining: 118,
+      timerRemaining: resendDurationSeconds,
+      resendRestartId: null,
       previousFocus: null,
     });
   }
@@ -179,6 +182,11 @@ const stopTimer = (root) => {
     window.clearInterval(state.timerId);
     state.timerId = null;
   }
+
+  if (state.resendRestartId) {
+    window.clearTimeout(state.resendRestartId);
+    state.resendRestartId = null;
+  }
 };
 
 const formatTimer = (seconds) => {
@@ -188,24 +196,103 @@ const formatTimer = (seconds) => {
   return `${minutes}:${rest}`;
 };
 
+const getActiveStep = (root) => root.querySelector(`${stepSelector}.bazar-auth-card--active`);
+
+const getResendElements = (root) => {
+  const activeStep = getActiveStep(root);
+
+  return {
+    timer: activeStep?.querySelector('[data-bazar-auth-resend-timer]') || null,
+    button: activeStep?.querySelector('[data-bazar-auth-resend]') || null,
+    status: activeStep?.querySelector('[data-bazar-auth-resend-status]') || null,
+  };
+};
+
+const showResendTimer = (root) => {
+  const { timer, button, status } = getResendElements(root);
+
+  if (timer) {
+    timer.hidden = false;
+  }
+
+  if (button) {
+    button.hidden = true;
+    button.disabled = true;
+    button.textContent = 'Не отримали код?';
+  }
+
+  if (status) {
+    status.hidden = true;
+  }
+};
+
+const showResendButton = (root) => {
+  const { timer, button, status } = getResendElements(root);
+
+  if (timer) {
+    timer.hidden = true;
+  }
+
+  if (button) {
+    button.hidden = false;
+    button.disabled = false;
+    button.textContent = 'Не отримали код?';
+  }
+
+  if (status) {
+    status.hidden = true;
+  }
+};
+
+const showResendStatus = (root) => {
+  const state = getState(root);
+  const { timer, button, status } = getResendElements(root);
+
+  if (timer) {
+    timer.hidden = true;
+  }
+
+  if (button) {
+    button.hidden = true;
+    button.disabled = true;
+  }
+
+  if (status) {
+    status.hidden = false;
+    status.textContent = 'Код відправлено повторно';
+  }
+
+  if (state.resendRestartId) {
+    window.clearTimeout(state.resendRestartId);
+  }
+
+  state.resendRestartId = window.setTimeout(() => {
+    state.resendRestartId = null;
+    startTimer(root);
+  }, resendRestartDelay);
+};
+
 const updateTimerText = (root) => {
   const state = getState(root);
-  const activeStep = root.querySelector(`${stepSelector}.bazar-auth-card--active`);
-  const timer = activeStep?.querySelector('[data-bazar-auth-resend-timer]');
+  const { timer } = getResendElements(root);
 
   if (!timer) return;
 
-  timer.textContent =
-    state.timerRemaining > 0
-      ? `Відправити код повторно через ${formatTimer(state.timerRemaining)}`
-      : 'Можна відправити код повторно';
+  if (state.timerRemaining > 0) {
+    showResendTimer(root);
+    timer.textContent = `Відправити код повторно через ${formatTimer(state.timerRemaining)}`;
+    return;
+  }
+
+  timer.textContent = 'Відправити код повторно через 00:00';
+  showResendButton(root);
 };
 
 const startTimer = (root) => {
   const state = getState(root);
 
   stopTimer(root);
-  state.timerRemaining = 118;
+  state.timerRemaining = resendDurationSeconds;
   updateTimerText(root);
 
   state.timerId = window.setInterval(() => {
@@ -213,7 +300,8 @@ const startTimer = (root) => {
     updateTimerText(root);
 
     if (state.timerRemaining === 0) {
-      stopTimer(root);
+      window.clearInterval(state.timerId);
+      state.timerId = null;
     }
   }, 1000);
 };
@@ -650,14 +738,7 @@ const initAuthRoot = (root) => {
       if (!state.phoneFull) return;
 
       await requestSmsCode(state.phoneFull);
-      startTimer(root);
-      button.textContent = 'Код відправлено повторно';
-      button.disabled = true;
-
-      window.setTimeout(() => {
-        button.textContent = 'Не отримали код?';
-        button.disabled = false;
-      }, 60000);
+      showResendStatus(root);
     });
   });
 
