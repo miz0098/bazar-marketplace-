@@ -1,95 +1,23 @@
-{{ 'bazar-auth.css' | asset_url | stylesheet_tag }}
-<script
-  src="{{ 'bazar-auth.js' | asset_url }}"
-  defer
-></script>
-
-<section class="bazar-auth" aria-labelledby="BazarActivateTitle-{{ section.id }}">
+<section class="bazar-auth-page" aria-label="Підтвердження доступу BAZAR">
   <div class="bazar-container">
-    <div class="bazar-auth__shell">
-      <div class="bazar-auth__intro">
-        <p class="bazar-auth__eyebrow">Підтвердження</p>
-        <h1 id="BazarActivateTitle-{{ section.id }}" class="bazar-auth__title">Активуйте акаунт</h1>
-        <p class="bazar-auth__text">
-          Завершіть підтвердження email і створіть пароль для входу до особистого кабінету BAZAR.
-        </p>
-      </div>
-
-      <div class="bazar-auth-card">
-        <p class="bazar-auth-card__eyebrow">Пошту підтверджено</p>
-        <h2 class="bazar-auth-card__title">Створіть пароль</h2>
-
-        {% form 'activate_customer_password', class: 'bazar-auth-form', novalidate: 'novalidate' %}
-          {% render 'bazar-auth-form-errors', form: form %}
-
-          {% render 'bazar-auth-field',
-            id: 'BazarActivatePassword',
-            label: 'Пароль',
-            name: 'customer[password]',
-            type: 'password',
-            autocomplete: 'new-password',
-            required: true,
-            minlength: '8',
-            describedby: 'BazarActivatePasswordStrengthLabel',
-            data_role: 'password'
-          %}
-
-          <div
-            class="bazar-auth-password-strength"
-            data-bazar-password-strength
-            data-strength="empty"
-            aria-live="polite"
-          >
-            <div class="bazar-auth-password-strength__track" aria-hidden="true">
-              <span class="bazar-auth-password-strength__bar"></span>
-              <span class="bazar-auth-password-strength__bar"></span>
-              <span class="bazar-auth-password-strength__bar"></span>
-            </div>
-            <span
-              id="BazarActivatePasswordStrengthLabel"
-              class="bazar-auth-password-strength__label"
-              data-bazar-password-strength-label
-            >
-              Надійність пароля
-            </span>
-          </div>
-
-          {% render 'bazar-auth-field',
-            id: 'BazarActivatePasswordConfirm',
-            label: 'Підтвердження пароля',
-            name: 'customer[password_confirmation]',
-            type: 'password',
-            autocomplete: 'new-password',
-            required: true,
-            data_role: 'password-confirm'
-          %}
-
-          <div class="bazar-auth-form__actions">
-            <button class="bazar-auth-button" type="submit">Активувати акаунт</button>
-            <button
-              class="bazar-auth-button bazar-auth-button--secondary"
-              type="submit"
-              name="decline"
-            >
-              Скасувати запрошення
-            </button>
-          </div>
-        {% endform %}
-      </div>
-    </div>
+    {% render 'bazar-auth-modal',
+      id: 'BazarAuthActivateFallbackPage',
+      surface: 'page',
+      initial_flow: 'register'
+    %}
   </div>
 </section>
 
 {% schema %}
 {
-  "name": "BAZAR Активація",
+  "name": "BAZAR Підтвердження доступу",
   "enabled_on": {
     "templates": ["customers/activate_account"]
   },
   "settings": [],
   "presets": [
     {
-      "name": "BAZAR Активація"
+      "name": "BAZAR Підтвердження доступу"
     }
   ]
 }

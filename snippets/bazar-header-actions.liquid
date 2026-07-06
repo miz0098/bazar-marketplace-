@@ -68,6 +68,7 @@
         <a href="{{ routes.account_url }}">Мій акаунт</a>
         <a href="{{ routes.account_url }}#bazar-account-orders">Замовлення</a>
         <a href="{{ favorites_url }}">Обране</a>
+        <a href="{{ routes.account_addresses_url | default: routes.account_url }}">Адреси</a>
         <a href="{{ routes.account_logout_url }}">Вийти</a>
       </div>
     </details>
@@ -76,6 +77,8 @@
       href="{{ account_url }}"
       class="bazar-header-action"
       aria-label="Увійти"
+      data-bazar-auth-open
+      data-bazar-account-url="{{ routes.account_url }}"
     >
       <span
         class="bazar-header-action__icon"
@@ -127,3 +130,11 @@
     </a>
   {% endif %}
 </div>
+
+{% if customer == blank %}
+  {% render 'bazar-auth-modal',
+    id: 'BazarHeaderAuthModal',
+    surface: 'modal',
+    initial_flow: 'login'
+  %}
+{% endif %}
