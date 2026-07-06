@@ -7,9 +7,12 @@
 {% liquid
   assign favorites_url = routes.root_url | append: 'pages/wishlist'
   assign account_url = routes.account_url
+  assign account_label = 'Увійти'
 
   if customer == blank and routes.account_login_url != blank
     assign account_url = routes.account_login_url
+  elsif customer != blank
+    assign account_label = customer.first_name | default: 'Акаунт'
   endif
 %}
 
@@ -43,39 +46,46 @@
     <span class="bazar-header-action__label">Обране</span>
   </a>
 
-  <a
-    href="{{ account_url }}"
-    class="bazar-header-action"
-    aria-label="Профіль"
-  >
-    <span
-      class="bazar-header-action__icon"
-      aria-hidden="true"
-    >
-      <svg
-        viewBox="0 0 24 24"
-        focusable="false"
+  {% if customer %}
+    <details class="bazar-header-account">
+      <summary
+        class="bazar-header-action bazar-header-account__summary"
+        aria-label="Акаунт {{ account_label | escape }}"
       >
-        <path
-          d="M12 12.1a4.3 4.3 0 1 0 0-8.6 4.3 4.3 0 0 0 0 8.6Z"
-          fill="none"
-          stroke="currentColor"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="1.8"
-        />
-        <path
-          d="M4.4 20.5a7.6 7.6 0 0 1 15.2 0"
-          fill="none"
-          stroke="currentColor"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="1.8"
-        />
-      </svg>
-    </span>
-    <span class="bazar-header-action__label">Профіль</span>
-  </a>
+        <span
+          class="bazar-header-action__icon"
+          aria-hidden="true"
+        >
+          {% render 'bazar-auth-icon', name: 'user' %}
+        </span>
+        <span class="bazar-header-action__label">{{ account_label }}</span>
+      </summary>
+
+      <div
+        class="bazar-header-account__menu"
+        aria-label="Меню акаунта"
+      >
+        <a href="{{ routes.account_url }}">Мій акаунт</a>
+        <a href="{{ routes.account_url }}#bazar-account-orders">Замовлення</a>
+        <a href="{{ favorites_url }}">Обране</a>
+        <a href="{{ routes.account_logout_url }}">Вийти</a>
+      </div>
+    </details>
+  {% else %}
+    <a
+      href="{{ account_url }}"
+      class="bazar-header-action"
+      aria-label="Увійти"
+    >
+      <span
+        class="bazar-header-action__icon"
+        aria-hidden="true"
+      >
+        {% render 'bazar-auth-icon', name: 'user' %}
+      </span>
+      <span class="bazar-header-action__label">Увійти</span>
+    </a>
+  {% endif %}
 
   {% if settings.cart_type == 'drawer' and template.name != 'cart' %}
     <button

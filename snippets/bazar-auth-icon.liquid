@@ -1,0 +1,41 @@
+{% doc %}
+  BAZAR authentication/account line icons.
+
+  @param {string} name
+{% enddoc %}
+
+{% case name %}
+  {% when 'user' %}
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M12 12.2a4.4 4.4 0 1 0 0-8.8 4.4 4.4 0 0 0 0 8.8Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M4.4 20.6a7.6 7.6 0 0 1 15.2 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  {% when 'orders' %}
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M6.2 4.4h11.6a1.6 1.6 0 0 1 1.6 1.6v14l-2.8-1.6-2.8 1.6-2.8-1.6-2.8 1.6-2.8-1.6L4.6 20V6a1.6 1.6 0 0 1 1.6-1.6Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M8.2 8.6h7.6M8.2 12.1h7.6M8.2 15.6h4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </svg>
+  {% when 'heart' %}
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M20.1 5.2a5.1 5.1 0 0 0-7.2 0l-.9.9-.9-.9a5.1 5.1 0 0 0-7.2 7.2l.9.9L12 20.5l7.2-7.2.9-.9a5.1 5.1 0 0 0 0-7.2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  {% when 'address' %}
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M12 21s7-5.4 7-11.2a7 7 0 1 0-14 0C5 15.6 12 21 12 21Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M12 12.2a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" fill="none" stroke="currentColor" stroke-width="1.8"/>
+    </svg>
+  {% when 'settings' %}
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z" fill="none" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M19.2 13.2a7.6 7.6 0 0 0 0-2.4l2-1.5-2-3.4-2.4 1a7.8 7.8 0 0 0-2.1-1.2L14.4 3h-4.8l-.3 2.7a7.8 7.8 0 0 0-2.1 1.2l-2.4-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 2.4l-2 1.5 2 3.4 2.4-1a7.8 7.8 0 0 0 2.1 1.2l.3 2.7h4.8l.3-2.7a7.8 7.8 0 0 0 2.1-1.2l2.4 1 2-3.4-2-1.5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+    </svg>
+  {% when 'logout' %}
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M9.5 4.5H5.8a1.8 1.8 0 0 0-1.8 1.8v11.4a1.8 1.8 0 0 0 1.8 1.8h3.7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="M14.2 16.5 18.8 12l-4.6-4.5M18.8 12H9.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  {% else %}
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M5 6.5h14M5 12h14M5 17.5h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </svg>
+{% endcase %}

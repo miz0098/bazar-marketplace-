@@ -1,0 +1,180 @@
+{{ 'bazar-auth.css' | asset_url | stylesheet_tag }}
+<script
+  src="{{ 'bazar-auth.js' | asset_url }}"
+  defer
+></script>
+
+<section class="bazar-auth" aria-labelledby="BazarRegisterTitle-{{ section.id }}">
+  <div class="bazar-container">
+    <div class="bazar-auth__shell">
+      <div class="bazar-auth__intro">
+        <p class="bazar-auth__eyebrow">Новий акаунт</p>
+        <h1 id="BazarRegisterTitle-{{ section.id }}" class="bazar-auth__title">Створіть акаунт BAZAR</h1>
+        <p class="bazar-auth__text">
+          Акаунт допоможе швидше оформлювати покупки, переглядати замовлення та зберігати обране.
+        </p>
+        <ul class="bazar-auth__benefits" role="list">
+          <li class="bazar-auth__benefit">Єдиний профіль покупця</li>
+          <li class="bazar-auth__benefit">Доступ до адрес доставки</li>
+          <li class="bazar-auth__benefit">Готовність до майбутніх сервісів BAZAR</li>
+        </ul>
+      </div>
+
+      <div class="bazar-auth-card">
+        <p class="bazar-auth-card__eyebrow">Реєстрація</p>
+        <h2 class="bazar-auth-card__title">Дані покупця</h2>
+        <p class="bazar-auth-card__text">Заповніть форму, щоб створити акаунт.</p>
+
+        {% form 'create_customer', class: 'bazar-auth-form', novalidate: 'novalidate' %}
+          {% render 'bazar-auth-form-errors', form: form %}
+
+          <div class="bazar-auth-form__row">
+            {% render 'bazar-auth-field',
+              id: 'BazarRegisterFirstName',
+              label: "Ім'я",
+              name: 'customer[first_name]',
+              type: 'text',
+              autocomplete: 'given-name',
+              required: true
+            %}
+
+            {% render 'bazar-auth-field',
+              id: 'BazarRegisterLastName',
+              label: 'Прізвище',
+              name: 'customer[last_name]',
+              type: 'text',
+              autocomplete: 'family-name',
+              required: true
+            %}
+          </div>
+
+          {% render 'bazar-auth-field',
+            id: 'BazarRegisterEmail',
+            label: 'Електронна пошта',
+            name: 'customer[email]',
+            type: 'email',
+            autocomplete: 'email',
+            required: true,
+            data_role: 'email'
+          %}
+
+          {% render 'bazar-auth-field',
+            id: 'BazarRegisterPassword',
+            label: 'Пароль',
+            name: 'customer[password]',
+            type: 'password',
+            autocomplete: 'new-password',
+            required: true,
+            minlength: '8',
+            describedby: 'BazarRegisterPasswordStrengthLabel',
+            data_role: 'password'
+          %}
+
+          <div
+            class="bazar-auth-password-strength"
+            data-bazar-password-strength
+            data-strength="empty"
+            aria-live="polite"
+          >
+            <div class="bazar-auth-password-strength__track" aria-hidden="true">
+              <span class="bazar-auth-password-strength__bar"></span>
+              <span class="bazar-auth-password-strength__bar"></span>
+              <span class="bazar-auth-password-strength__bar"></span>
+            </div>
+            <span
+              id="BazarRegisterPasswordStrengthLabel"
+              class="bazar-auth-password-strength__label"
+              data-bazar-password-strength-label
+            >
+              Надійність пароля
+            </span>
+          </div>
+
+          {% render 'bazar-auth-field',
+            id: 'BazarRegisterPasswordConfirm',
+            label: 'Підтвердження пароля',
+            name: 'customer[password_confirmation]',
+            type: 'password',
+            autocomplete: 'new-password',
+            required: true,
+            data_role: 'password-confirm'
+          %}
+
+          <div
+            class="bazar-auth-checkboxes"
+            data-bazar-checkbox-group
+          >
+            <label class="bazar-auth-checkbox">
+              <input
+                class="bazar-auth-checkbox__input"
+                type="checkbox"
+                name="bazar_public_offer"
+                required
+              >
+              <span class="bazar-auth-checkbox__label">
+                Я погоджуюсь з
+                <a href="/pages/public-offer">Публічною офертою</a>
+              </span>
+            </label>
+
+            <label class="bazar-auth-checkbox">
+              <input
+                class="bazar-auth-checkbox__input"
+                type="checkbox"
+                name="bazar_privacy_policy"
+                required
+              >
+              <span class="bazar-auth-checkbox__label">
+                Я погоджуюсь з
+                <a href="/policies/privacy-policy">Політикою конфіденційності</a>
+              </span>
+            </label>
+
+            <label class="bazar-auth-checkbox">
+              <input
+                class="bazar-auth-checkbox__input"
+                type="checkbox"
+                name="bazar_terms_of_use"
+                required
+              >
+              <span class="bazar-auth-checkbox__label">
+                Я погоджуюсь з
+                <a href="/policies/terms-of-service">Умовами використання</a>
+              </span>
+            </label>
+
+            <span
+              class="bazar-auth-checkboxes__error"
+              data-bazar-checkbox-error
+              aria-live="polite"
+            ></span>
+          </div>
+
+          <div class="bazar-auth-form__actions">
+            <button class="bazar-auth-button" type="submit">Створити акаунт</button>
+          </div>
+
+          <p class="bazar-auth-card__text">
+            Вже маєте акаунт?
+            <a class="bazar-auth-link" href="{{ routes.account_login_url }}">Увійти</a>
+          </p>
+        {% endform %}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "BAZAR Реєстрація",
+  "enabled_on": {
+    "templates": ["customers/register"]
+  },
+  "settings": [],
+  "presets": [
+    {
+      "name": "BAZAR Реєстрація"
+    }
+  ]
+}
+{% endschema %}

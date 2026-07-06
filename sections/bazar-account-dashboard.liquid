@@ -1,0 +1,140 @@
+{{ 'bazar-auth.css' | asset_url | stylesheet_tag }}
+
+{% liquid
+  assign customer_name = customer.name | strip
+
+  if customer_name == blank
+    assign customer_name = customer.first_name | default: customer.email
+  endif
+
+  assign first_name = customer.first_name | default: 'покупцю'
+  assign addresses_url = routes.account_addresses_url | default: routes.account_url
+%}
+
+<section class="bazar-account" aria-labelledby="BazarAccountTitle-{{ section.id }}">
+  <div class="bazar-container">
+    {% if customer %}
+      <header class="bazar-account__header">
+        <div>
+          <h1 id="BazarAccountTitle-{{ section.id }}" class="bazar-account__title">Мій акаунт</h1>
+          <p class="bazar-account__text">Вітаємо, {{ first_name }}. Тут зібрані ваші дані, замовлення та налаштування.</p>
+        </div>
+      </header>
+
+      <div class="bazar-account__grid">
+        <aside class="bazar-account-summary" aria-label="Профіль покупця">
+          <span class="bazar-account-summary__avatar">
+            {% render 'bazar-auth-icon', name: 'user' %}
+          </span>
+          <h2 class="bazar-account-summary__name">{{ customer_name }}</h2>
+          <p class="bazar-account-summary__email">{{ customer.email }}</p>
+          <a
+            class="bazar-auth-button bazar-auth-button--secondary bazar-account-summary__logout"
+            href="{{ routes.account_logout_url }}"
+          >
+            Вийти
+          </a>
+        </aside>
+
+        <div class="bazar-account-cards">
+          <article class="bazar-account-card">
+            <span class="bazar-account-card__icon">
+              {% render 'bazar-auth-icon', name: 'user' %}
+            </span>
+            <h2 class="bazar-account-card__title">Особисті дані</h2>
+            <div class="bazar-account-card__meta">
+              <span>{{ customer_name }}</span>
+              <span>{{ customer.email }}</span>
+            </div>
+          </article>
+
+          <article class="bazar-account-card" id="bazar-account-orders">
+            <span class="bazar-account-card__icon">
+              {% render 'bazar-auth-icon', name: 'orders' %}
+            </span>
+            <h2 class="bazar-account-card__title">Мої замовлення</h2>
+
+            {% paginate customer.orders by 3 %}
+              {% if customer.orders_count > 0 %}
+                <div class="bazar-account-card__meta">
+                  {% for order in customer.orders %}
+                    <a class="bazar-account-order" href="{{ order.customer_url }}">
+                      <span>{{ order.name }}</span>
+                      <span class="bazar-account-order__secondary">
+                        {{ order.created_at | date: '%d.%m.%Y' }} · {{ order.total_price | money }}
+                      </span>
+                    </a>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <p class="bazar-account-card__text">Після першої покупки тут з'явиться історія замовлень.</p>
+              {% endif %}
+            {% endpaginate %}
+          </article>
+
+          <a class="bazar-account-card" href="/pages/wishlist">
+            <span class="bazar-account-card__icon">
+              {% render 'bazar-auth-icon', name: 'heart' %}
+            </span>
+            <h2 class="bazar-account-card__title">Обране</h2>
+            <p class="bazar-account-card__text">Перейдіть до товарів, які ви зберегли для наступних покупок.</p>
+          </a>
+
+          <a class="bazar-account-card" href="{{ addresses_url }}">
+            <span class="bazar-account-card__icon">
+              {% render 'bazar-auth-icon', name: 'address' %}
+            </span>
+            <h2 class="bazar-account-card__title">Адреси доставки</h2>
+            <div class="bazar-account-card__meta">
+              {% if customer.default_address %}
+                {{ customer.default_address | format_address }}
+              {% else %}
+                <span>Додайте адресу, щоб швидше оформлювати замовлення.</span>
+              {% endif %}
+            </div>
+          </a>
+
+          <article class="bazar-account-card">
+            <span class="bazar-account-card__icon">
+              {% render 'bazar-auth-icon', name: 'settings' %}
+            </span>
+            <h2 class="bazar-account-card__title">Налаштування</h2>
+            <p class="bazar-account-card__text">Налаштування сповіщень і персоналізації будуть доступні після наступного етапу інтеграції.</p>
+          </article>
+
+          <a class="bazar-account-card" href="{{ routes.account_logout_url }}">
+            <span class="bazar-account-card__icon">
+              {% render 'bazar-auth-icon', name: 'logout' %}
+            </span>
+            <h2 class="bazar-account-card__title">Вийти</h2>
+            <p class="bazar-account-card__text">Завершити поточну сесію покупця на цьому пристрої.</p>
+          </a>
+        </div>
+      </div>
+    {% else %}
+      <div class="bazar-auth-card">
+        <p class="bazar-auth-card__eyebrow">Потрібен вхід</p>
+        <h1 id="BazarAccountTitle-{{ section.id }}" class="bazar-auth-card__title">Увійдіть до акаунта</h1>
+        <p class="bazar-auth-card__text">Особистий кабінет доступний після входу.</p>
+        <div class="bazar-auth-form__actions">
+          <a class="bazar-auth-button" href="{{ routes.account_login_url }}">Увійти</a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "BAZAR Акаунт",
+  "enabled_on": {
+    "templates": ["customers/account"]
+  },
+  "settings": [],
+  "presets": [
+    {
+      "name": "BAZAR Акаунт"
+    }
+  ]
+}
+{% endschema %}

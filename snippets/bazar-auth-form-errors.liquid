@@ -1,0 +1,43 @@
+{% doc %}
+  Renders Ukrainian-only generic Shopify customer form errors.
+
+  @param {form} form
+{% enddoc %}
+
+{% if form.errors %}
+  <div
+    class="bazar-auth-alert bazar-auth-alert--error"
+    role="alert"
+    tabindex="-1"
+  >
+    <p class="bazar-auth-alert__title">Не вдалося надіслати форму</p>
+    <ul class="bazar-auth-alert__list">
+      {% for field in form.errors %}
+        {% liquid
+          assign error_key = field | remove: 'customer.' | remove: 'form'
+          assign error_label = 'Дані'
+
+          case error_key
+            when 'email'
+              assign error_label = 'Електронна пошта'
+            when 'password'
+              assign error_label = 'Пароль'
+            when 'first_name'
+              assign error_label = "Ім'я"
+            when 'last_name'
+              assign error_label = 'Прізвище'
+            when 'password_confirmation'
+              assign error_label = 'Підтвердження пароля'
+          endcase
+        %}
+        <li>
+          {% if field == 'form' %}
+            Перевірте email і пароль та спробуйте ще раз.
+          {% else %}
+            {{ error_label }}: перевірте значення.
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
