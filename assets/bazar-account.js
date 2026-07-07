@@ -15,6 +15,9 @@
   const ANIMATION_DURATION = 190;
   const PAGE_SIZE = 5;
   const WISHLIST_PAGE_SIZE = 12;
+  const PINNED_CHATS_STORAGE_KEY = 'bazarPinnedChats';
+  const MESSAGE_CONTEXT_MENU_WIDTH = 232;
+  const MESSAGE_CONTEXT_MENU_HEIGHT = 176;
   const ORDER_STATUS_TABS = [
     ['all', 'Усі замовлення'],
     ['expected', 'Очікуються'],
@@ -65,6 +68,11 @@
       plus: '<path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/>',
       phone: '<path d="M7 4h10a1.5 1.5 0 0 1 1.5 1.5v13A1.5 1.5 0 0 1 17 20H7a1.5 1.5 0 0 1-1.5-1.5v-13A1.5 1.5 0 0 1 7 4Z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10 17h4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/>',
       warning: '<path d="M12 4 3 20h18L12 4Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/><path d="M12 10v4M12 17h.01" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.2"/>',
+      pin: '<path d="m14 4 6 6-3 1-4.5 4.5V20L4 11.5h4.5L13 7l1-3Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/>',
+      paperclip: '<path d="m21 11.5-8.5 8.5a5.2 5.2 0 0 1-7.4-7.4l9-9a3.5 3.5 0 0 1 5 5l-9 9a1.8 1.8 0 0 1-2.6-2.6l8.2-8.2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/>',
+      send: '<path d="M4 11.5 20 4l-7.5 16-2-6.5L4 11.5Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/><path d="m10.5 13.5 4-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/>',
+      arrowLeft: '<path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9"/>',
+      check: '<path d="m5 12 4 4 10-10" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>',
     };
 
     return `<svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">${paths[name] || paths.box}</svg>`;
@@ -513,6 +521,274 @@
     }
   }
 
+  class ChatProvider {
+    constructor(data) {
+      // TODO: replace placeholder chats with api.bazar messages endpoint.
+      // TODO: connect seller chats to api.bazar.
+      // TODO: connect support chats to api.bazar.
+      this.chats = Array.isArray(data.chats) ? data.chats : this.getDemoChats();
+      const storedPins = this.readPinnedIds();
+      const initialPins = storedPins ?? this.chats.filter((chat) => chat.pinned).map((chat) => String(chat.id));
+      this.pinnedIds = new Set(initialPins);
+      this.applyPinnedState();
+    }
+
+    getDemoChats() {
+      const now = Date.now();
+
+      return [
+        {
+          id: 'bazar-system',
+          type: 'system',
+          title: 'BAZAR',
+          label: 'Системні повідомлення',
+          avatarIcon: 'shield',
+          pinned: true,
+          canReply: false,
+          unreadCount: 2,
+          time: '09:24',
+          updatedAt: now - 12 * 60 * 1000,
+          lastMessage: 'Ваш акаунт успішно захищено. Ми повідомимо про важливі зміни.',
+          messages: [
+            {
+              id: 'sys-1',
+              text: 'Вітаємо у BAZAR. Тут зʼявлятимуться важливі повідомлення про акаунт і покупки.',
+              time: '09:10',
+              direction: 'incoming',
+            },
+            {
+              id: 'sys-2',
+              text: 'Ваш акаунт успішно захищено. Ми повідомимо про важливі зміни.',
+              time: '09:24',
+              direction: 'incoming',
+              unread: true,
+            },
+          ],
+        },
+        {
+          id: 'seller-techstore',
+          type: 'seller',
+          title: 'Продавець: TechStore',
+          label: 'Продавець',
+          avatarIcon: 'store',
+          canReply: true,
+          unreadCount: 1,
+          time: 'Вчора',
+          updatedAt: now - 26 * 60 * 60 * 1000,
+          lastMessage: 'Можемо відправити сьогодні до 18:00.',
+          messages: [
+            {
+              id: 'seller-1',
+              text: 'Добрий день. Чи є iPhone 15 Pro у синьому кольорі?',
+              time: '15:42',
+              direction: 'outgoing',
+            },
+            {
+              id: 'seller-2',
+              text: 'Так, є в наявності. Можемо відправити сьогодні до 18:00.',
+              time: '15:48',
+              direction: 'incoming',
+              unread: true,
+            },
+          ],
+        },
+        {
+          id: 'order-bz-250526-1247',
+          type: 'order',
+          title: 'Замовлення № BZ-250526-1247',
+          label: 'Замовлення',
+          avatarIcon: 'receipt',
+          canReply: true,
+          unreadCount: 0,
+          time: '28 трав.',
+          updatedAt: now - 5 * 24 * 60 * 60 * 1000,
+          lastMessage: 'Посилка доставлена у відділення Нової пошти.',
+          messages: [
+            {
+              id: 'order-1',
+              text: 'Замовлення оформлено та передано продавцю.',
+              time: '14:30',
+              direction: 'incoming',
+            },
+            {
+              id: 'order-2',
+              text: 'Оплату отримано. Посилка готується до відправлення.',
+              time: '14:34',
+              direction: 'incoming',
+            },
+            {
+              id: 'order-3',
+              text: 'Посилка доставлена у відділення Нової пошти.',
+              time: '12:10',
+              direction: 'incoming',
+            },
+          ],
+        },
+        {
+          id: 'bazar-support',
+          type: 'support',
+          title: 'BAZAR-підтримка',
+          label: 'Підтримка',
+          avatarIcon: 'headphones',
+          canReply: true,
+          unreadCount: 3,
+          time: 'Пн',
+          updatedAt: now - 7 * 24 * 60 * 60 * 1000,
+          lastMessage: 'Ми перевірили звернення і вже підготували відповідь.',
+          messages: [
+            {
+              id: 'support-1',
+              text: 'Опишіть, будь ласка, що саме потрібно уточнити щодо замовлення.',
+              time: '11:20',
+              direction: 'incoming',
+            },
+            {
+              id: 'support-2',
+              text: 'Хочу уточнити умови повернення товару.',
+              time: '11:27',
+              direction: 'outgoing',
+            },
+            {
+              id: 'support-3',
+              text: 'Ми перевірили звернення і вже підготували відповідь.',
+              time: '11:35',
+              direction: 'incoming',
+              unread: true,
+            },
+          ],
+        },
+      ];
+    }
+
+    readPinnedIds() {
+      try {
+        const raw = window.localStorage?.getItem(PINNED_CHATS_STORAGE_KEY);
+        if (!raw) return null;
+
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed.map(String) : null;
+      } catch (_error) {
+        return null;
+      }
+    }
+
+    persistPinnedIds() {
+      try {
+        window.localStorage?.setItem(PINNED_CHATS_STORAGE_KEY, JSON.stringify([...this.pinnedIds]));
+      } catch (_error) {
+        // TODO: move pinned chats persistence to api.bazar.
+      }
+    }
+
+    applyPinnedState() {
+      this.chats = this.chats.map((chat) => ({
+        ...chat,
+        pinned: this.pinnedIds.has(String(chat.id)),
+      }));
+    }
+
+    sortChats(chats = this.chats) {
+      return [...chats].sort((a, b) => {
+        if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+        return Number(b.updatedAt || 0) - Number(a.updatedAt || 0);
+      });
+    }
+
+    list() {
+      this.applyPinnedState();
+      return this.sortChats();
+    }
+
+    get(id) {
+      this.applyPinnedState();
+      return this.chats.find((chat) => String(chat.id) === String(id)) || null;
+    }
+
+    pin(id) {
+      this.pinnedIds.add(String(id));
+      this.persistPinnedIds();
+      this.applyPinnedState();
+    }
+
+    unpin(id) {
+      this.pinnedIds.delete(String(id));
+      this.persistPinnedIds();
+      this.applyPinnedState();
+    }
+
+    markRead(id) {
+      this.chats = this.chats.map((chat) => {
+        if (String(chat.id) !== String(id)) return chat;
+
+        return {
+          ...chat,
+          unreadCount: 0,
+          messages: (chat.messages || []).map((message) => ({ ...message, unread: false })),
+        };
+      });
+    }
+
+    delete(id) {
+      this.chats = this.chats.filter((chat) => String(chat.id) !== String(id));
+      this.pinnedIds.delete(String(id));
+      this.persistPinnedIds();
+    }
+
+    unreadCount() {
+      return this.chats.reduce((total, chat) => total + Number(chat.unreadCount || 0), 0);
+    }
+
+    send(id, text) {
+      const messageText = String(text || '').trim();
+      if (!messageText) return null;
+
+      const now = Date.now();
+      const date = new Date(now);
+      const time = date.toLocaleTimeString('uk-UA', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+
+      let sentMessage = null;
+
+      this.chats = this.chats.map((chat) => {
+        if (String(chat.id) !== String(id) || chat.canReply === false) return chat;
+
+        sentMessage = {
+          id: `local-${now}`,
+          text: messageText,
+          time,
+          direction: 'outgoing',
+        };
+
+        return {
+          ...chat,
+          lastMessage: messageText,
+          time,
+          updatedAt: now,
+          messages: [...(chat.messages || []), sentMessage],
+        };
+      });
+
+      return sentMessage;
+    }
+  }
+
+  class MessageProvider {
+    constructor(chatProvider) {
+      // TODO: replace placeholder chats with api.bazar messages endpoint.
+      this.chatProvider = chatProvider;
+    }
+
+    list(chatId) {
+      return this.chatProvider.get(chatId)?.messages || [];
+    }
+
+    send(chatId, text) {
+      return this.chatProvider.send(chatId, text);
+    }
+  }
+
   class NotificationProvider {
     constructor(data) {
       // TODO: Replace Shopify implementation with api.bazar.
@@ -747,10 +1023,13 @@
       this.localAuth = readLocalAuthState();
       this.data = mergeLocalAuthData(readProviderData(), this.localAuth);
       this.isAuthenticated = this.data.session?.isAuthenticated === true || this.localAuth?.isAuthenticated === true;
+      const chatProvider = new ChatProvider(this.data);
       this.providers = {
         account: new AccountProvider(this.data),
         orders: new OrderProvider(this.data),
         wishlist: new WishlistProvider(this.data),
+        chats: chatProvider,
+        messages: new MessageProvider(chatProvider),
         notifications: new NotificationProvider(this.data),
         reviews: new ReviewProvider(this.data),
         addresses: new AddressProvider(this.data),
@@ -767,6 +1046,8 @@
         wishlistSort: 'newest',
         wishlistVisibleCount: WISHLIST_PAGE_SIZE,
         notificationCategory: 'all',
+        selectedChatId: '',
+        messageContextMenu: null,
         selectedWishlist: [],
         supportView: 'tickets',
         editingReviewId: '',
@@ -791,12 +1072,26 @@
       this.root.addEventListener('input', (event) => this.handleInput(event));
       this.root.addEventListener('change', (event) => this.handleChange(event));
       this.root.addEventListener('submit', (event) => this.handleSubmit(event));
+      this.root.addEventListener('contextmenu', (event) => this.handleContextMenu(event));
       window.addEventListener('popstate', () => {
         this.state.route = normalizeRoute(window.location.pathname);
+        this.state.messageContextMenu = null;
         this.render(true, false);
       });
       document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') this.closeSidebar();
+        if (event.key === 'Escape') {
+          if (this.state.messageContextMenu) {
+            this.closeMessageContextMenu();
+            return;
+          }
+
+          this.closeSidebar();
+        }
+      });
+      document.addEventListener('click', (event) => {
+        if (!this.state.messageContextMenu || this.root.contains(event.target)) return;
+
+        this.closeMessageContextMenu();
       });
 
       window.BazarWishlistStore?.subscribe(() => {
@@ -820,6 +1115,28 @@
     }
 
     handleClick(event) {
+      const messageMenuAction = event.target.closest('[data-account-message-menu-action]');
+      if (messageMenuAction && this.root.contains(messageMenuAction)) {
+        event.preventDefault();
+        this.runMessageMenuAction(messageMenuAction.dataset.accountMessageMenuAction, messageMenuAction.dataset.chatId);
+        return;
+      }
+
+      const chatItem = event.target.closest('[data-account-chat-id]');
+      if (this.state.messageContextMenu && !event.target.closest('[data-account-message-menu]') && !chatItem) {
+        event.preventDefault();
+        this.closeMessageContextMenu();
+        return;
+      }
+
+      if (chatItem && this.root.contains(chatItem)) {
+        event.preventDefault();
+        this.state.selectedChatId = chatItem.dataset.accountChatId || '';
+        this.state.messageContextMenu = null;
+        this.render(false, false);
+        return;
+      }
+
       const logoutLink = event.target.closest('[data-account-logout]');
       if (logoutLink && this.root.contains(logoutLink)) {
         event.preventDefault();
@@ -830,6 +1147,7 @@
       const routeLink = event.target.closest('[data-account-route]');
       if (routeLink && this.root.contains(routeLink)) {
         event.preventDefault();
+        this.state.messageContextMenu = null;
         this.navigate(routeLink.dataset.accountRoute);
         return;
       }
@@ -858,6 +1176,25 @@
       if (event.target.closest('[data-account-sidebar-close]')) {
         this.closeSidebar();
       }
+    }
+
+    handleContextMenu(event) {
+      if (this.state.route !== '/profile/messages') return;
+
+      const chatItem = event.target.closest('[data-account-chat-id]');
+      if (!chatItem || !this.root.contains(chatItem)) return;
+
+      event.preventDefault();
+
+      const maxLeft = Math.max(12, window.innerWidth - MESSAGE_CONTEXT_MENU_WIDTH - 12);
+      const maxTop = Math.max(12, window.innerHeight - MESSAGE_CONTEXT_MENU_HEIGHT - 12);
+
+      this.state.messageContextMenu = {
+        chatId: chatItem.dataset.accountChatId || '',
+        x: Math.min(Math.max(12, event.clientX), maxLeft),
+        y: Math.min(Math.max(12, event.clientY), maxTop),
+      };
+      this.render(false, false);
     }
 
     handleInput(event) {
@@ -912,6 +1249,14 @@
         }
 
         this.state.profileSaved = true;
+        this.render(false, false);
+      }
+
+      if (form.dataset.accountForm === 'message') {
+        const formData = new FormData(form);
+        const text = formData.get('message') || '';
+
+        this.providers.messages.send(this.state.selectedChatId, text);
         this.render(false, false);
       }
     }
@@ -980,6 +1325,36 @@
         this.state.supportView = element.dataset.view || 'tickets';
         this.render(false, false);
       }
+
+      if (action === 'messages-back') {
+        this.state.selectedChatId = '';
+        this.state.messageContextMenu = null;
+        this.render(false, false);
+      }
+    }
+
+    closeMessageContextMenu() {
+      this.state.messageContextMenu = null;
+      this.render(false, false);
+    }
+
+    runMessageMenuAction(action, chatId) {
+      const chat = this.providers.chats.get(chatId);
+      if (!chat) {
+        this.closeMessageContextMenu();
+        return;
+      }
+
+      if (action === 'pin') this.providers.chats.pin(chatId);
+      if (action === 'unpin') this.providers.chats.unpin(chatId);
+      if (action === 'read') this.providers.chats.markRead(chatId);
+      if (action === 'delete') {
+        this.providers.chats.delete(chatId);
+        if (String(this.state.selectedChatId) === String(chatId)) this.state.selectedChatId = '';
+      }
+
+      this.state.messageContextMenu = null;
+      this.render(false, false);
     }
 
     removeWishlistItem(id, element) {
@@ -1169,7 +1544,7 @@
       if (route.startsWith('/profile/orders/')) return this.renderOrderDetails(route.split('/').pop());
       if (route === '/profile/orders') return this.renderOrders();
       if (route === '/profile/wishlist') return this.renderWishlist();
-      if (route === '/profile/messages') return this.renderNotifications();
+      if (route === '/profile/messages') return this.renderMessages();
       if (route === '/profile/reviews') return this.renderReviews();
       if (route === '/profile/personal-data') return this.renderProfile();
       if (route === '/profile/addresses') return this.renderAddresses();
@@ -1564,6 +1939,185 @@
           </header>
           ${items.length ? this.renderWishlistGrid(visibleItems, hasMore) : this.renderWishlistEmpty()}
         </section>
+      `;
+    }
+
+    renderMessages() {
+      const chats = this.providers.chats.list();
+      const selectedChat = this.state.selectedChatId ? this.providers.chats.get(this.state.selectedChatId) : null;
+
+      return `
+        <section class="bazar-account-messages-screen${selectedChat ? ' is-conversation-open' : ''}" aria-labelledby="BazarAccountMessagesTitle">
+          <header class="bazar-account-messages-screen__head">
+            <h2 id="BazarAccountMessagesTitle">Повідомлення</h2>
+          </header>
+          ${
+            chats.length
+              ? `
+                <div class="bazar-account-messages-module">
+                  <aside class="bazar-account-chat-list" aria-label="Список чатів">
+                    <div class="bazar-account-chat-list__head">
+                      <h3>Чати</h3>
+                      <span>${this.providers.chats.unreadCount()} непрочитаних</span>
+                    </div>
+                    <div class="bazar-account-chat-list__items">
+                      ${chats.map((chat) => this.renderChatItem(chat, selectedChat?.id)).join('')}
+                    </div>
+                  </aside>
+                  <div class="bazar-account-conversation">
+                    ${selectedChat ? this.renderConversation(selectedChat) : this.renderNoChatSelected()}
+                  </div>
+                </div>
+                ${this.renderMessageContextMenu()}
+              `
+              : this.renderMessagesEmpty()
+          }
+        </section>
+      `;
+    }
+
+    renderMessagesEmpty() {
+      return `
+        <div class="bazar-account-empty bazar-account-messages-empty">
+          <span class="bazar-account-empty__icon">${icon('messages')}</span>
+          <h2>У вас ще немає повідомлень</h2>
+          <p>Тут зʼявлятимуться повідомлення від BAZAR, продавців та підтримки.</p>
+          <a class="bazar-account-button bazar-account-button--primary" href="/collections">До каталогу</a>
+        </div>
+      `;
+    }
+
+    renderNoChatSelected() {
+      return `
+        <div class="bazar-account-conversation-empty">
+          <span class="bazar-account-empty__icon">${icon('messages')}</span>
+          <h3>Оберіть чат</h3>
+          <p>Виберіть діалог зі списку, щоб переглянути повідомлення.</p>
+        </div>
+      `;
+    }
+
+    renderChatItem(chat, selectedId = '') {
+      const isActive = String(chat.id) === String(selectedId);
+      const unreadCount = Number(chat.unreadCount || 0);
+
+      return `
+        <button
+          class="bazar-account-chat-item${isActive ? ' is-active' : ''}${unreadCount ? ' has-unread' : ''}"
+          type="button"
+          data-account-chat-id="${escapeHtml(chat.id)}"
+          aria-pressed="${isActive ? 'true' : 'false'}"
+        >
+          ${this.renderChatAvatar(chat)}
+          <span class="bazar-account-chat-item__content">
+            <span class="bazar-account-chat-item__title">${escapeHtml(chat.title || 'Чат')}</span>
+            <span class="bazar-account-chat-item__preview">${escapeHtml(chat.lastMessage || '')}</span>
+          </span>
+          <span class="bazar-account-chat-item__meta">
+            <span class="bazar-account-chat-item__time">${escapeHtml(chat.time || '')}</span>
+            ${unreadCount ? `<span class="bazar-account-chat-item__unread">${unreadCount}</span>` : ''}
+          </span>
+        </button>
+      `;
+    }
+
+    renderChatAvatar(chat) {
+      return `
+        <span class="bazar-account-chat-avatar bazar-account-chat-avatar--${escapeHtml(chat.type || 'system')}">
+          ${icon(chat.avatarIcon || 'messages')}
+          ${chat.pinned ? `<span class="bazar-account-chat-avatar__pin" aria-label="Закріплено">${icon('pin')}</span>` : ''}
+        </span>
+      `;
+    }
+
+    renderConversation(chat) {
+      const messages = this.providers.messages.list(chat.id);
+
+      return `
+        <article class="bazar-account-conversation__panel" aria-label="Діалог ${escapeHtml(chat.title || '')}">
+          <header class="bazar-account-conversation__head">
+            <button class="bazar-account-icon-button bazar-account-conversation__back" type="button" data-account-action="messages-back" aria-label="Назад до чатів">${icon('arrowLeft')}</button>
+            ${this.renderChatAvatar(chat)}
+            <div>
+              <h3>${escapeHtml(chat.title || 'Чат')}</h3>
+              <p>${escapeHtml(chat.label || 'Повідомлення')}</p>
+            </div>
+          </header>
+          <div class="bazar-account-conversation__messages" role="log" aria-live="polite">
+            ${this.renderChatMessages(messages)}
+          </div>
+          ${this.renderConversationInput(chat)}
+        </article>
+      `;
+    }
+
+    renderChatMessages(messages = []) {
+      let unreadDividerRendered = false;
+
+      return messages
+        .map((message) => {
+          const isUnread = Boolean(message.unread);
+          const divider = isUnread && !unreadDividerRendered ? '<div class="bazar-account-message-divider">Нові повідомлення</div>' : '';
+          if (isUnread) unreadDividerRendered = true;
+
+          return `
+            ${divider}
+            <div class="bazar-account-message-bubble bazar-account-message-bubble--${message.direction === 'outgoing' ? 'outgoing' : 'incoming'}">
+              <p>${escapeHtml(message.text || '')}</p>
+              <time>${escapeHtml(message.time || '')}</time>
+            </div>
+          `;
+        })
+        .join('');
+    }
+
+    renderConversationInput(chat) {
+      if (chat.canReply === false) {
+        return `
+          <div class="bazar-account-conversation__disabled">
+            На це повідомлення не можна відповісти
+          </div>
+        `;
+      }
+
+      return `
+        <form class="bazar-account-message-form" data-account-form="message">
+          <button class="bazar-account-icon-button" type="button" aria-label="Додати файл">${icon('paperclip')}</button>
+          <label class="bazar-account-visually-hidden" for="BazarAccountMessageInput">Повідомлення</label>
+          <input id="BazarAccountMessageInput" name="message" type="text" autocomplete="off" placeholder="Напишіть повідомлення..." required>
+          <button class="bazar-account-button bazar-account-button--primary" type="submit" aria-label="Надіслати повідомлення">${icon('send')}</button>
+        </form>
+      `;
+    }
+
+    renderMessageContextMenu() {
+      const menu = this.state.messageContextMenu;
+      if (!menu) return '';
+
+      const chat = this.providers.chats.get(menu.chatId);
+      if (!chat) return '';
+
+      return `
+        <div
+          class="bazar-account-message-menu"
+          data-account-message-menu
+          style="left: ${Number(menu.x || 12)}px; top: ${Number(menu.y || 12)}px;"
+          role="menu"
+          aria-label="Дії з чатом"
+        >
+          <button type="button" role="menuitem" data-account-message-menu-action="${chat.pinned ? 'unpin' : 'pin'}" data-chat-id="${escapeHtml(chat.id)}">
+            ${icon('pin')}
+            ${chat.pinned ? 'Відкріпити чат' : 'Закріпити чат'}
+          </button>
+          <button type="button" role="menuitem" data-account-message-menu-action="read" data-chat-id="${escapeHtml(chat.id)}">
+            ${icon('check')}
+            Позначити як прочитане
+          </button>
+          <button class="is-danger" type="button" role="menuitem" data-account-message-menu-action="delete" data-chat-id="${escapeHtml(chat.id)}">
+            ${icon('trash')}
+            Видалити чат
+          </button>
+        </div>
       `;
     }
 

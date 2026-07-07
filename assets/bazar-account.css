@@ -867,6 +867,408 @@
   }
 }
 
+.bazar-account-messages-screen {
+  display: grid;
+  gap: 18px;
+}
+
+.bazar-account-messages-screen__head h2 {
+  color: var(--account-ink);
+  font-size: 32px;
+  font-weight: 850;
+  line-height: 1.12;
+  margin: 0;
+}
+
+.bazar-account-messages-module {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+  min-height: min(680px, calc(100dvh - 190px));
+}
+
+.bazar-account-chat-list,
+.bazar-account-conversation__panel,
+.bazar-account-conversation-empty {
+  background: #fff;
+  border: 1px solid var(--account-border);
+  border-radius: 18px;
+  box-shadow: 0 12px 28px rgba(6, 19, 52, 0.05);
+}
+
+.bazar-account-chat-list {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.bazar-account-chat-list__head {
+  align-items: center;
+  border-bottom: 1px solid var(--account-border);
+  display: flex;
+  justify-content: space-between;
+  padding: 16px;
+}
+
+.bazar-account-chat-list__head h3,
+.bazar-account-conversation__head h3,
+.bazar-account-conversation-empty h3 {
+  color: var(--account-ink);
+  font-size: 18px;
+  font-weight: 850;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.bazar-account-chat-list__head span,
+.bazar-account-conversation__head p,
+.bazar-account-conversation-empty p {
+  color: var(--account-muted);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.bazar-account-chat-list__items {
+  display: grid;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 8px;
+}
+
+.bazar-account-chat-item {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  color: var(--account-ink);
+  cursor: pointer;
+  display: grid;
+  font: inherit;
+  gap: 10px;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  min-height: 70px;
+  padding: 9px;
+  text-align: left;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+  width: 100%;
+}
+
+.bazar-account-chat-item:hover,
+.bazar-account-chat-item:focus-visible {
+  background: var(--account-blue-soft);
+  border-color: #d3e0ff;
+  outline: none;
+}
+
+.bazar-account-chat-item.is-active {
+  background: #eaf1ff;
+  border-color: #bcd0ff;
+}
+
+.bazar-account-chat-avatar {
+  align-items: center;
+  background: linear-gradient(145deg, #eef4ff 0%, #ffffff 100%);
+  border: 1px solid #cfe0ff;
+  border-radius: 16px;
+  color: var(--account-blue);
+  display: inline-flex;
+  height: 48px;
+  justify-content: center;
+  position: relative;
+  width: 48px;
+}
+
+.bazar-account-chat-avatar svg {
+  height: 23px;
+  width: 23px;
+}
+
+.bazar-account-chat-avatar--seller {
+  background: linear-gradient(145deg, #fff7e6 0%, #ffffff 100%);
+  border-color: #fedf89;
+  color: #b54708;
+}
+
+.bazar-account-chat-avatar--order {
+  background: linear-gradient(145deg, #ecfdf3 0%, #ffffff 100%);
+  border-color: #abefc6;
+  color: var(--account-green);
+}
+
+.bazar-account-chat-avatar--support {
+  background: linear-gradient(145deg, #f1efff 0%, #ffffff 100%);
+  border-color: #d7d0ff;
+  color: #5b4ab5;
+}
+
+.bazar-account-chat-avatar__pin {
+  align-items: center;
+  background: var(--account-blue);
+  border: 2px solid #fff;
+  border-radius: 50%;
+  bottom: -4px;
+  color: #fff;
+  display: inline-flex;
+  height: 20px;
+  justify-content: center;
+  position: absolute;
+  right: -4px;
+  width: 20px;
+}
+
+.bazar-account-chat-avatar__pin svg {
+  height: 11px;
+  width: 11px;
+}
+
+.bazar-account-chat-item__content {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.bazar-account-chat-item__title,
+.bazar-account-chat-item__preview {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bazar-account-chat-item__title {
+  color: var(--account-ink);
+  font-size: 14px;
+  font-weight: 850;
+  line-height: 1.2;
+}
+
+.bazar-account-chat-item__preview {
+  color: var(--account-muted);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
+.bazar-account-chat-item__meta {
+  align-items: end;
+  align-self: stretch;
+  display: grid;
+  gap: 6px;
+  justify-items: end;
+}
+
+.bazar-account-chat-item__time {
+  color: var(--account-muted);
+  font-size: 12px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.bazar-account-chat-item__unread {
+  align-items: center;
+  background: var(--account-blue);
+  border-radius: 999px;
+  color: #fff;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 850;
+  height: 22px;
+  justify-content: center;
+  min-width: 22px;
+  padding: 0 7px;
+}
+
+.bazar-account-conversation {
+  min-width: 0;
+}
+
+.bazar-account-conversation__panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: 100%;
+  min-height: 560px;
+  overflow: hidden;
+}
+
+.bazar-account-conversation__head {
+  align-items: center;
+  border-bottom: 1px solid var(--account-border);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  padding: 15px 18px;
+}
+
+.bazar-account-conversation__back {
+  display: none;
+}
+
+.bazar-account-conversation__messages {
+  align-content: end;
+  background: linear-gradient(180deg, #f8faff 0%, #f4f7fc 100%);
+  display: grid;
+  gap: 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 18px;
+}
+
+.bazar-account-message-divider {
+  align-self: center;
+  background: #fff;
+  border: 1px solid var(--account-border);
+  border-radius: 999px;
+  color: var(--account-muted);
+  font-size: 12px;
+  font-weight: 800;
+  justify-self: center;
+  margin: 5px 0;
+  padding: 5px 12px;
+}
+
+.bazar-account-message-bubble {
+  border: 1px solid var(--account-border);
+  border-radius: 18px;
+  display: grid;
+  gap: 4px;
+  max-width: min(72%, 560px);
+  padding: 10px 12px;
+}
+
+.bazar-account-message-bubble p {
+  color: var(--account-ink);
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.bazar-account-message-bubble time {
+  color: var(--account-muted);
+  font-size: 11px;
+  font-weight: 750;
+  justify-self: end;
+}
+
+.bazar-account-message-bubble--incoming {
+  background: #fff;
+  border-bottom-left-radius: 6px;
+  justify-self: start;
+}
+
+.bazar-account-message-bubble--outgoing {
+  background: #eaf1ff;
+  border-bottom-right-radius: 6px;
+  border-color: #cfe0ff;
+  justify-self: end;
+}
+
+.bazar-account-message-form {
+  align-items: center;
+  border-top: 1px solid var(--account-border);
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: 12px 14px;
+}
+
+.bazar-account-message-form input {
+  background: #fff;
+  border: 1px solid var(--account-border);
+  border-radius: 999px;
+  color: var(--account-ink);
+  font: inherit;
+  font-size: 14px;
+  min-height: 44px;
+  padding: 0 16px;
+  width: 100%;
+}
+
+.bazar-account-message-form input:focus-visible {
+  border-color: #b8ccff;
+  outline: 3px solid rgba(41, 98, 255, 0.16);
+  outline-offset: 0;
+}
+
+.bazar-account-conversation__disabled {
+  border-top: 1px solid var(--account-border);
+  color: var(--account-muted);
+  font-size: 14px;
+  font-weight: 800;
+  padding: 18px;
+  text-align: center;
+}
+
+.bazar-account-conversation-empty {
+  align-content: center;
+  display: grid;
+  height: 100%;
+  justify-items: center;
+  min-height: 560px;
+  padding: 28px;
+  text-align: center;
+}
+
+.bazar-account-conversation-empty .bazar-account-empty__icon {
+  height: 70px;
+  margin-bottom: 16px;
+  width: 70px;
+}
+
+.bazar-account-message-menu {
+  background: #fff;
+  border: 1px solid var(--account-border);
+  border-radius: 16px;
+  box-shadow: 0 18px 45px rgba(6, 19, 52, 0.18);
+  display: grid;
+  gap: 4px;
+  padding: 6px;
+  position: fixed;
+  width: 232px;
+  z-index: 1500;
+}
+
+.bazar-account-message-menu button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 12px;
+  color: var(--account-ink);
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  gap: 10px;
+  min-height: 40px;
+  padding: 0 10px;
+  text-align: left;
+}
+
+.bazar-account-message-menu button:hover,
+.bazar-account-message-menu button:focus-visible {
+  background: var(--account-blue-soft);
+  color: var(--account-blue-dark);
+  outline: none;
+}
+
+.bazar-account-message-menu button.is-danger {
+  color: var(--account-red);
+}
+
+.bazar-account-message-menu svg {
+  height: 17px;
+  width: 17px;
+}
+
+.bazar-account-messages-empty {
+  margin: 8px auto 0;
+  max-width: 560px;
+  text-align: center;
+}
+
 .bazar-account-field {
   display: grid;
   gap: 7px;
@@ -1611,6 +2013,10 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  .bazar-account-messages-module {
+    grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
+  }
+
   .bazar-account-section-grid,
   .bazar-account-order-detail__grid {
     grid-template-columns: 1fr;
@@ -1685,6 +2091,32 @@
     font-size: 28px;
   }
 
+  .bazar-account-messages-screen__head h2 {
+    font-size: 28px;
+  }
+
+  .bazar-account-messages-module {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .bazar-account-messages-screen.is-conversation-open .bazar-account-chat-list {
+    display: none;
+  }
+
+  .bazar-account-messages-screen:not(.is-conversation-open) .bazar-account-conversation {
+    display: none;
+  }
+
+  .bazar-account-conversation__back {
+    display: inline-flex;
+  }
+
+  .bazar-account-conversation__panel,
+  .bazar-account-conversation-empty {
+    min-height: min(680px, calc(100dvh - 170px));
+  }
+
   .bazar-account-order-detail__title-row h2 {
     font-size: 26px;
   }
@@ -1727,6 +2159,43 @@
   .bazar-account-wishlist-card {
     grid-template-rows: 154px 1fr auto;
     min-height: 304px;
+  }
+
+  .bazar-account-chat-list__head {
+    padding: 14px;
+  }
+
+  .bazar-account-chat-item {
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    min-height: 66px;
+    padding: 8px;
+  }
+
+  .bazar-account-chat-avatar {
+    height: 44px;
+    width: 44px;
+  }
+
+  .bazar-account-conversation__head {
+    padding: 12px;
+  }
+
+  .bazar-account-conversation__messages {
+    padding: 14px;
+  }
+
+  .bazar-account-message-bubble {
+    max-width: 86%;
+  }
+
+  .bazar-account-message-form {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    padding: 10px;
+  }
+
+  .bazar-account-message-form .bazar-account-button {
+    min-height: 42px;
+    padding: 0 14px;
   }
 
   .bazar-account-card,
