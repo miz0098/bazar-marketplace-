@@ -27,7 +27,7 @@
           assign subcategories_data = category_parts[1] | strip
           assign subcategories = subcategories_data | split: '|'
         %}
-        <li class="bazar-collections-index__item">
+        <li class="bazar-collections-index__item" data-category-title="{{ category_title | escape }}">
           <a
             class="bazar-collections-index__card"
             href="{%- render 'bazar-collection-url', title: category_title -%}"

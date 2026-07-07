@@ -4,9 +4,14 @@ const panelSelector = '.bazar-collections-index__subcategories';
 const cardSelector = '.bazar-collections-index__card';
 const scrollLockClass = 'bazar-collections-overlay-scroll-lock';
 const focusableSelector = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+const closeDelay = 200;
+const panelGap = 12;
+const viewportPadding = 16;
+const leftPreferredCategories = new Set(['Будівництво та ремонт', 'Канцелярія', 'Авто та мото', 'Подарунки']);
 
 let scrollLockState = null;
 let touchStartY = 0;
+const closeTimers = new WeakMap();
 
 const lockPageScroll = () => {
   if (scrollLockState || !document.body) return;
@@ -63,12 +68,108 @@ const getActiveItem = (root) => root.querySelector(`${itemSelector}.is-active`);
 
 const getActivePanel = (root) => getActiveItem(root)?.querySelector(panelSelector) || null;
 
+const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+const cancelClose = (root) => {
+  const timer = closeTimers.get(root);
+  if (!timer) return;
+
+  window.clearTimeout(timer);
+  closeTimers.delete(root);
+};
+
+const scheduleClose = (root) => {
+  cancelClose(root);
+  closeTimers.set(
+    root,
+    window.setTimeout(() => {
+      closeTimers.delete(root);
+      closeOverlay(root);
+    }, closeDelay)
+  );
+};
+
+const resetPanelPosition = (item) => {
+  const panel = item.querySelector(panelSelector);
+
+  item.classList.remove('is-left', 'is-right');
+  item.style.removeProperty('--bazar-collections-bridge-left');
+  item.style.removeProperty('--bazar-collections-bridge-top');
+  item.style.removeProperty('--bazar-collections-bridge-width');
+  item.style.removeProperty('--bazar-collections-bridge-height');
+  panel?.style.removeProperty('--bazar-collections-panel-left');
+  panel?.style.removeProperty('--bazar-collections-panel-top');
+  panel?.style.removeProperty('--bazar-collections-panel-width');
+};
+
+const positionPanel = (item) => {
+  const card = item.querySelector(cardSelector);
+  const panel = item.querySelector(panelSelector);
+
+  if (!card || !panel) return;
+
+  const cardRect = card.getBoundingClientRect();
+  const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+  const maxPanelWidth = Math.max(260, viewportWidth - viewportPadding * 2);
+  const panelWidth = Math.min(panel.offsetWidth || 520, maxPanelWidth);
+  const panelHeight = Math.min(panel.offsetHeight || panel.scrollHeight || 360, viewportHeight - viewportPadding * 2);
+  const rightLeft = cardRect.right + panelGap;
+  const leftLeft = cardRect.left - panelGap - panelWidth;
+  const rightFits = rightLeft + panelWidth <= viewportWidth - viewportPadding;
+  const leftFits = leftLeft >= viewportPadding;
+  const categoryTitle = item.dataset.categoryTitle || card.textContent.trim();
+  const preferLeft = leftPreferredCategories.has(categoryTitle);
+  let direction = 'right';
+
+  if (preferLeft && leftFits) {
+    direction = 'left';
+  } else if (rightFits) {
+    direction = 'right';
+  } else if (leftFits) {
+    direction = 'left';
+  } else {
+    const rightSpace = viewportWidth - cardRect.right - panelGap - viewportPadding;
+    const leftSpace = cardRect.left - panelGap - viewportPadding;
+    direction = leftSpace > rightSpace ? 'left' : 'right';
+  }
+
+  const rawLeft = direction === 'left' ? leftLeft : rightLeft;
+  const left = clamp(rawLeft, viewportPadding, Math.max(viewportPadding, viewportWidth - viewportPadding - panelWidth));
+  const top = clamp(cardRect.top, viewportPadding, Math.max(viewportPadding, viewportHeight - viewportPadding - panelHeight));
+  const cardEdge = direction === 'left' ? cardRect.left : cardRect.right;
+  const panelEdge = direction === 'left' ? left + panelWidth : left;
+  const bridgeLeft = Math.min(cardEdge, panelEdge);
+  const bridgeWidth = Math.max(Math.abs(panelEdge - cardEdge), panelGap);
+  const bridgeTop = Math.min(cardRect.top, top);
+  const bridgeHeight = Math.max(cardRect.bottom, top + panelHeight) - bridgeTop;
+
+  item.classList.toggle('is-left', direction === 'left');
+  item.classList.toggle('is-right', direction === 'right');
+  item.style.setProperty('--bazar-collections-bridge-left', `${bridgeLeft}px`);
+  item.style.setProperty('--bazar-collections-bridge-top', `${bridgeTop}px`);
+  item.style.setProperty('--bazar-collections-bridge-width', `${bridgeWidth}px`);
+  item.style.setProperty('--bazar-collections-bridge-height', `${bridgeHeight}px`);
+  panel.style.setProperty('--bazar-collections-panel-left', `${left}px`);
+  panel.style.setProperty('--bazar-collections-panel-top', `${top}px`);
+  panel.style.setProperty('--bazar-collections-panel-width', `${panelWidth}px`);
+};
+
+const positionActivePanel = (root) => {
+  const activeItem = getActiveItem(root);
+  if (activeItem) positionPanel(activeItem);
+};
+
 const closeOverlay = (root, focusCard = false) => {
   const activeItem = getActiveItem(root);
   const activeCard = activeItem?.querySelector(cardSelector);
 
+  cancelClose(root);
   root.classList.remove('is-overlay-active');
-  root.querySelectorAll(`${itemSelector}.is-active`).forEach((item) => item.classList.remove('is-active'));
+  root.querySelectorAll(`${itemSelector}.is-active`).forEach((item) => {
+    item.classList.remove('is-active');
+    resetPanelPosition(item);
+  });
   unlockPageScroll();
 
   if (focusCard) {
@@ -79,13 +180,16 @@ const closeOverlay = (root, focusCard = false) => {
 const openOverlay = (root, item) => {
   if (!item) return;
 
+  cancelClose(root);
   root.querySelectorAll(`${itemSelector}.is-active`).forEach((currentItem) => {
     currentItem.classList.toggle('is-active', currentItem === item);
+    if (currentItem !== item) resetPanelPosition(currentItem);
   });
 
   item.classList.add('is-active');
   root.classList.add('is-overlay-active');
   lockPageScroll();
+  positionPanel(item);
 };
 
 const getWheelDeltaY = (event, scrollContainer) => {
@@ -165,10 +269,18 @@ const initCollectionsIndex = (root) => {
   root.dataset.bazarCollectionsIndexReady = 'true';
 
   root.querySelectorAll(itemSelector).forEach((item) => {
+    const panel = item.querySelector(panelSelector);
+
     item.addEventListener('pointerenter', () => openOverlay(root, item));
     item.addEventListener('pointerleave', (event) => {
       if (event.relatedTarget instanceof Node && item.contains(event.relatedTarget)) return;
-      closeOverlay(root);
+      scheduleClose(root);
+    });
+
+    panel?.addEventListener('pointerenter', () => cancelClose(root));
+    panel?.addEventListener('pointerleave', (event) => {
+      if (event.relatedTarget instanceof Node && item.contains(event.relatedTarget)) return;
+      scheduleClose(root);
     });
   });
 
@@ -197,6 +309,8 @@ const initCollectionsIndex = (root) => {
 
     trapFocus(root, event);
   });
+
+  window.addEventListener('resize', () => positionActivePanel(root));
 };
 
 const initCollectionsIndexes = () => {

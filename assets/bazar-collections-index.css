@@ -53,6 +53,18 @@
   z-index: 50;
 }
 
+.bazar-collections-index__item.is-active::after {
+  content: '';
+  position: fixed;
+  inset-block-start: var(--bazar-collections-bridge-top, 0);
+  inset-inline-start: var(--bazar-collections-bridge-left, 0);
+  z-index: 4;
+  display: block;
+  width: var(--bazar-collections-bridge-width, 0);
+  height: var(--bazar-collections-bridge-height, 0);
+  pointer-events: auto;
+}
+
 .bazar-collections-index__card {
   position: relative;
   z-index: 3;
@@ -113,11 +125,11 @@
 }
 
 .bazar-collections-index__subcategories {
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-start: calc(100% + 12px);
+  position: fixed;
+  inset-block-start: var(--bazar-collections-panel-top, 0);
+  inset-inline-start: var(--bazar-collections-panel-left, 0);
   z-index: 5;
-  width: 284px;
+  width: var(--bazar-collections-panel-width, min(520px, calc(100vw - 32px)));
   max-height: min(360px, calc(100vh - 96px));
   padding: var(--bazar-space-sm);
   border: 1px solid var(--bazar-color-border);
@@ -135,6 +147,10 @@
   visibility: hidden;
 }
 
+.bazar-collections-index__item.is-left .bazar-collections-index__subcategories {
+  transform: translateX(4px);
+}
+
 .bazar-collections-index__item.is-active .bazar-collections-index__subcategories {
   opacity: 1;
   pointer-events: auto;
@@ -144,7 +160,8 @@
 
 .bazar-collections-index__subcategory-list {
   display: grid;
-  gap: var(--bazar-space-2xs);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--bazar-space-2xs) var(--bazar-space-xs);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -197,12 +214,6 @@
   .bazar-collections-index__grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
-
-  .bazar-collections-index__subcategories {
-    inset-inline-start: auto;
-    inset-inline-end: 0;
-    inset-block-start: calc(100% + 10px);
-  }
 }
 
 @media screen and (max-width: 749px) {
@@ -221,5 +232,9 @@
 
   .bazar-collections-index__subcategories {
     width: min(320px, calc(100vw - 48px));
+  }
+
+  .bazar-collections-index__subcategory-list {
+    grid-template-columns: 1fr;
   }
 }
