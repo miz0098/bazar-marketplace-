@@ -45,6 +45,11 @@
       address: '<path d="M12 21s7-5.1 7-11a7 7 0 1 0-14 0c0 5.9 7 11 7 11Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/><circle cx="12" cy="10" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/>',
       payment: '<rect x="3" y="5" width="18" height="14" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 10h18M7 15h4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/>',
       support: '<path d="M5 13a7 7 0 0 1 14 0v2a3 3 0 0 1-3 3h-2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/><path d="M5 13v3a2 2 0 0 0 2 2h1v-7H7a2 2 0 0 0-2 2ZM19 13v3a2 2 0 0 1-2 2h-1v-7h1a2 2 0 0 1 2 2ZM10.5 20h3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/>',
+      copy: '<rect x="8" y="8" width="11" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 16V7a2 2 0 0 1 2-2h9" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/>',
+      store: '<path d="M4 10h16l-1-5H5l-1 5Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/><path d="M6 10v9h12v-9M9 19v-5h6v5" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/>',
+      shield: '<path d="M12 3 20 6v5.7c0 4.4-3.1 7.7-8 9.3-4.9-1.6-8-4.9-8-9.3V6l8-3Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/><path d="m8.5 12 2.2 2.2 4.8-5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/>',
+      truck: '<path d="M3 6h11v9H3V6ZM14 10h4l3 3v2h-7v-5Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/><circle cx="7" cy="18" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17" cy="18" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/>',
+      receipt: '<path d="M6 3h12v18l-2-1.2-2 1.2-2-1.2-2 1.2-2-1.2L6 21V3Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/><path d="M9 8h6M9 12h6M9 16h4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/>',
       heart: '<path d="M20.2 5.1a5.4 5.4 0 0 0-7.6 0l-.6.6-.6-.6a5.4 5.4 0 0 0-7.6 7.6L12 20.9l8.2-8.2a5.4 5.4 0 0 0 0-7.6Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/>',
       box: '<path d="m4 7 8-4 8 4-8 4-8-4Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/><path d="M4 7v10l8 4 8-4V7M12 11v10" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/>',
       search: '<circle cx="11" cy="11" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/>',
@@ -117,6 +122,20 @@
     if (value === 1) return '1 товар';
     if (value > 1 && value < 5) return `${value} товари`;
     return `${value} товарів`;
+  };
+
+  const formatMoneyLabel = (value) => `${new Intl.NumberFormat('uk-UA').format(Math.round(value))} грн`;
+
+  const getMoneyValue = (label = '') => {
+    const normalized = String(label).replace(/\s/g, '').replace(/[^\d.,]/g, '').replace(',', '.');
+    return Number.parseFloat(normalized) || 0;
+  };
+
+  const divideMoneyLabel = (label = '', quantity = 1) => {
+    const value = getMoneyValue(label);
+    const count = Number(quantity || 1);
+    if (!value || count <= 1) return label;
+    return formatMoneyLabel(value / count);
   };
 
   const normalizeOrderStatus = (order = {}) => {
@@ -270,6 +289,100 @@
       };
     }
 
+    getDetail(id, profile = {}) {
+      // TODO: Replace placeholder detail fields with api.bazar orders.
+      const order = this.get(id);
+      if (!order) return null;
+
+      const status = normalizeOrderStatus(order);
+      const activeStep = this.getTimelineActiveStep(status);
+      const orderNumber = order.name || order.orderNumber || `BZ-${order.id || ''}`;
+      const orderDate = order.date || '28 травня 2026, 14:30';
+      const recipientName =
+        [profile.firstName, profile.lastName].filter(Boolean).join(' ') ||
+        profile.displayName ||
+        'Богдан Дюков';
+      const recipientPhone = profile.phone || '+380 XX XXX XX XX';
+      const products = (order.products || []).map((product, index) => {
+        const quantity = Number(product.quantity || 1);
+        const totalPrice = product.price || order.total || '';
+
+        return {
+          id: product.id || `${orderNumber}-${index}`,
+          title: product.title || 'Товар BAZAR',
+          image: product.image || '',
+          quantity,
+          quantityLabel: formatQuantityLabel(quantity),
+          unitPrice: product.unitPrice || divideMoneyLabel(totalPrice, quantity),
+          totalPrice,
+        };
+      });
+
+      return {
+        id: order.id,
+        number: orderNumber,
+        date: orderDate,
+        status,
+        total: order.total || '',
+        protectionLabel: 'Під захистом BAZAR',
+        sourceLabel: 'Замовлення на BAZAR',
+        products,
+        delivery: {
+          carrier: order.delivery?.carrier || 'Нова пошта',
+          price: order.delivery?.price || '79 грн',
+          method: order.delivery?.method || 'До відділення',
+          city: order.delivery?.city || 'м. Київ',
+          address: order.delivery?.address || 'відділення №1',
+          recipient: order.delivery?.recipient || recipientName,
+          phone: order.delivery?.phone || recipientPhone,
+          tracking: order.tracking || order.delivery?.tracking || '20400000000000',
+        },
+        payment: {
+          method: order.payment?.method || 'Оплата карткою',
+          status: localizeStatus(order.financialStatus, 'Сплачено'),
+          wallets: ['Apple Pay', 'Google Pay', 'Visa', 'Mastercard'],
+        },
+        timeline: this.getTimeline(orderDate, activeStep),
+        seller: {
+          name: order.seller?.name || 'Офіційний продавець BAZAR',
+          rating: order.seller?.rating || '4.9',
+          positiveReviews: order.seller?.positiveReviews || '98%',
+          totalOrders: order.seller?.totalOrders || '12 480 замовлень',
+          onlineStatus: order.seller?.onlineStatus || 'Онлайн зараз',
+        },
+      };
+    }
+
+    getTimelineActiveStep(status) {
+      const map = {
+        expected: 2,
+        shipped: 3,
+        delivered: 5,
+        canceled: 1,
+        returned: 5,
+      };
+
+      return map[status] ?? 2;
+    }
+
+    getTimeline(orderDate, activeStep) {
+      const statuses = [
+        ['Оформлено', orderDate],
+        ['Оплачено', orderDate],
+        ['Комплектується', activeStep >= 2 ? orderDate : 'Очікується'],
+        ['Відправлено', activeStep >= 3 ? '29 травня 2026, 09:20' : 'Очікується'],
+        ['Доставляється', activeStep >= 4 ? '29 травня 2026, 18:45' : 'Очікується'],
+        ['Доставлено', activeStep >= 5 ? '30 травня 2026, 12:10' : 'Очікується'],
+        ['Отримано', activeStep >= 6 ? '30 травня 2026, 12:30' : 'Очікується'],
+      ];
+
+      return statuses.map(([label, date], index) => ({
+        label,
+        date,
+        state: index < activeStep ? 'complete' : index === activeStep ? 'active' : 'pending',
+      }));
+    }
+
     list({ filter = 'all', search = '', sort = 'newest', page = 1 } = {}) {
       const query = search.trim().toLowerCase();
       const now = Date.now() / 1000;
@@ -316,7 +429,7 @@
         name: screenOrder.orderNumber,
         orderNumber: screenOrder.orderNumber,
         date: screenOrder.dateTime,
-        financialStatus: 'Оплачено',
+        financialStatus: 'Сплачено',
         fulfillmentStatus: getOrderStatusLabel(screenOrder.status),
         total: screenOrder.total,
         totalValue: 0,
@@ -768,6 +881,11 @@
         this.render(false, false);
       }
 
+      if (action === 'copy-text') {
+        const text = element.dataset.copyText || '';
+        if (text && navigator.clipboard?.writeText) navigator.clipboard.writeText(text).catch(() => {});
+      }
+
       if (action === 'mark-all-read') {
         this.providers.notifications.markAllRead();
         this.render(false, false);
@@ -1052,8 +1170,8 @@
     }
 
     renderOrderDetails(encodedId) {
-      const order = this.providers.orders.get(decodeURIComponent(encodedId));
-      if (!order) {
+      const detail = this.providers.orders.getDetail(decodeURIComponent(encodedId), this.providers.account.getProfile());
+      if (!detail) {
         return `
           ${pageHead('Замовлення', 'Замовлення не знайдено', 'Можливо, воно було оновлене або недоступне для поточної сесії.')}
           ${emptyState('orders', 'Немає даних замовлення', 'Поверніться до списку замовлень і спробуйте ще раз.', '<a class="bazar-account-button bazar-account-button--primary" href="/profile/orders" data-account-route="/profile/orders">До замовлень</a>')}
@@ -1061,39 +1179,208 @@
       }
 
       return `
-        ${pageHead(
-          'Деталі замовлення',
-          order.name || `Замовлення ${order.orderNumber || ''}`,
-          'Статус, оплата, доставка, товари та дії за замовленням.',
-          '<a class="bazar-account-button bazar-account-button--ghost" href="/profile/orders" data-account-route="/profile/orders">Назад</a>'
-        )}
-        <div class="bazar-account-detail-grid">
-          <section class="bazar-account-card">
-            <div class="bazar-account-card__head">
-              <div>
-                <h3 class="bazar-account-card__title">Товари</h3>
-                <p class="bazar-account-card__text">Дані замовлення готові до майбутнього оновлення провайдера.</p>
-              </div>
-              <span class="bazar-account-pill bazar-account-pill--blue">${escapeHtml(order.total || '')}</span>
+        <section class="bazar-account-order-detail" aria-labelledby="BazarOrderDetailTitle">
+          <header class="bazar-account-order-detail__header">
+            <a class="bazar-account-order-detail__back" href="/profile/orders" data-account-route="/profile/orders">
+              <span aria-hidden="true">←</span>
+              Назад
+            </a>
+            <div class="bazar-account-order-detail__title-row">
+              <h2 id="BazarOrderDetailTitle">Замовлення № ${escapeHtml(detail.number)}</h2>
+              <button
+                class="bazar-account-copy-button"
+                type="button"
+                data-account-action="copy-text"
+                data-copy-text="${escapeHtml(detail.number)}"
+                aria-label="Скопіювати номер замовлення"
+              >
+                ${icon('copy')}
+              </button>
             </div>
-            ${(order.products || []).length ? order.products.map((product) => this.renderProductRow(product)).join('') : emptyState('box', 'Товари недоступні', 'Дані позицій будуть отримані після оновлення провайдера.')}
-          </section>
-          <aside class="bazar-account-panel">
-            <h3 class="bazar-account-panel__title">Статус замовлення</h3>
-            <ul class="bazar-account-timeline" aria-label="Таймлайн замовлення">
-              ${this.timelineItem('Замовлення створено', order.date || '')}
-              ${this.timelineItem('Оплата', localizeStatus(order.financialStatus, 'Очікує оплати'))}
-              ${this.timelineItem('Доставка', localizeStatus(order.fulfillmentStatus, 'В обробці'))}
-              ${this.timelineItem('Трекінг', order.tracking || 'Очікуємо номер від служби доставки')}
-            </ul>
-            <div class="bazar-account-form-actions">
-              <button class="bazar-account-button bazar-account-button--secondary" type="button">Завантажити рахунок</button>
-              <button class="bazar-account-button bazar-account-button--secondary" type="button">Відстежити</button>
-              <button class="bazar-account-button bazar-account-button--ghost" type="button">Повторити</button>
-              <a class="bazar-account-button bazar-account-button--primary" href="/profile/support" data-account-route="/profile/support">Підтримка</a>
+          </header>
+
+          <div class="bazar-account-order-detail__grid">
+            <div class="bazar-account-order-detail__main">
+              ${this.renderOrderDetailProductCard(detail)}
+              ${this.renderOrderDelivery(detail.delivery)}
+              ${this.renderOrderPayment(detail.payment)}
             </div>
-          </aside>
-        </div>
+            <aside class="bazar-account-order-detail__side">
+              ${this.renderOrderDetailTimeline(detail.timeline)}
+              ${this.renderOrderSeller(detail.seller)}
+              ${this.renderOrderSupport()}
+            </aside>
+          </div>
+        </section>
+      `;
+    }
+
+    renderOrderDetailProductCard(detail) {
+      return `
+        <section class="bazar-account-order-detail-card">
+          <div class="bazar-account-order-detail-card__top">
+            <span class="bazar-account-order-source">${escapeHtml(detail.sourceLabel)}</span>
+            <span class="bazar-account-order-protection">${icon('shield')}${escapeHtml(detail.protectionLabel)}</span>
+          </div>
+          <div class="bazar-account-order-total">
+            <span>До оплати без доставки:</span>
+            <strong>${escapeHtml(detail.total || '0 грн')}</strong>
+          </div>
+          <div class="bazar-account-order-detail-products">
+            ${
+              detail.products.length
+                ? detail.products.map((product) => this.renderOrderDetailProduct(product)).join('')
+                : emptyState('box', 'Товари недоступні', 'Дані позицій будуть отримані після оновлення провайдера.')
+            }
+          </div>
+          <div class="bazar-account-order-detail-actions">
+            <button class="bazar-account-button bazar-account-button--secondary" type="button">Додати відгук</button>
+            <button class="bazar-account-button bazar-account-button--secondary" type="button">Написати продавцю</button>
+            <button class="bazar-account-button bazar-account-button--ghost" type="button">Додати відгук про продавця</button>
+          </div>
+        </section>
+      `;
+    }
+
+    renderOrderDetailProduct(product) {
+      return `
+        <article class="bazar-account-order-detail-product">
+          <span class="bazar-account-order-detail-product__image">
+            ${product.image ? `<img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.title)}" loading="lazy">` : icon('box')}
+          </span>
+          <div class="bazar-account-order-detail-product__info">
+            <h3>${escapeHtml(product.title)}</h3>
+            <p>${escapeHtml(product.quantityLabel)}</p>
+          </div>
+          <div class="bazar-account-order-detail-product__price">
+            <span>${escapeHtml(product.unitPrice)}</span>
+            <strong>${escapeHtml(product.totalPrice)}</strong>
+          </div>
+        </article>
+      `;
+    }
+
+    renderOrderDelivery(delivery) {
+      return `
+        <section class="bazar-account-order-detail-card">
+          <h3 class="bazar-account-order-detail-card__title">Доставка</h3>
+          <div class="bazar-account-order-info-lead">
+            <span class="bazar-account-order-info-lead__icon">${icon('truck')}</span>
+            <div>
+              <strong>${escapeHtml(delivery.carrier)} — ${escapeHtml(delivery.price)}</strong>
+              <span>${escapeHtml(delivery.method)}</span>
+            </div>
+          </div>
+          <dl class="bazar-account-order-detail-list">
+            <div>
+              <dt>Місто</dt>
+              <dd>${escapeHtml(delivery.city)}</dd>
+            </div>
+            <div>
+              <dt>Відділення / адреса</dt>
+              <dd>${escapeHtml(delivery.address)}</dd>
+            </div>
+            <div>
+              <dt>Отримувач</dt>
+              <dd>${escapeHtml(delivery.recipient)}</dd>
+            </div>
+            <div>
+              <dt>Телефон</dt>
+              <dd>${escapeHtml(delivery.phone)}</dd>
+            </div>
+            <div>
+              <dt>ТТН</dt>
+              <dd>
+                ${escapeHtml(delivery.tracking)}
+                <button
+                  class="bazar-account-copy-button bazar-account-copy-button--inline"
+                  type="button"
+                  data-account-action="copy-text"
+                  data-copy-text="${escapeHtml(delivery.tracking)}"
+                  aria-label="Скопіювати номер ТТН"
+                >
+                  ${icon('copy')}
+                </button>
+              </dd>
+            </div>
+          </dl>
+        </section>
+      `;
+    }
+
+    renderOrderPayment(payment) {
+      return `
+        <section class="bazar-account-order-detail-card">
+          <h3 class="bazar-account-order-detail-card__title">Оплата</h3>
+          <div class="bazar-account-order-info-lead">
+            <span class="bazar-account-order-info-lead__icon">${icon('payment')}</span>
+            <div>
+              <strong>${escapeHtml(payment.method)}</strong>
+              <span>${escapeHtml(payment.status)}</span>
+            </div>
+          </div>
+          <div class="bazar-account-payment-icons" aria-label="Підтримувані способи оплати">
+            ${payment.wallets.map((wallet) => `<span>${escapeHtml(wallet)}</span>`).join('')}
+          </div>
+          <button class="bazar-account-button bazar-account-button--secondary" type="button">${icon('receipt')}Завантажити чек</button>
+        </section>
+      `;
+    }
+
+    renderOrderDetailTimeline(timeline) {
+      return `
+        <section class="bazar-account-order-detail-card bazar-account-order-detail-card--side">
+          <h3 class="bazar-account-order-detail-card__title">Статус замовлення</h3>
+          <ol class="bazar-account-order-timeline">
+            ${timeline.map((item) => `
+              <li class="bazar-account-order-timeline__item is-${escapeHtml(item.state)}">
+                <span class="bazar-account-order-timeline__dot" aria-hidden="true"></span>
+                <span class="bazar-account-order-timeline__line" aria-hidden="true"></span>
+                <span>
+                  <strong>${escapeHtml(item.label)}</strong>
+                  <small>${escapeHtml(item.date)}</small>
+                </span>
+              </li>
+            `).join('')}
+          </ol>
+        </section>
+      `;
+    }
+
+    renderOrderSeller(seller) {
+      return `
+        <section class="bazar-account-order-detail-card bazar-account-order-detail-card--side">
+          <h3 class="bazar-account-order-detail-card__title">Продавець</h3>
+          <div class="bazar-account-seller">
+            <span class="bazar-account-seller__avatar">${icon('store')}</span>
+            <div>
+              <h4>${escapeHtml(seller.name)}</h4>
+              <p>${escapeHtml(seller.onlineStatus)}</p>
+            </div>
+          </div>
+          <div class="bazar-account-seller-stats">
+            <span><strong>${escapeHtml(seller.rating)}</strong> рейтинг</span>
+            <span><strong>${escapeHtml(seller.positiveReviews)}</strong> позитивних відгуків</span>
+            <span><strong>${escapeHtml(seller.totalOrders)}</strong></span>
+          </div>
+          <div class="bazar-account-order-detail-actions">
+            <button class="bazar-account-button bazar-account-button--secondary" type="button">Каталог продавця</button>
+            <button class="bazar-account-button bazar-account-button--ghost" type="button">Відгуки про продавця</button>
+          </div>
+        </section>
+      `;
+    }
+
+    renderOrderSupport() {
+      return `
+        <section class="bazar-account-order-detail-card bazar-account-order-detail-card--side">
+          <h3 class="bazar-account-order-detail-card__title">Потрібна допомога?</h3>
+          <div class="bazar-account-order-support-actions">
+            <a class="bazar-account-button bazar-account-button--primary" href="/profile/support" data-account-route="/profile/support">Написати в підтримку</a>
+            <button class="bazar-account-button bazar-account-button--secondary" type="button">Повернення товару</button>
+            <button class="bazar-account-button bazar-account-button--ghost" type="button">Проблема із замовленням</button>
+          </div>
+        </section>
       `;
     }
 
@@ -1373,44 +1660,6 @@
 
     option(value, label, current) {
       return `<option value="${escapeHtml(value)}" ${String(value) === String(current) ? 'selected' : ''}>${escapeHtml(label)}</option>`;
-    }
-
-    renderPagination(result) {
-      if (result.totalPages <= 1) return '';
-      return `
-        <nav class="bazar-account-pagination" aria-label="Пагінація замовлень">
-          <button class="bazar-account-button bazar-account-button--ghost" type="button" data-account-action="order-page" data-page="${result.page - 1}" ${result.page <= 1 ? 'disabled' : ''}>Назад</button>
-          <span class="bazar-account-pill">Сторінка ${result.page} з ${result.totalPages}</span>
-          <button class="bazar-account-button bazar-account-button--ghost" type="button" data-account-action="order-page" data-page="${result.page + 1}" ${result.page >= result.totalPages ? 'disabled' : ''}>Далі</button>
-        </nav>
-      `;
-    }
-
-    renderProductRow(product) {
-      return `
-        <article class="bazar-account-product-row">
-          <span class="bazar-account-product-thumb">
-            ${product.image ? `<img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.title || '')}" loading="lazy">` : icon('box')}
-          </span>
-          <div>
-            <h4 class="bazar-account-row-card__title">${escapeHtml(product.title || 'Товар')}</h4>
-            <p class="bazar-account-muted">Кількість: ${escapeHtml(String(product.quantity || 1))}</p>
-          </div>
-          <strong>${escapeHtml(product.price || '')}</strong>
-        </article>
-      `;
-    }
-
-    timelineItem(title, text) {
-      return `
-        <li class="bazar-account-timeline__item">
-          <span class="bazar-account-timeline__dot" aria-hidden="true"></span>
-          <span>
-            <strong>${escapeHtml(title)}</strong>
-            <span class="bazar-account-muted" style="display: block;">${escapeHtml(text)}</span>
-          </span>
-        </li>
-      `;
     }
 
     renderWishlistItem(item) {
