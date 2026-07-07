@@ -718,31 +718,6 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.bazar-account-wishlist-feedback {
-  align-items: center;
-  background: #e8f8f1;
-  border: 1px solid #bdebd6;
-  border-radius: 14px;
-  color: var(--account-green);
-  display: inline-flex;
-  font-size: 14px;
-  font-weight: 850;
-  justify-self: start;
-  margin: 0;
-  min-height: 40px;
-  padding: 0 14px;
-}
-
-.bazar-account-wishlist-feedback[hidden] {
-  display: none;
-}
-
-.bazar-account-wishlist-feedback.is-error {
-  background: #fff1f1;
-  border-color: #ffd0d2;
-  color: var(--account-red);
-}
-
 .bazar-account-wishlist-card {
   animation: bazar-account-wishlist-reveal 210ms ease both;
   background: #fff;

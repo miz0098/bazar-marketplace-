@@ -410,14 +410,6 @@
   opacity: 0.55;
 }
 
-.bazar-product__form-message {
-  min-height: 20px;
-  margin: 0;
-  color: var(--bazar-color-muted);
-  font-size: var(--bazar-font-size-sm);
-  font-weight: 700;
-}
-
 .bazar-product__service-panel {
   display: grid;
 }

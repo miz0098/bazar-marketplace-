@@ -21,6 +21,12 @@
     if (element) element.textContent = value;
   };
 
+  const showToast = (type, message) => {
+    if (typeof window.showToast === 'function') {
+      window.showToast({ type, message });
+    }
+  };
+
   const formatDiscount = (variant) => {
     if (!variant.compareAtPrice || variant.compareAtPrice <= variant.price) return null;
 
@@ -128,7 +134,6 @@
     const quantityInput = root.querySelector('[data-bazar-quantity]');
     const addButton = root.querySelector('[data-bazar-add-to-cart]');
     const buyButton = root.querySelector('[data-bazar-buy-now]');
-    const message = root.querySelector('[data-bazar-form-message]');
 
     let selectedVariant = variants.find((variant) => String(variant.id) === String(variantIdInput?.value)) || variants[0];
 
@@ -155,7 +160,7 @@
 
       if (!variant) {
         updateButtons(null);
-        setText(message, 'Ця комбінація недоступна.');
+        showToast('warning', 'Ця комбінація недоступна.');
         return;
       }
 
@@ -205,7 +210,6 @@
         window.history.replaceState({}, '', variant.url);
       }
 
-      setText(message, '');
     };
 
     root.querySelectorAll('[data-bazar-option]').forEach((input) => {
@@ -219,7 +223,6 @@
       const originalText = targetButton?.textContent || '';
       const quantity = Math.max(1, Number(quantityInput?.value) || 1);
 
-      setText(message, '');
       if (targetButton) {
         targetButton.disabled = true;
         targetButton.textContent = 'Додаємо...';
@@ -249,9 +252,9 @@
           return;
         }
 
-        setText(message, 'Товар додано в кошик.');
+        showToast('success', 'Товар додано в кошик');
       } catch (_error) {
-        setText(message, 'Не вдалося додати товар. Спробуйте ще раз.');
+        showToast('error', 'Не вдалося додати товар. Спробуйте ще раз.');
       } finally {
         if (targetButton) {
           targetButton.textContent = originalText;

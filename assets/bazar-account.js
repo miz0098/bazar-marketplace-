@@ -1282,7 +1282,7 @@
       const variantId = normalizeCartVariantId(getWishlistVariantId(item) || (await this.fetchWishlistVariantId(item)));
 
       if (!variantId) {
-        this.showWishlistFeedback('Товар тимчасово недоступний для кошика', 'error');
+        this.showWishlistToast('Товар тимчасово недоступний для кошика', 'error');
         return;
       }
 
@@ -1314,9 +1314,9 @@
         const itemCount = Number(cart?.item_count || cart?.totalQuantity || 0);
 
         this.updateHeaderCartCount(itemCount);
-        this.showWishlistFeedback('Товар додано в кошик', 'success');
+        this.showWishlistToast('Товар додано в кошик', 'success');
       } catch (_error) {
-        this.showWishlistFeedback('Не вдалося додати товар у кошик', 'error');
+        this.showWishlistToast('Не вдалося додати товар у кошик', 'error');
       } finally {
         button.disabled = false;
         button.classList.remove('is-loading');
@@ -1365,20 +1365,10 @@
       if (typeof cartIcon?.renderCartBubble === 'function') cartIcon.renderCartBubble(itemCount);
     }
 
-    showWishlistFeedback(message, type = 'success') {
-      const feedback = this.content.querySelector('[data-wishlist-feedback]');
-      if (!feedback) return;
-
-      feedback.textContent = message;
-      feedback.hidden = false;
-      feedback.classList.toggle('is-error', type === 'error');
-      feedback.classList.toggle('is-success', type !== 'error');
-
-      window.clearTimeout(this.wishlistFeedbackTimer);
-      this.wishlistFeedbackTimer = window.setTimeout(() => {
-        feedback.hidden = true;
-        feedback.textContent = '';
-      }, 2600);
+    showWishlistToast(message, type = 'success') {
+      if (typeof window.showToast === 'function') {
+        window.showToast({ type, message });
+      }
     }
 
     navigate(route) {
@@ -1844,7 +1834,6 @@
           <header class="bazar-account-wishlist-screen__head">
             <h2 id="BazarAccountWishlistTitle">Обране</h2>
           </header>
-          <p class="bazar-account-wishlist-feedback" data-wishlist-feedback role="status" aria-live="polite" hidden></p>
           ${items.length ? this.renderWishlistGrid(visibleItems, hasMore) : this.renderWishlistEmpty()}
         </section>
       `;
