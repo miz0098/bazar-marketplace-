@@ -93,12 +93,20 @@
       this.modal = modal;
       this.dialog = modal.querySelector('.bazar-favorites-modal__dialog');
       this.content = modal.querySelector('[data-bazar-favorites-content]');
+      this.footer = modal.querySelector('.bazar-favorites-modal__footer');
+      this.scrollPanel = modal.querySelector('.bazar-favorites-modal__body');
       this.openers = document.querySelectorAll('[data-bazar-favorites-open]');
       this.lastActiveElement = null;
+      this.scrollLock = null;
+      this.touchY = 0;
       this.unsubscribe = null;
     }
 
     init() {
+      if (this.modal.parentElement !== document.body) {
+        document.body.appendChild(this.modal);
+      }
+
       this.openers.forEach((opener) => {
         opener.addEventListener('click', (event) => {
           event.preventDefault();
@@ -123,6 +131,25 @@
         if (event.key === 'Escape' && this.isOpen()) this.close();
       });
 
+      this.modal.addEventListener('wheel', (event) => this.trapScroll(event, event.deltaY), { passive: false });
+      this.modal.addEventListener(
+        'touchstart',
+        (event) => {
+          this.touchY = event.touches?.[0]?.clientY || 0;
+        },
+        { passive: true }
+      );
+      this.modal.addEventListener(
+        'touchmove',
+        (event) => {
+          const currentY = event.touches?.[0]?.clientY || this.touchY;
+          const deltaY = this.touchY - currentY;
+          this.touchY = currentY;
+          this.trapScroll(event, deltaY);
+        },
+        { passive: false }
+      );
+
       this.unsubscribe = window.BazarWishlistStore?.subscribe(() => {
         this.updateHeaderCount();
         if (this.isOpen()) this.render();
@@ -139,14 +166,14 @@
       this.lastActiveElement = opener || document.activeElement;
       this.render();
       this.modal.hidden = false;
-      document.documentElement.classList.add('bazar-favorites-scroll-lock');
+      this.lockPageScroll();
       this.openers.forEach((item) => item.setAttribute('aria-expanded', 'true'));
       window.requestAnimationFrame(() => this.dialog?.focus({ preventScroll: true }));
     }
 
     close() {
       this.modal.hidden = true;
-      document.documentElement.classList.remove('bazar-favorites-scroll-lock');
+      this.unlockPageScroll();
       this.openers.forEach((item) => item.setAttribute('aria-expanded', 'false'));
       this.lastActiveElement?.focus?.({ preventScroll: true });
     }
@@ -178,8 +205,12 @@
 
     render() {
       const items = this.getItems();
+      const hasItems = items.length > 0;
 
-      this.content.innerHTML = items.length ? this.renderGrid(items) : this.renderEmpty();
+      if (this.footer) this.footer.hidden = !hasItems;
+      if (this.scrollPanel) this.scrollPanel.scrollTop = 0;
+
+      this.content.innerHTML = hasItems ? this.renderGrid(items.slice(0, 8)) : this.renderEmpty();
     }
 
     renderGrid(items) {
@@ -229,6 +260,87 @@
       }
 
       return `<span class="bazar-favorites-card__fallback" aria-hidden="true">${icon('box')}</span>`;
+    }
+
+    trapScroll(event, deltaY) {
+      if (!this.isOpen()) return;
+
+      const panel = event.target.closest('.bazar-favorites-modal__body');
+
+      if (!panel) {
+        event.preventDefault();
+        return;
+      }
+
+      const maxScroll = panel.scrollHeight - panel.clientHeight;
+
+      if (maxScroll <= 0) {
+        event.preventDefault();
+        return;
+      }
+
+      const nextScroll = panel.scrollTop + deltaY;
+
+      if (nextScroll < 0 || nextScroll > maxScroll) {
+        event.preventDefault();
+      }
+
+      event.stopPropagation();
+    }
+
+    lockPageScroll() {
+      if (this.scrollLock) return;
+
+      const root = document.documentElement;
+      const body = document.body;
+      const scrollY = window.scrollY || root.scrollTop || 0;
+      const scrollbarWidth = window.innerWidth - root.clientWidth;
+
+      this.scrollLock = {
+        scrollY,
+        rootOverflow: root.style.overflow,
+        bodyOverflow: body.style.overflow,
+        bodyPosition: body.style.position,
+        bodyTop: body.style.top,
+        bodyLeft: body.style.left,
+        bodyRight: body.style.right,
+        bodyWidth: body.style.width,
+        bodyPaddingRight: body.style.paddingRight,
+      };
+
+      root.classList.add('bazar-favorites-scroll-lock');
+      root.style.overflow = 'hidden';
+      body.style.overflow = 'hidden';
+      body.style.position = 'fixed';
+      body.style.top = `-${scrollY}px`;
+      body.style.left = '0';
+      body.style.right = '0';
+      body.style.width = '100%';
+
+      if (scrollbarWidth > 0) {
+        body.style.paddingRight = `${scrollbarWidth}px`;
+      }
+    }
+
+    unlockPageScroll() {
+      if (!this.scrollLock) return;
+
+      const root = document.documentElement;
+      const body = document.body;
+      const { scrollY } = this.scrollLock;
+
+      root.classList.remove('bazar-favorites-scroll-lock');
+      root.style.overflow = this.scrollLock.rootOverflow;
+      body.style.overflow = this.scrollLock.bodyOverflow;
+      body.style.position = this.scrollLock.bodyPosition;
+      body.style.top = this.scrollLock.bodyTop;
+      body.style.left = this.scrollLock.bodyLeft;
+      body.style.right = this.scrollLock.bodyRight;
+      body.style.width = this.scrollLock.bodyWidth;
+      body.style.paddingRight = this.scrollLock.bodyPaddingRight;
+
+      this.scrollLock = null;
+      window.scrollTo(0, scrollY);
     }
 
     removeItem(id, button) {
