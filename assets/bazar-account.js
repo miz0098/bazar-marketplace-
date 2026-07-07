@@ -14,6 +14,7 @@
   ];
   const ANIMATION_DURATION = 190;
   const PAGE_SIZE = 5;
+  const WISHLIST_PAGE_SIZE = 12;
   const ORDER_STATUS_TABS = [
     ['all', 'Усі замовлення'],
     ['expected', 'Очікуються'],
@@ -70,6 +71,246 @@
       priceValue: 22900,
       createdAt: 1,
       visual: 'stroller',
+    },
+    {
+      id: 'preview-tablet',
+      title: 'Планшет Samsung Galaxy Tab S9',
+      price: '27 499 грн',
+      priceValue: 27499,
+      createdAt: 0,
+      visual: 'phone',
+    },
+    {
+      id: 'preview-watch',
+      title: 'Смартгодинник Apple Watch Series 9',
+      price: '16 899 грн',
+      priceValue: 16899,
+      createdAt: -1,
+      visual: 'phone',
+    },
+    {
+      id: 'preview-vacuum',
+      title: 'Пилосос Dyson V15 Detect',
+      price: '24 999 грн',
+      priceValue: 24999,
+      createdAt: -2,
+      visual: 'box',
+    },
+    {
+      id: 'preview-iron',
+      title: 'Праска Philips Azur Elite',
+      price: '4 299 грн',
+      priceValue: 4299,
+      createdAt: -3,
+      visual: 'box',
+    },
+    {
+      id: 'preview-backpack',
+      title: 'Міський рюкзак для ноутбука',
+      price: '1 899 грн',
+      priceValue: 1899,
+      createdAt: -4,
+      visual: 'box',
+    },
+    {
+      id: 'preview-book',
+      title: 'Книга для особистого розвитку',
+      price: '499 грн',
+      priceValue: 499,
+      createdAt: -5,
+      visual: 'box',
+    },
+    {
+      id: 'preview-tv',
+      title: 'Телевізор Samsung Crystal UHD',
+      price: '21 999 грн',
+      priceValue: 21999,
+      createdAt: -6,
+      visual: 'laptop',
+    },
+    {
+      id: 'preview-monitor',
+      title: 'Монітор LG UltraGear 27',
+      price: '12 499 грн',
+      priceValue: 12499,
+      createdAt: -7,
+      visual: 'laptop',
+    },
+    {
+      id: 'preview-mouse',
+      title: 'Бездротова миша Logitech MX',
+      price: '3 599 грн',
+      priceValue: 3599,
+      createdAt: -8,
+      visual: 'box',
+    },
+    {
+      id: 'preview-keyboard',
+      title: 'Механічна клавіатура Keychron',
+      price: '5 499 грн',
+      priceValue: 5499,
+      createdAt: -9,
+      visual: 'box',
+    },
+    {
+      id: 'preview-blender',
+      title: 'Блендер Braun MultiQuick',
+      price: '3 899 грн',
+      priceValue: 3899,
+      createdAt: -10,
+      visual: 'coffee',
+    },
+    {
+      id: 'preview-kettle',
+      title: 'Електрочайник Tefal Glass',
+      price: '2 199 грн',
+      priceValue: 2199,
+      createdAt: -11,
+      visual: 'coffee',
+    },
+    {
+      id: 'preview-chair',
+      title: 'Офісне крісло з підтримкою спини',
+      price: '6 999 грн',
+      priceValue: 6999,
+      createdAt: -12,
+      visual: 'box',
+    },
+    {
+      id: 'preview-lamp',
+      title: 'Настільна LED-лампа',
+      price: '1 299 грн',
+      priceValue: 1299,
+      createdAt: -13,
+      visual: 'box',
+    },
+    {
+      id: 'preview-drill',
+      title: 'Акумуляторний шуруповерт Bosch',
+      price: '7 899 грн',
+      priceValue: 7899,
+      createdAt: -14,
+      visual: 'box',
+    },
+    {
+      id: 'preview-compressor',
+      title: 'Автомобільний компресор',
+      price: '1 799 грн',
+      priceValue: 1799,
+      createdAt: -15,
+      visual: 'box',
+    },
+    {
+      id: 'preview-perfume',
+      title: 'Парфумована вода жіноча',
+      price: '2 899 грн',
+      priceValue: 2899,
+      createdAt: -16,
+      visual: 'box',
+    },
+    {
+      id: 'preview-cosmetics',
+      title: 'Косметичний набір для догляду',
+      price: '1 699 грн',
+      priceValue: 1699,
+      createdAt: -17,
+      visual: 'box',
+    },
+    {
+      id: 'preview-ball',
+      title: 'Баскетбольний мʼяч',
+      price: '999 грн',
+      priceValue: 999,
+      createdAt: -18,
+      visual: 'box',
+    },
+    {
+      id: 'preview-bike',
+      title: 'Міський велосипед',
+      price: '18 999 грн',
+      priceValue: 18999,
+      createdAt: -19,
+      visual: 'box',
+    },
+    {
+      id: 'preview-pet-food',
+      title: 'Корм для котів преміум',
+      price: '1 199 грн',
+      priceValue: 1199,
+      createdAt: -20,
+      visual: 'box',
+    },
+    {
+      id: 'preview-pet-carrier',
+      title: 'Переноска для тварин',
+      price: '1 499 грн',
+      priceValue: 1499,
+      createdAt: -21,
+      visual: 'box',
+    },
+    {
+      id: 'preview-pens',
+      title: 'Набір гелевих ручок',
+      price: '249 грн',
+      priceValue: 249,
+      createdAt: -22,
+      visual: 'box',
+    },
+    {
+      id: 'preview-notebook',
+      title: 'Блокнот у твердій обкладинці',
+      price: '349 грн',
+      priceValue: 349,
+      createdAt: -23,
+      visual: 'box',
+    },
+    {
+      id: 'preview-gift',
+      title: 'Подарунковий набір',
+      price: '1 299 грн',
+      priceValue: 1299,
+      createdAt: -24,
+      visual: 'box',
+    },
+    {
+      id: 'preview-powerbank',
+      title: 'Power Bank 20000 mAh',
+      price: '2 499 грн',
+      priceValue: 2499,
+      createdAt: -25,
+      visual: 'phone',
+    },
+    {
+      id: 'preview-printer',
+      title: 'Принтер Canon PIXMA',
+      price: '4 999 грн',
+      priceValue: 4999,
+      createdAt: -26,
+      visual: 'box',
+    },
+    {
+      id: 'preview-projector',
+      title: 'Портативний проєктор',
+      price: '9 999 грн',
+      priceValue: 9999,
+      createdAt: -27,
+      visual: 'laptop',
+    },
+    {
+      id: 'preview-charger',
+      title: 'Швидкий зарядний пристрій',
+      price: '799 грн',
+      priceValue: 799,
+      createdAt: -28,
+      visual: 'phone',
+    },
+    {
+      id: 'preview-bag',
+      title: 'Жіноча сумка через плече',
+      price: '2 299 грн',
+      priceValue: 2299,
+      createdAt: -29,
+      visual: 'box',
     },
   ];
 
@@ -774,6 +1015,7 @@
         orderPage: 1,
         wishlistSearch: '',
         wishlistSort: 'newest',
+        wishlistVisibleCount: WISHLIST_PAGE_SIZE,
         notificationCategory: 'all',
         selectedWishlist: [],
         supportView: 'tickets',
@@ -954,6 +1196,11 @@
       if (action === 'wishlist-bulk-remove') {
         this.providers.wishlist.bulkRemove(this.state.selectedWishlist);
         this.state.selectedWishlist = [];
+        this.render(false, false);
+      }
+
+      if (action === 'wishlist-show-more') {
+        this.state.wishlistVisibleCount += WISHLIST_PAGE_SIZE;
         this.render(false, false);
       }
 
@@ -1432,13 +1679,16 @@
         search: this.state.wishlistSearch,
         sort: this.state.wishlistSort,
       });
+      const visibleCount = Math.max(WISHLIST_PAGE_SIZE, this.state.wishlistVisibleCount);
+      const visibleItems = items.slice(0, visibleCount);
+      const hasMore = visibleItems.length < items.length;
 
       return `
         <section class="bazar-account-wishlist-screen" aria-labelledby="BazarAccountWishlistTitle">
           <header class="bazar-account-wishlist-screen__head">
             <h2 id="BazarAccountWishlistTitle">Обране</h2>
           </header>
-          ${items.length ? this.renderWishlistGrid(items) : this.renderWishlistEmpty()}
+          ${items.length ? this.renderWishlistGrid(visibleItems, hasMore) : this.renderWishlistEmpty()}
         </section>
       `;
     }
@@ -1688,14 +1938,18 @@
       return `<option value="${escapeHtml(value)}" ${String(value) === String(current) ? 'selected' : ''}>${escapeHtml(label)}</option>`;
     }
 
-    renderWishlistGrid(items) {
+    renderWishlistGrid(items, hasMore) {
       return `
         <div class="bazar-account-wishlist-grid">
           ${items.map((item) => this.renderWishlistCard(item)).join('')}
         </div>
-        <div class="bazar-account-wishlist-more">
-          <a class="bazar-account-button bazar-account-button--secondary" href="/collections">Переглянути всі</a>
-        </div>
+        ${
+          hasMore
+            ? `<div class="bazar-account-wishlist-more">
+                <button class="bazar-account-button bazar-account-button--secondary" type="button" data-account-action="wishlist-show-more">Переглянути всі</button>
+              </div>`
+            : ''
+        }
       `;
     }
 

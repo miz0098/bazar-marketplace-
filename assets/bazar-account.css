@@ -715,10 +715,11 @@
 .bazar-account-wishlist-grid {
   display: grid;
   gap: 18px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .bazar-account-wishlist-card {
+  animation: bazar-account-wishlist-reveal 210ms ease both;
   background: #fff;
   border: 1px solid var(--account-border);
   border-radius: 18px;
@@ -823,6 +824,18 @@
 .bazar-account-wishlist-more {
   display: flex;
   justify-content: center;
+}
+
+@keyframes bazar-account-wishlist-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .bazar-account-field {
@@ -1566,7 +1579,7 @@
   }
 
   .bazar-account-wishlist-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .bazar-account-section-grid,
@@ -1674,9 +1687,12 @@
 
   .bazar-account-stats-grid,
   .bazar-account-skeleton-grid,
-  .bazar-account-form-grid,
-  .bazar-account-wishlist-grid {
+  .bazar-account-form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .bazar-account-wishlist-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .bazar-account-wishlist-card {
