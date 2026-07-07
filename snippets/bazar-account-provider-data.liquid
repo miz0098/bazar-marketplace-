@@ -6,6 +6,7 @@
 {% enddoc %}
 
 {% liquid
+  assign profile_root_url = '/profile'
   assign customer_display_name = customer.name | strip
   if customer_display_name == blank
     assign customer_display_name = customer.first_name | default: customer.email
@@ -24,9 +25,9 @@
     "source": "shopify_customer_accounts"
   },
   "urls": {
-    "account": {{ routes.account_url | json }},
+    "account": {{ profile_root_url | json }},
     "logout": {{ routes.account_logout_url | json }},
-    "addresses": {{ routes.account_addresses_url | default: routes.account_url | json }}
+    "addresses": "/profile/addresses"
   },
   "customer": {
     "id": {{ customer.id | json }},

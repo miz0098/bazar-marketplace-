@@ -48,6 +48,11 @@ async function verifySmsCode(phone, code) {
   return { ok: code.length === 6, uiOnly: true };
 }
 
+function getProfileUrl(root = null) {
+  // TODO: Replace storefront profile routing with api.bazar session routing.
+  return root?.dataset.bazarAuthProfileUrl || '/profile';
+}
+
 async function registerCustomerByPhone(data) {
   // TODO: connect to api.bazar SMS authentication.
   if (window.BazarSmsAuth?.registerCustomerByPhone) {
@@ -521,7 +526,7 @@ const handleProfileSubmit = async (root, event) => {
 const updateHeaderToProfile = () => {
   document.querySelectorAll(authOpenSelector).forEach((trigger) => {
     const label = trigger.querySelector('.bazar-header-action__label');
-    const accountUrl = trigger.dataset.bazarAccountUrl || '/account';
+    const accountUrl = trigger.dataset.bazarAccountUrl || '/profile';
 
     trigger.dataset.bazarAuthComplete = 'true';
     trigger.setAttribute('aria-label', 'Профіль');
@@ -539,10 +544,11 @@ const completeAuthFlow = (root) => {
 
   if (root.dataset.bazarAuthSurface === 'modal') {
     closeModal(root, false);
+    window.location.assign(getProfileUrl(root));
     return;
   }
 
-  window.location.assign(root.dataset.bazarAuthHomeUrl || '/');
+  window.location.assign(getProfileUrl(root));
 };
 
 const lockScroll = () => {
@@ -777,6 +783,16 @@ const initAuth = () => {
       event.preventDefault();
       openModal(root);
     });
+  });
+
+  document.querySelectorAll('[data-bazar-auth-auto-open]').forEach((trigger) => {
+    if (trigger.dataset.bazarAuthAutoOpenReady === 'true') return;
+
+    const root = document.getElementById(trigger.dataset.bazarAuthAutoOpen);
+    if (!root) return;
+
+    trigger.dataset.bazarAuthAutoOpenReady = 'true';
+    window.requestAnimationFrame(() => openModal(root));
   });
 };
 

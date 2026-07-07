@@ -2,6 +2,10 @@
   Sidebar navigation for the standalone BAZAR account module.
 {% enddoc %}
 
+{% liquid
+  assign profile_root_url = '/profile'
+%}
+
 <aside
   class="bazar-account-sidebar"
   id="{{ sidebar_id }}"
@@ -26,55 +30,55 @@
   </div>
 
   <nav class="bazar-account-nav" aria-label="Розділи акаунта">
-    <a class="bazar-account-nav__item" href="{{ routes.account_url }}" data-account-route="/account">
+    <a class="bazar-account-nav__item" href="{{ profile_root_url }}" data-account-route="/profile">
       <span class="bazar-account-nav__icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" focusable="false"><path d="M4 11.5 12 5l8 6.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/></svg>
       </span>
       Огляд
     </a>
-    <a class="bazar-account-nav__item" href="{{ routes.account_url }}/orders" data-account-route="/account/orders">
+    <a class="bazar-account-nav__item" href="{{ profile_root_url }}/orders" data-account-route="/profile/orders">
       <span class="bazar-account-nav__icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" focusable="false"><path d="M6 3h12l1 18H5L6 3Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/><path d="M9 7a3 3 0 0 0 6 0M8.5 13h7M8.5 17h5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/></svg>
       </span>
       Мої замовлення
     </a>
-    <a class="bazar-account-nav__item" href="{{ routes.account_url }}/wishlist" data-account-route="/account/wishlist">
+    <a class="bazar-account-nav__item" href="{{ profile_root_url }}/wishlist" data-account-route="/profile/wishlist">
       <span class="bazar-account-nav__icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" focusable="false"><path d="M20.2 5.1a5.4 5.4 0 0 0-7.6 0l-.6.6-.6-.6a5.4 5.4 0 0 0-7.6 7.6L12 20.9l8.2-8.2a5.4 5.4 0 0 0 0-7.6Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/></svg>
       </span>
       Обране
     </a>
-    <a class="bazar-account-nav__item" href="{{ routes.account_url }}/messages" data-account-route="/account/messages">
+    <a class="bazar-account-nav__item" href="{{ profile_root_url }}/messages" data-account-route="/profile/messages">
       <span class="bazar-account-nav__icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" focusable="false"><path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-7l-5 4v-4H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/><path d="M7.5 9.5h9M7.5 13h6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/></svg>
       </span>
       Повідомлення
     </a>
-    <a class="bazar-account-nav__item" href="{{ routes.account_url }}/reviews" data-account-route="/account/reviews">
+    <a class="bazar-account-nav__item" href="{{ profile_root_url }}/reviews" data-account-route="/profile/reviews">
       <span class="bazar-account-nav__icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" focusable="false"><path d="m12 3 2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7L6.8 19l1-5.8L3.6 9.1l5.8-.8L12 3Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/></svg>
       </span>
       Мої відгуки
     </a>
-    <a class="bazar-account-nav__item" href="{{ routes.account_url }}/profile" data-account-route="/account/profile">
+    <a class="bazar-account-nav__item" href="{{ profile_root_url }}/personal-data" data-account-route="/profile/personal-data">
       <span class="bazar-account-nav__icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" focusable="false"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4.5 21a7.5 7.5 0 0 1 15 0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/></svg>
       </span>
       Особисті дані
     </a>
-    <a class="bazar-account-nav__item" href="{{ routes.account_url }}/addresses" data-account-route="/account/addresses">
+    <a class="bazar-account-nav__item" href="{{ profile_root_url }}/addresses" data-account-route="/profile/addresses">
       <span class="bazar-account-nav__icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" focusable="false"><path d="M12 21s7-5.1 7-11a7 7 0 1 0-14 0c0 5.9 7 11 7 11Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/><circle cx="12" cy="10" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
       </span>
       Улюблені адреси
     </a>
-    <a class="bazar-account-nav__item" href="{{ routes.account_url }}/payment-methods" data-account-route="/account/payment-methods">
+    <a class="bazar-account-nav__item" href="{{ profile_root_url }}/payment-methods" data-account-route="/profile/payment-methods">
       <span class="bazar-account-nav__icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 10h18M7 15h4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/></svg>
       </span>
       Платіжні методи
     </a>
-    <a class="bazar-account-nav__item" href="{{ routes.account_url }}/support" data-account-route="/account/support">
+    <a class="bazar-account-nav__item" href="{{ profile_root_url }}/support" data-account-route="/profile/support">
       <span class="bazar-account-nav__icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" focusable="false"><path d="M5 13a7 7 0 0 1 14 0v2a3 3 0 0 1-3 3h-2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/><path d="M5 13v3a2 2 0 0 0 2 2h1v-7H7a2 2 0 0 0-2 2ZM19 13v3a2 2 0 0 1-2 2h-1v-7h1a2 2 0 0 1 2 2ZM10.5 20h3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/></svg>
       </span>

@@ -3,7 +3,7 @@
 {% liquid
   assign customer_links = 'Доставка і оплата|/pages/delivery-payment,Повернення товару|/pages/returns,Гарантія|/pages/warranty,Відстеження замовлення|/pages/order-tracking' | split: ','
   assign company_links = 'Про нас|/pages/about,Партнерам|/pages/partners,Блог|/blogs/news,Публічна оферта|/pages/public-offer,Політика конфіденційності|/policies/privacy-policy,Умови використання|/policies/terms-of-service' | split: ','
-  assign account_links = 'Профіль|' | append: routes.account_url | append: ',Мої замовлення|' | append: routes.account_url | append: ',Обране|/pages/wishlist,Відстежити|/pages/order-tracking' | split: ','
+  assign account_links = 'Профіль|/profile,Мої замовлення|/profile/orders,Обране|/profile/wishlist,Відстежити|/pages/order-tracking' | split: ','
   assign facebook_url = section.settings.facebook_url | default: 'https://www.facebook.com/'
   assign instagram_url = section.settings.instagram_url | default: 'https://www.instagram.com/'
   assign threads_url = section.settings.threads_url | default: 'https://www.threads.net/'

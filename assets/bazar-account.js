@@ -1,15 +1,15 @@
 (() => {
   const SELECTOR = '[data-bazar-account-module]';
   const ROUTES = [
-    '/account',
-    '/account/orders',
-    '/account/wishlist',
-    '/account/messages',
-    '/account/reviews',
-    '/account/profile',
-    '/account/addresses',
-    '/account/payment-methods',
-    '/account/support',
+    '/profile',
+    '/profile/orders',
+    '/profile/wishlist',
+    '/profile/messages',
+    '/profile/reviews',
+    '/profile/personal-data',
+    '/profile/addresses',
+    '/profile/payment-methods',
+    '/profile/support',
   ];
   const ANIMATION_DURATION = 190;
   const PAGE_SIZE = 5;
@@ -84,22 +84,22 @@
   };
 
   const normalizeRoute = (path) => {
-    const clean = (path || '/account').replace(/\/$/, '');
-    if (clean === '' || clean === '/account') return '/account';
-    if (clean.startsWith('/account/orders/')) return clean;
-    return ROUTES.includes(clean) ? clean : '/account';
+    const clean = (path || '/profile').replace(/\/$/, '');
+    if (clean === '' || clean === '/profile') return '/profile';
+    if (clean.startsWith('/profile/orders/')) return clean;
+    return ROUTES.includes(clean) ? clean : '/profile';
   };
 
   const routeLabel = (route) => {
-    if (route.startsWith('/account/orders/')) return 'Деталі замовлення';
-    if (route === '/account/orders') return labels.orders;
-    if (route === '/account/wishlist') return labels.wishlist;
-    if (route === '/account/messages') return labels.messages;
-    if (route === '/account/reviews') return labels.reviews;
-    if (route === '/account/profile') return labels.profile;
-    if (route === '/account/addresses') return labels.addresses;
-    if (route === '/account/payment-methods') return labels.payments;
-    if (route === '/account/support') return labels.support;
+    if (route.startsWith('/profile/orders/')) return 'Деталі замовлення';
+    if (route === '/profile/orders') return labels.orders;
+    if (route === '/profile/wishlist') return labels.wishlist;
+    if (route === '/profile/messages') return labels.messages;
+    if (route === '/profile/reviews') return labels.reviews;
+    if (route === '/profile/personal-data') return labels.profile;
+    if (route === '/profile/addresses') return labels.addresses;
+    if (route === '/profile/payment-methods') return labels.payments;
+    if (route === '/profile/support') return labels.support;
     return labels.overview;
   };
 
@@ -557,7 +557,7 @@
         const route = normalizeRoute(item.dataset.accountRoute);
         const isActive =
           route === this.state.route ||
-          (route === '/account/orders' && this.state.route.startsWith('/account/orders/'));
+          (route === '/profile/orders' && this.state.route.startsWith('/profile/orders/'));
         item.classList.toggle('is-active', isActive);
         if (isActive) item.setAttribute('aria-current', 'page');
         else item.removeAttribute('aria-current');
@@ -566,15 +566,15 @@
 
     renderRoute() {
       const route = this.state.route;
-      if (route.startsWith('/account/orders/')) return this.renderOrderDetails(route.split('/').pop());
-      if (route === '/account/orders') return this.renderOrders();
-      if (route === '/account/wishlist') return this.renderWishlist();
-      if (route === '/account/messages') return this.renderNotifications();
-      if (route === '/account/reviews') return this.renderReviews();
-      if (route === '/account/profile') return this.renderProfile();
-      if (route === '/account/addresses') return this.renderAddresses();
-      if (route === '/account/payment-methods') return this.renderPayments();
-      if (route === '/account/support') return this.renderSupport();
+      if (route.startsWith('/profile/orders/')) return this.renderOrderDetails(route.split('/').pop());
+      if (route === '/profile/orders') return this.renderOrders();
+      if (route === '/profile/wishlist') return this.renderWishlist();
+      if (route === '/profile/messages') return this.renderNotifications();
+      if (route === '/profile/reviews') return this.renderReviews();
+      if (route === '/profile/personal-data') return this.renderProfile();
+      if (route === '/profile/addresses') return this.renderAddresses();
+      if (route === '/profile/payment-methods') return this.renderPayments();
+      if (route === '/profile/support') return this.renderSupport();
       return this.renderOverview();
     }
 
@@ -594,10 +594,10 @@
           'Керуйте замовленнями, обраним, адресами, платежами та зверненнями до підтримки BAZAR.'
         )}
         <section class="bazar-account-stats-grid" aria-label="Швидка статистика">
-          ${statCard('/account/orders', 'orders', String(this.providers.orders.orders.length), 'Замовлення')}
-          ${statCard('/account/orders', 'pending', String(pending.length), 'Очікують')}
-          ${statCard('/account/messages', 'messages', String(unreadMessages), 'Повідомлення')}
-          ${statCard('/account/reviews', 'reviews', String(reviews.length), 'Відгуки')}
+          ${statCard('/profile/orders', 'orders', String(this.providers.orders.orders.length), 'Замовлення')}
+          ${statCard('/profile/orders', 'pending', String(pending.length), 'Очікують')}
+          ${statCard('/profile/messages', 'messages', String(unreadMessages), 'Повідомлення')}
+          ${statCard('/profile/reviews', 'reviews', String(reviews.length), 'Відгуки')}
         </section>
         <div class="bazar-account-section-grid">
           <section class="bazar-account-card">
@@ -606,7 +606,7 @@
                 <h3 class="bazar-account-card__title">Останні замовлення</h3>
                 <p class="bazar-account-card__text">Швидкий доступ до історії покупок.</p>
               </div>
-              <a class="bazar-account-button bazar-account-button--secondary" href="/account/orders" data-account-route="/account/orders">Усі замовлення</a>
+              <a class="bazar-account-button bazar-account-button--secondary" href="/profile/orders" data-account-route="/profile/orders">Усі замовлення</a>
             </div>
             ${orders.items.length ? `<div class="bazar-account-list">${orders.items.slice(0, 3).map((order) => this.renderOrderCard(order)).join('')}</div>` : emptyState('orders', 'Замовлень ще немає', 'Після першої покупки історія зʼявиться тут.')}
           </section>
@@ -620,8 +620,8 @@
             </div>
             <p class="bazar-account-panel__text">Телефон: ${escapeHtml(profile.phone || 'потрібно додати')}</p>
             <div class="bazar-account-form-actions">
-              <a class="bazar-account-button bazar-account-button--primary" href="/account/profile" data-account-route="/account/profile">Редагувати</a>
-              <a class="bazar-account-button bazar-account-button--ghost" href="/account/addresses" data-account-route="/account/addresses">Адреси</a>
+              <a class="bazar-account-button bazar-account-button--primary" href="/profile/personal-data" data-account-route="/profile/personal-data">Редагувати</a>
+              <a class="bazar-account-button bazar-account-button--ghost" href="/profile/addresses" data-account-route="/profile/addresses">Адреси</a>
             </div>
           </aside>
         </div>
@@ -671,7 +671,7 @@
     }
 
     renderOrderCard(order) {
-      const detailRoute = `/account/orders/${encodeURIComponent(order.id || order.name)}`;
+      const detailRoute = `/profile/orders/${encodeURIComponent(order.id || order.name)}`;
       return `
         <article class="bazar-account-order-card">
           <div>
@@ -696,7 +696,7 @@
       if (!order) {
         return `
           ${pageHead('Замовлення', 'Замовлення не знайдено', 'Можливо, воно було оновлене або недоступне для поточної сесії.')}
-          ${emptyState('orders', 'Немає даних замовлення', 'Поверніться до списку замовлень і спробуйте ще раз.', '<a class="bazar-account-button bazar-account-button--primary" href="/account/orders" data-account-route="/account/orders">До замовлень</a>')}
+          ${emptyState('orders', 'Немає даних замовлення', 'Поверніться до списку замовлень і спробуйте ще раз.', '<a class="bazar-account-button bazar-account-button--primary" href="/profile/orders" data-account-route="/profile/orders">До замовлень</a>')}
         `;
       }
 
@@ -705,7 +705,7 @@
           'Деталі замовлення',
           order.name || `Замовлення ${order.orderNumber || ''}`,
           'Статус, оплата, доставка, товари та дії за замовленням.',
-          '<a class="bazar-account-button bazar-account-button--ghost" href="/account/orders" data-account-route="/account/orders">Назад</a>'
+          '<a class="bazar-account-button bazar-account-button--ghost" href="/profile/orders" data-account-route="/profile/orders">Назад</a>'
         )}
         <div class="bazar-account-detail-grid">
           <section class="bazar-account-card">
@@ -730,7 +730,7 @@
               <button class="bazar-account-button bazar-account-button--secondary" type="button">Завантажити рахунок</button>
               <button class="bazar-account-button bazar-account-button--secondary" type="button">Відстежити</button>
               <button class="bazar-account-button bazar-account-button--ghost" type="button">Повторити</button>
-              <a class="bazar-account-button bazar-account-button--primary" href="/account/support" data-account-route="/account/support">Підтримка</a>
+              <a class="bazar-account-button bazar-account-button--primary" href="/profile/support" data-account-route="/profile/support">Підтримка</a>
             </div>
           </aside>
         </div>

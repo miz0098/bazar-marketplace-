@@ -10,7 +10,7 @@
   class="bazar-account-module"
   aria-labelledby="{{ account_title_id }}"
   data-bazar-account-module
-  data-bazar-account-root-url="{{ routes.account_url }}"
+  data-bazar-account-root-url="/profile"
   data-bazar-account-logout-url="{{ routes.account_logout_url }}"
 >
   <div class="bazar-account-module__container">
@@ -63,8 +63,20 @@
         <p class="bazar-account-guest__eyebrow">Потрібен вхід</p>
         <h1 id="{{ account_title_id }}">Увійдіть до акаунта</h1>
         <p>Особистий кабінет BAZAR доступний після входу.</p>
-        <a class="bazar-account-button bazar-account-button--primary" href="{{ routes.account_login_url }}">Увійти</a>
+        <button
+          class="bazar-account-button bazar-account-button--primary"
+          type="button"
+          data-bazar-auth-open
+          data-bazar-account-url="/profile"
+        >
+          Увійти
+        </button>
       </div>
+
+      <span
+        data-bazar-auth-auto-open="BazarHeaderAuthModal"
+        hidden
+      ></span>
     {% endif %}
   </div>
 </section>
@@ -73,7 +85,7 @@
 {
   "name": "BAZAR Акаунт",
   "enabled_on": {
-    "templates": ["customers/account"]
+    "templates": ["customers/account", "page"]
   },
   "settings": [],
   "presets": [

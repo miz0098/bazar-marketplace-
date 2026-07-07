@@ -1,0 +1,9 @@
+{
+  "sections": {
+    "main": {
+      "type": "bazar-account-dashboard",
+      "settings": {}
+    }
+  },
+  "order": ["main"]
+}
