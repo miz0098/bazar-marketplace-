@@ -1128,12 +1128,12 @@
         }
       });
       document.addEventListener('click', (event) => {
-        if (
-          this.state.attachmentMenuChatId &&
+        const isAttachmentClick =
           this.root.contains(event.target) &&
-          !event.target.closest('[data-account-attachment-menu]') &&
-          !event.target.closest('[data-account-attachment-toggle]')
-        ) {
+          (event.target.closest('[data-account-attachment-menu]') ||
+            event.target.closest('[data-account-attachment-toggle]'));
+
+        if (this.state.attachmentMenuChatId && !isAttachmentClick) {
           this.closeAttachmentMenu();
           return;
         }
@@ -1579,6 +1579,7 @@
     }
 
     render(withTransition = true, focusContent = false, restoreStateName = '') {
+      this.syncRouteState();
       this.updateSidebar();
 
       const paint = () => {
@@ -1619,6 +1620,13 @@
         if (isActive) item.setAttribute('aria-current', 'page');
         else item.removeAttribute('aria-current');
       });
+    }
+
+    syncRouteState() {
+      const isMessagesRoute = this.state.route === '/profile/messages';
+
+      this.root.classList.toggle('is-messages-route', isMessagesRoute);
+      document.documentElement.classList.toggle('bazar-account-messages-scroll-lock', isMessagesRoute);
     }
 
     renderRoute() {
