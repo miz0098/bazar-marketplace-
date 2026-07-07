@@ -20,6 +20,16 @@ const emailErrorMessage = 'Введіть коректну електронну 
 const termsErrorMessage = 'Підтвердьте згоду з умовами.';
 const resendDurationSeconds = 120;
 const resendRestartDelay = 120000;
+const bazarAuthStorageKey = 'bazarAuth';
+
+const getAvailableAuthStorages = () =>
+  ['localStorage', 'sessionStorage'].map((name) => {
+    try {
+      return window[name];
+    } catch (error) {
+      return null;
+    }
+  }).filter(Boolean);
 
 async function checkCustomerByPhone(phone, context = {}) {
   // TODO: connect to api.bazar SMS authentication.
@@ -51,6 +61,54 @@ async function verifySmsCode(phone, code) {
 function getProfileUrl(root = null) {
   // TODO: Replace storefront profile routing with api.bazar session routing.
   return root?.dataset.bazarAuthProfileUrl || '/profile';
+}
+
+function readBazarAuthState() {
+  // TODO: replace localStorage auth state with api.bazar session/JWT.
+  for (const storage of getAvailableAuthStorages()) {
+    try {
+      const raw = storage.getItem(bazarAuthStorageKey);
+      if (!raw) continue;
+
+      const parsed = JSON.parse(raw);
+      if (parsed?.isAuthenticated === true) return parsed;
+    } catch (error) {
+      continue;
+    }
+  }
+
+  return null;
+}
+
+function writeBazarAuthState(payload = {}) {
+  // TODO: replace localStorage auth state with api.bazar session/JWT.
+  const authState = {
+    isAuthenticated: true,
+    phone: payload.phone || '',
+    firstName: payload.firstName || '',
+    source: 'bazar-phone-auth',
+  };
+
+  getAvailableAuthStorages().forEach((storage) => {
+    try {
+      storage.setItem(bazarAuthStorageKey, JSON.stringify(authState));
+    } catch (error) {
+      // Storage may be unavailable in private browsing. The UI will fall back to the current page state.
+    }
+  });
+
+  return authState;
+}
+
+function clearBazarAuthState() {
+  // TODO: replace localStorage auth state with api.bazar session/JWT.
+  getAvailableAuthStorages().forEach((storage) => {
+    try {
+      storage.removeItem(bazarAuthStorageKey);
+    } catch (error) {
+      // Ignore unavailable storage.
+    }
+  });
 }
 
 async function registerCustomerByPhone(data) {
@@ -509,15 +567,17 @@ const handleProfileSubmit = async (root, event) => {
   setButtonLoading(button, true, 'Створюємо...');
 
   try {
+    const firstName = form.querySelector('[data-bazar-profile-first-name]').value.trim();
+
     await registerCustomerByPhone({
       phone: state.phoneFull,
-      firstName: form.querySelector('[data-bazar-profile-first-name]').value.trim(),
+      firstName,
       lastName: form.querySelector('[data-bazar-profile-last-name]').value.trim(),
       email: form.querySelector('[data-bazar-profile-email]').value.trim(),
       termsAccepted: true,
     });
 
-    completeAuthFlow(root);
+    completeAuthFlow(root, { firstName });
   } finally {
     setButtonLoading(button, false);
   }
@@ -538,8 +598,34 @@ const updateHeaderToProfile = () => {
   });
 };
 
-const completeAuthFlow = (root) => {
+const updateHeaderToLogin = () => {
+  document.querySelectorAll(authOpenSelector).forEach((trigger) => {
+    const label = trigger.querySelector('.bazar-header-action__label');
+
+    delete trigger.dataset.bazarAuthComplete;
+    trigger.setAttribute('aria-label', 'Увійти');
+    trigger.setAttribute('href', trigger.dataset.bazarAccountUrl || getProfileUrl());
+
+    if (label) {
+      label.textContent = 'Увійти';
+    }
+  });
+};
+
+const syncHeaderAuthState = () => {
+  if (readBazarAuthState()?.isAuthenticated === true) {
+    updateHeaderToProfile();
+  }
+};
+
+const completeAuthFlow = (root, payload = {}) => {
+  const state = getState(root);
+
   stopTimer(root);
+  writeBazarAuthState({
+    phone: payload.phone || state.phoneFull,
+    firstName: payload.firstName || '',
+  });
   updateHeaderToProfile();
 
   if (root.dataset.bazarAuthSurface === 'modal') {
@@ -767,6 +853,7 @@ const initAuth = () => {
   const roots = [...document.querySelectorAll(authRootSelector)];
 
   roots.forEach(initAuthRoot);
+  syncHeaderAuthState();
 
   document.querySelectorAll(authOpenSelector).forEach((trigger) => {
     if (trigger.dataset.bazarAuthOpenReady === 'true') return;
@@ -787,6 +874,7 @@ const initAuth = () => {
 
   document.querySelectorAll('[data-bazar-auth-auto-open]').forEach((trigger) => {
     if (trigger.dataset.bazarAuthAutoOpenReady === 'true') return;
+    if (readBazarAuthState()?.isAuthenticated === true) return;
 
     const root = document.getElementById(trigger.dataset.bazarAuthAutoOpen);
     if (!root) return;
@@ -794,6 +882,15 @@ const initAuth = () => {
     trigger.dataset.bazarAuthAutoOpenReady = 'true';
     window.requestAnimationFrame(() => openModal(root));
   });
+};
+
+window.BazarAuthState = {
+  read: readBazarAuthState,
+  write: writeBazarAuthState,
+  clear: clearBazarAuthState,
+  syncHeader: syncHeaderAuthState,
+  updateHeaderToLogin,
+  updateHeaderToProfile,
 };
 
 if (document.readyState === 'loading') {

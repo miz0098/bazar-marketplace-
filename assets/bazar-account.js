@@ -1,5 +1,6 @@
 (() => {
   const SELECTOR = '[data-bazar-account-module]';
+  const AUTH_STORAGE_KEY = 'bazarAuth';
   const ROUTES = [
     '/profile',
     '/profile/orders',
@@ -267,6 +268,100 @@
     }
   };
 
+  const getAvailableStorages = () =>
+    ['localStorage', 'sessionStorage'].map((name) => {
+      try {
+        return window[name];
+      } catch (error) {
+        return null;
+      }
+    }).filter(Boolean);
+
+  const readLocalAuthState = () => {
+    // TODO: replace localStorage auth state with api.bazar session/JWT.
+    if (window.BazarAuthState?.read) {
+      return window.BazarAuthState.read();
+    }
+
+    for (const storage of getAvailableStorages()) {
+      try {
+        const raw = storage.getItem(AUTH_STORAGE_KEY);
+        if (!raw) continue;
+
+        const parsed = JSON.parse(raw);
+        if (parsed?.isAuthenticated === true) return parsed;
+      } catch (error) {
+        continue;
+      }
+    }
+
+    return null;
+  };
+
+  const clearLocalAuthState = () => {
+    // TODO: replace localStorage auth state with api.bazar session/JWT.
+    if (window.BazarAuthState?.clear) {
+      window.BazarAuthState.clear();
+    } else {
+      getAvailableStorages().forEach((storage) => {
+        try {
+          storage.removeItem(AUTH_STORAGE_KEY);
+        } catch (error) {
+          // Ignore unavailable storage.
+        }
+      });
+    }
+
+    window.BazarAuthState?.updateHeaderToLogin?.();
+  };
+
+  const writeLocalAuthState = (payload = {}) => {
+    // TODO: replace localStorage auth state with api.bazar session/JWT.
+    if (window.BazarAuthState?.write) {
+      return window.BazarAuthState.write(payload);
+    }
+
+    const authState = {
+      isAuthenticated: true,
+      phone: payload.phone || '',
+      firstName: payload.firstName || '',
+      source: 'bazar-phone-auth',
+    };
+
+    getAvailableStorages().forEach((storage) => {
+      try {
+        storage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authState));
+      } catch (error) {
+        // Ignore unavailable storage.
+      }
+    });
+
+    return authState;
+  };
+
+  const mergeLocalAuthData = (data, localAuth) => {
+    if (!localAuth?.isAuthenticated) return data;
+
+    const customer = data.customer || {};
+    const firstName = customer.firstName || localAuth.firstName || '';
+    const phone = customer.phone || localAuth.phone || '';
+
+    return {
+      ...data,
+      session: {
+        ...(data.session || {}),
+        isAuthenticated: true,
+        source: data.session?.source || localAuth.source || 'bazar-phone-auth',
+      },
+      customer: {
+        ...customer,
+        firstName,
+        phone,
+        displayName: customer.displayName || firstName || phone || 'Покупець BAZAR',
+      },
+    };
+  };
+
   const pageHead = (kicker, title, text, actions = '') => `
     <header class="bazar-account-page-head">
       <div>
@@ -321,11 +416,15 @@
   class BazarAccountModule {
     constructor(root) {
       this.root = root;
+      this.shell = root.querySelector('[data-account-shell]');
+      this.guest = root.querySelector('[data-account-guest]');
       this.content = root.querySelector('[data-account-content]');
       this.sidebar = root.querySelector('[data-account-sidebar]');
       this.sidebarToggle = root.querySelector('[data-account-sidebar-open]');
       this.sidebarBackdrop = root.querySelector('[data-account-sidebar-backdrop]');
-      this.data = readProviderData();
+      this.localAuth = readLocalAuthState();
+      this.data = mergeLocalAuthData(readProviderData(), this.localAuth);
+      this.isAuthenticated = this.data.session?.isAuthenticated === true || this.localAuth?.isAuthenticated === true;
       this.providers = {
         account: new AccountProvider(this.data),
         orders: new OrderProvider(this.data),
@@ -355,6 +454,12 @@
 
     init() {
       this.bindEvents();
+      this.syncVisibility();
+
+      if (!this.isAuthenticated) {
+        return;
+      }
+
       this.render(true);
     }
 
@@ -372,7 +477,30 @@
       });
     }
 
+    syncVisibility() {
+      if (this.shell) this.shell.hidden = !this.isAuthenticated;
+      if (this.guest) this.guest.hidden = this.isAuthenticated;
+      if (this.sidebarToggle) this.sidebarToggle.hidden = !this.isAuthenticated;
+
+      if (this.isAuthenticated) {
+        window.BazarAuthState?.updateHeaderToProfile?.();
+      }
+    }
+
+    logout() {
+      clearLocalAuthState();
+      this.closeSidebar();
+      window.location.assign('/');
+    }
+
     handleClick(event) {
+      const logoutLink = event.target.closest('[data-account-logout]');
+      if (logoutLink && this.root.contains(logoutLink)) {
+        event.preventDefault();
+        this.logout();
+        return;
+      }
+
       const routeLink = event.target.closest('[data-account-route]');
       if (routeLink && this.root.contains(routeLink)) {
         event.preventDefault();
@@ -438,14 +566,25 @@
 
       if (form.dataset.accountForm === 'profile') {
         const formData = new FormData(form);
+        const firstName = formData.get('firstName') || '';
+        const phone = formData.get('phone') || '';
+
         this.providers.account.saveProfile({
-          firstName: formData.get('firstName') || '',
+          firstName,
           lastName: formData.get('lastName') || '',
-          phone: formData.get('phone') || '',
+          phone,
           email: formData.get('email') || '',
           birthday: formData.get('birthday') || '',
           gender: formData.get('gender') || '',
         });
+
+        if (this.localAuth?.isAuthenticated) {
+          this.localAuth = writeLocalAuthState({
+            firstName,
+            phone: phone || this.localAuth.phone,
+          });
+        }
+
         this.state.profileSaved = true;
         this.render(false, false);
       }
