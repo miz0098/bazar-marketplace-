@@ -25,6 +25,18 @@
   box-sizing: border-box;
 }
 
+.bazar-account-visually-hidden {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
 .bazar-account-module__container {
   width: min(1440px, calc(100% - 32px));
   margin: 0 auto;
@@ -42,9 +54,9 @@
   border: 1px solid var(--account-border);
   border-radius: var(--account-radius);
   box-shadow: 0 14px 32px rgba(6, 19, 52, 0.06);
-  max-height: calc(100vh - 116px);
+  max-height: calc(100dvh - 104px);
   overflow-y: auto;
-  padding: 18px;
+  padding: 15px;
   position: sticky;
   top: 92px;
   width: 280px;
@@ -52,26 +64,10 @@
 }
 
 .bazar-account-sidebar__top {
-  align-items: start;
+  align-items: center;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 12px;
-  margin-bottom: 16px;
-}
-
-.bazar-account-sidebar__eyebrow {
-  color: var(--account-blue);
-  font-size: 12px;
-  font-weight: 800;
-  margin: 0 0 4px;
-  text-transform: uppercase;
-}
-
-.bazar-account-sidebar__title {
-  color: var(--account-ink);
-  font-size: 24px;
-  font-weight: 800;
-  line-height: 1.15;
   margin: 0;
 }
 
@@ -96,7 +92,7 @@
 
 .bazar-account-nav {
   display: grid;
-  gap: 8px;
+  gap: 5px;
 }
 
 .bazar-account-nav__item {
@@ -106,11 +102,11 @@
   border-radius: 14px;
   color: var(--account-ink);
   display: flex;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
-  gap: 12px;
-  min-height: 46px;
-  padding: 10px 12px;
+  gap: 10px;
+  min-height: 38px;
+  padding: 7px 10px;
   text-decoration: none;
   transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
 }
@@ -132,23 +128,23 @@
 
 .bazar-account-nav__item--logout {
   color: var(--account-red);
-  margin-top: 8px;
+  margin-top: 5px;
 }
 
 .bazar-account-nav__icon {
   align-items: center;
   border-radius: 12px;
   display: inline-flex;
-  flex: 0 0 24px;
-  height: 24px;
+  flex: 0 0 22px;
+  height: 22px;
   justify-content: center;
-  width: 24px;
+  width: 22px;
 }
 
 .bazar-account-nav__icon svg {
   display: block;
-  height: 22px;
-  width: 22px;
+  height: 20px;
+  width: 20px;
 }
 
 .bazar-account-content {
@@ -701,6 +697,132 @@
   justify-self: center;
   min-height: 44px;
   padding: 0 22px;
+}
+
+.bazar-account-wishlist-screen {
+  display: grid;
+  gap: 18px;
+}
+
+.bazar-account-wishlist-screen__head h2 {
+  color: var(--account-ink);
+  font-size: 32px;
+  font-weight: 850;
+  line-height: 1.12;
+  margin: 0;
+}
+
+.bazar-account-wishlist-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.bazar-account-wishlist-card {
+  background: #fff;
+  border: 1px solid var(--account-border);
+  border-radius: 18px;
+  box-shadow: 0 10px 24px rgba(6, 19, 52, 0.04);
+  display: grid;
+  grid-template-rows: 172px 1fr auto;
+  min-height: 328px;
+  overflow: hidden;
+  padding: 14px;
+}
+
+.bazar-account-wishlist-card__media {
+  align-items: center;
+  background: #f8faff;
+  border: 1px solid #eef2f8;
+  border-radius: 16px;
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+
+.bazar-account-wishlist-card__media img {
+  display: block;
+  height: 118px;
+  max-width: 86%;
+  object-fit: contain;
+}
+
+.bazar-account-wishlist-card__fallback {
+  align-items: center;
+  background: linear-gradient(145deg, #ffffff 0%, #eef4ff 100%);
+  border: 1px solid #dce6f7;
+  border-radius: 22px;
+  color: var(--account-blue);
+  display: inline-flex;
+  height: 108px;
+  justify-content: center;
+  width: 108px;
+}
+
+.bazar-account-wishlist-card__fallback svg {
+  height: 56px;
+  width: 56px;
+}
+
+.bazar-account-wishlist-card__heart {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--account-border);
+  border-radius: 50%;
+  color: var(--account-blue);
+  cursor: pointer;
+  display: inline-flex;
+  height: 38px;
+  justify-content: center;
+  padding: 0;
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  width: 38px;
+}
+
+.bazar-account-wishlist-card__heart svg {
+  height: 19px;
+  width: 19px;
+}
+
+.bazar-account-wishlist-card__heart:hover,
+.bazar-account-wishlist-card__heart:focus-visible {
+  border-color: #bdd0ff;
+  color: var(--account-blue-dark);
+  outline: none;
+}
+
+.bazar-account-wishlist-card__body {
+  align-content: start;
+  display: grid;
+  gap: 8px;
+  padding: 14px 2px 12px;
+}
+
+.bazar-account-wishlist-card__body h3 {
+  color: var(--account-ink);
+  font-size: 15px;
+  font-weight: 850;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.bazar-account-wishlist-card__body p {
+  color: var(--account-ink);
+  font-size: 17px;
+  font-weight: 850;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.bazar-account-wishlist-card__button {
+  width: 100%;
+}
+
+.bazar-account-wishlist-more {
+  display: flex;
+  justify-content: center;
 }
 
 .bazar-account-field {
@@ -1443,6 +1565,10 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .bazar-account-wishlist-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .bazar-account-section-grid,
   .bazar-account-order-detail__grid {
     grid-template-columns: 1fr;
@@ -1468,9 +1594,10 @@
 
   .bazar-account-sidebar {
     border-radius: 0 22px 22px 0;
-    height: 100vh;
+    height: 100dvh;
     left: 0;
     max-height: none;
+    overflow-y: auto;
     padding: 20px;
     position: fixed;
     top: 0;
@@ -1486,6 +1613,10 @@
 
   .bazar-account-sidebar__close {
     display: inline-flex;
+  }
+
+  .bazar-account-sidebar__top {
+    margin-bottom: 10px;
   }
 
   .bazar-account-page-head {
@@ -1505,6 +1636,10 @@
   }
 
   .bazar-account-orders-screen__head h2 {
+    font-size: 28px;
+  }
+
+  .bazar-account-wishlist-screen__head h2 {
     font-size: 28px;
   }
 
@@ -1539,8 +1674,14 @@
 
   .bazar-account-stats-grid,
   .bazar-account-skeleton-grid,
-  .bazar-account-form-grid {
+  .bazar-account-form-grid,
+  .bazar-account-wishlist-grid {
     grid-template-columns: 1fr;
+  }
+
+  .bazar-account-wishlist-card {
+    grid-template-rows: 154px 1fr auto;
+    min-height: 304px;
   }
 
   .bazar-account-card,

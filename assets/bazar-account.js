@@ -22,6 +22,56 @@
     ['canceled', 'Скасовано'],
     ['returned', 'Повернено'],
   ];
+  const WISHLIST_PREVIEW_ITEMS = [
+    {
+      id: 'preview-phone',
+      title: 'Смартфон Apple iPhone 15 Pro 128GB',
+      price: '42 696 грн',
+      priceValue: 42696,
+      createdAt: 6,
+      visual: 'phone',
+    },
+    {
+      id: 'preview-headphones',
+      title: 'Навушники Sony WH-1000XM5',
+      price: '14 499 грн',
+      priceValue: 14499,
+      createdAt: 5,
+      visual: 'headphones',
+    },
+    {
+      id: 'preview-coffee',
+      title: 'Кавоварка DeLonghi Magnifica',
+      price: '18 250 грн',
+      priceValue: 18250,
+      createdAt: 4,
+      visual: 'coffee',
+    },
+    {
+      id: 'preview-laptop',
+      title: 'Ноутбук Lenovo IdeaPad Slim 5',
+      price: '31 999 грн',
+      priceValue: 31999,
+      createdAt: 3,
+      visual: 'laptop',
+    },
+    {
+      id: 'preview-shoes',
+      title: 'Кросівки Puma для щоденного стилю',
+      price: '3 299 грн',
+      priceValue: 3299,
+      createdAt: 2,
+      visual: 'shoe',
+    },
+    {
+      id: 'preview-stroller',
+      title: 'Дитячий візочок Anex Air-X',
+      price: '22 900 грн',
+      priceValue: 22900,
+      createdAt: 1,
+      visual: 'stroller',
+    },
+  ];
 
   const labels = {
     overview: 'Огляд',
@@ -55,6 +105,11 @@
       search: '<circle cx="11" cy="11" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/>',
       trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V4h6v3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/>',
       cart: '<path d="M4 5h2l2 11h9l2-8H8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/><circle cx="10" cy="20" r="1.2" fill="currentColor"/><circle cx="17" cy="20" r="1.2" fill="currentColor"/>',
+      headphones: '<path d="M5 13a7 7 0 0 1 14 0v5a2 2 0 0 1-2 2h-2v-7h4M5 13h4v7H7a2 2 0 0 1-2-2v-5Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/>',
+      coffee: '<path d="M6 8h10v6a4 4 0 0 1-4 4H9a3 3 0 0 1-3-3V8Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/><path d="M16 10h2a2 2 0 0 1 0 4h-2M8 5v1M12 4v2M15 5v1M6 20h10" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/>',
+      laptop: '<path d="M5 5h14v10H5V5Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/><path d="M3 19h18l-2-4H5l-2 4Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/>',
+      shoe: '<path d="M4 15.5c2.8.4 4.9-.5 6.2-3.4l1.1-2.4 4.8 3.4c1.2.9 2.5 1.3 3.9 1.3V18H4v-2.5Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/><path d="M11 12.5h3.5M13 14h3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/>',
+      stroller: '<path d="M5 10a6 6 0 0 1 12 0v3H5v-3ZM5 13h14M16 13l3 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/><circle cx="8" cy="18" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="16" cy="18" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/>',
       edit: '<path d="m4 16.5-.5 4 4-.5L19 8.5 15.5 5 4 16.5Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/><path d="m14.5 6 3.5 3.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/>',
       plus: '<path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/>',
       phone: '<path d="M7 4h10a1.5 1.5 0 0 1 1.5 1.5v13A1.5 1.5 0 0 1 17 20H7a1.5 1.5 0 0 1-1.5-1.5v-13A1.5 1.5 0 0 1 7 4Z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10 17h4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/>',
@@ -441,11 +496,15 @@
     constructor(data) {
       // TODO: Replace Shopify implementation with api.bazar.
       this.items = data.wishlist || [];
+      // TODO: replace placeholder wishlist with api.bazar wishlist endpoint.
+      this.previewItems = WISHLIST_PREVIEW_ITEMS;
     }
 
     list({ search = '', sort = 'newest' } = {}) {
       const query = search.trim().toLowerCase();
-      return this.items
+      const source = this.items.length ? this.items : this.previewItems;
+
+      return [...source]
         .filter((item) => !query || `${item.title || ''} ${item.vendor || ''}`.toLowerCase().includes(query))
         .sort((a, b) => {
           if (sort === 'price-high') return Number(b.priceValue || 0) - Number(a.priceValue || 0);
@@ -1375,28 +1434,11 @@
       });
 
       return `
-        ${pageHead('Обране', labels.wishlist, 'Збережені товари з можливістю сортування, пошуку, перенесення в кошик і масових дій.')}
-        <section class="bazar-account-card">
-          <div class="bazar-account-toolbar">
-            <label class="bazar-account-field">
-              <span>Пошук в обраному</span>
-              <input type="search" value="${escapeHtml(this.state.wishlistSearch)}" data-account-state="wishlistSearch" placeholder="Назва товару">
-            </label>
-            <label class="bazar-account-field">
-              <span>Сортування</span>
-              <select data-account-state="wishlistSort">
-                ${this.option('newest', 'Новіші спочатку', this.state.wishlistSort)}
-                ${this.option('price-high', 'Дорожчі спочатку', this.state.wishlistSort)}
-                ${this.option('price-low', 'Дешевші спочатку', this.state.wishlistSort)}
-              </select>
-            </label>
-            <button class="bazar-account-button bazar-account-button--danger" type="button" data-account-action="wishlist-bulk-remove">Видалити вибране</button>
-          </div>
-          ${
-            items.length
-              ? `<div class="bazar-account-list">${items.map((item) => this.renderWishlistItem(item)).join('')}</div>`
-              : emptyState('heart', 'Обране поки порожнє', 'Збережені товари зʼявляться тут після додавання з каталогу.')
-          }
+        <section class="bazar-account-wishlist-screen" aria-labelledby="BazarAccountWishlistTitle">
+          <header class="bazar-account-wishlist-screen__head">
+            <h2 id="BazarAccountWishlistTitle">Обране</h2>
+          </header>
+          ${items.length ? this.renderWishlistGrid(items) : this.renderWishlistEmpty()}
         </section>
       `;
     }
@@ -1646,20 +1688,51 @@
       return `<option value="${escapeHtml(value)}" ${String(value) === String(current) ? 'selected' : ''}>${escapeHtml(label)}</option>`;
     }
 
-    renderWishlistItem(item) {
-      const id = String(item.id || item.handle || '');
+    renderWishlistGrid(items) {
       return `
-        <article class="bazar-account-row-card">
-          <label class="bazar-account-field">
-            <span>${escapeHtml(item.title || 'Товар')}</span>
-            <input type="checkbox" value="${escapeHtml(id)}" data-account-bulk-item>
-          </label>
-          <div class="bazar-account-form-actions">
-            <button class="bazar-account-button bazar-account-button--secondary" type="button">${icon('cart')}До кошика</button>
-            <button class="bazar-account-icon-button" type="button" data-account-action="wishlist-remove" data-id="${escapeHtml(id)}" aria-label="Видалити">${icon('trash')}</button>
+        <div class="bazar-account-wishlist-grid">
+          ${items.map((item) => this.renderWishlistCard(item)).join('')}
+        </div>
+        <div class="bazar-account-wishlist-more">
+          <a class="bazar-account-button bazar-account-button--secondary" href="/collections">Переглянути всі</a>
+        </div>
+      `;
+    }
+
+    renderWishlistEmpty() {
+      return emptyState(
+        'heart',
+        'У вас ще немає обраних товарів',
+        'Додавайте товари в обране, щоб швидко повернутися до них пізніше.',
+        '<a class="bazar-account-button bazar-account-button--primary" href="/collections">Перейти до каталогу</a>'
+      );
+    }
+
+    renderWishlistCard(item) {
+      const title = item.title || 'Товар';
+      const price = item.price || (item.priceValue ? formatMoneyLabel(item.priceValue) : '');
+
+      return `
+        <article class="bazar-account-wishlist-card">
+          <div class="bazar-account-wishlist-card__media">
+            ${this.renderWishlistVisual(item, title)}
+            <button class="bazar-account-wishlist-card__heart" type="button" aria-label="Товар в обраному">${icon('heart')}</button>
           </div>
+          <div class="bazar-account-wishlist-card__body">
+            <h3>${escapeHtml(title)}</h3>
+            <p>${escapeHtml(price)}</p>
+          </div>
+          <button class="bazar-account-button bazar-account-button--primary bazar-account-wishlist-card__button" type="button">${icon('cart')}У кошик</button>
         </article>
       `;
+    }
+
+    renderWishlistVisual(item, title) {
+      if (item.image) {
+        return `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(title)}" loading="lazy">`;
+      }
+
+      return `<span class="bazar-account-wishlist-card__fallback" aria-hidden="true">${icon(item.visual || 'box')}</span>`;
     }
 
     renderNotification(item) {
