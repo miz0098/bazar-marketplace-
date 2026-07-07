@@ -68,7 +68,22 @@ html.bazar-catalog-scroll-lock body {
   z-index: 20;
 }
 
+.bazar-header__catalog-wrap.is-open::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background: rgba(6, 19, 52, 0.52);
+  cursor: default;
+}
+
 .bazar-header__catalog {
+  position: relative;
+  z-index: 2;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -384,6 +399,7 @@ html.bazar-catalog-scroll-lock body {
   position: absolute;
   inset-block-start: calc(100% + 14px);
   inset-inline-start: 0;
+  z-index: 3;
   width: min(1040px, calc(100vw - 48px));
   max-height: 82vh;
   overflow: hidden;

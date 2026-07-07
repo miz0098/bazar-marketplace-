@@ -4,11 +4,13 @@ const panelSelector = '[data-bazar-catalog-panel]';
 const categorySelector = '[data-bazar-catalog-category]';
 const subpanelSelector = '[data-bazar-catalog-subpanel]';
 const scrollContainerSelector = '.bazar-catalog-menu__main, .bazar-catalog-menu__subcategories';
+const catalogLinkSelector = '.bazar-catalog-menu__category-link[href], .bazar-catalog-menu__subcategory-link[href]';
 const scrollLockClass = 'bazar-catalog-scroll-lock';
 const searchFormSelector = '[data-bazar-header-search]';
 const searchInputSelector = '[data-bazar-header-search-input]';
 const searchSubmitSelector = '[data-bazar-header-search-submit]';
 let scrollLockState = null;
+let touchStartY = 0;
 
 const lockPageScroll = () => {
   if (scrollLockState || !document.body) return;
@@ -19,18 +21,26 @@ const lockPageScroll = () => {
   scrollLockState = {
     scrollY,
     htmlOverflow: document.documentElement.style.overflow,
+    htmlOverscrollBehavior: document.documentElement.style.overscrollBehavior,
     bodyOverflow: document.body.style.overflow,
+    bodyOverscrollBehavior: document.body.style.overscrollBehavior,
     bodyPaddingRight: document.body.style.paddingRight,
     bodyPosition: document.body.style.position,
     bodyTop: document.body.style.top,
+    bodyLeft: document.body.style.left,
+    bodyRight: document.body.style.right,
     bodyWidth: document.body.style.width,
   };
 
   document.documentElement.classList.add(scrollLockClass);
   document.documentElement.style.overflow = 'hidden';
+  document.documentElement.style.overscrollBehavior = 'none';
   document.body.style.overflow = 'hidden';
+  document.body.style.overscrollBehavior = 'none';
   document.body.style.position = 'fixed';
   document.body.style.top = `-${scrollY}px`;
+  document.body.style.left = '0';
+  document.body.style.right = '0';
   document.body.style.width = '100%';
 
   if (scrollbarWidth > 0) {
@@ -45,10 +55,14 @@ const unlockPageScroll = () => {
 
   document.documentElement.classList.remove(scrollLockClass);
   document.documentElement.style.overflow = scrollLockState.htmlOverflow;
+  document.documentElement.style.overscrollBehavior = scrollLockState.htmlOverscrollBehavior;
   document.body.style.overflow = scrollLockState.bodyOverflow;
+  document.body.style.overscrollBehavior = scrollLockState.bodyOverscrollBehavior;
   document.body.style.paddingRight = scrollLockState.bodyPaddingRight;
   document.body.style.position = scrollLockState.bodyPosition;
   document.body.style.top = scrollLockState.bodyTop;
+  document.body.style.left = scrollLockState.bodyLeft;
+  document.body.style.right = scrollLockState.bodyRight;
   document.body.style.width = scrollLockState.bodyWidth;
 
   scrollLockState = null;
@@ -114,9 +128,11 @@ const openCatalog = (root) => {
   updateScrollLock();
 
   const activeCategory = root.querySelector(`${categorySelector}.is-active`) || root.querySelector(categorySelector);
-  if (activeCategory) {
-    setActiveCategory(root, activeCategory);
-    window.requestAnimationFrame(() => activeCategory.focus({ preventScroll: true }));
+  const firstCategory = root.querySelector(categorySelector);
+  const categoryToFocus = firstCategory || activeCategory;
+  if (categoryToFocus) {
+    setActiveCategory(root, categoryToFocus);
+    window.requestAnimationFrame(() => categoryToFocus.focus({ preventScroll: true }));
   }
 };
 
@@ -166,9 +182,14 @@ const getWheelDeltaY = (event, scrollContainer) => {
 
 const isolateModalWheel = (root, event) => {
   const { panel } = getParts(root);
-  if (!panel || panel.hidden || !panel.contains(event.target)) return;
+  if (!panel || panel.hidden) return;
 
   event.stopPropagation();
+
+  if (!panel.contains(event.target)) {
+    event.preventDefault();
+    return;
+  }
 
   const scrollContainer = getModalScrollContainer(root, event.target);
   if (!scrollContainer) {
@@ -184,6 +205,50 @@ const isolateModalWheel = (root, event) => {
 
   event.preventDefault();
   scrollContainer.scrollTop += getWheelDeltaY(event, scrollContainer);
+};
+
+const isolateModalTouchStart = (event) => {
+  touchStartY = event.touches?.[0]?.clientY || 0;
+};
+
+const isolateModalTouchMove = (root, event) => {
+  const { panel } = getParts(root);
+  if (!panel || panel.hidden) return;
+
+  event.stopPropagation();
+
+  if (!panel.contains(event.target)) {
+    event.preventDefault();
+    return;
+  }
+
+  const scrollContainer = getModalScrollContainer(root, event.target);
+  const currentY = event.touches?.[0]?.clientY || touchStartY;
+  const deltaY = touchStartY - currentY;
+  touchStartY = currentY;
+
+  if (!scrollContainer || scrollContainer.scrollHeight <= scrollContainer.clientHeight) {
+    event.preventDefault();
+    return;
+  }
+
+  event.preventDefault();
+  scrollContainer.scrollTop += deltaY;
+};
+
+const isValidCatalogLink = (link) => {
+  if (!link) return false;
+
+  const href = link.getAttribute('href') || '';
+  return href && href !== '#' && !href.toLowerCase().startsWith('javascript:');
+};
+
+const navigateCatalogLink = (root, link) => {
+  if (!isValidCatalogLink(link)) return;
+
+  const url = link.href;
+  closeCatalog(root);
+  window.location.href = url;
 };
 
 const scrollModalPanelByKey = (root, event) => {
@@ -240,6 +305,18 @@ const initCatalog = (root) => {
   });
 
   root.addEventListener('click', (event) => {
+    if (event.target === root) {
+      closeCatalog(root);
+      return;
+    }
+
+    const catalogLink = event.target.closest(catalogLinkSelector);
+    if (catalogLink && root.contains(catalogLink)) {
+      event.preventDefault();
+      navigateCatalogLink(root, catalogLink);
+      return;
+    }
+
     const category = event.target.closest(categorySelector);
     if (category && root.contains(category)) {
       setActiveCategory(root, category);
@@ -247,6 +324,8 @@ const initCatalog = (root) => {
   });
 
   root.addEventListener('wheel', (event) => isolateModalWheel(root, event), { passive: false });
+  root.addEventListener('touchstart', isolateModalTouchStart, { passive: true });
+  root.addEventListener('touchmove', (event) => isolateModalTouchMove(root, event), { passive: false });
 
   root.addEventListener('keydown', (event) => {
     const currentCategory = event.target.closest(categorySelector);
