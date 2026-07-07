@@ -298,11 +298,6 @@
       const activeStep = this.getTimelineActiveStep(status);
       const orderNumber = order.name || order.orderNumber || `BZ-${order.id || ''}`;
       const orderDate = order.date || '28 травня 2026, 14:30';
-      const recipientName =
-        [profile.firstName, profile.lastName].filter(Boolean).join(' ') ||
-        profile.displayName ||
-        'Богдан Дюков';
-      const recipientPhone = profile.phone || '+380 XX XXX XX XX';
       const products = (order.products || []).map((product, index) => {
         const quantity = Number(product.quantity || 1);
         const totalPrice = product.price || order.total || '';
@@ -329,26 +324,22 @@
         products,
         delivery: {
           carrier: order.delivery?.carrier || 'Нова пошта',
-          price: order.delivery?.price || '79 грн',
-          method: order.delivery?.method || 'До відділення',
           city: order.delivery?.city || 'м. Київ',
           address: order.delivery?.address || 'відділення №1',
-          recipient: order.delivery?.recipient || recipientName,
-          phone: order.delivery?.phone || recipientPhone,
           tracking: order.tracking || order.delivery?.tracking || '20400000000000',
         },
         payment: {
-          method: order.payment?.method || 'Оплата карткою',
+          method: order.payment?.method || 'Apple Pay',
           status: localizeStatus(order.financialStatus, 'Сплачено'),
-          wallets: ['Apple Pay', 'Google Pay', 'Visa', 'Mastercard'],
+          amount: order.total || '',
         },
         timeline: this.getTimeline(orderDate, activeStep),
         seller: {
           name: order.seller?.name || 'Офіційний продавець BAZAR',
+          handle: order.seller?.handle || 'bazar-official',
           rating: order.seller?.rating || '4.9',
           positiveReviews: order.seller?.positiveReviews || '98%',
           totalOrders: order.seller?.totalOrders || '12 480 замовлень',
-          onlineStatus: order.seller?.onlineStatus || 'Онлайн зараз',
         },
       };
     }
@@ -886,6 +877,11 @@
         if (text && navigator.clipboard?.writeText) navigator.clipboard.writeText(text).catch(() => {});
       }
 
+      if (action === 'seller-chat') {
+        // TODO: connect seller chat to api.bazar seller chat integration.
+        return;
+      }
+
       if (action === 'mark-all-read') {
         this.providers.notifications.markAllRead();
         this.render(false, false);
@@ -1202,13 +1198,14 @@
           <div class="bazar-account-order-detail__grid">
             <div class="bazar-account-order-detail__main">
               ${this.renderOrderDetailProductCard(detail)}
-              ${this.renderOrderDelivery(detail.delivery)}
-              ${this.renderOrderPayment(detail.payment)}
+              <div class="bazar-account-order-detail-info-row">
+                ${this.renderOrderDelivery(detail.delivery)}
+                ${this.renderOrderPayment(detail.payment)}
+              </div>
             </div>
             <aside class="bazar-account-order-detail__side">
               ${this.renderOrderDetailTimeline(detail.timeline)}
               ${this.renderOrderSeller(detail.seller)}
-              ${this.renderOrderSupport()}
             </aside>
           </div>
         </section>
@@ -1222,10 +1219,6 @@
             <span class="bazar-account-order-source">${escapeHtml(detail.sourceLabel)}</span>
             <span class="bazar-account-order-protection">${icon('shield')}${escapeHtml(detail.protectionLabel)}</span>
           </div>
-          <div class="bazar-account-order-total">
-            <span>До оплати без доставки:</span>
-            <strong>${escapeHtml(detail.total || '0 грн')}</strong>
-          </div>
           <div class="bazar-account-order-detail-products">
             ${
               detail.products.length
@@ -1235,8 +1228,6 @@
           </div>
           <div class="bazar-account-order-detail-actions">
             <button class="bazar-account-button bazar-account-button--secondary" type="button">Додати відгук</button>
-            <button class="bazar-account-button bazar-account-button--secondary" type="button">Написати продавцю</button>
-            <button class="bazar-account-button bazar-account-button--ghost" type="button">Додати відгук про продавця</button>
           </div>
         </section>
       `;
@@ -1267,26 +1258,13 @@
           <div class="bazar-account-order-info-lead">
             <span class="bazar-account-order-info-lead__icon">${icon('truck')}</span>
             <div>
-              <strong>${escapeHtml(delivery.carrier)} — ${escapeHtml(delivery.price)}</strong>
-              <span>${escapeHtml(delivery.method)}</span>
+              <strong>${escapeHtml(delivery.carrier)}</strong>
             </div>
           </div>
           <dl class="bazar-account-order-detail-list">
             <div>
-              <dt>Місто</dt>
-              <dd>${escapeHtml(delivery.city)}</dd>
-            </div>
-            <div>
-              <dt>Відділення / адреса</dt>
-              <dd>${escapeHtml(delivery.address)}</dd>
-            </div>
-            <div>
-              <dt>Отримувач</dt>
-              <dd>${escapeHtml(delivery.recipient)}</dd>
-            </div>
-            <div>
-              <dt>Телефон</dt>
-              <dd>${escapeHtml(delivery.phone)}</dd>
+              <dt>Адреса</dt>
+              <dd>${escapeHtml(delivery.city)}, ${escapeHtml(delivery.address)}</dd>
             </div>
             <div>
               <dt>ТТН</dt>
@@ -1316,13 +1294,12 @@
             <span class="bazar-account-order-info-lead__icon">${icon('payment')}</span>
             <div>
               <strong>${escapeHtml(payment.method)}</strong>
-              <span>${escapeHtml(payment.status)}</span>
             </div>
           </div>
-          <div class="bazar-account-payment-icons" aria-label="Підтримувані способи оплати">
-            ${payment.wallets.map((wallet) => `<span>${escapeHtml(wallet)}</span>`).join('')}
+          <div class="bazar-account-order-payment-lines">
+            <span>${escapeHtml(payment.status)}</span>
+            ${payment.amount ? `<strong>${escapeHtml(payment.amount)}</strong>` : ''}
           </div>
-          <button class="bazar-account-button bazar-account-button--secondary" type="button">${icon('receipt')}Завантажити чек</button>
         </section>
       `;
     }
@@ -1348,37 +1325,23 @@
     }
 
     renderOrderSeller(seller) {
+      // TODO: connect seller page route to api.bazar seller catalog.
       return `
         <section class="bazar-account-order-detail-card bazar-account-order-detail-card--side">
           <h3 class="bazar-account-order-detail-card__title">Продавець</h3>
           <div class="bazar-account-seller">
             <span class="bazar-account-seller__avatar">${icon('store')}</span>
             <div>
-              <h4>${escapeHtml(seller.name)}</h4>
-              <p>${escapeHtml(seller.onlineStatus)}</p>
+              <a class="bazar-account-seller__name" href="/seller/${escapeHtml(seller.handle)}">${escapeHtml(seller.name)}</a>
+              <p>${escapeHtml(seller.totalOrders)}</p>
             </div>
           </div>
           <div class="bazar-account-seller-stats">
-            <span><strong>${escapeHtml(seller.rating)}</strong> рейтинг</span>
-            <span><strong>${escapeHtml(seller.positiveReviews)}</strong> позитивних відгуків</span>
-            <span><strong>${escapeHtml(seller.totalOrders)}</strong></span>
+            <span>★ <strong>${escapeHtml(seller.rating)}</strong> · ${escapeHtml(seller.positiveReviews)} позитивних відгуків</span>
           </div>
           <div class="bazar-account-order-detail-actions">
-            <button class="bazar-account-button bazar-account-button--secondary" type="button">Каталог продавця</button>
+            <button class="bazar-account-button bazar-account-button--secondary" type="button" data-account-action="seller-chat">Звʼязатись з продавцем</button>
             <button class="bazar-account-button bazar-account-button--ghost" type="button">Відгуки про продавця</button>
-          </div>
-        </section>
-      `;
-    }
-
-    renderOrderSupport() {
-      return `
-        <section class="bazar-account-order-detail-card bazar-account-order-detail-card--side">
-          <h3 class="bazar-account-order-detail-card__title">Потрібна допомога?</h3>
-          <div class="bazar-account-order-support-actions">
-            <a class="bazar-account-button bazar-account-button--primary" href="/profile/support" data-account-route="/profile/support">Написати в підтримку</a>
-            <button class="bazar-account-button bazar-account-button--secondary" type="button">Повернення товару</button>
-            <button class="bazar-account-button bazar-account-button--ghost" type="button">Проблема із замовленням</button>
           </div>
         </section>
       `;
