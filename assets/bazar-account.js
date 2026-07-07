@@ -272,7 +272,6 @@
     }
 
     getScreenOrders() {
-      if (!this.orders.length) return this.getPlaceholderOrders();
       return this.orders.map((order) => this.mapOrderForScreen(order));
     }
 
@@ -284,6 +283,7 @@
       return {
         items: filtered.slice(0, visibleCount),
         total: filtered.length,
+        allTotal: orders.length,
         page: Math.max(1, page),
         hasMore: visibleCount < filtered.length,
       };
@@ -1063,10 +1063,31 @@
           ${
             result.items.length
               ? `<div class="bazar-account-orders-list">${result.items.map((order) => this.renderOrderScreenRow(order)).join('')}</div>`
-              : emptyState('orders', 'Замовлень у цьому статусі поки немає', 'Коли статус замовлення зміниться, воно зʼявиться в цьому розділі.')
+              : this.renderOrdersEmptyState(result)
           }
           ${result.hasMore ? `<button class="bazar-account-orders-more" type="button" data-account-action="order-page" data-page="${result.page + 1}">Показати ще</button>` : ''}
         </section>
+      `;
+    }
+
+    renderOrdersEmptyState(result) {
+      const hasAnyOrders = result.allTotal > 0;
+      const title = hasAnyOrders ? 'Замовлень у цьому статусі поки немає' : 'У вас ще немає замовлень';
+      const text = hasAnyOrders
+        ? 'Коли замовлення отримає цей статус, воно зʼявиться в цьому розділі.'
+        : 'Перейдіть до каталогу, щоб знайти товари та оформити перше замовлення на BAZAR.';
+
+      return `
+        <div class="bazar-account-orders-empty">
+          <span class="bazar-account-orders-empty__icon">${icon('box')}</span>
+          <h3>${escapeHtml(title)}</h3>
+          <p>${escapeHtml(text)}</p>
+          ${
+            hasAnyOrders
+              ? ''
+              : '<a class="bazar-account-button bazar-account-button--primary" href="/collections">Перейти до каталогу</a>'
+          }
+        </div>
       `;
     }
 

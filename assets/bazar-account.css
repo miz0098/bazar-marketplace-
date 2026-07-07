@@ -488,6 +488,55 @@
   gap: 10px;
 }
 
+.bazar-account-orders-empty {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--account-border);
+  border-radius: 18px;
+  box-shadow: 0 12px 28px rgba(6, 19, 52, 0.05);
+  display: grid;
+  justify-items: center;
+  margin: 12px auto 0;
+  max-width: 560px;
+  padding: 38px 28px;
+  text-align: center;
+}
+
+.bazar-account-orders-empty__icon {
+  align-items: center;
+  background: var(--account-blue-soft);
+  border: 1px solid #c9d8ff;
+  border-radius: 20px;
+  color: var(--account-blue);
+  display: inline-flex;
+  height: 72px;
+  justify-content: center;
+  margin-bottom: 18px;
+  width: 72px;
+}
+
+.bazar-account-orders-empty__icon svg {
+  height: 34px;
+  width: 34px;
+}
+
+.bazar-account-orders-empty h3 {
+  color: var(--account-ink);
+  font-size: 22px;
+  font-weight: 850;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.bazar-account-orders-empty p {
+  color: var(--account-muted);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.55;
+  margin: 10px 0 20px;
+  max-width: 420px;
+}
+
 .bazar-account-order-row {
   align-items: center;
   background: #fff;
