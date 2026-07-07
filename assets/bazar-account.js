@@ -16,6 +16,7 @@
   const PAGE_SIZE = 5;
   const WISHLIST_PAGE_SIZE = 12;
   const PINNED_CHATS_STORAGE_KEY = 'bazarPinnedChats';
+  const READ_CHATS_STORAGE_KEY = 'bazarReadChats';
   const MESSAGE_CONTEXT_MENU_WIDTH = 232;
   const MESSAGE_CONTEXT_MENU_HEIGHT = 176;
   const ORDER_STATUS_TABS = [
@@ -530,7 +531,8 @@
       const storedPins = this.readPinnedIds();
       const initialPins = storedPins ?? this.chats.filter((chat) => chat.pinned).map((chat) => String(chat.id));
       this.pinnedIds = new Set(initialPins);
-      this.applyPinnedState();
+      this.readIds = new Set(this.readReadIds());
+      this.applyLocalState();
     }
 
     getDemoChats() {
@@ -680,10 +682,37 @@
       }
     }
 
-    applyPinnedState() {
+    readReadIds() {
+      // TODO: sync read/unread state with api.bazar.
+      try {
+        const raw = window.localStorage?.getItem(READ_CHATS_STORAGE_KEY);
+        if (!raw) return [];
+
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed.map(String) : [];
+      } catch (_error) {
+        return [];
+      }
+    }
+
+    persistReadIds() {
+      // TODO: sync read/unread state with api.bazar.
+      try {
+        window.localStorage?.setItem(READ_CHATS_STORAGE_KEY, JSON.stringify([...this.readIds]));
+      } catch (_error) {
+        // Local storage may be unavailable in preview mode.
+      }
+    }
+
+    applyLocalState() {
       this.chats = this.chats.map((chat) => ({
         ...chat,
         pinned: this.pinnedIds.has(String(chat.id)),
+        unreadCount: this.readIds.has(String(chat.id)) ? 0 : Number(chat.unreadCount || 0),
+        messages: (chat.messages || []).map((message) => ({
+          ...message,
+          unread: this.readIds.has(String(chat.id)) ? false : Boolean(message.unread),
+        })),
       }));
     }
 
@@ -695,28 +724,30 @@
     }
 
     list() {
-      this.applyPinnedState();
+      this.applyLocalState();
       return this.sortChats();
     }
 
     get(id) {
-      this.applyPinnedState();
+      this.applyLocalState();
       return this.chats.find((chat) => String(chat.id) === String(id)) || null;
     }
 
     pin(id) {
       this.pinnedIds.add(String(id));
       this.persistPinnedIds();
-      this.applyPinnedState();
+      this.applyLocalState();
     }
 
     unpin(id) {
       this.pinnedIds.delete(String(id));
       this.persistPinnedIds();
-      this.applyPinnedState();
+      this.applyLocalState();
     }
 
     markRead(id) {
+      this.readIds.add(String(id));
+      this.persistReadIds();
       this.chats = this.chats.map((chat) => {
         if (String(chat.id) !== String(id)) return chat;
 
@@ -764,6 +795,7 @@
         return {
           ...chat,
           lastMessage: messageText,
+          unreadCount: 0,
           time,
           updatedAt: now,
           messages: [...(chat.messages || []), sentMessage],
@@ -1048,6 +1080,7 @@
         notificationCategory: 'all',
         selectedChatId: '',
         messageContextMenu: null,
+        attachmentMenuChatId: '',
         selectedWishlist: [],
         supportView: 'tickets',
         editingReviewId: '',
@@ -1076,10 +1109,16 @@
       window.addEventListener('popstate', () => {
         this.state.route = normalizeRoute(window.location.pathname);
         this.state.messageContextMenu = null;
+        this.state.attachmentMenuChatId = '';
         this.render(true, false);
       });
       document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
+          if (this.state.attachmentMenuChatId) {
+            this.closeAttachmentMenu();
+            return;
+          }
+
           if (this.state.messageContextMenu) {
             this.closeMessageContextMenu();
             return;
@@ -1089,6 +1128,16 @@
         }
       });
       document.addEventListener('click', (event) => {
+        if (
+          this.state.attachmentMenuChatId &&
+          this.root.contains(event.target) &&
+          !event.target.closest('[data-account-attachment-menu]') &&
+          !event.target.closest('[data-account-attachment-toggle]')
+        ) {
+          this.closeAttachmentMenu();
+          return;
+        }
+
         if (!this.state.messageContextMenu || this.root.contains(event.target)) return;
 
         this.closeMessageContextMenu();
@@ -1122,6 +1171,25 @@
         return;
       }
 
+      const attachmentToggle = event.target.closest('[data-account-attachment-toggle]');
+      if (attachmentToggle && this.root.contains(attachmentToggle)) {
+        event.preventDefault();
+        this.state.attachmentMenuChatId =
+          this.state.attachmentMenuChatId === this.state.selectedChatId ? '' : this.state.selectedChatId;
+        this.state.messageContextMenu = null;
+        this.render(false, false);
+        return;
+      }
+
+      const attachmentAction = event.target.closest('[data-account-attachment-action]');
+      if (attachmentAction && this.root.contains(attachmentAction)) {
+        event.preventDefault();
+        const input = this.content.querySelector(`[data-account-attachment-input="${attachmentAction.dataset.accountAttachmentAction}"]`);
+        input?.click();
+        this.closeAttachmentMenu();
+        return;
+      }
+
       const chatItem = event.target.closest('[data-account-chat-id]');
       if (this.state.messageContextMenu && !event.target.closest('[data-account-message-menu]') && !chatItem) {
         event.preventDefault();
@@ -1133,6 +1201,8 @@
         event.preventDefault();
         this.state.selectedChatId = chatItem.dataset.accountChatId || '';
         this.state.messageContextMenu = null;
+        this.state.attachmentMenuChatId = '';
+        this.providers.chats.markRead(this.state.selectedChatId);
         this.render(false, false);
         return;
       }
@@ -1148,6 +1218,7 @@
       if (routeLink && this.root.contains(routeLink)) {
         event.preventDefault();
         this.state.messageContextMenu = null;
+        this.state.attachmentMenuChatId = '';
         this.navigate(routeLink.dataset.accountRoute);
         return;
       }
@@ -1197,6 +1268,7 @@
         x: left - contentRect.left,
         y: top - contentRect.top,
       };
+      this.state.attachmentMenuChatId = '';
       this.render(false, false);
     }
 
@@ -1260,6 +1332,7 @@
         const text = formData.get('message') || '';
 
         this.providers.messages.send(this.state.selectedChatId, text);
+        this.state.attachmentMenuChatId = '';
         this.render(false, false);
       }
     }
@@ -1332,8 +1405,14 @@
       if (action === 'messages-back') {
         this.state.selectedChatId = '';
         this.state.messageContextMenu = null;
+        this.state.attachmentMenuChatId = '';
         this.render(false, false);
       }
+    }
+
+    closeAttachmentMenu() {
+      this.state.attachmentMenuChatId = '';
+      this.render(false, false);
     }
 
     closeMessageContextMenu() {
@@ -2075,11 +2154,37 @@
 
       return `
         <form class="bazar-account-message-form" data-account-form="message">
-          <button class="bazar-account-icon-button" type="button" aria-label="Додати файл">${icon('paperclip')}</button>
+          <div class="bazar-account-attachment">
+            <button
+              class="bazar-account-icon-button"
+              type="button"
+              aria-label="Додати вкладення"
+              aria-haspopup="menu"
+              aria-expanded="${this.state.attachmentMenuChatId === chat.id ? 'true' : 'false'}"
+              data-account-attachment-toggle
+            >
+              ${icon('paperclip')}
+            </button>
+            ${this.renderAttachmentMenu(chat)}
+            <input class="bazar-account-attachment__input" type="file" accept="image/*,video/*" data-account-attachment-input="media">
+            <input class="bazar-account-attachment__input" type="file" accept="*/*" data-account-attachment-input="file">
+          </div>
           <label class="bazar-account-visually-hidden" for="BazarAccountMessageInput">Повідомлення</label>
           <input id="BazarAccountMessageInput" name="message" type="text" autocomplete="off" placeholder="Напишіть повідомлення..." required>
           <button class="bazar-account-button bazar-account-button--primary" type="submit" aria-label="Надіслати повідомлення">${icon('send')}</button>
         </form>
+      `;
+    }
+
+    renderAttachmentMenu(chat) {
+      if (this.state.attachmentMenuChatId !== chat.id) return '';
+
+      // TODO: connect attachments to api.bazar message upload endpoint.
+      return `
+        <div class="bazar-account-attachment-menu" data-account-attachment-menu role="menu" aria-label="Додати вкладення">
+          <button type="button" role="menuitem" data-account-attachment-action="media">Фото чи відео</button>
+          <button type="button" role="menuitem" data-account-attachment-action="file">Файл</button>
+        </div>
       `;
     }
 

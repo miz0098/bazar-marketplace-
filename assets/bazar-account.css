@@ -1034,14 +1034,14 @@
 
 .bazar-account-chat-item__title {
   color: var(--account-ink);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 850;
   line-height: 1.12;
 }
 
 .bazar-account-chat-item__preview {
   color: var(--account-muted);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 650;
   line-height: 1.15;
 }
@@ -1056,7 +1056,7 @@
 
 .bazar-account-chat-item__time {
   color: var(--account-muted);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 750;
   white-space: nowrap;
 }
@@ -1067,11 +1067,11 @@
   border-radius: 999px;
   color: #fff;
   display: inline-flex;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 850;
-  height: 17px;
+  height: 18px;
   justify-content: center;
-  min-width: 17px;
+  min-width: 18px;
   padding: 0 6px;
 }
 
@@ -1167,6 +1167,50 @@
   gap: 10px;
   grid-template-columns: auto minmax(0, 1fr) auto;
   padding: 12px 14px;
+}
+
+.bazar-account-attachment {
+  position: relative;
+}
+
+.bazar-account-attachment-menu {
+  background: #fff;
+  border: 1px solid var(--account-border);
+  border-radius: 14px;
+  bottom: calc(100% + 8px);
+  box-shadow: 0 16px 34px rgba(6, 19, 52, 0.16);
+  display: grid;
+  gap: 4px;
+  left: 0;
+  min-width: 164px;
+  padding: 6px;
+  position: absolute;
+  z-index: 12;
+}
+
+.bazar-account-attachment-menu button {
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  color: var(--account-ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  min-height: 36px;
+  padding: 0 10px;
+  text-align: left;
+}
+
+.bazar-account-attachment-menu button:hover,
+.bazar-account-attachment-menu button:focus-visible {
+  background: var(--account-blue-soft);
+  color: var(--account-blue-dark);
+  outline: none;
+}
+
+.bazar-account-attachment__input {
+  display: none;
 }
 
 .bazar-account-message-form input {
