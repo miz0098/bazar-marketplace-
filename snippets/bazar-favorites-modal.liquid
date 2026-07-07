@@ -1,0 +1,57 @@
+{% doc %}
+  Header favorites modal for BAZAR wishlist preview.
+{% enddoc %}
+
+<div
+  class="bazar-favorites-modal"
+  id="BazarFavoritesModal"
+  data-bazar-favorites-modal
+  hidden
+>
+  <div
+    class="bazar-favorites-modal__backdrop"
+    data-bazar-favorites-close
+    aria-hidden="true"
+  ></div>
+
+  <section
+    class="bazar-favorites-modal__dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="BazarFavoritesModalTitle"
+    tabindex="-1"
+  >
+    <header class="bazar-favorites-modal__header">
+      <h2
+        class="bazar-favorites-modal__title"
+        id="BazarFavoritesModalTitle"
+      >
+        Обране
+      </h2>
+      <button
+        class="bazar-favorites-modal__close"
+        type="button"
+        data-bazar-favorites-close
+        aria-label="Закрити обране"
+      >
+        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+          <path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"/>
+        </svg>
+      </button>
+    </header>
+
+    <div
+      class="bazar-favorites-modal__body"
+      data-bazar-favorites-content
+    ></div>
+
+    <footer class="bazar-favorites-modal__footer">
+      <a
+        class="bazar-favorites-modal__all"
+        href="/profile/wishlist"
+      >
+        Переглянути всі
+      </a>
+    </footer>
+  </section>
+</div>

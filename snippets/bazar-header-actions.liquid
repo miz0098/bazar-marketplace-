@@ -5,7 +5,7 @@
 {% enddoc %}
 
 {% liquid
-  assign favorites_url = routes.root_url | append: 'pages/wishlist'
+  assign favorites_url = '/profile/wishlist'
   assign profile_url = '/profile'
   assign account_url = profile_url
   assign account_label = 'Увійти'
@@ -21,8 +21,12 @@
 >
   <a
     href="{{ favorites_url }}"
-    class="bazar-header-action"
+    class="bazar-header-action bazar-header-action--favorites"
     aria-label="Обране"
+    aria-haspopup="dialog"
+    aria-expanded="false"
+    aria-controls="BazarFavoritesModal"
+    data-bazar-favorites-open
   >
     <span
       class="bazar-header-action__icon"
@@ -117,6 +121,9 @@
     </a>
   {% endif %}
 </div>
+
+{% render 'bazar-wishlist-data' %}
+{% render 'bazar-favorites-modal' %}
 
 {% if customer == blank %}
   {% render 'bazar-auth-modal',

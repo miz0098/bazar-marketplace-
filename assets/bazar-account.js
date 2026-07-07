@@ -469,10 +469,14 @@
   class WishlistProvider {
     constructor(data) {
       // TODO: replace wishlist provider with api.bazar wishlist endpoint.
+      this.store = window.BazarWishlistStore || null;
       this.items = Array.isArray(data.wishlist) ? data.wishlist : [];
+      this.store?.hydrate(this.items);
     }
 
     list({ search = '', sort = 'newest' } = {}) {
+      if (this.store) return this.store.list({ search, sort });
+
       const query = search.trim().toLowerCase();
 
       return [...this.items]
@@ -485,14 +489,26 @@
     }
 
     get(id) {
+      if (this.store) return this.store.get(id);
+
       return this.items.find((item) => String(item.id || item.handle || '') === String(id));
     }
 
     remove(id) {
+      if (this.store) {
+        this.store.remove(id);
+        return;
+      }
+
       this.items = this.items.filter((item) => String(item.id || item.handle || '') !== String(id));
     }
 
     bulkRemove(ids) {
+      if (this.store) {
+        this.store.bulkRemove(ids);
+        return;
+      }
+
       this.items = this.items.filter((item) => !ids.includes(String(item.id)));
     }
   }
@@ -781,6 +797,10 @@
       });
       document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') this.closeSidebar();
+      });
+
+      window.BazarWishlistStore?.subscribe(() => {
+        if (this.state.route === '/profile/wishlist') this.render(false, false);
       });
     }
 
