@@ -14,6 +14,14 @@
   ];
   const ANIMATION_DURATION = 190;
   const PAGE_SIZE = 5;
+  const ORDER_STATUS_TABS = [
+    ['all', 'Усі замовлення'],
+    ['expected', 'Очікуються'],
+    ['shipped', 'Відправлено'],
+    ['delivered', 'Доставлено'],
+    ['canceled', 'Скасовано'],
+    ['returned', 'Повернено'],
+  ];
 
   const labels = {
     overview: 'Огляд',
@@ -104,6 +112,29 @@
     return labels.overview;
   };
 
+  const formatQuantityLabel = (count = 0) => {
+    const value = Number(count || 0);
+    if (value === 1) return '1 товар';
+    if (value > 1 && value < 5) return `${value} товари`;
+    return `${value} товарів`;
+  };
+
+  const normalizeOrderStatus = (order = {}) => {
+    const raw = `${order.fulfillmentStatus || ''} ${order.financialStatus || ''}`.toLowerCase();
+
+    if (raw.includes('cancel') || raw.includes('скас')) return 'canceled';
+    if (raw.includes('refund') || raw.includes('return') || raw.includes('повер')) return 'returned';
+    if (raw.includes('deliver') || raw.includes('fulfilled') || raw.includes('достав') || raw.includes('викон')) return 'delivered';
+    if (raw.includes('ship') || raw.includes('відправ')) return 'shipped';
+    return 'expected';
+  };
+
+  const getOrderStatusLabel = (status) => {
+    const found = ORDER_STATUS_TABS.find(([value]) => value === status);
+    if (!found || status === 'all') return 'Очікується';
+    return found[1].replace('Очікуються', 'Очікується');
+  };
+
   class AccountProvider {
     constructor(data) {
       // TODO: Replace Shopify implementation with api.bazar.
@@ -124,6 +155,119 @@
     constructor(data) {
       // TODO: Replace Shopify implementation with api.bazar.
       this.orders = data.orders || [];
+    }
+
+    getPlaceholderOrders() {
+      // TODO: Replace placeholder orders with api.bazar orders.
+      return [
+        {
+          id: 'demo-bz-250526-1247',
+          productTitle: 'Apple iPhone 15 Pro 128GB',
+          orderNumber: 'BZ-250526-1247',
+          dateTime: '28 травня 2026, 14:30',
+          status: 'delivered',
+          total: '42 696 грн',
+          quantity: '3 товари',
+          imageAlt: 'Apple iPhone 15 Pro 128GB',
+        },
+        {
+          id: 'demo-bz-250526-1248',
+          productTitle: 'Ноутбук Lenovo IdeaPad Slim 5',
+          orderNumber: 'BZ-250526-1248',
+          dateTime: '29 травня 2026, 10:15',
+          status: 'shipped',
+          total: '31 999 грн',
+          quantity: '1 товар',
+          imageAlt: 'Ноутбук Lenovo IdeaPad Slim 5',
+        },
+        {
+          id: 'demo-bz-250526-1249',
+          productTitle: 'Навушники Sony WH-1000XM5',
+          orderNumber: 'BZ-250526-1249',
+          dateTime: '30 травня 2026, 18:05',
+          status: 'expected',
+          total: '14 499 грн',
+          quantity: '2 товари',
+          imageAlt: 'Навушники Sony WH-1000XM5',
+        },
+        {
+          id: 'demo-bz-250526-1250',
+          productTitle: 'Кавоварка DeLonghi Magnifica',
+          orderNumber: 'BZ-250526-1250',
+          dateTime: '31 травня 2026, 09:40',
+          status: 'returned',
+          total: '18 250 грн',
+          quantity: '1 товар',
+          imageAlt: 'Кавоварка DeLonghi Magnifica',
+        },
+        {
+          id: 'demo-bz-250526-1251',
+          productTitle: 'Смартгодинник Apple Watch Series 9',
+          orderNumber: 'BZ-250526-1251',
+          dateTime: '01 червня 2026, 12:20',
+          status: 'canceled',
+          total: '16 899 грн',
+          quantity: '1 товар',
+          imageAlt: 'Смартгодинник Apple Watch Series 9',
+        },
+        {
+          id: 'demo-bz-250526-1252',
+          productTitle: 'Планшет Samsung Galaxy Tab S9',
+          orderNumber: 'BZ-250526-1252',
+          dateTime: '02 червня 2026, 16:45',
+          status: 'delivered',
+          total: '27 499 грн',
+          quantity: '2 товари',
+          imageAlt: 'Планшет Samsung Galaxy Tab S9',
+        },
+        {
+          id: 'demo-bz-250526-1253',
+          productTitle: 'Пилосос Dyson V15 Detect',
+          orderNumber: 'BZ-250526-1253',
+          dateTime: '03 червня 2026, 11:10',
+          status: 'expected',
+          total: '24 999 грн',
+          quantity: '1 товар',
+          imageAlt: 'Пилосос Dyson V15 Detect',
+        },
+      ];
+    }
+
+    mapOrderForScreen(order) {
+      const firstProduct = order.products?.[0] || {};
+      const itemsCount = Number(order.itemsCount || firstProduct.quantity || 0);
+      const status = normalizeOrderStatus(order);
+
+      return {
+        id: order.id || order.name,
+        productTitle: firstProduct.title || order.name || `Замовлення ${order.orderNumber || ''}`,
+        orderNumber: order.name || `BZ-${order.orderNumber || ''}`,
+        dateTime: order.date || 'Дата уточнюється',
+        status,
+        total: order.total || '',
+        quantity: formatQuantityLabel(itemsCount),
+        image: firstProduct.image || '',
+        imageAlt: firstProduct.title || order.name || 'Товар BAZAR',
+        sourceOrder: order,
+      };
+    }
+
+    getScreenOrders() {
+      if (!this.orders.length) return this.getPlaceholderOrders();
+      return this.orders.map((order) => this.mapOrderForScreen(order));
+    }
+
+    listForOrdersScreen({ status = 'all', page = 1 } = {}) {
+      const orders = this.getScreenOrders();
+      const filtered = status === 'all' ? orders : orders.filter((order) => order.status === status);
+      const visibleCount = Math.max(1, page) * PAGE_SIZE;
+
+      return {
+        items: filtered.slice(0, visibleCount),
+        total: filtered.length,
+        page: Math.max(1, page),
+        hasMore: visibleCount < filtered.length,
+      };
     }
 
     list({ filter = 'all', search = '', sort = 'newest', page = 1 } = {}) {
@@ -160,7 +304,32 @@
     }
 
     get(id) {
-      return this.orders.find((order) => String(order.id) === String(id) || String(order.name) === String(id));
+      const order = this.orders.find((item) => String(item.id) === String(id) || String(item.name) === String(id));
+      if (order) return order;
+
+      const screenOrder = this.getPlaceholderOrders().find((item) => String(item.id) === String(id));
+      if (!screenOrder) return null;
+      const quantity = parseInt(screenOrder.quantity, 10) || 1;
+
+      return {
+        id: screenOrder.id,
+        name: screenOrder.orderNumber,
+        orderNumber: screenOrder.orderNumber,
+        date: screenOrder.dateTime,
+        financialStatus: 'Оплачено',
+        fulfillmentStatus: getOrderStatusLabel(screenOrder.status),
+        total: screenOrder.total,
+        totalValue: 0,
+        itemsCount: quantity,
+        products: [
+          {
+            title: screenOrder.productTitle,
+            quantity,
+            price: screenOrder.total,
+            image: '',
+          },
+        ],
+      };
     }
   }
 
@@ -768,44 +937,98 @@
     }
 
     renderOrders() {
-      const result = this.providers.orders.list({
-        filter: this.state.orderFilter,
-        search: this.state.orderSearch,
-        sort: this.state.orderSort,
+      const result = this.providers.orders.listForOrdersScreen({
+        status: this.state.orderFilter,
         page: this.state.orderPage,
       });
 
       return `
-        ${pageHead('Покупки', labels.orders, 'Фільтруйте, шукайте та відкривайте деталі кожного замовлення.')}
-        <section class="bazar-account-card">
-          <div class="bazar-account-toolbar">
-            <div class="bazar-account-filter-group" role="group" aria-label="Фільтр замовлень">
-              ${this.renderFilter('orderFilter', 'today', 'Сьогодні')}
-              ${this.renderFilter('orderFilter', '7', 'Останні 7 днів')}
-              ${this.renderFilter('orderFilter', '30', 'Останні 30 днів')}
-              ${this.renderFilter('orderFilter', 'year', 'Цей рік')}
-              ${this.renderFilter('orderFilter', 'all', 'Усі')}
-            </div>
-            <label class="bazar-account-field">
-              <span>Пошук замовлень</span>
-              <input type="search" value="${escapeHtml(this.state.orderSearch)}" data-account-state="orderSearch" placeholder="Номер або сума">
-            </label>
-            <label class="bazar-account-field">
-              <span>Сортування</span>
-              <select data-account-state="orderSort">
-                ${this.option('newest', 'Новіші спочатку', this.state.orderSort)}
-                ${this.option('oldest', 'Старіші спочатку', this.state.orderSort)}
-                ${this.option('highest', 'Найвища сума', this.state.orderSort)}
-                ${this.option('lowest', 'Найнижча сума', this.state.orderSort)}
-              </select>
-            </label>
-          </div>
+        <section class="bazar-account-orders-screen" aria-labelledby="BazarAccountOrdersTitle">
+          <header class="bazar-account-orders-screen__head">
+            <h2 id="BazarAccountOrdersTitle">Мої замовлення</h2>
+          </header>
+          ${this.renderOrderStatusTabs()}
           ${
             result.items.length
-              ? `<div class="bazar-account-list">${result.items.map((order) => this.renderOrderCard(order)).join('')}</div>${this.renderPagination(result)}`
-              : emptyState('orders', 'Замовлень не знайдено', 'Спробуйте змінити фільтр або пошуковий запит.')
+              ? `<div class="bazar-account-orders-list">${result.items.map((order) => this.renderOrderScreenRow(order)).join('')}</div>`
+              : emptyState('orders', 'Замовлень у цьому статусі поки немає', 'Коли статус замовлення зміниться, воно зʼявиться в цьому розділі.')
           }
+          ${result.hasMore ? `<button class="bazar-account-orders-more" type="button" data-account-action="order-page" data-page="${result.page + 1}">Показати ще</button>` : ''}
         </section>
+      `;
+    }
+
+    renderOrderStatusTabs() {
+      return `
+        <div class="bazar-account-order-tabs" role="tablist" aria-label="Статуси замовлень">
+          ${ORDER_STATUS_TABS.map(([value, label]) => {
+            const active = this.state.orderFilter === value;
+
+            return `
+              <button
+                class="bazar-account-order-tab ${active ? 'is-active' : ''}"
+                type="button"
+                role="tab"
+                aria-selected="${active ? 'true' : 'false'}"
+                data-account-state="orderFilter"
+                value="${escapeHtml(value)}"
+              >
+                ${escapeHtml(label)}
+              </button>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    renderOrderScreenRow(order) {
+      const detailRoute = `/profile/orders/${encodeURIComponent(order.id || order.orderNumber)}`;
+      const statusLabel = getOrderStatusLabel(order.status);
+
+      return `
+        <article class="bazar-account-order-row">
+          <div class="bazar-account-order-row__product">
+            ${this.renderOrderScreenImage(order)}
+            <div class="bazar-account-order-row__info">
+              <h3>${escapeHtml(order.productTitle || 'Товар BAZAR')}</h3>
+              <p>${escapeHtml(order.orderNumber || '')}</p>
+              <p>${escapeHtml(order.dateTime || '')}</p>
+            </div>
+          </div>
+          <div class="bazar-account-order-row__status">
+            <span class="bazar-account-order-status bazar-account-order-status--${escapeHtml(order.status || 'expected')}">${escapeHtml(statusLabel)}</span>
+          </div>
+          <div class="bazar-account-order-row__summary">
+            <strong>${escapeHtml(order.total || '')}</strong>
+            <span>${escapeHtml(order.quantity || '')}</span>
+          </div>
+          <a class="bazar-account-order-row__details" href="${detailRoute}" data-account-route="${detailRoute}">
+            Деталі
+            <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+              <path d="m9 6 6 6-6 6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+            </svg>
+          </a>
+        </article>
+      `;
+    }
+
+    renderOrderScreenImage(order) {
+      if (order.image) {
+        return `
+          <span class="bazar-account-order-row__image">
+            <img src="${escapeHtml(order.image)}" alt="${escapeHtml(order.imageAlt || order.productTitle || 'Товар')}" loading="lazy">
+          </span>
+        `;
+      }
+
+      return `
+        <span class="bazar-account-order-row__image bazar-account-order-row__image--fallback" aria-hidden="true">
+          <svg viewBox="0 0 64 64" focusable="false">
+            <rect x="18" y="8" width="28" height="48" rx="7" fill="#ffffff" stroke="#2962ff" stroke-width="3"/>
+            <rect x="23" y="15" width="18" height="30" rx="3" fill="#edf3ff"/>
+            <circle cx="32" cy="50" r="2.5" fill="#2962ff"/>
+          </svg>
+        </span>
       `;
     }
 

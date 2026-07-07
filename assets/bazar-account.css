@@ -430,6 +430,231 @@
   color: #fff;
 }
 
+.bazar-account-orders-screen {
+  display: grid;
+  gap: 16px;
+}
+
+.bazar-account-orders-screen__head {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.bazar-account-orders-screen__head h2 {
+  color: var(--account-ink);
+  font-size: 32px;
+  font-weight: 850;
+  line-height: 1.12;
+  margin: 0;
+}
+
+.bazar-account-order-tabs {
+  align-items: center;
+  border-bottom: 1px solid var(--account-border);
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.bazar-account-order-tab {
+  background: transparent;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  color: var(--account-muted);
+  cursor: pointer;
+  flex: 0 0 auto;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  min-height: 44px;
+  padding: 0 0 12px;
+  transition: border-color 180ms ease, color 180ms ease;
+}
+
+.bazar-account-order-tab:hover,
+.bazar-account-order-tab:focus-visible {
+  color: var(--account-blue);
+  outline: none;
+}
+
+.bazar-account-order-tab.is-active {
+  border-color: var(--account-blue);
+  color: var(--account-blue);
+}
+
+.bazar-account-orders-list {
+  display: grid;
+  gap: 10px;
+}
+
+.bazar-account-order-row {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--account-border);
+  border-radius: 16px;
+  box-shadow: 0 10px 24px rgba(6, 19, 52, 0.04);
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(300px, 1fr) 140px 130px 96px;
+  min-height: 92px;
+  padding: 14px 16px;
+}
+
+.bazar-account-order-row__product {
+  align-items: center;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 64px minmax(0, 1fr);
+  min-width: 0;
+}
+
+.bazar-account-order-row__image {
+  align-items: center;
+  background: #f7f9fd;
+  border: 1px solid var(--account-border);
+  border-radius: 14px;
+  display: flex;
+  height: 64px;
+  justify-content: center;
+  overflow: hidden;
+  width: 64px;
+}
+
+.bazar-account-order-row__image img {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.bazar-account-order-row__image svg {
+  height: 52px;
+  width: 52px;
+}
+
+.bazar-account-order-row__image--fallback {
+  background: linear-gradient(145deg, #ffffff 0%, #eef4ff 100%);
+}
+
+.bazar-account-order-row__info {
+  min-width: 0;
+}
+
+.bazar-account-order-row__info h3 {
+  color: var(--account-ink);
+  font-size: 15px;
+  font-weight: 850;
+  line-height: 1.3;
+  margin: 0 0 5px;
+  overflow-wrap: anywhere;
+}
+
+.bazar-account-order-row__info p {
+  color: var(--account-muted);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.bazar-account-order-row__status {
+  justify-self: start;
+}
+
+.bazar-account-order-status {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 850;
+  min-height: 30px;
+  padding: 0 12px;
+  white-space: nowrap;
+}
+
+.bazar-account-order-status--expected {
+  background: var(--account-blue-soft);
+  color: var(--account-blue-dark);
+}
+
+.bazar-account-order-status--shipped {
+  background: #fff3df;
+  color: #a96800;
+}
+
+.bazar-account-order-status--delivered {
+  background: #e8f8f1;
+  color: var(--account-green);
+}
+
+.bazar-account-order-status--canceled {
+  background: #fff1f1;
+  color: var(--account-red);
+}
+
+.bazar-account-order-status--returned {
+  background: #f1efff;
+  color: #5b4ab5;
+}
+
+.bazar-account-order-row__summary {
+  display: grid;
+  gap: 4px;
+  justify-items: end;
+  text-align: right;
+}
+
+.bazar-account-order-row__summary strong {
+  color: var(--account-ink);
+  font-size: 15px;
+  font-weight: 850;
+  line-height: 1.25;
+}
+
+.bazar-account-order-row__summary span {
+  color: var(--account-muted);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.bazar-account-order-row__details {
+  align-items: center;
+  color: var(--account-blue);
+  display: inline-flex;
+  font-size: 14px;
+  font-weight: 850;
+  gap: 4px;
+  justify-content: flex-end;
+  text-decoration: none;
+}
+
+.bazar-account-order-row__details svg {
+  height: 16px;
+  width: 16px;
+}
+
+.bazar-account-order-row__details:hover,
+.bazar-account-order-row__details:focus-visible {
+  color: var(--account-blue-dark);
+  outline: none;
+}
+
+.bazar-account-orders-more {
+  align-self: center;
+  background: #fff;
+  border: 1px solid var(--account-border);
+  border-radius: 14px;
+  color: var(--account-blue);
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 850;
+  justify-self: center;
+  min-height: 44px;
+  padding: 0 22px;
+}
+
 .bazar-account-field {
   display: grid;
   gap: 7px;
@@ -800,6 +1025,10 @@
   .bazar-account-detail-grid {
     grid-template-columns: 1fr;
   }
+
+  .bazar-account-order-row {
+    grid-template-columns: minmax(260px, 1fr) 126px 118px 84px;
+  }
 }
 
 @media (max-width: 920px) {
@@ -852,6 +1081,29 @@
   .bazar-account-support-grid {
     grid-template-columns: 1fr;
   }
+
+  .bazar-account-orders-screen__head h2 {
+    font-size: 28px;
+  }
+
+  .bazar-account-order-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .bazar-account-order-row__status {
+    grid-column: 1;
+    justify-self: start;
+  }
+
+  .bazar-account-order-row__summary {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .bazar-account-order-row__details {
+    grid-column: 2;
+    justify-self: end;
+  }
 }
 
 @media (max-width: 640px) {
@@ -876,6 +1128,34 @@
   .bazar-account-row-card,
   .bazar-account-product-row {
     grid-template-columns: 1fr;
+  }
+
+  .bazar-account-order-tabs {
+    gap: 18px;
+  }
+
+  .bazar-account-order-row {
+    align-items: start;
+    gap: 12px;
+    grid-template-columns: 1fr;
+    padding: 14px;
+  }
+
+  .bazar-account-order-row__product {
+    gap: 12px;
+  }
+
+  .bazar-account-order-row__status,
+  .bazar-account-order-row__summary,
+  .bazar-account-order-row__details {
+    grid-column: auto;
+    grid-row: auto;
+    justify-self: start;
+    text-align: left;
+  }
+
+  .bazar-account-order-row__summary {
+    justify-items: start;
   }
 
   .bazar-account-order-card__total {
