@@ -26,6 +26,12 @@
           assign category_title = category_parts[0] | strip
           assign subcategories_data = category_parts[1] | strip
           assign subcategories = subcategories_data | split: '|'
+          assign subcategory_count = subcategories.size
+          assign subcategory_panel_class = ''
+
+          if subcategory_count > 10
+            assign subcategory_panel_class = ' bazar-collections-index__subcategories--three-columns'
+          endif
         %}
         <li class="bazar-collections-index__item" data-category-title="{{ category_title | escape }}">
           <a
@@ -41,8 +47,9 @@
           {% if subcategories_data != blank %}
             <div
               id="BazarCollectionsSubcategories-{{ section.id }}-{{ forloop.index }}"
-              class="bazar-collections-index__subcategories"
+              class="bazar-collections-index__subcategories{{ subcategory_panel_class }}"
               aria-label="Підкатегорії {{ category_title | escape }}"
+              data-subcategory-count="{{ subcategory_count }}"
             >
               <ul class="bazar-collections-index__subcategory-list" role="list">
                 {% assign category_index = forloop.index %}

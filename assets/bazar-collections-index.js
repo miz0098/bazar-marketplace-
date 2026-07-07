@@ -108,12 +108,15 @@ const positionPanel = (item) => {
 
   if (!card || !panel) return;
 
+  panel.style.removeProperty('--bazar-collections-panel-width');
+
   const cardRect = card.getBoundingClientRect();
   const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
   const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
   const maxPanelWidth = Math.max(260, viewportWidth - viewportPadding * 2);
   const panelWidth = Math.min(panel.offsetWidth || 520, maxPanelWidth);
-  const panelHeight = Math.min(panel.offsetHeight || panel.scrollHeight || 360, viewportHeight - viewportPadding * 2);
+  const measuredPanelHeight = Math.max(panel.scrollHeight || 0, panel.offsetHeight || 0, 240);
+  const panelHeight = Math.min(measuredPanelHeight, viewportHeight - viewportPadding * 2);
   const rightLeft = cardRect.right + panelGap;
   const leftLeft = cardRect.left - panelGap - panelWidth;
   const rightFits = rightLeft + panelWidth <= viewportWidth - viewportPadding;
@@ -200,6 +203,9 @@ const getWheelDeltaY = (event, scrollContainer) => {
 
 const scrollPanelByDelta = (panel, deltaY) => {
   if (!panel || panel.scrollHeight <= panel.clientHeight) return;
+
+  const overflowY = window.getComputedStyle(panel).overflowY;
+  if (overflowY !== 'auto' && overflowY !== 'scroll') return;
 
   panel.scrollTop += deltaY;
 };
