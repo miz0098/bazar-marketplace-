@@ -1186,13 +1186,16 @@
 
       event.preventDefault();
 
+      const contentRect = this.content?.getBoundingClientRect() || { left: 0, top: 0 };
       const maxLeft = Math.max(12, window.innerWidth - MESSAGE_CONTEXT_MENU_WIDTH - 12);
       const maxTop = Math.max(12, window.innerHeight - MESSAGE_CONTEXT_MENU_HEIGHT - 12);
+      const left = Math.min(Math.max(12, event.clientX), maxLeft);
+      const top = Math.min(Math.max(12, event.clientY), maxTop);
 
       this.state.messageContextMenu = {
         chatId: chatItem.dataset.accountChatId || '',
-        x: Math.min(Math.max(12, event.clientX), maxLeft),
-        y: Math.min(Math.max(12, event.clientY), maxTop),
+        x: left - contentRect.left,
+        y: top - contentRect.top,
       };
       this.render(false, false);
     }
@@ -1610,10 +1613,7 @@
       });
 
       return `
-        <section class="bazar-account-orders-screen" aria-labelledby="BazarAccountOrdersTitle">
-          <header class="bazar-account-orders-screen__head">
-            <h2 id="BazarAccountOrdersTitle">Мої замовлення</h2>
-          </header>
+        <section class="bazar-account-orders-screen" aria-label="Мої замовлення">
           ${this.renderOrderStatusTabs()}
           ${
             result.items.length
@@ -1933,10 +1933,7 @@
       const hasMore = visibleItems.length < items.length;
 
       return `
-        <section class="bazar-account-wishlist-screen" aria-labelledby="BazarAccountWishlistTitle">
-          <header class="bazar-account-wishlist-screen__head">
-            <h2 id="BazarAccountWishlistTitle">Обране</h2>
-          </header>
+        <section class="bazar-account-wishlist-screen" aria-label="Обране">
           ${items.length ? this.renderWishlistGrid(visibleItems, hasMore) : this.renderWishlistEmpty()}
         </section>
       `;
@@ -1947,10 +1944,7 @@
       const selectedChat = this.state.selectedChatId ? this.providers.chats.get(this.state.selectedChatId) : null;
 
       return `
-        <section class="bazar-account-messages-screen${selectedChat ? ' is-conversation-open' : ''}" aria-labelledby="BazarAccountMessagesTitle">
-          <header class="bazar-account-messages-screen__head">
-            <h2 id="BazarAccountMessagesTitle">Повідомлення</h2>
-          </header>
+        <section class="bazar-account-messages-screen${selectedChat ? ' is-conversation-open' : ''}" aria-label="Повідомлення">
           ${
             chats.length
               ? `
@@ -1958,7 +1952,6 @@
                   <aside class="bazar-account-chat-list" aria-label="Список чатів">
                     <div class="bazar-account-chat-list__head">
                       <h3>Чати</h3>
-                      <span>${this.providers.chats.unreadCount()} непрочитаних</span>
                     </div>
                     <div class="bazar-account-chat-list__items">
                       ${chats.map((chat) => this.renderChatItem(chat, selectedChat?.id)).join('')}
