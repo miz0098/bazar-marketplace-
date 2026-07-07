@@ -292,8 +292,7 @@
 .bazar-account-card,
 .bazar-account-panel,
 .bazar-account-empty,
-.bazar-account-error,
-.bazar-account-guest {
+.bazar-account-error {
   background: var(--account-surface);
   border: 1px solid var(--account-border);
   border-radius: var(--account-radius);
@@ -849,8 +848,7 @@
 }
 
 .bazar-account-empty,
-.bazar-account-error,
-.bazar-account-guest {
+.bazar-account-error {
   align-items: center;
   display: grid;
   justify-items: center;
@@ -858,38 +856,23 @@
   text-align: center;
 }
 
-.bazar-account-empty__icon,
-.bazar-account-guest__icon {
+.bazar-account-empty__icon {
   height: 64px;
   margin-bottom: 14px;
   width: 64px;
 }
 
 .bazar-account-empty h2,
-.bazar-account-error h2,
-.bazar-account-guest h1 {
+.bazar-account-error h2 {
   font-size: 24px;
   font-weight: 850;
   margin: 0 0 8px;
 }
 
 .bazar-account-empty p,
-.bazar-account-error p,
-.bazar-account-guest p {
+.bazar-account-error p {
   color: var(--account-muted);
   margin: 0 0 18px;
-}
-
-.bazar-account-guest {
-  margin: 0 auto;
-  max-width: 520px;
-}
-
-.bazar-account-guest__eyebrow {
-  color: var(--account-blue) !important;
-  font-size: 13px;
-  font-weight: 850;
-  text-transform: uppercase;
 }
 
 .bazar-account-loading {

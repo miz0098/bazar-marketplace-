@@ -586,7 +586,6 @@
     constructor(root) {
       this.root = root;
       this.shell = root.querySelector('[data-account-shell]');
-      this.guest = root.querySelector('[data-account-guest]');
       this.content = root.querySelector('[data-account-content]');
       this.sidebar = root.querySelector('[data-account-sidebar]');
       this.sidebarToggle = root.querySelector('[data-account-sidebar-open]');
@@ -629,7 +628,7 @@
         return;
       }
 
-      this.render(true);
+      this.render(false);
     }
 
     bindEvents() {
@@ -648,7 +647,6 @@
 
     syncVisibility() {
       if (this.shell) this.shell.hidden = !this.isAuthenticated;
-      if (this.guest) this.guest.hidden = this.isAuthenticated;
       if (this.sidebarToggle) this.sidebarToggle.hidden = !this.isAuthenticated;
 
       if (this.isAuthenticated) {

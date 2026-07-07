@@ -61,33 +61,6 @@
 
     <div class="bazar-account-drawer-backdrop" data-account-sidebar-backdrop data-account-sidebar-close hidden></div>
 
-    <div
-      class="bazar-account-guest"
-      aria-labelledby="{{ account_title_id }}"
-      data-account-guest
-      {% if customer %}
-        hidden
-      {% endif %}
-    >
-      <span class="bazar-account-guest__icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" focusable="false">
-          <path d="M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" fill="none" stroke="currentColor" stroke-width="1.8"/>
-          <path d="M4.5 21a7.5 7.5 0 0 1 15 0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/>
-        </svg>
-      </span>
-      <p class="bazar-account-guest__eyebrow">Потрібен вхід</p>
-      <h1 id="{{ account_title_id }}">Увійдіть до акаунта</h1>
-      <p>Особистий кабінет BAZAR доступний після входу.</p>
-      <button
-        class="bazar-account-button bazar-account-button--primary"
-        type="button"
-        data-bazar-auth-open
-        data-bazar-account-url="/profile"
-      >
-        Увійти
-      </button>
-    </div>
-
     <span
       data-bazar-auth-auto-open="BazarHeaderAuthModal"
       hidden
