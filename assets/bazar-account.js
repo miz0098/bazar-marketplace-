@@ -342,6 +342,7 @@
       truck: '<path d="M3 6h11v9H3V6ZM14 10h4l3 3v2h-7v-5Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/><circle cx="7" cy="18" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17" cy="18" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/>',
       receipt: '<path d="M6 3h12v18l-2-1.2-2 1.2-2-1.2-2 1.2-2-1.2L6 21V3Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/><path d="M9 8h6M9 12h6M9 16h4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/>',
       heart: '<path d="M20.2 5.1a5.4 5.4 0 0 0-7.6 0l-.6.6-.6-.6a5.4 5.4 0 0 0-7.6 7.6L12 20.9l8.2-8.2a5.4 5.4 0 0 0 0-7.6Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/>',
+      heartFilled: '<path d="M20.2 5.1a5.4 5.4 0 0 0-7.6 0l-.6.6-.6-.6a5.4 5.4 0 0 0-7.6 7.6L12 20.9l8.2-8.2a5.4 5.4 0 0 0 0-7.6Z" fill="currentColor"/>',
       box: '<path d="m4 7 8-4 8 4-8 4-8-4Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/><path d="M4 7v10l8 4 8-4V7M12 11v10" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/>',
       search: '<circle cx="11" cy="11" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/>',
       trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V4h6v3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/>',
@@ -425,6 +426,29 @@
   const getMoneyValue = (label = '') => {
     const normalized = String(label).replace(/\s/g, '').replace(/[^\d.,]/g, '').replace(',', '.');
     return Number.parseFloat(normalized) || 0;
+  };
+
+  const getWishlistVariantId = (item = {}) => {
+    const variantId = item.variantId || item.variant_id || item.selectedVariantId || item.variant?.id || '';
+    if (variantId) return variantId;
+
+    return /^\d+$/.test(String(item.id || '')) ? item.id : '';
+  };
+
+  const getWishlistProductHandle = (item = {}) => {
+    if (item.productHandle) return item.productHandle;
+
+    const rawUrl = String(item.url || item.productUrl || '');
+    const match = rawUrl.match(/\/products\/([^/?#]+)/);
+    if (match?.[1]) return match[1];
+
+    return '';
+  };
+
+  const normalizeCartVariantId = (variantId = '') => {
+    const raw = String(variantId || '').trim();
+    const match = raw.match(/(\d+)$/);
+    return match?.[1] || '';
   };
 
   const divideMoneyLabel = (label = '', quantity = 1) => {
@@ -736,16 +760,14 @@
   class WishlistProvider {
     constructor(data) {
       // TODO: Replace Shopify implementation with api.bazar.
-      this.items = data.wishlist || [];
       // TODO: replace placeholder wishlist with api.bazar wishlist endpoint.
-      this.previewItems = WISHLIST_PREVIEW_ITEMS;
+      this.items = data.wishlist?.length ? data.wishlist : WISHLIST_PREVIEW_ITEMS.map((item) => ({ ...item }));
     }
 
     list({ search = '', sort = 'newest' } = {}) {
       const query = search.trim().toLowerCase();
-      const source = this.items.length ? this.items : this.previewItems;
 
-      return [...source]
+      return [...this.items]
         .filter((item) => !query || `${item.title || ''} ${item.vendor || ''}`.toLowerCase().includes(query))
         .sort((a, b) => {
           if (sort === 'price-high') return Number(b.priceValue || 0) - Number(a.priceValue || 0);
@@ -754,8 +776,12 @@
         });
     }
 
+    get(id) {
+      return this.items.find((item) => String(item.id || item.handle || '') === String(id));
+    }
+
     remove(id) {
-      this.items = this.items.filter((item) => String(item.id) !== String(id));
+      this.items = this.items.filter((item) => String(item.id || item.handle || '') !== String(id));
     }
 
     bulkRemove(ids) {
@@ -1189,8 +1215,7 @@
       }
 
       if (action === 'wishlist-remove') {
-        this.providers.wishlist.remove(element.dataset.id);
-        this.render(false, false);
+        this.removeWishlistItem(element.dataset.id, element);
       }
 
       if (action === 'wishlist-bulk-remove') {
@@ -1202,6 +1227,10 @@
       if (action === 'wishlist-show-more') {
         this.state.wishlistVisibleCount += WISHLIST_PAGE_SIZE;
         this.render(false, false);
+      }
+
+      if (action === 'wishlist-add-cart') {
+        this.addWishlistItemToCart(element.dataset.id, element);
       }
 
       if (action === 'review-delete') {
@@ -1223,6 +1252,133 @@
         this.state.supportView = element.dataset.view || 'tickets';
         this.render(false, false);
       }
+    }
+
+    removeWishlistItem(id, element) {
+      const card = element.closest('[data-wishlist-card]');
+      element.setAttribute('aria-pressed', 'false');
+      element.innerHTML = icon('heart');
+
+      const finish = () => {
+        this.providers.wishlist.remove(id);
+        this.state.selectedWishlist = this.state.selectedWishlist.filter((item) => item !== String(id));
+        this.render(false, false);
+      };
+
+      if (!card) {
+        finish();
+        return;
+      }
+
+      card.classList.add('is-removing');
+      card.addEventListener('animationend', finish, { once: true });
+      window.setTimeout(() => {
+        if (card.isConnected) finish();
+      }, 260);
+    }
+
+    async addWishlistItemToCart(id, button) {
+      const item = this.providers.wishlist.get(id);
+      const variantId = normalizeCartVariantId(getWishlistVariantId(item) || (await this.fetchWishlistVariantId(item)));
+
+      if (!variantId) {
+        this.showWishlistFeedback('Товар тимчасово недоступний для кошика', 'error');
+        return;
+      }
+
+      button.classList.add('is-loading');
+      button.disabled = true;
+
+      try {
+        const addResponse = await fetch(window.Theme?.routes?.cart_add_url || '/cart/add.js', {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            id: Number(variantId),
+            quantity: 1,
+          }),
+        });
+
+        if (!addResponse.ok) throw new Error('Cart add failed');
+        await addResponse.json();
+
+        const cartResponse = await fetch('/cart.js', {
+          headers: {
+            Accept: 'application/json',
+          },
+        });
+        const cart = cartResponse.ok ? await cartResponse.json() : null;
+        const itemCount = Number(cart?.item_count || cart?.totalQuantity || 0);
+
+        this.updateHeaderCartCount(itemCount);
+        this.showWishlistFeedback('Товар додано в кошик', 'success');
+      } catch (_error) {
+        this.showWishlistFeedback('Не вдалося додати товар у кошик', 'error');
+      } finally {
+        button.disabled = false;
+        button.classList.remove('is-loading');
+      }
+    }
+
+    async fetchWishlistVariantId(item) {
+      const handle = getWishlistProductHandle(item);
+      if (!handle) return '';
+
+      try {
+        const response = await fetch(`/products/${encodeURIComponent(handle)}.js`, {
+          headers: {
+            Accept: 'application/json',
+          },
+        });
+        if (!response.ok) return '';
+
+        const product = await response.json();
+        const variant = product.variants?.find((candidate) => candidate.available) || product.variants?.[0];
+        return variant?.id || '';
+      } catch (_error) {
+        return '';
+      }
+    }
+
+    updateHeaderCartCount(itemCount) {
+      document.querySelectorAll('.bazar-header-action--cart').forEach((cartAction) => {
+        let badge = cartAction.querySelector('.bazar-header-action__badge');
+
+        if (itemCount > 0 && !badge) {
+          badge = document.createElement('span');
+          badge.className = 'bazar-header-action__badge';
+          cartAction.appendChild(badge);
+        }
+
+        if (badge) {
+          badge.textContent = String(itemCount);
+          badge.hidden = itemCount <= 0;
+        }
+
+        cartAction.setAttribute('aria-label', itemCount > 0 ? `Кошик: ${itemCount}` : 'Кошик');
+      });
+
+      const cartIcon = document.querySelector('cart-icon');
+      if (typeof cartIcon?.renderCartBubble === 'function') cartIcon.renderCartBubble(itemCount);
+    }
+
+    showWishlistFeedback(message, type = 'success') {
+      const feedback = this.content.querySelector('[data-wishlist-feedback]');
+      if (!feedback) return;
+
+      feedback.textContent = message;
+      feedback.hidden = false;
+      feedback.classList.toggle('is-error', type === 'error');
+      feedback.classList.toggle('is-success', type !== 'error');
+
+      window.clearTimeout(this.wishlistFeedbackTimer);
+      this.wishlistFeedbackTimer = window.setTimeout(() => {
+        feedback.hidden = true;
+        feedback.textContent = '';
+      }, 2600);
     }
 
     navigate(route) {
@@ -1688,6 +1844,7 @@
           <header class="bazar-account-wishlist-screen__head">
             <h2 id="BazarAccountWishlistTitle">Обране</h2>
           </header>
+          <p class="bazar-account-wishlist-feedback" data-wishlist-feedback role="status" aria-live="polite" hidden></p>
           ${items.length ? this.renderWishlistGrid(visibleItems, hasMore) : this.renderWishlistEmpty()}
         </section>
       `;
@@ -1963,20 +2120,37 @@
     }
 
     renderWishlistCard(item) {
+      const id = String(item.id || item.handle || '');
       const title = item.title || 'Товар';
       const price = item.price || (item.priceValue ? formatMoneyLabel(item.priceValue) : '');
 
       return `
-        <article class="bazar-account-wishlist-card">
+        <article class="bazar-account-wishlist-card is-in-wishlist" data-wishlist-card>
           <div class="bazar-account-wishlist-card__media">
             ${this.renderWishlistVisual(item, title)}
-            <button class="bazar-account-wishlist-card__heart" type="button" aria-label="Товар в обраному">${icon('heart')}</button>
+            <button
+              class="bazar-account-wishlist-card__heart"
+              type="button"
+              data-account-action="wishlist-remove"
+              data-id="${escapeHtml(id)}"
+              aria-label="Прибрати з обраного"
+              aria-pressed="true"
+            >
+              ${icon('heartFilled')}
+            </button>
           </div>
           <div class="bazar-account-wishlist-card__body">
             <h3>${escapeHtml(title)}</h3>
             <p>${escapeHtml(price)}</p>
           </div>
-          <button class="bazar-account-button bazar-account-button--primary bazar-account-wishlist-card__button" type="button">${icon('cart')}У кошик</button>
+          <button
+            class="bazar-account-button bazar-account-button--primary bazar-account-wishlist-card__button"
+            type="button"
+            data-account-action="wishlist-add-cart"
+            data-id="${escapeHtml(id)}"
+          >
+            ${icon('cart')}У кошик
+          </button>
         </article>
       `;
     }
