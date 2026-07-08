@@ -1368,6 +1368,10 @@ html.bazar-account-messages-scroll-lock body {
   z-index: 12;
 }
 
+.bazar-account-attachment-menu[hidden] {
+  display: none;
+}
+
 .bazar-account-attachment-menu button {
   background: transparent;
   border: 0;

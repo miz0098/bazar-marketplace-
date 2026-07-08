@@ -1264,6 +1264,8 @@
       this.root.addEventListener('change', (event) => this.handleChange(event));
       this.root.addEventListener('submit', (event) => this.handleSubmit(event));
       this.root.addEventListener('keydown', (event) => this.handleKeyDown(event));
+      this.root.addEventListener('pointerdown', (event) => this.handleAttachmentPress(event));
+      this.root.addEventListener('mousedown', (event) => this.handleAttachmentPress(event));
       this.root.addEventListener('contextmenu', (event) => this.handleContextMenu(event));
       this.root.addEventListener('dragenter', (event) => this.handleMessageDrag(event));
       this.root.addEventListener('dragover', (event) => this.handleMessageDrag(event));
@@ -1365,11 +1367,9 @@
       if (attachmentToggle && this.root.contains(attachmentToggle)) {
         event.preventDefault();
         event.stopPropagation();
-        this.state.attachmentMenuChatId =
-          this.state.attachmentMenuChatId === this.state.selectedChatId ? '' : this.state.selectedChatId;
+        this.toggleAttachmentMenu(attachmentToggle);
         this.state.messageContextMenu = null;
         this.state.messageBubbleContextMenu = null;
-        this.renderKeepingMessageScroll();
         return;
       }
 
@@ -1527,6 +1527,14 @@
       this.state[input.dataset.accountState] = input.value;
       if (input.dataset.accountState === 'orderSearch') this.state.orderPage = 1;
       this.render(false, false, input.dataset.accountState);
+    }
+
+    handleAttachmentPress(event) {
+      const attachmentControl = event.target.closest('[data-account-attachment-toggle], [data-account-attachment-action]');
+      if (!attachmentControl || !this.root.contains(attachmentControl)) return;
+
+      event.preventDefault();
+      event.stopPropagation();
     }
 
     handleKeyDown(event) {
@@ -1732,7 +1740,28 @@
 
     closeAttachmentMenu() {
       this.state.attachmentMenuChatId = '';
-      this.renderKeepingMessageScroll();
+      const menu = this.content?.querySelector('[data-account-attachment-menu]');
+      const toggle = this.content?.querySelector('[data-account-attachment-toggle]');
+      if (menu) menu.hidden = true;
+      if (toggle) toggle.setAttribute('aria-expanded', 'false');
+    }
+
+    toggleAttachmentMenu(toggle) {
+      const history = this.content?.querySelector('[data-account-message-history]');
+      const savedScrollTop = history?.scrollTop || 0;
+      const attachment = toggle.closest('.bazar-account-attachment');
+      const menu = attachment?.querySelector('[data-account-attachment-menu]');
+      if (!menu) return;
+
+      const willOpen = menu.hidden;
+      menu.hidden = !willOpen;
+      toggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+      this.state.attachmentMenuChatId = willOpen ? this.state.selectedChatId : '';
+
+      if (history) history.scrollTop = savedScrollTop;
+      requestAnimationFrame(() => {
+        if (history) history.scrollTop = savedScrollTop;
+      });
     }
 
     addPendingAttachments(files = [], source = 'file') {
@@ -2779,11 +2808,11 @@
     }
 
     renderAttachmentMenu(chat) {
-      if (this.state.attachmentMenuChatId !== chat.id) return '';
-
       // TODO: connect attachments to api.bazar message upload endpoint.
+      const isOpen = this.state.attachmentMenuChatId === chat.id;
+
       return `
-        <div class="bazar-account-attachment-menu" data-account-attachment-menu role="menu" aria-label="Додати вкладення">
+        <div class="bazar-account-attachment-menu" data-account-attachment-menu role="menu" aria-label="Додати вкладення"${isOpen ? '' : ' hidden'}>
           <button type="button" role="menuitem" data-account-attachment-action="media">Фото та відео</button>
           <button type="button" role="menuitem" data-account-attachment-action="file">Файл</button>
         </div>
