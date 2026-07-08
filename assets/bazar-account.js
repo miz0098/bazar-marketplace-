@@ -2869,10 +2869,6 @@
             ${icon('pin')}
             ${chat.pinned ? 'Відкріпити чат' : 'Закріпити чат'}
           </button>
-          <button type="button" role="menuitem" data-account-message-menu-action="read" data-chat-id="${escapeHtml(chat.id)}">
-            ${icon('check')}
-            Позначити як прочитане
-          </button>
           <button class="is-danger" type="button" role="menuitem" data-account-message-menu-action="delete" data-chat-id="${escapeHtml(chat.id)}">
             ${icon('trash')}
             Видалити чат

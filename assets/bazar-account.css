@@ -986,10 +986,10 @@ html.bazar-account-messages-scroll-lock body {
   cursor: pointer;
   display: grid;
   font: inherit;
-  gap: 8px;
-  grid-template-columns: 30px minmax(0, 1fr) auto;
-  min-height: 38px;
-  padding: 3px 6px;
+  gap: 12px;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  min-height: 92px;
+  padding: 14px 12px;
   text-align: left;
   transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
   width: 100%;
@@ -1014,15 +1014,15 @@ html.bazar-account-messages-scroll-lock body {
   border-radius: 16px;
   color: var(--account-blue);
   display: inline-flex;
-  height: 30px;
+  height: 52px;
   justify-content: center;
   position: relative;
-  width: 30px;
+  width: 52px;
 }
 
 .bazar-account-chat-avatar svg {
-  height: 16px;
-  width: 16px;
+  height: 26px;
+  width: 26px;
 }
 
 .bazar-account-chat-avatar--seller {
@@ -1051,21 +1051,21 @@ html.bazar-account-messages-scroll-lock body {
   bottom: -4px;
   color: #fff;
   display: inline-flex;
-  height: 16px;
+  height: 20px;
   justify-content: center;
   position: absolute;
-  right: -4px;
-  width: 16px;
+  right: -5px;
+  width: 20px;
 }
 
 .bazar-account-chat-avatar__pin svg {
-  height: 9px;
-  width: 9px;
+  height: 11px;
+  width: 11px;
 }
 
 .bazar-account-chat-item__content {
   display: grid;
-  gap: 1px;
+  gap: 5px;
   min-width: 0;
 }
 
@@ -1078,29 +1078,29 @@ html.bazar-account-messages-scroll-lock body {
 
 .bazar-account-chat-item__title {
   color: var(--account-ink);
-  font-size: 13px;
-  font-weight: 850;
-  line-height: 1.12;
+  font-size: 17px;
+  font-weight: 760;
+  line-height: 1.2;
 }
 
 .bazar-account-chat-item__preview {
   color: var(--account-muted);
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 650;
-  line-height: 1.15;
+  line-height: 1.3;
 }
 
 .bazar-account-chat-item__meta {
   align-items: end;
   align-self: stretch;
   display: grid;
-  gap: 3px;
+  gap: 6px;
   justify-items: end;
 }
 
 .bazar-account-chat-item__time {
   color: var(--account-muted);
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 750;
   white-space: nowrap;
 }
@@ -2668,17 +2668,6 @@ html.bazar-account-messages-scroll-lock body {
 
   .bazar-account-chat-list__head {
     padding: 12px;
-  }
-
-  .bazar-account-chat-item {
-    grid-template-columns: 30px minmax(0, 1fr) auto;
-    min-height: 38px;
-    padding: 3px 6px;
-  }
-
-  .bazar-account-chat-avatar {
-    height: 30px;
-    width: 30px;
   }
 
   .bazar-account-conversation__head {
