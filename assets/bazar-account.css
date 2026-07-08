@@ -54,11 +54,12 @@ html.bazar-account-messages-scroll-lock body {
 }
 
 .bazar-account-module.is-messages-route .bazar-account-shell {
-  align-items: start;
+  align-items: flex-start;
 }
 
 .bazar-account-module.is-messages-route .bazar-account-content {
-  align-self: stretch;
+  align-self: flex-start;
+  width: 100%;
 }
 
 .bazar-account-visually-hidden {
@@ -103,6 +104,8 @@ html.bazar-account-messages-scroll-lock body {
 
 .bazar-account-module.is-messages-route .bazar-account-sidebar {
   align-self: start;
+  margin-top: 0;
+  top: 0;
 }
 
 .bazar-account-sidebar__top {
@@ -951,8 +954,15 @@ html.bazar-account-messages-scroll-lock body {
 
 .bazar-account-module.is-messages-route .bazar-account-messages-module {
   height: 100%;
+  margin-top: 0;
   max-height: 100%;
   min-height: 0;
+}
+
+.bazar-account-module.is-messages-route .bazar-account-chat-list,
+.bazar-account-module.is-messages-route .bazar-account-conversation,
+.bazar-account-module.is-messages-route .bazar-account-conversation__panel {
+  margin-top: 0;
 }
 
 .bazar-account-chat-list,
