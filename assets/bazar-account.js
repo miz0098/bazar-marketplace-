@@ -101,11 +101,16 @@
 
   const isNearBottom = (container, threshold = 96) => {
     if (!container) return true;
+    if (container.dataset.accountMessageInverted === 'true') return Math.abs(container.scrollTop) <= threshold;
     return container.scrollHeight - container.scrollTop - container.clientHeight <= threshold;
   };
 
   const scrollToBottom = (container) => {
     if (!container) return;
+    if (container.dataset.accountMessageInverted === 'true') {
+      container.scrollTop = 0;
+      return;
+    }
     container.scrollTop = container.scrollHeight;
   };
 
@@ -568,7 +573,7 @@
       const storedPins = this.readPinnedIds();
       const initialPins = storedPins ?? this.chats.filter((chat) => chat.pinned).map((chat) => String(chat.id));
       this.pinnedIds = new Set(initialPins);
-      this.readIds = new Set(this.readReadIds());
+      this.readState = this.readReadState();
       this.applyLocalState();
     }
 
@@ -719,23 +724,39 @@
       }
     }
 
-    readReadIds() {
-      // TODO: sync read/unread state with api.bazar.
+    readReadState() {
+      // TODO: sync unread chat counters with api.bazar messages API.
       try {
         const raw = window.localStorage?.getItem(READ_CHATS_STORAGE_KEY);
-        if (!raw) return [];
+        if (!raw) return {};
 
         const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? parsed.map(String) : [];
+        if (Array.isArray(parsed)) {
+          const readAt = Date.now();
+          return parsed.reduce((map, id) => {
+            map[String(id)] = readAt;
+            return map;
+          }, {});
+        }
+
+        if (parsed && typeof parsed === 'object') {
+          return Object.entries(parsed).reduce((map, [id, value]) => {
+            const readAt = Number(value);
+            if (Number.isFinite(readAt) && readAt > 0) map[String(id)] = readAt;
+            return map;
+          }, {});
+        }
+
+        return {};
       } catch (_error) {
-        return [];
+        return {};
       }
     }
 
-    persistReadIds() {
-      // TODO: sync read/unread state with api.bazar.
+    persistReadState() {
+      // TODO: sync unread chat counters with api.bazar messages API.
       try {
-        window.localStorage?.setItem(READ_CHATS_STORAGE_KEY, JSON.stringify([...this.readIds]));
+        window.localStorage?.setItem(READ_CHATS_STORAGE_KEY, JSON.stringify(this.readState));
       } catch (_error) {
         // Local storage may be unavailable in preview mode.
       }
@@ -806,20 +827,43 @@
 
     applyLocalState() {
       this.chats = this.chats.map((chat) => {
-        const isRead = this.readIds.has(String(chat.id));
+        const readAt = Number(this.readState[String(chat.id)] || 0);
+        const chatUpdatedAt = Number(chat.updatedAt || 0);
         const messages = chat.messages || [];
-        const unreadMessages = messages.filter((message) => Boolean(message.unread)).length;
+        const visibleMessages = messages.map((message) => {
+          const messageUnread = Boolean(message.unread) && this.getMessageTimestamp(message, chatUpdatedAt) > readAt;
+          return {
+            ...message,
+            unread: messageUnread,
+          };
+        });
+        const unreadMessages = visibleMessages.filter((message) => Boolean(message.unread)).length;
+        const apiUnreadCount = Number(chat.unreadCount || 0);
+        const providerUnreadCount = !readAt || !chatUpdatedAt || chatUpdatedAt > readAt ? apiUnreadCount : 0;
+        const unreadCount = Math.max(providerUnreadCount, unreadMessages);
 
         return {
           ...chat,
           pinned: this.pinnedIds.has(String(chat.id)),
-          unreadCount: isRead ? 0 : Math.max(Number(chat.unreadCount || 0), unreadMessages),
-          messages: messages.map((message) => ({
-            ...message,
-            unread: isRead ? false : Boolean(message.unread),
-          })),
+          unreadCount,
+          messages: visibleMessages,
         };
       });
+    }
+
+    getMessageTimestamp(message = {}, fallback = 0) {
+      const candidates = [message.updatedAt, message.createdAt, message.timestamp, message.sentAt, fallback];
+
+      for (const candidate of candidates) {
+        if (candidate === undefined || candidate === null || candidate === '') continue;
+        const numeric = Number(candidate);
+        if (Number.isFinite(numeric) && numeric > 0) return numeric;
+
+        const parsed = Date.parse(String(candidate));
+        if (Number.isFinite(parsed)) return parsed;
+      }
+
+      return 0;
     }
 
     sortChats(chats = this.chats) {
@@ -852,8 +896,9 @@
     }
 
     markRead(id) {
-      this.readIds.add(String(id));
-      this.persistReadIds();
+      const chat = this.chats.find((item) => String(item.id) === String(id));
+      this.readState[String(id)] = Math.max(Date.now(), Number(chat?.updatedAt || 0));
+      this.persistReadState();
       this.chats = this.chats.map((chat) => {
         if (String(chat.id) !== String(id)) return chat;
 
@@ -868,7 +913,9 @@
     delete(id) {
       this.chats = this.chats.filter((chat) => String(chat.id) !== String(id));
       this.pinnedIds.delete(String(id));
+      delete this.readState[String(id)];
       this.persistPinnedIds();
+      this.persistReadState();
     }
 
     unreadCount() {
@@ -2187,7 +2234,7 @@
         return;
       }
 
-      history.insertAdjacentHTML('beforeend', this.renderChatMessage(message, chat));
+      history.insertAdjacentHTML('afterbegin', this.renderChatMessage(message, chat));
       this.scrollMessageHistoryToBottom();
     }
 
@@ -2908,7 +2955,7 @@
 
     renderMessageHistory(chat) {
       return `
-        <div class="bazar-account-conversation__messages" role="log" aria-live="polite" data-account-message-history data-messages-list>
+        <div class="bazar-account-conversation__messages" role="log" aria-live="polite" data-account-message-history data-account-message-inverted="true" data-messages-list>
           ${this.renderChatMessages(this.providers.messages.list(chat.id), chat)}
         </div>
       `;
@@ -2964,23 +3011,22 @@
       if (!messages.length) return this.renderEmptyChatState();
 
       const chronologicalMessages = this.getChronologicalMessages(messages);
-      let unreadDividerRendered = false;
+      const firstUnreadMessage = chronologicalMessages.find((message) => Boolean(message.unread));
+      const invertedMessages = chronologicalMessages.slice().reverse();
 
-      return chronologicalMessages
+      return invertedMessages
         .map((message) => {
-          const isUnread = Boolean(message.unread);
-          const divider = isUnread && !unreadDividerRendered ? '<div class="bazar-account-message-divider">Нові повідомлення</div>' : '';
-          if (isUnread) unreadDividerRendered = true;
-          return this.renderChatMessage(message, chat, divider);
+          const divider =
+            message === firstUnreadMessage ? '<div class="bazar-account-message-divider">Нові повідомлення</div>' : '';
+          return this.renderChatMessage(message, chat, divider, 'after');
         })
         .join('');
     }
 
-    renderChatMessage(message = {}, chat = {}, divider = '') {
+    renderChatMessage(message = {}, chat = {}, divider = '', dividerPosition = 'before') {
       const text = String(message.text || '').trim();
 
-      return `
-        ${divider}
+      const bubble = `
         <div
           class="bazar-account-message-bubble bazar-account-message-bubble--${message.direction === 'outgoing' ? 'outgoing' : 'incoming'}"
           data-account-message-bubble
@@ -2994,6 +3040,8 @@
           <time>${escapeHtml(message.time || '')}</time>
         </div>
       `;
+
+      return dividerPosition === 'after' ? `${bubble}${divider}` : `${divider}${bubble}`;
     }
 
     renderEmptyChatState() {
