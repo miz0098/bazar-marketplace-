@@ -17,8 +17,11 @@
   const WISHLIST_PAGE_SIZE = 12;
   const PINNED_CHATS_STORAGE_KEY = 'bazarPinnedChats';
   const READ_CHATS_STORAGE_KEY = 'bazarReadChats';
-  const MESSAGE_CONTEXT_MENU_WIDTH = 232;
-  const MESSAGE_CONTEXT_MENU_HEIGHT = 176;
+  const MESSAGES_STORAGE_KEY = 'bazarMessages';
+  const CHAT_CONTEXT_MENU_WIDTH = 232;
+  const CHAT_CONTEXT_MENU_HEIGHT = 176;
+  const MESSAGE_CONTEXT_MENU_WIDTH = 204;
+  const MESSAGE_CONTEXT_MENU_HEIGHT = 152;
   const ORDER_STATUS_TABS = [
     ['all', 'Усі замовлення'],
     ['expected', 'Очікуються'],
@@ -537,6 +540,7 @@
       // TODO: connect seller chats to api.bazar.
       // TODO: connect support chats to api.bazar.
       this.chats = Array.isArray(data.chats) ? data.chats : this.getDemoChats();
+      this.chats = this.mergeStoredMessages(this.chats);
       const storedPins = this.readPinnedIds();
       const initialPins = storedPins ?? this.chats.filter((chat) => chat.pinned).map((chat) => String(chat.id));
       this.pinnedIds = new Set(initialPins);
@@ -713,6 +717,69 @@
       }
     }
 
+    readStoredMessages() {
+      // TODO: replace localStorage with api.bazar messages endpoints.
+      try {
+        const raw = window.localStorage?.getItem(MESSAGES_STORAGE_KEY);
+        if (!raw) return {};
+
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          return parsed.reduce((map, chat) => {
+            if (chat?.id) map[String(chat.id)] = chat;
+            return map;
+          }, {});
+        }
+
+        return parsed && typeof parsed === 'object' ? parsed : {};
+      } catch (_error) {
+        return {};
+      }
+    }
+
+    mergeStoredMessages(chats = []) {
+      const storedMessages = this.readStoredMessages();
+
+      return chats.map((chat) => {
+        const storedChat = storedMessages[String(chat.id)];
+        if (!storedChat || !Array.isArray(storedChat.messages)) return chat;
+
+        return {
+          ...chat,
+          messages: storedChat.messages,
+          lastMessage: storedChat.lastMessage || chat.lastMessage,
+          time: storedChat.time || chat.time,
+          updatedAt: Number(storedChat.updatedAt || chat.updatedAt || 0),
+        };
+      });
+    }
+
+    persistMessages() {
+      // TODO: replace localStorage with api.bazar messages endpoints.
+      try {
+        const payload = this.chats.reduce((map, chat) => {
+          map[String(chat.id)] = {
+            id: chat.id,
+            lastMessage: chat.lastMessage || '',
+            time: chat.time || '',
+            updatedAt: Number(chat.updatedAt || 0),
+            messages: (chat.messages || []).map((message) => ({
+              ...message,
+              attachments: (message.attachments || []).map((attachment) => ({
+                ...attachment,
+                url: attachment?.url && !String(attachment.url).startsWith('blob:') ? attachment.url : '',
+              })),
+            })),
+          };
+          return map;
+        }, {});
+
+        window.localStorage?.setItem(MESSAGES_STORAGE_KEY, JSON.stringify(payload));
+      } catch (_error) {
+        // Local storage may be unavailable in preview mode.
+      }
+    }
+
     applyLocalState() {
       this.chats = this.chats.map((chat) => ({
         ...chat,
@@ -778,7 +845,63 @@
       return this.chats.reduce((total, chat) => total + Number(chat.unreadCount || 0), 0);
     }
 
-    send(id, text, attachments = []) {
+    findMessage(chatId, messageId) {
+      const chat = this.get(chatId);
+      return chat?.messages?.find((message) => String(message.id) === String(messageId)) || null;
+    }
+
+    getMessagePreview(message = {}) {
+      const text = String(message.text || '').trim();
+      if (text) return text.split('\n')[0];
+
+      const attachments = Array.isArray(message.attachments) ? message.attachments : [];
+      if (attachments.length === 1) return attachments[0].name || 'Вкладення';
+      if (attachments.length > 1) return `${attachments.length} вкладення`;
+
+      return 'Повідомлення';
+    }
+
+    getLastMessageDetails(chat = {}) {
+      const messages = Array.isArray(chat.messages) ? chat.messages : [];
+      const lastMessage = messages[messages.length - 1];
+
+      if (!lastMessage) {
+        return {
+          lastMessage: '',
+          time: chat.time || '',
+          updatedAt: Number(chat.updatedAt || 0),
+        };
+      }
+
+      return {
+        lastMessage: this.getMessagePreview(lastMessage),
+        time: lastMessage.time || chat.time || '',
+        updatedAt: Number(lastMessage.updatedAt || chat.updatedAt || Date.now()),
+      };
+    }
+
+    deleteMessage(chatId, messageId) {
+      let deleted = false;
+
+      this.chats = this.chats.map((chat) => {
+        if (String(chat.id) !== String(chatId)) return chat;
+
+        const messages = (chat.messages || []).filter((message) => String(message.id) !== String(messageId));
+        deleted = messages.length !== (chat.messages || []).length;
+        const details = this.getLastMessageDetails({ ...chat, messages });
+
+        return {
+          ...chat,
+          ...details,
+          messages,
+        };
+      });
+
+      if (deleted) this.persistMessages();
+      return deleted;
+    }
+
+    send(id, text, attachments = [], replyTo = null) {
       const messageText = String(text || '').trim();
       const messageAttachments = Array.isArray(attachments) ? attachments : [];
       if (!messageText && !messageAttachments.length) return null;
@@ -799,7 +922,9 @@
           id: `local-${now}`,
           text: messageText,
           attachments: messageAttachments.map((attachment) => ({ ...attachment })),
+          replyTo: replyTo ? { ...replyTo } : null,
           time,
+          updatedAt: now,
           direction: 'outgoing',
         };
 
@@ -818,6 +943,7 @@
         };
       });
 
+      if (sentMessage) this.persistMessages();
       return sentMessage;
     }
   }
@@ -832,8 +958,16 @@
       return this.chatProvider.get(chatId)?.messages || [];
     }
 
-    send(chatId, text, attachments = []) {
-      return this.chatProvider.send(chatId, text, attachments);
+    send(chatId, text, attachments = [], replyTo = null) {
+      return this.chatProvider.send(chatId, text, attachments, replyTo);
+    }
+
+    get(chatId, messageId) {
+      return this.chatProvider.findMessage(chatId, messageId);
+    }
+
+    delete(chatId, messageId) {
+      return this.chatProvider.deleteMessage(chatId, messageId);
     }
   }
 
@@ -1096,14 +1230,20 @@
         notificationCategory: 'all',
         selectedChatId: '',
         messageContextMenu: null,
+        messageBubbleContextMenu: null,
         attachmentMenuChatId: '',
         pendingAttachments: [],
+        replyToMessage: null,
+        messageDraft: '',
+        isDraggingFiles: false,
         selectedWishlist: [],
         supportView: 'tickets',
         editingReviewId: '',
         profileSaved: false,
         error: Boolean(this.data.providerError),
       };
+      this.messageDragDepth = 0;
+      this.shouldScrollMessageHistory = true;
     }
 
     init() {
@@ -1122,17 +1262,29 @@
       this.root.addEventListener('input', (event) => this.handleInput(event));
       this.root.addEventListener('change', (event) => this.handleChange(event));
       this.root.addEventListener('submit', (event) => this.handleSubmit(event));
+      this.root.addEventListener('keydown', (event) => this.handleKeyDown(event));
       this.root.addEventListener('contextmenu', (event) => this.handleContextMenu(event));
+      this.root.addEventListener('dragenter', (event) => this.handleMessageDrag(event));
+      this.root.addEventListener('dragover', (event) => this.handleMessageDrag(event));
+      this.root.addEventListener('dragleave', (event) => this.handleMessageDrag(event));
+      this.root.addEventListener('drop', (event) => this.handleMessageDrag(event));
       window.addEventListener('popstate', () => {
         this.state.route = normalizeRoute(window.location.pathname);
         this.state.messageContextMenu = null;
+        this.state.messageBubbleContextMenu = null;
         this.state.attachmentMenuChatId = '';
+        this.clearMessageComposer();
         this.render(true, false);
       });
       document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
           if (this.state.attachmentMenuChatId) {
             this.closeAttachmentMenu();
+            return;
+          }
+
+          if (this.state.messageBubbleContextMenu) {
+            this.closeMessageBubbleContextMenu();
             return;
           }
 
@@ -1152,6 +1304,11 @@
 
         if (this.state.attachmentMenuChatId && !isAttachmentClick) {
           this.closeAttachmentMenu();
+          return;
+        }
+
+        if (this.state.messageBubbleContextMenu && !this.root.contains(event.target)) {
+          this.closeMessageBubbleContextMenu();
           return;
         }
 
@@ -1181,10 +1338,25 @@
     }
 
     handleClick(event) {
+      const bubbleMenuAction = event.target.closest('[data-account-bubble-menu-action]');
+      if (bubbleMenuAction && this.root.contains(bubbleMenuAction)) {
+        event.preventDefault();
+        this.runMessageBubbleMenuAction(bubbleMenuAction.dataset.accountBubbleMenuAction);
+        return;
+      }
+
       const messageMenuAction = event.target.closest('[data-account-message-menu-action]');
       if (messageMenuAction && this.root.contains(messageMenuAction)) {
         event.preventDefault();
         this.runMessageMenuAction(messageMenuAction.dataset.accountMessageMenuAction, messageMenuAction.dataset.chatId);
+        return;
+      }
+
+      const replyCancel = event.target.closest('[data-account-reply-cancel]');
+      if (replyCancel && this.root.contains(replyCancel)) {
+        event.preventDefault();
+        this.state.replyToMessage = null;
+        this.render(false, false);
         return;
       }
 
@@ -1194,6 +1366,7 @@
         this.state.attachmentMenuChatId =
           this.state.attachmentMenuChatId === this.state.selectedChatId ? '' : this.state.selectedChatId;
         this.state.messageContextMenu = null;
+        this.state.messageBubbleContextMenu = null;
         this.render(false, false);
         return;
       }
@@ -1217,6 +1390,18 @@
       }
 
       const chatItem = event.target.closest('[data-account-chat-id]');
+      const messageBubble = event.target.closest('[data-account-message-bubble]');
+
+      if (
+        this.state.messageBubbleContextMenu &&
+        !event.target.closest('[data-account-bubble-menu]') &&
+        !messageBubble
+      ) {
+        event.preventDefault();
+        this.closeMessageBubbleContextMenu();
+        return;
+      }
+
       if (this.state.messageContextMenu && !event.target.closest('[data-account-message-menu]') && !chatItem) {
         event.preventDefault();
         this.closeMessageContextMenu();
@@ -1225,10 +1410,12 @@
 
       if (chatItem && this.root.contains(chatItem)) {
         event.preventDefault();
-        if (String(this.state.selectedChatId) !== String(chatItem.dataset.accountChatId || '')) this.clearPendingAttachments();
+        if (String(this.state.selectedChatId) !== String(chatItem.dataset.accountChatId || '')) this.clearMessageComposer();
         this.state.selectedChatId = chatItem.dataset.accountChatId || '';
         this.state.messageContextMenu = null;
+        this.state.messageBubbleContextMenu = null;
         this.state.attachmentMenuChatId = '';
+        this.shouldScrollMessageHistory = true;
         this.providers.chats.markRead(this.state.selectedChatId);
         this.render(false, false);
         return;
@@ -1245,8 +1432,9 @@
       if (routeLink && this.root.contains(routeLink)) {
         event.preventDefault();
         this.state.messageContextMenu = null;
+        this.state.messageBubbleContextMenu = null;
         this.state.attachmentMenuChatId = '';
-        if (this.state.route === '/profile/messages') this.clearPendingAttachments();
+        if (this.state.route === '/profile/messages') this.clearMessageComposer();
         this.navigate(routeLink.dataset.accountRoute);
         return;
       }
@@ -1280,14 +1468,36 @@
     handleContextMenu(event) {
       if (this.state.route !== '/profile/messages') return;
 
+      const messageBubble = event.target.closest('[data-account-message-bubble]');
+      if (messageBubble && this.root.contains(messageBubble)) {
+        event.preventDefault();
+
+        const contentRect = this.content?.getBoundingClientRect() || { left: 0, top: 0 };
+        const maxLeft = Math.max(12, window.innerWidth - MESSAGE_CONTEXT_MENU_WIDTH - 12);
+        const maxTop = Math.max(12, window.innerHeight - MESSAGE_CONTEXT_MENU_HEIGHT - 12);
+        const left = Math.min(Math.max(12, event.clientX), maxLeft);
+        const top = Math.min(Math.max(12, event.clientY), maxTop);
+
+        this.state.messageBubbleContextMenu = {
+          chatId: messageBubble.dataset.accountMessageChatId || this.state.selectedChatId || '',
+          messageId: messageBubble.dataset.accountMessageId || '',
+          x: left - contentRect.left,
+          y: top - contentRect.top,
+        };
+        this.state.messageContextMenu = null;
+        this.state.attachmentMenuChatId = '';
+        this.render(false, false);
+        return;
+      }
+
       const chatItem = event.target.closest('[data-account-chat-id]');
       if (!chatItem || !this.root.contains(chatItem)) return;
 
       event.preventDefault();
 
       const contentRect = this.content?.getBoundingClientRect() || { left: 0, top: 0 };
-      const maxLeft = Math.max(12, window.innerWidth - MESSAGE_CONTEXT_MENU_WIDTH - 12);
-      const maxTop = Math.max(12, window.innerHeight - MESSAGE_CONTEXT_MENU_HEIGHT - 12);
+      const maxLeft = Math.max(12, window.innerWidth - CHAT_CONTEXT_MENU_WIDTH - 12);
+      const maxTop = Math.max(12, window.innerHeight - CHAT_CONTEXT_MENU_HEIGHT - 12);
       const left = Math.min(Math.max(12, event.clientX), maxLeft);
       const top = Math.min(Math.max(12, event.clientY), maxTop);
 
@@ -1296,16 +1506,78 @@
         x: left - contentRect.left,
         y: top - contentRect.top,
       };
+      this.state.messageBubbleContextMenu = null;
       this.state.attachmentMenuChatId = '';
       this.render(false, false);
     }
 
     handleInput(event) {
+      const messageInput = event.target.closest('[data-account-message-input]');
+      if (messageInput && this.root.contains(messageInput)) {
+        this.state.messageDraft = messageInput.value;
+        return;
+      }
+
       const input = event.target.closest('[data-account-state]');
       if (!input) return;
       this.state[input.dataset.accountState] = input.value;
       if (input.dataset.accountState === 'orderSearch') this.state.orderPage = 1;
       this.render(false, false, input.dataset.accountState);
+    }
+
+    handleKeyDown(event) {
+      const messageInput = event.target.closest('[data-account-message-input]');
+      if (!messageInput || !this.root.contains(messageInput)) return;
+
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        messageInput.closest('[data-account-form="message"]')?.requestSubmit();
+      }
+    }
+
+    handleMessageDrag(event) {
+      if (this.state.route !== '/profile/messages' || !this.state.selectedChatId) return;
+
+      const types = Array.from(event.dataTransfer?.types || []);
+      if (!types.includes('Files')) return;
+
+      const dropzone = event.target.closest('[data-account-dropzone]');
+      if (!dropzone || !this.root.contains(dropzone)) return;
+
+      event.preventDefault();
+
+      if (event.type === 'dragover') {
+        event.dataTransfer.dropEffect = 'copy';
+        if (!this.state.isDraggingFiles) {
+          this.state.isDraggingFiles = true;
+          this.render(false, false);
+        }
+        return;
+      }
+
+      if (event.type === 'dragenter') {
+        this.messageDragDepth += 1;
+        if (!this.state.isDraggingFiles) {
+          this.state.isDraggingFiles = true;
+          this.render(false, false);
+        }
+        return;
+      }
+
+      if (event.type === 'dragleave') {
+        this.messageDragDepth = Math.max(0, this.messageDragDepth - 1);
+        if (!this.messageDragDepth) {
+          this.state.isDraggingFiles = false;
+          this.render(false, false);
+        }
+        return;
+      }
+
+      if (event.type === 'drop') {
+        this.messageDragDepth = 0;
+        this.state.isDraggingFiles = false;
+        this.addPendingAttachments(Array.from(event.dataTransfer?.files || []), 'drop');
+      }
     }
 
     handleChange(event) {
@@ -1369,9 +1641,12 @@
 
         if (!text && !attachments.length) return;
 
-        this.providers.messages.send(this.state.selectedChatId, text, attachments);
+        this.providers.messages.send(this.state.selectedChatId, text, attachments, this.state.replyToMessage);
         this.state.attachmentMenuChatId = '';
         this.state.pendingAttachments = [];
+        this.state.replyToMessage = null;
+        this.state.messageDraft = '';
+        this.shouldScrollMessageHistory = true;
         this.render(false, false);
       }
     }
@@ -1444,8 +1719,9 @@
       if (action === 'messages-back') {
         this.state.selectedChatId = '';
         this.state.messageContextMenu = null;
+        this.state.messageBubbleContextMenu = null;
         this.state.attachmentMenuChatId = '';
-        this.clearPendingAttachments();
+        this.clearMessageComposer();
         this.render(false, false);
       }
     }
@@ -1502,8 +1778,81 @@
       this.state.pendingAttachments = [];
     }
 
+    clearMessageComposer() {
+      this.clearPendingAttachments();
+      this.state.replyToMessage = null;
+      this.state.messageDraft = '';
+      this.state.isDraggingFiles = false;
+      this.messageDragDepth = 0;
+    }
+
     closeMessageContextMenu() {
       this.state.messageContextMenu = null;
+      this.render(false, false);
+    }
+
+    closeMessageBubbleContextMenu() {
+      this.state.messageBubbleContextMenu = null;
+      this.render(false, false);
+    }
+
+    getMessagePreviewText(message = {}) {
+      const text = String(message.text || '').trim();
+      if (text) {
+        const firstLine = text.split('\n')[0];
+        return firstLine.length > 96 ? `${firstLine.slice(0, 96)}...` : firstLine;
+      }
+
+      const attachments = Array.isArray(message.attachments) ? message.attachments : [];
+      if (attachments.length === 1) return attachments[0].name || 'Вкладення';
+      if (attachments.length > 1) return `${attachments.length} вкладення`;
+      return 'Повідомлення';
+    }
+
+    getMessageCopyText(message = {}) {
+      const text = String(message.text || '').trim();
+      if (text) return text;
+
+      const attachments = Array.isArray(message.attachments) ? message.attachments : [];
+      return attachments.map((attachment) => attachment.name || 'Вкладення').join('\n');
+    }
+
+    createReplyReference(chatId, message) {
+      const chat = this.providers.chats.get(chatId);
+
+      return {
+        chatId,
+        messageId: message.id || '',
+        author: message.direction === 'outgoing' ? 'Ви' : chat?.title || 'Співрозмовник',
+        text: this.getMessagePreviewText(message),
+      };
+    }
+
+    runMessageBubbleMenuAction(action) {
+      const menu = this.state.messageBubbleContextMenu;
+      if (!menu) return;
+
+      const message = this.providers.messages.get(menu.chatId, menu.messageId);
+      if (!message) {
+        this.closeMessageBubbleContextMenu();
+        return;
+      }
+
+      if (action === 'copy') {
+        const text = this.getMessageCopyText(message);
+        if (text && navigator.clipboard?.writeText) navigator.clipboard.writeText(text).catch(() => {});
+      }
+
+      if (action === 'reply') {
+        this.state.replyToMessage = this.createReplyReference(menu.chatId, message);
+      }
+
+      if (action === 'delete') {
+        this.providers.messages.delete(menu.chatId, menu.messageId);
+        if (String(this.state.replyToMessage?.messageId || '') === String(menu.messageId)) this.state.replyToMessage = null;
+      }
+
+      this.state.messageBubbleContextMenu = null;
       this.render(false, false);
     }
 
@@ -1519,10 +1868,14 @@
       if (action === 'read') this.providers.chats.markRead(chatId);
       if (action === 'delete') {
         this.providers.chats.delete(chatId);
-        if (String(this.state.selectedChatId) === String(chatId)) this.state.selectedChatId = '';
+        if (String(this.state.selectedChatId) === String(chatId)) {
+          this.state.selectedChatId = '';
+          this.clearMessageComposer();
+        }
       }
 
       this.state.messageContextMenu = null;
+      this.state.messageBubbleContextMenu = null;
       this.render(false, false);
     }
 
@@ -1646,6 +1999,7 @@
     navigate(route) {
       const nextRoute = normalizeRoute(route);
       this.state.route = nextRoute;
+      if (nextRoute === '/profile/messages') this.shouldScrollMessageHistory = true;
       this.closeSidebar();
       if (window.location.pathname !== nextRoute) {
         window.history.pushState({ route: nextRoute }, '', nextRoute);
@@ -1685,7 +2039,10 @@
           this.content.focus({ preventScroll: true });
         }
 
-        if (this.state.route === '/profile/messages') this.scrollMessageHistoryToBottom();
+        if (this.state.route === '/profile/messages' && this.shouldScrollMessageHistory) {
+          this.scrollMessageHistoryToBottom();
+          this.shouldScrollMessageHistory = false;
+        }
       };
 
       if (!withTransition) {
@@ -2145,6 +2502,7 @@
                   </div>
                 </div>
                 ${this.renderMessageContextMenu()}
+                ${this.renderMessageBubbleContextMenu()}
               `
               : this.renderMessagesEmpty()
           }
@@ -2210,7 +2568,7 @@
       const messages = this.providers.messages.list(chat.id);
 
       return `
-        <article class="bazar-account-conversation__panel" aria-label="Діалог ${escapeHtml(chat.title || '')}">
+        <article class="bazar-account-conversation__panel${this.state.isDraggingFiles ? ' is-dragging-files' : ''}" data-account-dropzone aria-label="Діалог ${escapeHtml(chat.title || '')}">
           <header class="bazar-account-conversation__head">
             <button class="bazar-account-icon-button bazar-account-conversation__back" type="button" data-account-action="messages-back" aria-label="Назад до чатів">${icon('arrowLeft')}</button>
             ${this.renderChatAvatar(chat)}
@@ -2220,14 +2578,24 @@
             </div>
           </header>
           <div class="bazar-account-conversation__messages" role="log" aria-live="polite" data-account-message-history>
-            ${this.renderChatMessages(messages)}
+            ${this.renderChatMessages(messages, chat)}
           </div>
+          ${this.renderDropOverlay()}
           ${this.renderConversationInput(chat)}
         </article>
       `;
     }
 
-    renderChatMessages(messages = []) {
+    renderDropOverlay() {
+      return `
+        <div class="bazar-account-drop-overlay" aria-hidden="true">
+          <span>${icon('paperclip')}</span>
+          <strong>Перетягніть файли сюди</strong>
+        </div>
+      `;
+    }
+
+    renderChatMessages(messages = [], chat = {}) {
       let unreadDividerRendered = false;
 
       return messages
@@ -2239,7 +2607,14 @@
 
           return `
             ${divider}
-            <div class="bazar-account-message-bubble bazar-account-message-bubble--${message.direction === 'outgoing' ? 'outgoing' : 'incoming'}">
+            <div
+              class="bazar-account-message-bubble bazar-account-message-bubble--${message.direction === 'outgoing' ? 'outgoing' : 'incoming'}"
+              data-account-message-bubble
+              data-account-message-chat-id="${escapeHtml(chat.id || this.state.selectedChatId || '')}"
+              data-account-message-id="${escapeHtml(message.id || '')}"
+              tabindex="0"
+            >
+              ${message.replyTo ? this.renderMessageReplyReference(message.replyTo) : ''}
               ${text ? `<p>${escapeHtml(text)}</p>` : ''}
               ${this.renderMessageAttachments(message.attachments)}
               <time>${escapeHtml(message.time || '')}</time>
@@ -2247,6 +2622,15 @@
           `;
         })
         .join('');
+    }
+
+    renderMessageReplyReference(replyTo = {}) {
+      return `
+        <span class="bazar-account-message-reply">
+          <strong>${escapeHtml(replyTo.author || 'Повідомлення')}</strong>
+          <span>${escapeHtml(replyTo.text || 'Відповідь')}</span>
+        </span>
+      `;
     }
 
     renderMessageAttachments(attachments = []) {
@@ -2291,6 +2675,7 @@
 
       return `
         <form class="bazar-account-message-form" data-account-form="message" novalidate>
+          ${this.renderReplyPreview()}
           ${this.renderPendingAttachments()}
           <div class="bazar-account-message-form__controls">
             <div class="bazar-account-attachment">
@@ -2309,10 +2694,25 @@
               <input class="bazar-account-attachment__input" type="file" accept="*/*" multiple data-account-attachment-input="file">
             </div>
             <label class="bazar-account-visually-hidden" for="BazarAccountMessageInput">Повідомлення</label>
-            <input id="BazarAccountMessageInput" name="message" type="text" autocomplete="off" placeholder="Напишіть повідомлення...">
+            <textarea id="BazarAccountMessageInput" name="message" rows="1" autocomplete="off" placeholder="Напишіть повідомлення..." data-account-message-input>${escapeHtml(this.state.messageDraft || '')}</textarea>
             <button class="bazar-account-button bazar-account-button--primary" type="submit" aria-label="Надіслати повідомлення">${icon('send')}</button>
           </div>
         </form>
+      `;
+    }
+
+    renderReplyPreview() {
+      const reply = this.state.replyToMessage;
+      if (!reply) return '';
+
+      return `
+        <div class="bazar-account-reply-preview">
+          <span>
+            <strong>${escapeHtml(reply.author || 'Повідомлення')}</strong>
+            <small>${escapeHtml(reply.text || 'Відповідь')}</small>
+          </span>
+          <button type="button" data-account-reply-cancel aria-label="Скасувати відповідь">${icon('trash')}</button>
+        </div>
       `;
     }
 
@@ -2354,6 +2754,37 @@
         <div class="bazar-account-attachment-menu" data-account-attachment-menu role="menu" aria-label="Додати вкладення">
           <button type="button" role="menuitem" data-account-attachment-action="media">Фото та відео</button>
           <button type="button" role="menuitem" data-account-attachment-action="file">Файл</button>
+        </div>
+      `;
+    }
+
+    renderMessageBubbleContextMenu() {
+      const menu = this.state.messageBubbleContextMenu;
+      if (!menu) return '';
+
+      const message = this.providers.messages.get(menu.chatId, menu.messageId);
+      if (!message) return '';
+
+      return `
+        <div
+          class="bazar-account-message-menu bazar-account-message-bubble-menu"
+          data-account-bubble-menu
+          style="left: ${Number(menu.x || 12)}px; top: ${Number(menu.y || 12)}px;"
+          role="menu"
+          aria-label="Дії з повідомленням"
+        >
+          <button type="button" role="menuitem" data-account-bubble-menu-action="copy">
+            ${icon('copy')}
+            Копіювати
+          </button>
+          <button type="button" role="menuitem" data-account-bubble-menu-action="reply">
+            ${icon('messages')}
+            Відповісти
+          </button>
+          <button class="is-danger" type="button" role="menuitem" data-account-bubble-menu-action="delete">
+            ${icon('trash')}
+            Видалити
+          </button>
         </div>
       `;
     }

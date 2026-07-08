@@ -1132,6 +1132,7 @@ html.bazar-account-messages-scroll-lock body {
   height: 100%;
   min-height: 0;
   overflow: hidden;
+  position: relative;
 }
 
 .bazar-account-conversation__head {
@@ -1180,8 +1181,11 @@ html.bazar-account-messages-scroll-lock body {
   border-radius: 18px;
   display: grid;
   gap: 4px;
-  max-width: min(72%, 560px);
+  max-width: min(70%, 52ch);
+  overflow-wrap: anywhere;
   padding: 10px 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .bazar-account-message-bubble p {
@@ -1190,6 +1194,14 @@ html.bazar-account-messages-scroll-lock body {
   font-weight: 650;
   line-height: 1.45;
   margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.bazar-account-message-bubble:focus-visible {
+  outline: 3px solid rgba(41, 98, 255, 0.18);
+  outline-offset: 2px;
 }
 
 .bazar-account-message-bubble time {
@@ -1283,10 +1295,156 @@ html.bazar-account-messages-scroll-lock body {
   width: 100%;
 }
 
-.bazar-account-message-form input[type='text']:focus-visible {
+.bazar-account-message-form textarea {
+  background: #fff;
+  border: 1px solid var(--account-border);
+  border-radius: 20px;
+  color: var(--account-ink);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.35;
+  max-height: 96px;
+  min-height: 44px;
+  overflow-y: auto;
+  padding: 12px 16px;
+  resize: none;
+  width: 100%;
+}
+
+.bazar-account-message-form input[type='text']:focus-visible,
+.bazar-account-message-form textarea:focus-visible {
   border-color: #b8ccff;
   outline: 3px solid rgba(41, 98, 255, 0.16);
   outline-offset: 0;
+}
+
+.bazar-account-drop-overlay {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px dashed #9bb8ff;
+  border-radius: 18px;
+  color: var(--account-blue-dark);
+  display: grid;
+  gap: 10px;
+  inset: 78px 18px 78px;
+  justify-items: center;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  transform: scale(0.98);
+  transition: opacity 160ms ease, transform 160ms ease;
+  z-index: 8;
+}
+
+.bazar-account-conversation__panel.is-dragging-files .bazar-account-drop-overlay {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.bazar-account-drop-overlay span {
+  align-items: center;
+  background: var(--account-blue-soft);
+  border-radius: 18px;
+  color: var(--account-blue);
+  display: inline-flex;
+  height: 54px;
+  justify-content: center;
+  width: 54px;
+}
+
+.bazar-account-drop-overlay span svg {
+  height: 26px;
+  width: 26px;
+}
+
+.bazar-account-drop-overlay strong {
+  font-size: 16px;
+  font-weight: 850;
+}
+
+.bazar-account-message-reply {
+  border-left: 3px solid var(--account-blue);
+  color: var(--account-muted);
+  display: grid;
+  gap: 2px;
+  line-height: 1.25;
+  margin-bottom: 2px;
+  padding-left: 8px;
+}
+
+.bazar-account-message-reply strong {
+  color: var(--account-blue-dark);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.bazar-account-message-reply span {
+  font-size: 12px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bazar-account-reply-preview {
+  align-items: center;
+  background: #f8faff;
+  border: 1px solid #cfe0ff;
+  border-left: 3px solid var(--account-blue);
+  border-radius: 14px;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  padding: 8px 10px;
+}
+
+.bazar-account-reply-preview span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.bazar-account-reply-preview strong {
+  color: var(--account-blue-dark);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.bazar-account-reply-preview small {
+  color: var(--account-muted);
+  font-size: 12px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bazar-account-reply-preview button {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--account-border);
+  border-radius: 50%;
+  color: var(--account-muted);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 28px;
+  justify-content: center;
+  padding: 0;
+  width: 28px;
+}
+
+.bazar-account-reply-preview button:hover,
+.bazar-account-reply-preview button:focus-visible {
+  background: #fef3f2;
+  border-color: #fda29b;
+  color: var(--account-red);
+  outline: none;
+}
+
+.bazar-account-reply-preview button svg {
+  height: 14px;
+  width: 14px;
 }
 
 .bazar-account-message-attachments,
@@ -1468,6 +1626,10 @@ html.bazar-account-messages-scroll-lock body {
   position: absolute;
   width: 232px;
   z-index: 1500;
+}
+
+.bazar-account-message-bubble-menu {
+  width: 204px;
 }
 
 .bazar-account-message-menu button {
