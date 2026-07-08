@@ -1363,6 +1363,11 @@ html.bazar-account-messages-scroll-lock body {
   padding: 10px 14px 12px;
 }
 
+.bazar-account-message-composer {
+  flex: 0 0 auto;
+  min-height: 0;
+}
+
 .bazar-account-message-form__controls {
   align-items: center;
   display: grid;

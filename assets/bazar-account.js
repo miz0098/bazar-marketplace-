@@ -99,6 +99,30 @@
     return `${Math.round(size / 1024 / 102.4) / 10} МБ`;
   };
 
+  const isNearBottom = (container, threshold = 96) => {
+    if (!container) return true;
+    return container.scrollHeight - container.scrollTop - container.clientHeight <= threshold;
+  };
+
+  const scrollToBottom = (container) => {
+    if (!container) return;
+    container.scrollTop = container.scrollHeight;
+  };
+
+  const preserveScroll = (container, callback) => {
+    const scrollTop = container?.scrollTop || 0;
+    const result = callback();
+
+    if (container) {
+      container.scrollTop = scrollTop;
+      requestAnimationFrame(() => {
+        container.scrollTop = scrollTop;
+      });
+    }
+
+    return result;
+  };
+
   const localizeStatus = (value = '', fallback = 'В обробці') => {
     const raw = String(value || '').trim();
     if (!raw) return fallback;
@@ -718,7 +742,7 @@
     }
 
     readStoredMessages() {
-      // TODO: replace localStorage with api.bazar messages endpoints.
+      // TODO: replace localStorage with api.bazar messages API.
       try {
         const raw = window.localStorage?.getItem(MESSAGES_STORAGE_KEY);
         if (!raw) return {};
@@ -755,7 +779,7 @@
     }
 
     persistMessages() {
-      // TODO: replace localStorage with api.bazar messages endpoints.
+      // TODO: replace localStorage with api.bazar messages API.
       try {
         const payload = this.chats.reduce((map, chat) => {
           map[String(chat.id)] = {
@@ -1255,7 +1279,6 @@
       };
       this.messageDragDepth = 0;
       this.shouldScrollMessageHistory = true;
-      this.preservedMessageScrollTop = null;
       this.shouldFocusMessageInput = false;
       this.messageScrollRequestId = 0;
     }
@@ -1373,7 +1396,7 @@
       if (replyCancel && this.root.contains(replyCancel)) {
         event.preventDefault();
         this.state.replyToMessage = null;
-        this.render(false, false);
+        this.updateMessageComposer({ focus: true });
         return;
       }
 
@@ -1384,6 +1407,7 @@
         this.toggleAttachmentMenu(attachmentToggle);
         this.state.messageContextMenu = null;
         this.state.messageBubbleContextMenu = null;
+        this.updateMessageContextLayer();
         return;
       }
 
@@ -1428,15 +1452,7 @@
 
       if (chatItem && this.root.contains(chatItem)) {
         event.preventDefault();
-        if (String(this.state.selectedChatId) !== String(chatItem.dataset.accountChatId || '')) this.clearMessageComposer();
-        this.state.selectedChatId = chatItem.dataset.accountChatId || '';
-        this.state.messageContextMenu = null;
-        this.state.messageBubbleContextMenu = null;
-        this.state.attachmentMenuChatId = '';
-        this.shouldScrollMessageHistory = true;
-        this.shouldFocusMessageInput = true;
-        this.providers.chats.markRead(this.state.selectedChatId);
-        this.render(false, false);
+        this.openMessageChat(chatItem.dataset.accountChatId || '');
         return;
       }
 
@@ -1504,8 +1520,8 @@
           y: top - contentRect.top,
         };
         this.state.messageContextMenu = null;
-        this.state.attachmentMenuChatId = '';
-        this.renderKeepingMessageScroll();
+        this.closeAttachmentMenu();
+        this.updateMessageContextLayer();
         return;
       }
 
@@ -1526,8 +1542,8 @@
         y: top - contentRect.top,
       };
       this.state.messageBubbleContextMenu = null;
-      this.state.attachmentMenuChatId = '';
-      this.renderKeepingMessageScroll();
+      this.closeAttachmentMenu();
+      this.updateMessageContextLayer();
     }
 
     handleInput(event) {
@@ -1575,34 +1591,27 @@
 
       if (event.type === 'dragover') {
         event.dataTransfer.dropEffect = 'copy';
-        if (!this.state.isDraggingFiles) {
-          this.state.isDraggingFiles = true;
-          this.render(false, false);
-        }
+        this.setMessageDragActive(true);
         return;
       }
 
       if (event.type === 'dragenter') {
         this.messageDragDepth += 1;
-        if (!this.state.isDraggingFiles) {
-          this.state.isDraggingFiles = true;
-          this.render(false, false);
-        }
+        this.setMessageDragActive(true);
         return;
       }
 
       if (event.type === 'dragleave') {
         this.messageDragDepth = Math.max(0, this.messageDragDepth - 1);
         if (!this.messageDragDepth) {
-          this.state.isDraggingFiles = false;
-          this.render(false, false);
+          this.setMessageDragActive(false);
         }
         return;
       }
 
       if (event.type === 'drop') {
         this.messageDragDepth = 0;
-        this.state.isDraggingFiles = false;
+        this.setMessageDragActive(false);
         this.addPendingAttachments(Array.from(event.dataTransfer?.files || []), 'drop');
       }
     }
@@ -1671,14 +1680,20 @@
           return;
         }
 
-        this.providers.messages.send(this.state.selectedChatId, text, attachments, this.state.replyToMessage);
+        const sentMessage = this.providers.messages.send(this.state.selectedChatId, text, attachments, this.state.replyToMessage);
+        if (!sentMessage) {
+          this.focusMessageInput(true);
+          return;
+        }
+
         this.state.attachmentMenuChatId = '';
         this.state.pendingAttachments = [];
         this.state.replyToMessage = null;
         this.state.messageDraft = '';
-        this.shouldScrollMessageHistory = true;
-        this.shouldFocusMessageInput = true;
-        this.render(false, false);
+        this.updateMessagesChatList();
+        this.updateMessageHistory({ scroll: 'bottom' });
+        this.updateMessageComposer({ focus: true });
+        this.updateMessageContextLayer();
       }
     }
 
@@ -1753,7 +1768,9 @@
         this.state.messageBubbleContextMenu = null;
         this.state.attachmentMenuChatId = '';
         this.clearMessageComposer();
-        this.render(false, false);
+        this.updateMessagesChatList();
+        this.updateConversationPanel();
+        this.updateMessageContextLayer();
       }
     }
 
@@ -1786,7 +1803,7 @@
     addPendingAttachments(files = [], source = 'file') {
       if (!files.length) {
         this.state.attachmentMenuChatId = '';
-        this.renderKeepingMessageScroll();
+        this.updateMessageComposer({ focus: true });
         return;
       }
 
@@ -1809,7 +1826,7 @@
 
       this.state.pendingAttachments = [...(this.state.pendingAttachments || []), ...nextAttachments];
       this.state.attachmentMenuChatId = '';
-      this.renderKeepingMessageScroll();
+      this.updateMessageComposer({ focus: true });
     }
 
     removePendingAttachment(id) {
@@ -1817,7 +1834,7 @@
       const attachment = (this.state.pendingAttachments || []).find((item) => String(item.id) === targetId);
       if (attachment?.url) URL.revokeObjectURL(attachment.url);
       this.state.pendingAttachments = (this.state.pendingAttachments || []).filter((item) => String(item.id) !== targetId);
-      this.renderKeepingMessageScroll();
+      this.updateMessageComposer({ focus: true });
     }
 
     clearPendingAttachments(revoke = true) {
@@ -1840,12 +1857,12 @@
 
     closeMessageContextMenu() {
       this.state.messageContextMenu = null;
-      this.renderKeepingMessageScroll();
+      this.updateMessageContextLayer();
     }
 
     closeMessageBubbleContextMenu() {
       this.state.messageBubbleContextMenu = null;
-      this.renderKeepingMessageScroll();
+      this.updateMessageContextLayer();
     }
 
     getMessagePreviewText(message = {}) {
@@ -1905,7 +1922,18 @@
       }
 
       this.state.messageBubbleContextMenu = null;
-      this.renderKeepingMessageScroll();
+      this.updateMessageContextLayer();
+
+      if (action === 'reply') {
+        this.updateMessageComposer({ focus: true });
+        return;
+      }
+
+      if (action === 'delete') {
+        this.updateMessagesChatList();
+        this.updateMessageHistory({ scroll: 'preserve' });
+        this.updateMessageComposer({ focus: true });
+      }
     }
 
     runMessageMenuAction(action, chatId) {
@@ -1915,12 +1943,14 @@
         return;
       }
 
+      const isSelectedChatDeleted = action === 'delete' && String(this.state.selectedChatId) === String(chatId);
+
       if (action === 'pin') this.providers.chats.pin(chatId);
       if (action === 'unpin') this.providers.chats.unpin(chatId);
       if (action === 'read') this.providers.chats.markRead(chatId);
       if (action === 'delete') {
         this.providers.chats.delete(chatId);
-        if (String(this.state.selectedChatId) === String(chatId)) {
+        if (isSelectedChatDeleted) {
           this.state.selectedChatId = '';
           this.clearMessageComposer();
         }
@@ -1928,7 +1958,12 @@
 
       this.state.messageContextMenu = null;
       this.state.messageBubbleContextMenu = null;
-      this.renderKeepingMessageScroll();
+      this.updateMessageContextLayer();
+      this.updateMessagesChatList();
+
+      if (isSelectedChatDeleted) {
+        this.updateConversationPanel();
+      }
     }
 
     removeWishlistItem(id, element) {
@@ -2048,10 +2083,118 @@
       }
     }
 
-    renderKeepingMessageScroll() {
-      const history = this.content?.querySelector('[data-account-message-history]');
-      this.preservedMessageScrollTop = history ? history.scrollTop : null;
-      this.render(false, false);
+    getSelectedChat() {
+      return this.state.selectedChatId ? this.providers.chats.get(this.state.selectedChatId) : null;
+    }
+
+    getMessageHistory() {
+      return this.content?.querySelector('[data-account-message-history]') || null;
+    }
+
+    openMessageChat(chatId) {
+      const nextChatId = String(chatId || '');
+      if (!nextChatId) return;
+
+      const didChangeChat = String(this.state.selectedChatId || '') !== nextChatId;
+      if (didChangeChat) this.clearMessageComposer();
+
+      this.state.selectedChatId = nextChatId;
+      this.state.messageContextMenu = null;
+      this.state.messageBubbleContextMenu = null;
+      this.state.attachmentMenuChatId = '';
+      this.providers.chats.markRead(nextChatId);
+      this.updateSidebar();
+
+      if (!this.content?.querySelector('[data-account-messages-screen]')) {
+        this.shouldScrollMessageHistory = true;
+        this.shouldFocusMessageInput = true;
+        this.render(false, false);
+        return;
+      }
+
+      this.updateMessagesChatList();
+      this.updateConversationPanel({ scroll: 'bottom', focus: true });
+      this.updateMessageContextLayer();
+    }
+
+    updateMessagesChatList() {
+      const list = this.content?.querySelector('[data-account-chat-list-items]');
+      const chats = this.providers.chats.list();
+
+      if (!chats.length) {
+        if (this.state.route === '/profile/messages') this.render(false, false);
+        return;
+      }
+
+      if (list) {
+        list.innerHTML = chats.map((chat) => this.renderChatItem(chat, this.state.selectedChatId)).join('');
+      }
+
+      this.updateSidebar();
+    }
+
+    updateConversationPanel({ scroll = 'preserve', focus = false } = {}) {
+      const shell = this.content?.querySelector('[data-account-conversation-shell]');
+      const screen = this.content?.querySelector('[data-account-messages-screen]');
+      const chat = this.getSelectedChat();
+
+      if (!shell) {
+        this.shouldScrollMessageHistory = scroll === 'bottom';
+        this.shouldFocusMessageInput = focus;
+        this.render(false, false);
+        return;
+      }
+
+      if (screen) screen.classList.toggle('is-conversation-open', Boolean(chat));
+      shell.innerHTML = chat ? this.renderConversation(chat) : this.renderNoChatSelected();
+
+      if (scroll === 'bottom') this.scrollMessageHistoryToBottom();
+      if (focus) requestAnimationFrame(() => this.focusMessageInput(true));
+    }
+
+    updateMessageHistory({ scroll = 'preserve' } = {}) {
+      const chat = this.getSelectedChat();
+      const history = this.getMessageHistory();
+
+      if (!chat || !history) {
+        this.updateConversationPanel({ scroll, focus: false });
+        return;
+      }
+
+      const shouldStickToBottom = scroll === 'bottom' || (scroll === 'if-near-bottom' && isNearBottom(history));
+      const shouldPreserve = scroll === 'preserve' || (scroll === 'if-near-bottom' && !shouldStickToBottom);
+      const renderHistory = () => {
+        history.innerHTML = this.renderChatMessages(this.providers.messages.list(chat.id), chat);
+      };
+
+      if (shouldPreserve) preserveScroll(history, renderHistory);
+      else renderHistory();
+
+      if (shouldStickToBottom) this.scrollMessageHistoryToBottom();
+    }
+
+    updateMessageComposer({ focus = false } = {}) {
+      const chat = this.getSelectedChat();
+      const composer = this.content?.querySelector('[data-account-message-composer]');
+      if (!chat || !composer) return;
+
+      preserveScroll(this.getMessageHistory(), () => {
+        composer.innerHTML = this.renderConversationInput(chat);
+      });
+
+      if (focus) requestAnimationFrame(() => this.focusMessageInput(true));
+    }
+
+    updateMessageContextLayer() {
+      const layer = this.content?.querySelector('[data-account-message-context-layer]');
+      if (!layer) return;
+      layer.innerHTML = this.renderMessageContextLayer();
+    }
+
+    setMessageDragActive(isActive) {
+      this.state.isDraggingFiles = Boolean(isActive);
+      const panel = this.content?.querySelector('[data-account-conversation-panel]');
+      if (panel) panel.classList.toggle('is-dragging-files', this.state.isDraggingFiles);
     }
 
     focusMessageInput(preserveHistoryScroll = true) {
@@ -2118,14 +2261,7 @@
           this.content.focus({ preventScroll: true });
         }
 
-        if (this.state.route === '/profile/messages' && this.preservedMessageScrollTop !== null) {
-          const scrollTop = this.preservedMessageScrollTop;
-          this.preservedMessageScrollTop = null;
-          requestAnimationFrame(() => {
-            const history = this.content.querySelector('[data-account-message-history]');
-            if (history) history.scrollTop = scrollTop;
-          });
-        } else if (this.state.route === '/profile/messages' && this.shouldScrollMessageHistory) {
+        if (this.state.route === '/profile/messages' && this.shouldScrollMessageHistory) {
           this.scrollMessageHistoryToBottom();
           this.shouldScrollMessageHistory = false;
         }
@@ -2199,16 +2335,16 @@
       const isCurrentHistory = () =>
         requestId === this.messageScrollRequestId && this.content.querySelector('[data-account-message-history]') === history;
 
-      const scrollToBottom = () => {
+      const applyScrollToBottom = () => {
         if (!isCurrentHistory()) return;
-        history.scrollTop = history.scrollHeight;
+        scrollToBottom(history);
       };
 
       const scheduleScroll = () => {
         requestAnimationFrame(() => {
-          scrollToBottom();
-          requestAnimationFrame(scrollToBottom);
-          window.setTimeout(scrollToBottom, 0);
+          applyScrollToBottom();
+          requestAnimationFrame(applyScrollToBottom);
+          window.setTimeout(applyScrollToBottom, 0);
         });
       };
 
@@ -2221,7 +2357,7 @@
       const handleImageSettled = () => {
         if (!isCurrentHistory()) return;
         remainingImages -= 1;
-        scrollToBottom();
+        applyScrollToBottom();
         if (!remainingImages) scheduleScroll();
       };
 
@@ -2641,29 +2777,36 @@
       const selectedChat = this.state.selectedChatId ? this.providers.chats.get(this.state.selectedChatId) : null;
 
       return `
-        <section class="bazar-account-messages-screen${selectedChat ? ' is-conversation-open' : ''}" aria-label="Повідомлення">
+        <section class="bazar-account-messages-screen${selectedChat ? ' is-conversation-open' : ''}" aria-label="Повідомлення" data-account-messages-screen>
           ${
             chats.length
               ? `
                 <div class="bazar-account-messages-module">
-                  <aside class="bazar-account-chat-list" aria-label="Список чатів">
-                    <div class="bazar-account-chat-list__head">
-                      <h3>Чати</h3>
-                    </div>
-                    <div class="bazar-account-chat-list__items">
-                      ${chats.map((chat) => this.renderChatItem(chat, selectedChat?.id)).join('')}
-                    </div>
-                  </aside>
-                  <div class="bazar-account-conversation">
+                  ${this.renderChatList(chats, selectedChat?.id)}
+                  <div class="bazar-account-conversation" data-account-conversation-shell>
                     ${selectedChat ? this.renderConversation(selectedChat) : this.renderNoChatSelected()}
                   </div>
                 </div>
-                ${this.renderMessageContextMenu()}
-                ${this.renderMessageBubbleContextMenu()}
+                <div data-account-message-context-layer>
+                  ${this.renderMessageContextLayer()}
+                </div>
               `
               : this.renderMessagesEmpty()
           }
         </section>
+      `;
+    }
+
+    renderChatList(chats = [], selectedId = '') {
+      return `
+        <aside class="bazar-account-chat-list" aria-label="Список чатів">
+          <div class="bazar-account-chat-list__head">
+            <h3>Чати</h3>
+          </div>
+          <div class="bazar-account-chat-list__items" data-account-chat-list-items>
+            ${chats.map((chat) => this.renderChatItem(chat, selectedId)).join('')}
+          </div>
+        </aside>
       `;
     }
 
@@ -2722,24 +2865,42 @@
     }
 
     renderConversation(chat) {
-      const messages = this.providers.messages.list(chat.id);
-
       return `
-        <article class="bazar-account-conversation__panel${this.state.isDraggingFiles ? ' is-dragging-files' : ''}" data-account-dropzone aria-label="Діалог ${escapeHtml(chat.title || '')}">
-          <header class="bazar-account-conversation__head">
-            <button class="bazar-account-icon-button bazar-account-conversation__back" type="button" data-account-action="messages-back" aria-label="Назад до чатів">${icon('arrowLeft')}</button>
-            ${this.renderChatAvatar(chat)}
-            <div>
-              <h3>${escapeHtml(chat.title || 'Чат')}</h3>
-              <p>${escapeHtml(chat.label || 'Повідомлення')}</p>
-            </div>
-          </header>
-          <div class="bazar-account-conversation__messages" role="log" aria-live="polite" data-account-message-history>
-            ${this.renderChatMessages(messages, chat)}
-          </div>
+        <article class="bazar-account-conversation__panel${this.state.isDraggingFiles ? ' is-dragging-files' : ''}" data-account-conversation-panel data-account-dropzone aria-label="Діалог ${escapeHtml(chat.title || '')}">
+          ${this.renderConversationHeader(chat)}
+          ${this.renderMessageHistory(chat)}
           ${this.renderDropOverlay()}
-          ${this.renderConversationInput(chat)}
+          ${this.renderMessageComposer(chat)}
         </article>
+      `;
+    }
+
+    renderConversationHeader(chat) {
+      return `
+        <header class="bazar-account-conversation__head">
+          <button class="bazar-account-icon-button bazar-account-conversation__back" type="button" data-account-action="messages-back" aria-label="Назад до чатів">${icon('arrowLeft')}</button>
+          ${this.renderChatAvatar(chat)}
+          <div>
+            <h3>${escapeHtml(chat.title || 'Чат')}</h3>
+            <p>${escapeHtml(chat.label || 'Повідомлення')}</p>
+          </div>
+        </header>
+      `;
+    }
+
+    renderMessageHistory(chat) {
+      return `
+        <div class="bazar-account-conversation__messages" role="log" aria-live="polite" data-account-message-history>
+          ${this.renderChatMessages(this.providers.messages.list(chat.id), chat)}
+        </div>
+      `;
+    }
+
+    renderMessageComposer(chat) {
+      return `
+        <div class="bazar-account-message-composer" data-account-message-composer>
+          ${this.renderConversationInput(chat)}
+        </div>
       `;
     }
 
@@ -2927,6 +3088,13 @@
           <button type="button" role="menuitem" data-account-attachment-action="media">Фото та відео</button>
           <button type="button" role="menuitem" data-account-attachment-action="file">Файл</button>
         </div>
+      `;
+    }
+
+    renderMessageContextLayer() {
+      return `
+        ${this.renderMessageContextMenu()}
+        ${this.renderMessageBubbleContextMenu()}
       `;
     }
 
