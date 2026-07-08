@@ -2596,6 +2596,8 @@
     }
 
     renderChatMessages(messages = [], chat = {}) {
+      if (!messages.length) return this.renderEmptyChatState();
+
       let unreadDividerRendered = false;
 
       return messages
@@ -2622,6 +2624,19 @@
           `;
         })
         .join('');
+    }
+
+    renderEmptyChatState() {
+      return `
+        <div class="bazar-account-empty-chat">
+          <span class="bazar-account-empty-chat__visual" aria-hidden="true">
+            <span class="bazar-account-empty-chat__bubble">${icon('messages')}</span>
+            <span class="bazar-account-empty-chat__bag">${icon('orders')}</span>
+          </span>
+          <h3>Тут ще немає повідомлень</h3>
+          <p>Напишіть перше повідомлення або дочекайтесь відповіді від BAZAR, продавця чи підтримки.</p>
+        </div>
+      `;
     }
 
     renderMessageReplyReference(replyTo = {}) {
