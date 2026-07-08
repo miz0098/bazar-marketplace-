@@ -179,6 +179,27 @@ html.bazar-account-messages-scroll-lock body {
   width: 20px;
 }
 
+.bazar-account-nav__badge {
+  align-items: center;
+  background: var(--account-blue);
+  border-radius: 999px;
+  color: #fff;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 850;
+  height: 20px;
+  justify-content: center;
+  margin-left: auto;
+  min-width: 20px;
+  padding: 0 6px;
+}
+
+.bazar-account-nav__item.is-active .bazar-account-nav__badge {
+  background: var(--account-blue);
+  box-shadow: 0 0 0 2px #fff;
+  color: #fff;
+}
+
 .bazar-account-content {
   min-width: 0;
   outline: none;

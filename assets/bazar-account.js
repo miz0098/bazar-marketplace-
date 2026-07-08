@@ -781,15 +781,21 @@
     }
 
     applyLocalState() {
-      this.chats = this.chats.map((chat) => ({
-        ...chat,
-        pinned: this.pinnedIds.has(String(chat.id)),
-        unreadCount: this.readIds.has(String(chat.id)) ? 0 : Number(chat.unreadCount || 0),
-        messages: (chat.messages || []).map((message) => ({
-          ...message,
-          unread: this.readIds.has(String(chat.id)) ? false : Boolean(message.unread),
-        })),
-      }));
+      this.chats = this.chats.map((chat) => {
+        const isRead = this.readIds.has(String(chat.id));
+        const messages = chat.messages || [];
+        const unreadMessages = messages.filter((message) => Boolean(message.unread)).length;
+
+        return {
+          ...chat,
+          pinned: this.pinnedIds.has(String(chat.id)),
+          unreadCount: isRead ? 0 : Math.max(Number(chat.unreadCount || 0), unreadMessages),
+          messages: messages.map((message) => ({
+            ...message,
+            unread: isRead ? false : Boolean(message.unread),
+          })),
+        };
+      });
     }
 
     sortChats(chats = this.chats) {
@@ -843,6 +849,11 @@
 
     unreadCount() {
       return this.chats.reduce((total, chat) => total + Number(chat.unreadCount || 0), 0);
+    }
+
+    unreadChatCount() {
+      this.applyLocalState();
+      return this.chats.filter((chat) => Number(chat.unreadCount || 0) > 0).length;
     }
 
     findMessage(chatId, messageId) {
@@ -2144,6 +2155,31 @@
         if (isActive) item.setAttribute('aria-current', 'page');
         else item.removeAttribute('aria-current');
       });
+
+      this.updateMessagesSidebarBadge();
+    }
+
+    updateMessagesSidebarBadge() {
+      const messagesLink = this.root.querySelector('[data-account-route="/profile/messages"]');
+      if (!messagesLink) return;
+
+      const unreadChats = this.providers.chats.unreadChatCount();
+      let badge = messagesLink.querySelector('[data-account-messages-unread-badge]');
+
+      if (!unreadChats) {
+        badge?.remove();
+        return;
+      }
+
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'bazar-account-nav__badge';
+        badge.dataset.accountMessagesUnreadBadge = '';
+        messagesLink.appendChild(badge);
+      }
+
+      badge.textContent = String(unreadChats);
+      badge.setAttribute('aria-label', `${unreadChats} непрочитаних чатів`);
     }
 
     syncRouteState() {
@@ -2154,9 +2190,15 @@
     }
 
     scrollMessageHistoryToBottom() {
-      requestAnimationFrame(() => {
+      const scrollToBottom = () => {
         const history = this.content.querySelector('[data-account-message-history]');
         if (history) history.scrollTop = history.scrollHeight;
+      };
+
+      requestAnimationFrame(() => {
+        scrollToBottom();
+        requestAnimationFrame(scrollToBottom);
+        window.setTimeout(scrollToBottom, 0);
       });
     }
 
