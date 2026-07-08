@@ -1691,7 +1691,7 @@
         this.state.replyToMessage = null;
         this.state.messageDraft = '';
         this.updateMessagesChatList();
-        this.updateMessageHistory({ scroll: 'bottom' });
+        this.appendMessageToHistory(sentMessage);
         this.updateMessageComposer({ focus: true });
         this.updateMessageContextLayer();
       }
@@ -2171,6 +2171,24 @@
       else renderHistory();
 
       if (shouldStickToBottom) this.scrollMessageHistoryToBottom();
+    }
+
+    appendMessageToHistory(message) {
+      const chat = this.getSelectedChat();
+      const history = this.getMessageHistory();
+
+      if (!chat || !history || !message) {
+        this.updateMessageHistory({ scroll: 'bottom' });
+        return;
+      }
+
+      if (!history.querySelector('[data-account-message-bubble]')) {
+        this.updateMessageHistory({ scroll: 'bottom' });
+        return;
+      }
+
+      history.insertAdjacentHTML('beforeend', this.renderChatMessage(message, chat));
+      this.scrollMessageHistoryToBottom();
     }
 
     updateMessageComposer({ focus = false } = {}) {
@@ -2953,25 +2971,29 @@
           const isUnread = Boolean(message.unread);
           const divider = isUnread && !unreadDividerRendered ? '<div class="bazar-account-message-divider">Нові повідомлення</div>' : '';
           if (isUnread) unreadDividerRendered = true;
-          const text = String(message.text || '').trim();
-
-          return `
-            ${divider}
-            <div
-              class="bazar-account-message-bubble bazar-account-message-bubble--${message.direction === 'outgoing' ? 'outgoing' : 'incoming'}"
-              data-account-message-bubble
-              data-account-message-chat-id="${escapeHtml(chat.id || this.state.selectedChatId || '')}"
-              data-account-message-id="${escapeHtml(message.id || '')}"
-              tabindex="0"
-            >
-              ${message.replyTo ? this.renderMessageReplyReference(message.replyTo) : ''}
-              ${text ? `<p>${escapeHtml(text)}</p>` : ''}
-              ${this.renderMessageAttachments(message.attachments)}
-              <time>${escapeHtml(message.time || '')}</time>
-            </div>
-          `;
+          return this.renderChatMessage(message, chat, divider);
         })
         .join('');
+    }
+
+    renderChatMessage(message = {}, chat = {}, divider = '') {
+      const text = String(message.text || '').trim();
+
+      return `
+        ${divider}
+        <div
+          class="bazar-account-message-bubble bazar-account-message-bubble--${message.direction === 'outgoing' ? 'outgoing' : 'incoming'}"
+          data-account-message-bubble
+          data-account-message-chat-id="${escapeHtml(chat.id || this.state.selectedChatId || '')}"
+          data-account-message-id="${escapeHtml(message.id || '')}"
+          tabindex="0"
+        >
+          ${message.replyTo ? this.renderMessageReplyReference(message.replyTo) : ''}
+          ${text ? `<p>${escapeHtml(text)}</p>` : ''}
+          ${this.renderMessageAttachments(message.attachments)}
+          <time>${escapeHtml(message.time || '')}</time>
+        </div>
+      `;
     }
 
     renderEmptyChatState() {
