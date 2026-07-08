@@ -33,7 +33,7 @@ html.bazar-account-messages-scroll-lock body {
 
 .bazar-account-module.is-messages-route {
   box-sizing: border-box;
-  height: calc(100dvh - 78px);
+  height: calc(100dvh - var(--header-height, 60px) - 18px);
   min-height: 0;
   overflow: hidden;
   padding: 18px 0;
@@ -86,24 +86,23 @@ html.bazar-account-messages-scroll-lock body {
 }
 
 .bazar-account-sidebar {
+  align-self: start;
   background: var(--account-surface);
   border: 1px solid var(--account-border);
   border-radius: var(--account-radius);
   box-shadow: 0 14px 32px rgba(6, 19, 52, 0.06);
-  max-height: calc(100dvh - 104px);
-  overflow-y: auto;
+  height: max-content;
+  max-height: none;
+  overflow: visible;
   padding: 15px;
   position: sticky;
-  top: 92px;
+  top: calc(var(--header-height, 80px) + 16px);
   width: 280px;
   z-index: 4;
 }
 
 .bazar-account-module.is-messages-route .bazar-account-sidebar {
   align-self: start;
-  height: auto;
-  max-height: none;
-  overflow: visible;
 }
 
 .bazar-account-sidebar__top {
@@ -932,19 +931,20 @@ html.bazar-account-messages-scroll-lock body {
 }
 
 .bazar-account-messages-screen {
-  display: grid;
-  gap: 18px;
+  display: block;
   min-height: 0;
   overflow: hidden;
 }
 
 .bazar-account-messages-module {
+  align-items: stretch;
   display: grid;
   gap: 16px;
   grid-template-columns: 360px minmax(0, 1fr);
   height: min(620px, calc(100dvh - 170px));
   min-height: 500px;
   max-height: min(620px, calc(100dvh - 170px));
+  min-width: 0;
   overflow: hidden;
   width: 100%;
 }
@@ -2587,6 +2587,14 @@ html.bazar-account-messages-scroll-lock body {
 
   .bazar-account-order-row {
     grid-template-columns: minmax(260px, 1fr) 126px 118px 84px;
+  }
+}
+
+@media (min-width: 921px) and (max-height: 640px) {
+  .bazar-account-sidebar {
+    max-height: calc(100dvh - var(--header-height, 80px) - 32px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 }
 
