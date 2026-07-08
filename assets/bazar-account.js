@@ -71,6 +71,7 @@
       warning: '<path d="M12 4 3 20h18L12 4Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/><path d="M12 10v4M12 17h.01" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.2"/>',
       pin: '<path d="m14 4 6 6-3 1-4.5 4.5V20L4 11.5h4.5L13 7l1-3Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/>',
       paperclip: '<path d="m21 11.5-8.5 8.5a5.2 5.2 0 0 1-7.4-7.4l9-9a3.5 3.5 0 0 1 5 5l-9 9a1.8 1.8 0 0 1-2.6-2.6l8.2-8.2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/>',
+      play: '<path d="M8 5v14l11-7L8 5Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/>',
       send: '<path d="M4 11.5 20 4l-7.5 16-2-6.5L4 11.5Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/><path d="m10.5 13.5 4-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/>',
       arrowLeft: '<path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9"/>',
       check: '<path d="m5 12 4 4 10-10" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>',
@@ -86,6 +87,14 @@
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
+
+  const formatFileSize = (bytes = 0) => {
+    const size = Number(bytes || 0);
+    if (!size) return '';
+    if (size < 1024) return `${size} Б`;
+    if (size < 1024 * 1024) return `${Math.round(size / 102.4) / 10} КБ`;
+    return `${Math.round(size / 1024 / 102.4) / 10} МБ`;
+  };
 
   const localizeStatus = (value = '', fallback = 'В обробці') => {
     const raw = String(value || '').trim();
@@ -769,9 +778,10 @@
       return this.chats.reduce((total, chat) => total + Number(chat.unreadCount || 0), 0);
     }
 
-    send(id, text) {
+    send(id, text, attachments = []) {
       const messageText = String(text || '').trim();
-      if (!messageText) return null;
+      const messageAttachments = Array.isArray(attachments) ? attachments : [];
+      if (!messageText && !messageAttachments.length) return null;
 
       const now = Date.now();
       const date = new Date(now);
@@ -788,13 +798,19 @@
         sentMessage = {
           id: `local-${now}`,
           text: messageText,
+          attachments: messageAttachments.map((attachment) => ({ ...attachment })),
           time,
           direction: 'outgoing',
         };
 
+        const fallbackMessage =
+          messageAttachments.length === 1
+            ? messageAttachments[0].name || 'Вкладення'
+            : `${messageAttachments.length} вкладення`;
+
         return {
           ...chat,
-          lastMessage: messageText,
+          lastMessage: messageText || fallbackMessage,
           unreadCount: 0,
           time,
           updatedAt: now,
@@ -816,8 +832,8 @@
       return this.chatProvider.get(chatId)?.messages || [];
     }
 
-    send(chatId, text) {
-      return this.chatProvider.send(chatId, text);
+    send(chatId, text, attachments = []) {
+      return this.chatProvider.send(chatId, text, attachments);
     }
   }
 
@@ -1081,6 +1097,7 @@
         selectedChatId: '',
         messageContextMenu: null,
         attachmentMenuChatId: '',
+        pendingAttachments: [],
         selectedWishlist: [],
         supportView: 'tickets',
         editingReviewId: '',
@@ -1186,7 +1203,16 @@
         event.preventDefault();
         const input = this.content.querySelector(`[data-account-attachment-input="${attachmentAction.dataset.accountAttachmentAction}"]`);
         input?.click();
-        this.closeAttachmentMenu();
+        this.state.attachmentMenuChatId = '';
+        attachmentAction.closest('[data-account-attachment-menu]')?.setAttribute('hidden', '');
+        this.content.querySelector('[data-account-attachment-toggle]')?.setAttribute('aria-expanded', 'false');
+        return;
+      }
+
+      const attachmentRemove = event.target.closest('[data-account-attachment-remove]');
+      if (attachmentRemove && this.root.contains(attachmentRemove)) {
+        event.preventDefault();
+        this.removePendingAttachment(attachmentRemove.dataset.accountAttachmentRemove);
         return;
       }
 
@@ -1199,6 +1225,7 @@
 
       if (chatItem && this.root.contains(chatItem)) {
         event.preventDefault();
+        if (String(this.state.selectedChatId) !== String(chatItem.dataset.accountChatId || '')) this.clearPendingAttachments();
         this.state.selectedChatId = chatItem.dataset.accountChatId || '';
         this.state.messageContextMenu = null;
         this.state.attachmentMenuChatId = '';
@@ -1219,6 +1246,7 @@
         event.preventDefault();
         this.state.messageContextMenu = null;
         this.state.attachmentMenuChatId = '';
+        if (this.state.route === '/profile/messages') this.clearPendingAttachments();
         this.navigate(routeLink.dataset.accountRoute);
         return;
       }
@@ -1281,6 +1309,13 @@
     }
 
     handleChange(event) {
+      const attachmentInput = event.target.closest('[data-account-attachment-input]');
+      if (attachmentInput && this.root.contains(attachmentInput)) {
+        this.addPendingAttachments(Array.from(attachmentInput.files || []), attachmentInput.dataset.accountAttachmentInput);
+        attachmentInput.value = '';
+        return;
+      }
+
       const field = event.target.closest('[data-account-state]');
       if (!field) return;
 
@@ -1329,10 +1364,14 @@
 
       if (form.dataset.accountForm === 'message') {
         const formData = new FormData(form);
-        const text = formData.get('message') || '';
+        const text = String(formData.get('message') || '').trim();
+        const attachments = Array.isArray(this.state.pendingAttachments) ? this.state.pendingAttachments : [];
 
-        this.providers.messages.send(this.state.selectedChatId, text);
+        if (!text && !attachments.length) return;
+
+        this.providers.messages.send(this.state.selectedChatId, text, attachments);
         this.state.attachmentMenuChatId = '';
+        this.state.pendingAttachments = [];
         this.render(false, false);
       }
     }
@@ -1406,6 +1445,7 @@
         this.state.selectedChatId = '';
         this.state.messageContextMenu = null;
         this.state.attachmentMenuChatId = '';
+        this.clearPendingAttachments();
         this.render(false, false);
       }
     }
@@ -1413,6 +1453,53 @@
     closeAttachmentMenu() {
       this.state.attachmentMenuChatId = '';
       this.render(false, false);
+    }
+
+    addPendingAttachments(files = [], source = 'file') {
+      if (!files.length) {
+        this.state.attachmentMenuChatId = '';
+        this.render(false, false);
+        return;
+      }
+
+      // TODO: upload attachments through api.bazar message attachments endpoint.
+      const createdAt = Date.now();
+      const nextAttachments = files.map((file, index) => {
+        const type = file.type || '';
+        const isImage = type.startsWith('image/');
+        const isVideo = type.startsWith('video/');
+
+        return {
+          id: `attachment-${createdAt}-${index}-${Math.random().toString(36).slice(2, 8)}`,
+          name: file.name || (source === 'media' ? 'Медіафайл' : 'Файл'),
+          size: file.size || 0,
+          type,
+          kind: isImage ? 'image' : isVideo ? 'video' : 'file',
+          url: isImage || isVideo ? URL.createObjectURL(file) : '',
+        };
+      });
+
+      this.state.pendingAttachments = [...(this.state.pendingAttachments || []), ...nextAttachments];
+      this.state.attachmentMenuChatId = '';
+      this.render(false, false);
+    }
+
+    removePendingAttachment(id) {
+      const targetId = String(id || '');
+      const attachment = (this.state.pendingAttachments || []).find((item) => String(item.id) === targetId);
+      if (attachment?.url) URL.revokeObjectURL(attachment.url);
+      this.state.pendingAttachments = (this.state.pendingAttachments || []).filter((item) => String(item.id) !== targetId);
+      this.render(false, false);
+    }
+
+    clearPendingAttachments(revoke = true) {
+      if (revoke) {
+        (this.state.pendingAttachments || []).forEach((attachment) => {
+          if (attachment?.url) URL.revokeObjectURL(attachment.url);
+        });
+      }
+
+      this.state.pendingAttachments = [];
     }
 
     closeMessageContextMenu() {
@@ -1597,6 +1684,8 @@
         } else if (focusContent) {
           this.content.focus({ preventScroll: true });
         }
+
+        if (this.state.route === '/profile/messages') this.scrollMessageHistoryToBottom();
       };
 
       if (!withTransition) {
@@ -1627,6 +1716,13 @@
 
       this.root.classList.toggle('is-messages-route', isMessagesRoute);
       document.documentElement.classList.toggle('bazar-account-messages-scroll-lock', isMessagesRoute);
+    }
+
+    scrollMessageHistoryToBottom() {
+      requestAnimationFrame(() => {
+        const history = this.content.querySelector('[data-account-message-history]');
+        if (history) history.scrollTop = history.scrollHeight;
+      });
     }
 
     renderRoute() {
@@ -2123,7 +2219,7 @@
               <p>${escapeHtml(chat.label || 'Повідомлення')}</p>
             </div>
           </header>
-          <div class="bazar-account-conversation__messages" role="log" aria-live="polite">
+          <div class="bazar-account-conversation__messages" role="log" aria-live="polite" data-account-message-history>
             ${this.renderChatMessages(messages)}
           </div>
           ${this.renderConversationInput(chat)}
@@ -2139,16 +2235,49 @@
           const isUnread = Boolean(message.unread);
           const divider = isUnread && !unreadDividerRendered ? '<div class="bazar-account-message-divider">Нові повідомлення</div>' : '';
           if (isUnread) unreadDividerRendered = true;
+          const text = String(message.text || '').trim();
 
           return `
             ${divider}
             <div class="bazar-account-message-bubble bazar-account-message-bubble--${message.direction === 'outgoing' ? 'outgoing' : 'incoming'}">
-              <p>${escapeHtml(message.text || '')}</p>
+              ${text ? `<p>${escapeHtml(text)}</p>` : ''}
+              ${this.renderMessageAttachments(message.attachments)}
               <time>${escapeHtml(message.time || '')}</time>
             </div>
           `;
         })
         .join('');
+    }
+
+    renderMessageAttachments(attachments = []) {
+      if (!Array.isArray(attachments) || !attachments.length) return '';
+
+      return `
+        <div class="bazar-account-message-attachments">
+          ${attachments
+            .map((attachment) => {
+              if (attachment.kind === 'image' && attachment.url) {
+                return `
+                  <figure class="bazar-account-message-attachment bazar-account-message-attachment--image">
+                    <img src="${escapeHtml(attachment.url)}" alt="${escapeHtml(attachment.name || 'Зображення')}" loading="lazy">
+                    <figcaption>${escapeHtml(attachment.name || 'Зображення')}</figcaption>
+                  </figure>
+                `;
+              }
+
+              return `
+                <span class="bazar-account-message-attachment bazar-account-message-attachment--file">
+                  <span class="bazar-account-message-attachment__icon">${icon(attachment.kind === 'video' ? 'play' : 'paperclip')}</span>
+                  <span>
+                    <span>${escapeHtml(attachment.name || 'Файл')}</span>
+                    ${attachment.size ? `<small>${escapeHtml(formatFileSize(attachment.size))}</small>` : ''}
+                  </span>
+                </span>
+              `;
+            })
+            .join('')}
+        </div>
+      `;
     }
 
     renderConversationInput(chat) {
@@ -2161,26 +2290,59 @@
       }
 
       return `
-        <form class="bazar-account-message-form" data-account-form="message">
-          <div class="bazar-account-attachment">
-            <button
-              class="bazar-account-icon-button"
-              type="button"
-              aria-label="Додати вкладення"
-              aria-haspopup="menu"
-              aria-expanded="${this.state.attachmentMenuChatId === chat.id ? 'true' : 'false'}"
-              data-account-attachment-toggle
-            >
-              ${icon('paperclip')}
-            </button>
-            ${this.renderAttachmentMenu(chat)}
-            <input class="bazar-account-attachment__input" type="file" accept="image/*,video/*" data-account-attachment-input="media">
-            <input class="bazar-account-attachment__input" type="file" accept="*/*" data-account-attachment-input="file">
+        <form class="bazar-account-message-form" data-account-form="message" novalidate>
+          ${this.renderPendingAttachments()}
+          <div class="bazar-account-message-form__controls">
+            <div class="bazar-account-attachment">
+              <button
+                class="bazar-account-icon-button"
+                type="button"
+                aria-label="Додати вкладення"
+                aria-haspopup="menu"
+                aria-expanded="${this.state.attachmentMenuChatId === chat.id ? 'true' : 'false'}"
+                data-account-attachment-toggle
+              >
+                ${icon('paperclip')}
+              </button>
+              ${this.renderAttachmentMenu(chat)}
+              <input class="bazar-account-attachment__input" type="file" accept="image/*,video/*" multiple data-account-attachment-input="media">
+              <input class="bazar-account-attachment__input" type="file" accept="*/*" multiple data-account-attachment-input="file">
+            </div>
+            <label class="bazar-account-visually-hidden" for="BazarAccountMessageInput">Повідомлення</label>
+            <input id="BazarAccountMessageInput" name="message" type="text" autocomplete="off" placeholder="Напишіть повідомлення...">
+            <button class="bazar-account-button bazar-account-button--primary" type="submit" aria-label="Надіслати повідомлення">${icon('send')}</button>
           </div>
-          <label class="bazar-account-visually-hidden" for="BazarAccountMessageInput">Повідомлення</label>
-          <input id="BazarAccountMessageInput" name="message" type="text" autocomplete="off" placeholder="Напишіть повідомлення..." required>
-          <button class="bazar-account-button bazar-account-button--primary" type="submit" aria-label="Надіслати повідомлення">${icon('send')}</button>
         </form>
+      `;
+    }
+
+    renderPendingAttachments() {
+      const attachments = this.state.pendingAttachments || [];
+      if (!attachments.length) return '';
+
+      return `
+        <div class="bazar-account-pending-attachments" aria-label="Вибрані вкладення">
+          ${attachments
+            .map(
+              (attachment) => `
+                <span class="bazar-account-pending-attachment">
+                  ${
+                    attachment.kind === 'image' && attachment.url
+                      ? `<img src="${escapeHtml(attachment.url)}" alt="${escapeHtml(attachment.name || 'Зображення')}" loading="lazy">`
+                      : `<span class="bazar-account-pending-attachment__icon">${icon(attachment.kind === 'video' ? 'play' : 'paperclip')}</span>`
+                  }
+                  <span class="bazar-account-pending-attachment__meta">
+                    <span>${escapeHtml(attachment.name || 'Файл')}</span>
+                    ${attachment.size ? `<small>${escapeHtml(formatFileSize(attachment.size))}</small>` : ''}
+                  </span>
+                  <button type="button" data-account-attachment-remove="${escapeHtml(attachment.id)}" aria-label="Видалити вкладення">
+                    ${icon('trash')}
+                  </button>
+                </span>
+              `,
+            )
+            .join('')}
+        </div>
       `;
     }
 
@@ -2190,7 +2352,7 @@
       // TODO: connect attachments to api.bazar message upload endpoint.
       return `
         <div class="bazar-account-attachment-menu" data-account-attachment-menu role="menu" aria-label="Додати вкладення">
-          <button type="button" role="menuitem" data-account-attachment-action="media">Фото чи відео</button>
+          <button type="button" role="menuitem" data-account-attachment-action="media">Фото та відео</button>
           <button type="button" role="menuitem" data-account-attachment-action="file">Файл</button>
         </div>
       `;
