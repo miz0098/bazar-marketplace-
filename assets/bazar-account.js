@@ -109,11 +109,6 @@
     container.scrollTop = container.scrollHeight;
   };
 
-  const scrollToTop = (container) => {
-    if (!container) return;
-    container.scrollTop = 0;
-  };
-
   const preserveScroll = (container, callback) => {
     const scrollTop = container?.scrollTop || 0;
     const result = callback();
@@ -1283,7 +1278,7 @@
         error: Boolean(this.data.providerError),
       };
       this.messageDragDepth = 0;
-      this.shouldOpenMessageHistoryAtTop = true;
+      this.shouldOpenMessageHistoryAtBottom = true;
       this.shouldFocusMessageInput = false;
       this.messageScrollRequestId = 0;
     }
@@ -1317,7 +1312,7 @@
         this.state.messageContextMenu = null;
         this.state.messageBubbleContextMenu = null;
         this.state.attachmentMenuChatId = '';
-        if (this.state.route === '/profile/messages') this.shouldOpenMessageHistoryAtTop = true;
+        if (this.state.route === '/profile/messages') this.shouldOpenMessageHistoryAtBottom = true;
         this.clearMessageComposer();
         this.render(true, false);
       });
@@ -2111,14 +2106,14 @@
       this.updateSidebar();
 
       if (!this.content?.querySelector('[data-account-messages-screen]')) {
-        this.shouldOpenMessageHistoryAtTop = true;
+        this.shouldOpenMessageHistoryAtBottom = true;
         this.shouldFocusMessageInput = true;
         this.render(false, false);
         return;
       }
 
       this.updateMessagesChatList();
-      this.updateConversationPanel({ scroll: 'top', focus: true });
+      this.updateConversationPanel({ scroll: 'bottom', focus: true });
       this.updateMessageContextLayer();
     }
 
@@ -2144,7 +2139,7 @@
       const chat = this.getSelectedChat();
 
       if (!shell) {
-        this.shouldOpenMessageHistoryAtTop = scroll === 'top';
+        this.shouldOpenMessageHistoryAtBottom = scroll === 'bottom';
         this.shouldFocusMessageInput = focus;
         this.render(false, false);
         return;
@@ -2153,7 +2148,6 @@
       if (screen) screen.classList.toggle('is-conversation-open', Boolean(chat));
       shell.innerHTML = chat ? this.renderConversation(chat) : this.renderNoChatSelected();
 
-      if (scroll === 'top') this.scrollMessageHistoryToTop();
       if (scroll === 'bottom') this.scrollMessageHistoryToBottom();
       if (focus) requestAnimationFrame(() => this.focusMessageInput(true));
     }
@@ -2227,7 +2221,7 @@
     navigate(route) {
       const nextRoute = normalizeRoute(route);
       this.state.route = nextRoute;
-      if (nextRoute === '/profile/messages') this.shouldOpenMessageHistoryAtTop = true;
+      if (nextRoute === '/profile/messages') this.shouldOpenMessageHistoryAtBottom = true;
       this.closeSidebar();
       if (window.location.pathname !== nextRoute) {
         window.history.pushState({ route: nextRoute }, '', nextRoute);
@@ -2267,9 +2261,9 @@
           this.content.focus({ preventScroll: true });
         }
 
-        if (this.state.route === '/profile/messages' && this.shouldOpenMessageHistoryAtTop) {
-          this.scrollMessageHistoryToTop();
-          this.shouldOpenMessageHistoryAtTop = false;
+        if (this.state.route === '/profile/messages' && this.shouldOpenMessageHistoryAtBottom) {
+          this.scrollMessageHistoryToBottom();
+          this.shouldOpenMessageHistoryAtBottom = false;
         }
 
         if (this.state.route === '/profile/messages' && this.shouldFocusMessageInput) {
@@ -2331,26 +2325,6 @@
 
       this.root.classList.toggle('is-messages-route', isMessagesRoute);
       document.documentElement.classList.toggle('bazar-account-messages-scroll-lock', isMessagesRoute);
-    }
-
-    scrollMessageHistoryToTop() {
-      const requestId = ++this.messageScrollRequestId;
-      const history = this.content.querySelector('[data-account-message-history]');
-      if (!history) return;
-
-      const isCurrentHistory = () =>
-        requestId === this.messageScrollRequestId && this.content.querySelector('[data-account-message-history]') === history;
-
-      const applyScrollToTop = () => {
-        if (!isCurrentHistory()) return;
-        scrollToTop(history);
-      };
-
-      requestAnimationFrame(() => {
-        applyScrollToTop();
-        requestAnimationFrame(applyScrollToTop);
-        window.setTimeout(applyScrollToTop, 0);
-      });
     }
 
     scrollMessageHistoryToBottom() {
