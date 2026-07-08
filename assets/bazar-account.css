@@ -96,7 +96,7 @@ html.bazar-account-messages-scroll-lock body {
   overflow: visible;
   padding: 15px;
   position: sticky;
-  top: calc(var(--header-height, 80px) + 16px);
+  top: 16px;
   width: 280px;
   z-index: 4;
 }
@@ -1194,7 +1194,7 @@ html.bazar-account-messages-scroll-lock body {
   background: linear-gradient(180deg, #f8faff 0%, #f4f7fc 100%);
   display: flex;
   flex: 1 1 auto;
-  flex-direction: column;
+  flex-direction: column-reverse;
   gap: 8px;
   height: auto;
   min-height: 0;
