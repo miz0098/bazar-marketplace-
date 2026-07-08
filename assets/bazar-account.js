@@ -1245,6 +1245,7 @@
       this.messageDragDepth = 0;
       this.shouldScrollMessageHistory = true;
       this.preservedMessageScrollTop = null;
+      this.shouldFocusMessageInput = false;
     }
 
     init() {
@@ -1420,6 +1421,7 @@
         this.state.messageBubbleContextMenu = null;
         this.state.attachmentMenuChatId = '';
         this.shouldScrollMessageHistory = true;
+        this.shouldFocusMessageInput = true;
         this.providers.chats.markRead(this.state.selectedChatId);
         this.render(false, false);
         return;
@@ -1651,7 +1653,10 @@
         const text = String(formData.get('message') || '').trim();
         const attachments = Array.isArray(this.state.pendingAttachments) ? this.state.pendingAttachments : [];
 
-        if (!text && !attachments.length) return;
+        if (!text && !attachments.length) {
+          this.focusMessageInput(true);
+          return;
+        }
 
         this.providers.messages.send(this.state.selectedChatId, text, attachments, this.state.replyToMessage);
         this.state.attachmentMenuChatId = '';
@@ -1659,6 +1664,7 @@
         this.state.replyToMessage = null;
         this.state.messageDraft = '';
         this.shouldScrollMessageHistory = true;
+        this.shouldFocusMessageInput = true;
         this.render(false, false);
       }
     }
@@ -2035,6 +2041,27 @@
       this.render(false, false);
     }
 
+    focusMessageInput(preserveHistoryScroll = true) {
+      const history = this.content?.querySelector('[data-account-message-history]');
+      const scrollTop = history?.scrollTop || 0;
+      const input = this.content?.querySelector('[data-account-message-input]');
+      if (!input) return;
+
+      input.focus({ preventScroll: true });
+
+      if (typeof input.setSelectionRange === 'function') {
+        const length = input.value.length;
+        input.setSelectionRange(length, length);
+      }
+
+      if (preserveHistoryScroll && history) {
+        history.scrollTop = scrollTop;
+        requestAnimationFrame(() => {
+          history.scrollTop = scrollTop;
+        });
+      }
+    }
+
     navigate(route) {
       const nextRoute = normalizeRoute(route);
       this.state.route = nextRoute;
@@ -2088,6 +2115,11 @@
         } else if (this.state.route === '/profile/messages' && this.shouldScrollMessageHistory) {
           this.scrollMessageHistoryToBottom();
           this.shouldScrollMessageHistory = false;
+        }
+
+        if (this.state.route === '/profile/messages' && this.shouldFocusMessageInput) {
+          this.shouldFocusMessageInput = false;
+          requestAnimationFrame(() => this.focusMessageInput(true));
         }
       };
 
