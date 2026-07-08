@@ -2890,7 +2890,7 @@
 
     renderMessageHistory(chat) {
       return `
-        <div class="bazar-account-conversation__messages" role="log" aria-live="polite" data-account-message-history>
+        <div class="bazar-account-conversation__messages" role="log" aria-live="polite" data-account-message-history data-messages-list>
           ${this.renderChatMessages(this.providers.messages.list(chat.id), chat)}
         </div>
       `;
@@ -2913,12 +2913,42 @@
       `;
     }
 
+    getMessageChronologyValue(message = {}, fallbackIndex = 0) {
+      const candidates = [message.updatedAt, message.createdAt, message.timestamp, message.sentAt];
+
+      for (const candidate of candidates) {
+        if (candidate === undefined || candidate === null || candidate === '') continue;
+        const numeric = Number(candidate);
+        if (Number.isFinite(numeric) && numeric > 0) return numeric;
+
+        const parsed = Date.parse(String(candidate));
+        if (Number.isFinite(parsed)) return parsed;
+      }
+
+      const localIdMatch = String(message.id || '').match(/^local-(\d+)/);
+      if (localIdMatch) return Number(localIdMatch[1]);
+
+      return fallbackIndex;
+    }
+
+    getChronologicalMessages(messages = []) {
+      return messages
+        .map((message, index) => ({
+          index,
+          message,
+          order: this.getMessageChronologyValue(message, index),
+        }))
+        .sort((a, b) => a.order - b.order || a.index - b.index)
+        .map(({ message }) => message);
+    }
+
     renderChatMessages(messages = [], chat = {}) {
       if (!messages.length) return this.renderEmptyChatState();
 
+      const chronologicalMessages = this.getChronologicalMessages(messages);
       let unreadDividerRendered = false;
 
-      return messages
+      return chronologicalMessages
         .map((message) => {
           const isUnread = Boolean(message.unread);
           const divider = isUnread && !unreadDividerRendered ? '<div class="bazar-account-message-divider">Нові повідомлення</div>' : '';
