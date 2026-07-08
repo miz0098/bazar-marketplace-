@@ -1244,6 +1244,7 @@
       };
       this.messageDragDepth = 0;
       this.shouldScrollMessageHistory = true;
+      this.preservedMessageScrollTop = null;
     }
 
     init() {
@@ -1363,17 +1364,19 @@
       const attachmentToggle = event.target.closest('[data-account-attachment-toggle]');
       if (attachmentToggle && this.root.contains(attachmentToggle)) {
         event.preventDefault();
+        event.stopPropagation();
         this.state.attachmentMenuChatId =
           this.state.attachmentMenuChatId === this.state.selectedChatId ? '' : this.state.selectedChatId;
         this.state.messageContextMenu = null;
         this.state.messageBubbleContextMenu = null;
-        this.render(false, false);
+        this.renderKeepingMessageScroll();
         return;
       }
 
       const attachmentAction = event.target.closest('[data-account-attachment-action]');
       if (attachmentAction && this.root.contains(attachmentAction)) {
         event.preventDefault();
+        event.stopPropagation();
         const input = this.content.querySelector(`[data-account-attachment-input="${attachmentAction.dataset.accountAttachmentAction}"]`);
         input?.click();
         this.state.attachmentMenuChatId = '';
@@ -1385,6 +1388,7 @@
       const attachmentRemove = event.target.closest('[data-account-attachment-remove]');
       if (attachmentRemove && this.root.contains(attachmentRemove)) {
         event.preventDefault();
+        event.stopPropagation();
         this.removePendingAttachment(attachmentRemove.dataset.accountAttachmentRemove);
         return;
       }
@@ -1728,13 +1732,13 @@
 
     closeAttachmentMenu() {
       this.state.attachmentMenuChatId = '';
-      this.render(false, false);
+      this.renderKeepingMessageScroll();
     }
 
     addPendingAttachments(files = [], source = 'file') {
       if (!files.length) {
         this.state.attachmentMenuChatId = '';
-        this.render(false, false);
+        this.renderKeepingMessageScroll();
         return;
       }
 
@@ -1757,7 +1761,7 @@
 
       this.state.pendingAttachments = [...(this.state.pendingAttachments || []), ...nextAttachments];
       this.state.attachmentMenuChatId = '';
-      this.render(false, false);
+      this.renderKeepingMessageScroll();
     }
 
     removePendingAttachment(id) {
@@ -1765,7 +1769,7 @@
       const attachment = (this.state.pendingAttachments || []).find((item) => String(item.id) === targetId);
       if (attachment?.url) URL.revokeObjectURL(attachment.url);
       this.state.pendingAttachments = (this.state.pendingAttachments || []).filter((item) => String(item.id) !== targetId);
-      this.render(false, false);
+      this.renderKeepingMessageScroll();
     }
 
     clearPendingAttachments(revoke = true) {
@@ -1996,6 +2000,12 @@
       }
     }
 
+    renderKeepingMessageScroll() {
+      const history = this.content?.querySelector('[data-account-message-history]');
+      this.preservedMessageScrollTop = history ? history.scrollTop : null;
+      this.render(false, false);
+    }
+
     navigate(route) {
       const nextRoute = normalizeRoute(route);
       this.state.route = nextRoute;
@@ -2039,7 +2049,14 @@
           this.content.focus({ preventScroll: true });
         }
 
-        if (this.state.route === '/profile/messages' && this.shouldScrollMessageHistory) {
+        if (this.state.route === '/profile/messages' && this.preservedMessageScrollTop !== null) {
+          const scrollTop = this.preservedMessageScrollTop;
+          this.preservedMessageScrollTop = null;
+          requestAnimationFrame(() => {
+            const history = this.content.querySelector('[data-account-message-history]');
+            if (history) history.scrollTop = scrollTop;
+          });
+        } else if (this.state.route === '/profile/messages' && this.shouldScrollMessageHistory) {
           this.scrollMessageHistoryToBottom();
           this.shouldScrollMessageHistory = false;
         }
