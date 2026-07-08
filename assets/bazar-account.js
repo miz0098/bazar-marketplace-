@@ -565,143 +565,16 @@
 
   class ChatProvider {
     constructor(data) {
-      // TODO: replace placeholder chats with api.bazar messages endpoint.
+      // TODO: replace Shopify/bootstrap messages with api.bazar messages endpoint.
       // TODO: connect seller chats to api.bazar.
       // TODO: connect support chats to api.bazar.
-      this.chats = Array.isArray(data.chats) ? data.chats : this.getDemoChats();
+      this.chats = Array.isArray(data.chats) ? data.chats : Array.isArray(data.messages) ? data.messages : [];
       this.chats = this.mergeStoredMessages(this.chats);
       const storedPins = this.readPinnedIds();
       const initialPins = storedPins ?? this.chats.filter((chat) => chat.pinned).map((chat) => String(chat.id));
       this.pinnedIds = new Set(initialPins);
       this.readState = this.readReadState();
       this.applyLocalState();
-    }
-
-    getDemoChats() {
-      const now = Date.now();
-
-      return [
-        {
-          id: 'bazar-system',
-          type: 'system',
-          title: 'BAZAR',
-          label: 'Системні повідомлення',
-          avatarIcon: 'shield',
-          pinned: true,
-          canReply: false,
-          unreadCount: 2,
-          time: '09:24',
-          updatedAt: now - 12 * 60 * 1000,
-          lastMessage: 'Ваш акаунт успішно захищено. Ми повідомимо про важливі зміни.',
-          messages: [
-            {
-              id: 'sys-1',
-              text: 'Вітаємо у BAZAR. Тут зʼявлятимуться важливі повідомлення про акаунт і покупки.',
-              time: '09:10',
-              direction: 'incoming',
-            },
-            {
-              id: 'sys-2',
-              text: 'Ваш акаунт успішно захищено. Ми повідомимо про важливі зміни.',
-              time: '09:24',
-              direction: 'incoming',
-              unread: true,
-            },
-          ],
-        },
-        {
-          id: 'seller-techstore',
-          type: 'seller',
-          title: 'Продавець: TechStore',
-          label: 'Продавець',
-          avatarIcon: 'store',
-          canReply: true,
-          unreadCount: 1,
-          time: 'Вчора',
-          updatedAt: now - 26 * 60 * 60 * 1000,
-          lastMessage: 'Можемо відправити сьогодні до 18:00.',
-          messages: [
-            {
-              id: 'seller-1',
-              text: 'Добрий день. Чи є iPhone 15 Pro у синьому кольорі?',
-              time: '15:42',
-              direction: 'outgoing',
-            },
-            {
-              id: 'seller-2',
-              text: 'Так, є в наявності. Можемо відправити сьогодні до 18:00.',
-              time: '15:48',
-              direction: 'incoming',
-              unread: true,
-            },
-          ],
-        },
-        {
-          id: 'order-bz-250526-1247',
-          type: 'order',
-          title: 'Замовлення № BZ-250526-1247',
-          label: 'Замовлення',
-          avatarIcon: 'receipt',
-          canReply: true,
-          unreadCount: 0,
-          time: '28 трав.',
-          updatedAt: now - 5 * 24 * 60 * 60 * 1000,
-          lastMessage: 'Посилка доставлена у відділення Нової пошти.',
-          messages: [
-            {
-              id: 'order-1',
-              text: 'Замовлення оформлено та передано продавцю.',
-              time: '14:30',
-              direction: 'incoming',
-            },
-            {
-              id: 'order-2',
-              text: 'Оплату отримано. Посилка готується до відправлення.',
-              time: '14:34',
-              direction: 'incoming',
-            },
-            {
-              id: 'order-3',
-              text: 'Посилка доставлена у відділення Нової пошти.',
-              time: '12:10',
-              direction: 'incoming',
-            },
-          ],
-        },
-        {
-          id: 'bazar-support',
-          type: 'support',
-          title: 'BAZAR-підтримка',
-          label: 'Підтримка',
-          avatarIcon: 'headphones',
-          canReply: true,
-          unreadCount: 3,
-          time: 'Пн',
-          updatedAt: now - 7 * 24 * 60 * 60 * 1000,
-          lastMessage: 'Ми перевірили звернення і вже підготували відповідь.',
-          messages: [
-            {
-              id: 'support-1',
-              text: 'Опишіть, будь ласка, що саме потрібно уточнити щодо замовлення.',
-              time: '11:20',
-              direction: 'incoming',
-            },
-            {
-              id: 'support-2',
-              text: 'Хочу уточнити умови повернення товару.',
-              time: '11:27',
-              direction: 'outgoing',
-            },
-            {
-              id: 'support-3',
-              text: 'Ми перевірили звернення і вже підготували відповідь.',
-              time: '11:35',
-              direction: 'incoming',
-              unread: true,
-            },
-          ],
-        },
-      ];
     }
 
     readPinnedIds() {
@@ -2842,7 +2715,7 @@
       const selectedChat = this.state.selectedChatId ? this.providers.chats.get(this.state.selectedChatId) : null;
 
       return `
-        <section class="bazar-account-messages-screen${selectedChat ? ' is-conversation-open' : ''}" aria-label="Повідомлення" data-account-messages-screen>
+        <section class="bazar-account-messages-screen${selectedChat ? ' is-conversation-open' : ''}${chats.length ? '' : ' is-empty'}" aria-label="Повідомлення" data-account-messages-screen>
           ${
             chats.length
               ? `
@@ -2877,11 +2750,10 @@
 
     renderMessagesEmpty() {
       return `
-        <div class="bazar-account-empty bazar-account-messages-empty">
-          <span class="bazar-account-empty__icon">${icon('messages')}</span>
-          <h2>У вас ще немає повідомлень</h2>
-          <p>Тут зʼявлятимуться повідомлення від BAZAR, продавців та підтримки.</p>
-          <a class="bazar-account-button bazar-account-button--primary" href="/collections">До каталогу</a>
+        <div class="bazar-account-messages-empty">
+          <span class="bazar-account-messages-empty__icon" aria-hidden="true">${icon('messages')}</span>
+          <h2>Повідомлень поки що немає</h2>
+          <p>Тут будуть відображатися повідомлення від BAZAR, продавців, служби підтримки та оновлення щодо ваших замовлень.</p>
         </div>
       `;
     }
