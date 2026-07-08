@@ -1257,6 +1257,7 @@
       this.shouldScrollMessageHistory = true;
       this.preservedMessageScrollTop = null;
       this.shouldFocusMessageInput = false;
+      this.messageScrollRequestId = 0;
     }
 
     init() {
@@ -1288,6 +1289,7 @@
         this.state.messageContextMenu = null;
         this.state.messageBubbleContextMenu = null;
         this.state.attachmentMenuChatId = '';
+        if (this.state.route === '/profile/messages') this.shouldScrollMessageHistory = true;
         this.clearMessageComposer();
         this.render(true, false);
       });
@@ -1503,7 +1505,7 @@
         };
         this.state.messageContextMenu = null;
         this.state.attachmentMenuChatId = '';
-        this.render(false, false);
+        this.renderKeepingMessageScroll();
         return;
       }
 
@@ -1525,7 +1527,7 @@
       };
       this.state.messageBubbleContextMenu = null;
       this.state.attachmentMenuChatId = '';
-      this.render(false, false);
+      this.renderKeepingMessageScroll();
     }
 
     handleInput(event) {
@@ -1838,12 +1840,12 @@
 
     closeMessageContextMenu() {
       this.state.messageContextMenu = null;
-      this.render(false, false);
+      this.renderKeepingMessageScroll();
     }
 
     closeMessageBubbleContextMenu() {
       this.state.messageBubbleContextMenu = null;
-      this.render(false, false);
+      this.renderKeepingMessageScroll();
     }
 
     getMessagePreviewText(message = {}) {
@@ -1903,7 +1905,7 @@
       }
 
       this.state.messageBubbleContextMenu = null;
-      this.render(false, false);
+      this.renderKeepingMessageScroll();
     }
 
     runMessageMenuAction(action, chatId) {
@@ -1926,7 +1928,7 @@
 
       this.state.messageContextMenu = null;
       this.state.messageBubbleContextMenu = null;
-      this.render(false, false);
+      this.renderKeepingMessageScroll();
     }
 
     removeWishlistItem(id, element) {
@@ -2190,15 +2192,50 @@
     }
 
     scrollMessageHistoryToBottom() {
+      const requestId = ++this.messageScrollRequestId;
+      const history = this.content.querySelector('[data-account-message-history]');
+      if (!history) return;
+
+      const isCurrentHistory = () =>
+        requestId === this.messageScrollRequestId && this.content.querySelector('[data-account-message-history]') === history;
+
       const scrollToBottom = () => {
-        const history = this.content.querySelector('[data-account-message-history]');
-        if (history) history.scrollTop = history.scrollHeight;
+        if (!isCurrentHistory()) return;
+        history.scrollTop = history.scrollHeight;
       };
 
-      requestAnimationFrame(() => {
+      const scheduleScroll = () => {
+        requestAnimationFrame(() => {
+          scrollToBottom();
+          requestAnimationFrame(scrollToBottom);
+          window.setTimeout(scrollToBottom, 0);
+        });
+      };
+
+      scheduleScroll();
+
+      const pendingImages = Array.from(history.querySelectorAll('img')).filter((image) => !image.complete);
+      if (!pendingImages.length) return;
+
+      let remainingImages = pendingImages.length;
+      const handleImageSettled = () => {
+        if (!isCurrentHistory()) return;
+        remainingImages -= 1;
         scrollToBottom();
-        requestAnimationFrame(scrollToBottom);
-        window.setTimeout(scrollToBottom, 0);
+        if (!remainingImages) scheduleScroll();
+      };
+
+      const settledImages = new WeakSet();
+      const settleImage = (image) => {
+        if (settledImages.has(image)) return;
+        settledImages.add(image);
+        handleImageSettled();
+      };
+
+      pendingImages.forEach((image) => {
+        image.addEventListener('load', () => settleImage(image), { once: true });
+        image.addEventListener('error', () => settleImage(image), { once: true });
+        if (image.complete) settleImage(image);
       });
     }
 
