@@ -2,7 +2,7 @@
 
 ## Purpose and constraints
 
-The target is a standalone Next.js App Router storefront, initially isolated under `apps/storefront`, while the existing Shopify Horizon theme remains untouched and runnable. This document defines boundaries; it does not assert that `api.bazar.ua`, authentication, payments, SMS, wishlist, or messaging integrations already exist.
+The target is a standalone Next.js App Router storefront, initially isolated under `apps/storefront`, while the existing Shopify Horizon theme remains untouched and runnable. The visual/interaction source of truth for migration is `bazar-latest-shopify` commit `105d10f`; the migration base and rules remain `vps-migration` at `722a58b`. This document defines boundaries; it does not assert that `api.bazar.ua`, authentication, payments, SMS, server wishlist, or messaging integrations already exist.
 
 The architecture must preserve the approved Ukrainian BAZAR experience, responsive behavior, accessibility, URLs/SEO where applicable, and an explicit path from deterministic mocks to live services. Shopify remains the observed current implementation and parity reference until product and backend owners approve replacements.
 
@@ -22,14 +22,25 @@ Liquid layouts + JSON templates + section/block schema
 Browser
   |-- Shopify cart/search/recommendation/section endpoints
   |-- Shopify CDN @shopify/events
-  |-- <shopify-account> (identity/profile/orders UI)
-  |-- <shopify-chat> (Shopify Inbox support chat, if installed)
+  |-- BAZAR auth/account UI over Shopify customer Liquid/session data
+  |-- BAZAR local wishlist/messages prototypes
+  |-- Horizon <shopify-account>/<shopify-chat> fallback integrations
   `-- Shopify-hosted checkout / accelerated checkout
 ```
 
-`layout/theme.liquid` composes the header group, content, footer group, chat, cart drawer, search modal, and quick-add modal. `snippets/scripts.liquid` defines the import map and global `Theme.routes`. JSON templates select sections/blocks, while Liquid renders Shopify data and inline/asset CSS and JavaScript. The browser modules frequently request Shopify HTML fragments and morph them into the page rather than consuming a repository-defined JSON API.
+At `105d10f`, BAZAR adds a presentation/application layer over Horizon:
 
-This coupling means Liquid components are migration specifications, not directly portable React components.
+- `templates/index.json`, `templates/collection.json`, `templates/list-collections.json`, and `templates/product.json` select BAZAR sections for the primary shopping journey.
+- `sections/header.liquid` mounts `snippets/bazar-header-desktop.liquid`, BAZAR actions, catalog menu, authentication modal, favorites modal, and their scripts/styles.
+- `templates/page.profile.json` and `sections/bazar-account-dashboard.liquid` mount a client-rendered account application from `assets/bazar-account.js` and `assets/bazar-account.css`.
+- `snippets/bazar-account-provider-data.liquid` serializes Shopify customer, order, and address objects; wishlist, messages, notifications, reviews, support tickets, and payment methods are initialized empty.
+- `assets/bazar-auth.js` uses optional `window.BazarSmsAuth` hooks but otherwise simulates SMS/registration and stores auth state in browser storage.
+- `assets/bazar-wishlist-store.js` and account message providers persist only in `localStorage`; they do not synchronize with another device or user.
+- `snippets/stylesheets.liquid` globally loads BAZAR tokens/home/catalog/product/modal styles alongside Horizon `base.css`, with additional feature CSS loaded by header/footer/account sections.
+
+`layout/theme.liquid` still composes Horizon layout facilities, and `snippets/scripts.liquid` still defines Shopify import maps and `Theme.routes`. Liquid continues to provide catalog, product, cart, customer, order, address, and configuration data. The BAZAR browser layer uses Shopify cart/product JSON endpoints and browser-local state rather than a repository-defined backend API.
+
+This coupling means BAZAR Liquid/CSS/JavaScript are the primary migration specifications, while Horizon remains the platform fallback. They are not directly portable React components. UI completeness must not be confused with backend completeness.
 
 ## Target architecture
 
@@ -154,6 +165,14 @@ interface CheckoutService {
 
 Equivalent focused interfaces should cover `IdentityService`, `CustomerService`, `OrderService`, `WishlistService`, and `MessagingService`. Contract types must represent loading-independent data, stable IDs, pagination cursors, localized content, explicit availability, error codes, and timestamps with documented timezone semantics.
 
+The service contracts must replace these verified prototype seams without preserving their unsafe behavior:
+
+- `window.BazarSmsAuth` and `bazarAuth` browser storage in `assets/bazar-auth.js` → `IdentityService` with a server-managed session.
+- Shopify customer JSON from `snippets/bazar-account-provider-data.liquid` and in-memory profile edits in `assets/bazar-account.js` → `CustomerService`.
+- Shopify order summary plus hard-coded detail fallbacks in `assets/bazar-account.js` → `OrderService` with authoritative delivery/payment/seller timelines.
+- `bazarWishlistItems` in `assets/bazar-wishlist-store.js` → authenticated `WishlistService`, with an explicitly designed guest-to-account merge.
+- local chat/message/pin/read keys in `assets/bazar-account.js` → `MessagingService` plus an approved realtime/polling and attachment-upload mechanism.
+
 Validate external responses at the HTTP boundary (for example with JSON Schema or a selected runtime schema library), then map transport DTOs to domain types. Do not let backend response shapes leak into components. Use integer minor units or an approved decimal representation for money—never binary floating-point arithmetic.
 
 ## Mock-to-live boundary
@@ -184,7 +203,7 @@ Validate external responses at the HTTP boundary (for example with JSON Schema o
 
 ## Localization and accessibility
 
-Ukrainian is a required product surface but is not available in the current theme repository. Store copy in reviewed Ukrainian message catalogs, use locale-aware pluralization/number/date/money formatting, and define fallback behavior explicitly. Do not treat Russian copy as Ukrainian source material.
+Ukrainian is visibly implemented in BAZAR Liquid and JavaScript at `105d10f`, including auth, catalog, product, account, orders, wishlist, and messages, but it is hard-coded rather than represented by `locales/uk.json`. Extract it into reviewed Ukrainian message catalogs, use locale-aware pluralization/number/date/money formatting, and define fallback behavior explicitly. Do not use `locales/ru.json` as Ukrainian source material.
 
 Preserve the theme's verified accessibility patterns: semantic landmarks, skip links, logical headings, visible focus, focus trapping and return, keyboard-operable menus/dialogs/galleries, status live regions, reduced motion, descriptive media alternatives, zoom/reflow, and minimum touch targets. Automated checks supplement, not replace, keyboard and screen-reader review.
 
@@ -192,15 +211,18 @@ Preserve the theme's verified accessibility patterns: semantic landmarks, skip l
 
 | Shopify source | Target responsibility | Migration note |
 | --- | --- | --- |
-| `layout/theme.liquid`, header/footer groups | root locale layout and layout components | Resolve merchant settings and navigation before visual sign-off. |
-| `sections/header.liquid`, header snippets/assets | `navigation/` and `layout/` | Preserve desktop overflow behavior, mobile drawer, search, account, and cart states. |
-| `sections/main-collection.liquid`, `blocks/filters.liquid` | catalog route/grid/filter controls | Replace Liquid pagination and section HTML fetches with typed queries and URL state. |
-| product card blocks/snippets/assets | catalog product-card components | Start here because catalog, search, recommendations, and related products reuse it. |
-| product template/information/media/buy blocks | product route and components | Replace Shopify product/variant objects, media filters, and HTML hydration with domain models. |
+| `assets/bazar-global.css`, `snippets/stylesheets.liquid`, BAZAR feature CSS | reviewed design tokens and component styles | Extract the BAZAR tokens and visual states; audit global loading, collisions with `assets/base.css`, fonts, breakpoints, and unused page CSS. |
+| `sections/header.liquid`, `snippets/bazar-header-*.liquid`, `assets/bazar-header.*` | `navigation/` and `layout/` | Preserve Ukrainian search, catalog overlay, favorites/profile/cart actions, responsive states, and focus/scroll behavior. |
+| `sections/bazar-main-collection.liquid`, `snippets/bazar-catalog-filter.liquid` | catalog route/grid/filter controls | Replace Shopify Liquid collection/filter/pagination objects with typed queries and URL state; preserve native `/collections/{handle}` until URL strategy is approved. |
+| `snippets/bazar-product-card.liquid` | catalog product-card components | Preserve the verified minimal card first; add missing quick-add/wishlist/rating/badge behavior only from approved requirements. |
+| `sections/bazar-main-product.liquid`, gallery/product assets | product route and components | Replace Shopify product/variant/metafield/cart objects; correct the wishlist link-only behavior through `WishlistService`. |
 | search sections/snippets/assets | search route/dialog | Replace predictive-search HTML endpoint; define query, grouping, and debounce/cancellation behavior. |
 | cart template/snippets/assets | cart page/drawer and `CartService` | Preserve live announcements and reconciliation; backend decides totals and availability. |
-| `<shopify-account>` | account routes and identity/customer/order services | Existing inner UI is not owned locally; require approved designs and contract. |
-| `<shopify-chat>` | messaging domain only if marketplace scope is confirmed | Do not equate Shopify Inbox support chat with buyer/seller messaging. |
+| BAZAR auth modal/sections and `assets/bazar-auth.js` | identity routes/modal and `IdentityService` | Preserve the approved UI states, but never migrate the six-digit UI-only verification or browser-auth flag as security logic. |
+| BAZAR account template/section/sidebar and `assets/bazar-account.*` | account layout and domain routes | Split the 3,554-line client module into route-level features and typed providers; retain loading/empty/error/responsive states. |
+| Shopify order bootstrap plus BAZAR order screens | `OrderService` and order routes | Separate verified Shopify summary fields from placeholder detail/timeline/seller fields. |
+| BAZAR wishlist store/account/modal | `WishlistService` and shared wishlist UI | Design product add controls, guest merge, server persistence, consistency, and cart mutation errors. |
+| BAZAR message screens/providers | `MessagingService` and message routes | Preserve the rich UI and `105d10f` empty state; replace local-only messages, attachments, pins, and read state with authorized APIs. |
 | Shopify checkout controls | `CheckoutService` handoff | Keep payment outside the app until separately approved. |
 | settings schema, Liquid CSS variables, `base.css` | reviewed design tokens and component styles | Merchant setting values are missing; capture them before extraction. |
 
@@ -212,14 +234,14 @@ Emit structured server logs with request/correlation ID, route, service operatio
 
 ## Architectural acceptance gates
 
-1. Shopify sources remain byte-for-byte present except separately reviewed documentation/configuration changes.
+1. Shopify sources remain byte-for-byte present; `105d10f` is audited as reference and is not merged into the migration documentation branch.
 2. Every screen declares whether it uses mock or live data; production cannot start in mock mode.
 3. UI modules depend on typed service contracts and domain models, not raw fetch calls or fixtures.
 4. Browser bundles contain no private API credentials or server-only modules.
 5. Ukrainian copy and formatting pass product review; responsive and accessibility parity pass the agreed matrix.
 6. Catalog/product metadata and canonical/redirect behavior meet the approved SEO inventory.
 7. Lint, strict typecheck, unit, contract, browser, accessibility, and production build/start checks run in CI.
-8. Live adapter, session, checkout, cache, logging, monitoring, VPS, and rollback designs receive owner approval before deployment.
+8. Live adapter, session, checkout, wishlist merge, messaging/attachment transport, cache, logging, monitoring, VPS, and rollback designs receive owner approval before deployment.
 
 ## Decisions to record before implementation
 
