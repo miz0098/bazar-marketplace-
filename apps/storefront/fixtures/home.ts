@@ -1,5 +1,5 @@
 import type { HomePageContent, NavigationItem } from '@/services/contracts/content';
-import type { ProductSummary } from '@/services/contracts/catalog';
+import { demoProducts } from '@/fixtures/catalog';
 
 export const mockCategories: readonly NavigationItem[] = [
   { id: 'electronics', title: 'Електроніка', href: '/catalog?category=electronics', icon: '📱' },
@@ -10,16 +10,7 @@ export const mockCategories: readonly NavigationItem[] = [
   { id: 'sport', title: 'Спорт і відпочинок', href: '/catalog?category=sport', icon: '⚽' },
 ];
 
-export const mockProducts: readonly ProductSummary[] = [
-  ['iphone-15', 'Apple iPhone 15 Pro 128GB', 'Apple', 4269600, 'phone'],
-  ['lenovo-ideapad', 'Ноутбук Lenovo IdeaPad Slim 5', 'Lenovo', 3199900, 'laptop'],
-  ['sony-headphones', 'Навушники Sony WH-1000XM5', 'Sony', 1449900, 'headphones'],
-  ['delonghi', 'Кавоварка DeLonghi Magnifica', 'DeLonghi', 1825000, 'home'],
-  ['apple-watch', 'Apple Watch Series 9', 'Apple', 1689900, 'watch'],
-  ['dyson', 'Пилосос Dyson V15 Detect', 'Dyson', 2499900, 'home'],
-  ['camera', 'Камера Fujifilm X-S20', 'Fujifilm', 5299900, 'camera'],
-  ['console', 'Ігрова консоль PlayStation 5', 'Sony', 2399900, 'console'],
-].map(([handle, title, vendor, amountMinor, visual]) => ({ id: String(handle), handle: String(handle), title: String(title), vendor: String(vendor), price: { amountMinor: Number(amountMinor), currency: 'UAH' }, visual: visual as ProductSummary['visual'] }));
+export const mockProducts = demoProducts;
 
 export const mockHomePage: HomePageContent = {
   heroSlides: [

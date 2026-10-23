@@ -16,12 +16,23 @@
     {
       "id": "PHB-001",
       "title": "Catalog, search, product details and persistent demo cart",
-      "status": "in_review",
+      "status": "done",
       "readiness": "demo",
       "depends_on": ["OPS-001"],
       "allowed_paths": ["apps/storefront/"],
       "acceptance": ["PR #6 CI is green", "Review confirms no Shopify runtime and no live-commerce claims", "PR #6 is merged into vps-migration"],
       "pr": 6,
+      "blocker": null
+    },
+    {
+      "id": "CONTRACT-001",
+      "title": "Record ADRs and provisional first-party API contracts",
+      "status": "pending",
+      "readiness": "integration",
+      "depends_on": ["OPS-001"],
+      "allowed_paths": ["docs/", "packages/contracts/", ".github/autonomous/tasks.json"],
+      "acceptance": ["ADRs cover URLs, system of record, sessions, cart identity, checkout ownership, caching and deployment", "Versioned schemas define errors, pagination, money, timestamps and idempotency", "Unapproved business decisions remain explicit blockers rather than invented defaults"],
+      "pr": null,
       "blocker": null
     },
     {
@@ -34,17 +45,6 @@
       "acceptance": ["Header menu focus, Escape, outside click and scroll behavior pass desktop/mobile tests", "Footer exposes only Facebook, Instagram, Threads and Telegram", "Reusable Ukrainian loading, error, empty and toast primitives are covered by accessibility tests"],
       "pr": null,
       "blocker": "Pixel parity remains blocked until approved screenshots and merchant settings are supplied."
-    },
-    {
-      "id": "CONTRACT-001",
-      "title": "Record ADRs and provisional first-party API contracts",
-      "status": "pending",
-      "readiness": "integration",
-      "depends_on": ["OPS-001"],
-      "allowed_paths": ["docs/", "packages/contracts/", ".github/autonomous/tasks.json"],
-      "acceptance": ["ADRs cover URLs, system of record, sessions, cart identity, checkout ownership, caching and deployment", "Versioned schemas define errors, pagination, money, timestamps and idempotency", "Unapproved business decisions remain explicit blockers rather than invented defaults"],
-      "pr": null,
-      "blocker": null
     },
     {
       "id": "BE-001",
