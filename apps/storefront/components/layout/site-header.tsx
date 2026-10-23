@@ -1,36 +1,48 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useCart } from '@/components/cart/cart-provider';
 import { Logo } from '@/components/brand/logo';
-import { mockCategories } from '@/fixtures/home';
+import { SearchBox } from '@/components/search/search-box';
+import type { Category, ProductSummary } from '@/services/contracts/catalog';
 
-export function SiteHeader() {
+export function SiteHeader({ categories, products }: { categories: readonly Category[]; products: readonly ProductSummary[] }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const closeTimer = useRef<number | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const { itemCount } = useCart();
+
+  const cancelClose = () => { if (closeTimer.current) window.clearTimeout(closeTimer.current); };
+  const scheduleClose = () => { closeTimer.current = window.setTimeout(() => setMenuOpen(false), 180); };
+
+  useEffect(() => {
+    const handleKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setMenuOpen(false); };
+    const handleOutside = (event: PointerEvent) => { if (!menuRef.current?.contains(event.target as Node)) setMenuOpen(false); };
+    document.addEventListener('keydown', handleKey);
+    document.addEventListener('pointerdown', handleOutside);
+    return () => { document.removeEventListener('keydown', handleKey); document.removeEventListener('pointerdown', handleOutside); };
+  }, []);
 
   return (
     <header className="site-header">
-      <div className="header-inner">
+      <div className="header-inner" ref={menuRef}>
         <Logo />
-        <button className="catalog-button" type="button" aria-expanded={menuOpen} aria-controls="catalog-menu" onClick={() => setMenuOpen((value) => !value)}>
+        <button className="catalog-button" type="button" aria-expanded={menuOpen} aria-controls="catalog-menu" onPointerEnter={() => { cancelClose(); setMenuOpen(true); }} onPointerLeave={scheduleClose} onClick={() => setMenuOpen((value) => !value)}>
           <span className="catalog-button__icon" aria-hidden="true" />Каталог
         </button>
-        <form className="search" action="/search">
-          <label className="sr-only" htmlFor="header-search">Пошук товарів</label>
-          <input id="header-search" name="q" placeholder="Я шукаю..." />
-          <button type="submit" aria-label="Шукати"><SearchIcon /></button>
-        </form>
+        <SearchBox products={products} />
         <nav className="header-actions" aria-label="Дії користувача">
           <Action href="/profile/wishlist" label="Обране"><HeartIcon /></Action>
           <Action href="/profile" label="Увійти"><UserIcon /></Action>
-          <Action href="/cart" label="Кошик"><CartIcon /></Action>
+          <Action href="/cart" label="Кошик"><CartIcon /><span className="cart-count" aria-label={`${itemCount} товарів у кошику`}>{itemCount}</span></Action>
         </nav>
         <button className="mobile-menu-button" type="button" aria-expanded={menuOpen} aria-controls="catalog-menu" onClick={() => setMenuOpen((value) => !value)}>
           <span /><span /><span className="sr-only">Відкрити навігацію</span>
         </button>
-        <div className="catalog-menu" id="catalog-menu" hidden={!menuOpen}>
+        <div className="catalog-menu" id="catalog-menu" hidden={!menuOpen} onPointerEnter={cancelClose} onPointerLeave={scheduleClose}>
           <p>Популярні категорії</p>
-          <div>{mockCategories.map((category) => <Link href={category.href} key={category.id} onClick={() => setMenuOpen(false)}><span>{category.icon}</span>{category.title}</Link>)}</div>
+          <div>{categories.map((category) => <section key={category.id}><Link className="catalog-menu__category" href={`/catalog?category=${category.id}`} onClick={() => setMenuOpen(false)}><span>{category.icon}</span>{category.title}</Link><div className="catalog-menu__subs">{category.subcategories.map((subcategory) => <Link href={`/catalog?category=${category.id}&subcategory=${encodeURIComponent(subcategory)}`} key={subcategory} onClick={() => setMenuOpen(false)}>{subcategory}</Link>)}</div></section>)}</div>
         </div>
       </div>
     </header>
@@ -41,7 +53,6 @@ function Action({ href, label, children }: { href: string; label: string; childr
   return <Link className="header-action" href={href}><span>{children}</span><small>{label}</small></Link>;
 }
 
-function SearchIcon() { return <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>; }
 function HeartIcon() { return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 5.5a5 5 0 0 0-7 0l-1 1-1-1a5 5 0 0 0-7 7l8 8 8-8a5 5 0 0 0 0-7Z" /></svg>; }
 function UserIcon() { return <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4.5 21a7.5 7.5 0 0 1 15 0" /></svg>; }
 function CartIcon() { return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 10h10.9l2-7H6" /><circle cx="9" cy="19" r="1.5" /><circle cx="17" cy="19" r="1.5" /></svg>; }
