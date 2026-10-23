@@ -1,0 +1,8 @@
+.next/
+node_modules/
+.env
+.env.local
+npm-debug.log*
+*.tsbuildinfo
+!.env.example
+!package-lock.json
