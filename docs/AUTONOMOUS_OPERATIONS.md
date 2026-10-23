@@ -49,9 +49,10 @@ Repository administrators must deliberately configure:
 2. Add repository secret `OPENAI_API_KEY` with access to the Responses API. It is consumed by `openai/codex-action` through its credential proxy and must never be echoed or committed.
 3. Prefer a GitHub App installation token or fine-grained PAT stored as `AUTONOMY_GITHUB_TOKEN` with only this repository's **Contents: read/write**, **Pull requests: read/write**, **Issues: read/write**, and **Metadata: read**. The workflow falls back to `GITHUB_TOKEN`, but PR-created workflows may require a maintainer to approve CI and some branch policies may prevent writes.
 4. Configure branch protection/ruleset for `vps-migration`: require the CI checks, require the chosen number of approving reviews, dismiss stale approvals, require resolved conversations, block force pushes/deletion and optionally require signed commits.
-5. If auto-merge is desired, enable repository auto-merge and set repository variable `AUTONOMY_AUTO_MERGE=true`. The workflow may only request auto-merge; GitHub merges only after branch protection, required reviews and checks succeed. Default is off.
-6. Configure Actions billing/quota and choose GitHub-hosted or an approved hardened self-hosted runner. A self-hosted runner needs outbound HTTPS to GitHub, npm and the OpenAI Responses API; it must not expose production networks or credentials to arbitrary PR code.
-7. Protect any future staging/production secrets with GitHub Environments and required human reviewers. They are intentionally not used by the autonomous task workflow.
+5. Enable GitHub's dependency graph if dependency-diff review is wanted, then set repository variable `ENABLE_DEPENDENCY_REVIEW=true`. Clean-install `npm audit` checks run regardless; the optional GitHub dependency-review action stays disabled on repositories that do not support the dependency graph.
+6. If auto-merge is desired, enable repository auto-merge and set repository variable `AUTONOMY_AUTO_MERGE=true`. The workflow may only request auto-merge; GitHub merges only after branch protection, required reviews and checks succeed. Default is off.
+7. Configure Actions billing/quota and choose GitHub-hosted or an approved hardened self-hosted runner. A self-hosted runner needs outbound HTTPS to GitHub, npm and the OpenAI Responses API; it must not expose production networks or credentials to arbitrary PR code.
+8. Protect any future staging/production secrets with GitHub Environments and required human reviewers. They are intentionally not used by the autonomous task workflow.
 
 No OpenAI account credential other than the supported action input is assumed. No undocumented Codex callback, task API or desktop-session control is used.
 
