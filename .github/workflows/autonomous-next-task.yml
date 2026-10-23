@@ -1,0 +1,169 @@
+name: Autonomous next task
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 3 * * *'
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: bazar-autonomous-next-task
+  cancel-in-progress: false
+
+jobs:
+  next-task:
+    name: Select, implement and propose one task
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ secrets.AUTONOMY_GITHUB_TOKEN || github.token }}
+      BASE_BRANCH: vps-migration
+    steps:
+      - name: Check out development branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: vps-migration
+          fetch-depth: 0
+          token: ${{ secrets.AUTONOMY_GITHUB_TOKEN || github.token }}
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+
+      - name: Validate ledger
+        run: node scripts/autonomy/validate-ledger.mjs
+
+      - name: Inspect PR state
+        id: state
+        shell: bash
+        run: |
+          set -euo pipefail
+          merged=""
+          while IFS= read -r pr; do
+            [[ -z "$pr" ]] && continue
+            if [[ "$(gh pr view "$pr" --json mergedAt --jq '.mergedAt // ""')" != "" ]]; then
+              merged="${merged:+$merged,}$pr"
+            fi
+          done < <(node -e "const l=require('./.github/autonomous/tasks.json'); for(const t of l.tasks) if(t.status==='in_review' && t.pr) console.log(t.pr)")
+          open_ids="$(gh pr list --state open --base "$BASE_BRANCH" --json headRefName --jq '.[].headRefName' | sed -nE 's#^codex/auto-([A-Z]+-[0-9]+)-.*#\1#p' | paste -sd, -)"
+          echo "merged_prs=$merged" >> "$GITHUB_OUTPUT"
+          echo "open_task_ids=$open_ids" >> "$GITHUB_OUTPUT"
+
+      - name: Reconcile and select task
+        id: select
+        env:
+          MERGED_PRS: ${{ steps.state.outputs.merged_prs }}
+          OPEN_TASK_IDS: ${{ steps.state.outputs.open_task_ids }}
+        run: node scripts/autonomy/select-task.mjs --reconcile
+
+      - name: Stop when no task is ready
+        if: steps.select.outputs.has_task != 'true'
+        run: echo "No dependency-ready autonomous task is available."
+
+      - name: Create task branch and prompt
+        if: steps.select.outputs.has_task == 'true'
+        env:
+          TASK_ID: ${{ steps.select.outputs.task_id }}
+          PROMPT_PATH: ${{ runner.temp }}/bazar-codex-prompt.md
+        run: |
+          set -euo pipefail
+          branch="codex/auto-${TASK_ID}-${GITHUB_RUN_ID}"
+          git switch -c "$branch"
+          node scripts/autonomy/prepare-prompt.mjs
+          echo "TASK_BRANCH=$branch" >> "$GITHUB_ENV"
+          echo "PROMPT_PATH=$PROMPT_PATH" >> "$GITHUB_ENV"
+
+      - name: Install existing dependencies
+        if: steps.select.outputs.has_task == 'true'
+        run: |
+          set -euo pipefail
+          for directory in apps/storefront apps/api packages/contracts packages/database; do
+            if [[ -f "$directory/package-lock.json" ]]; then npm --prefix "$directory" ci; fi
+          done
+
+      - name: Run Codex for selected task
+        if: steps.select.outputs.has_task == 'true'
+        uses: openai/codex-action@bdf19a4a223ec2549a3e2274a0cf61556bc07675
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          permission-profile: ':workspace'
+          prompt-file: ${{ runner.temp }}/bazar-codex-prompt.md
+          working-directory: ${{ github.workspace }}
+
+      - name: Validate scope and implementation
+        if: steps.select.outputs.has_task == 'true'
+        env:
+          TASK_ID: ${{ steps.select.outputs.task_id }}
+          BASE_REF: origin/vps-migration
+        run: |
+          node scripts/autonomy/validate-change.mjs
+          scripts/autonomy/run-checks.sh
+          node scripts/autonomy/complete-task.mjs
+          node scripts/autonomy/validate-ledger.mjs
+
+      - name: Commit and push
+        if: steps.select.outputs.has_task == 'true'
+        env:
+          TASK_ID: ${{ steps.select.outputs.task_id }}
+          TASK_TITLE: ${{ steps.select.outputs.task_title }}
+        run: |
+          set -euo pipefail
+          git config user.name "bazar-autonomy[bot]"
+          git config user.email "bazar-autonomy[bot]@users.noreply.github.com"
+          git add --all
+          git commit -m "feat(${TASK_ID,,}): $TASK_TITLE"
+          git push --set-upstream origin "$TASK_BRANCH"
+
+      - name: Open pull request
+        if: steps.select.outputs.has_task == 'true'
+        id: pr
+        env:
+          TASK_ID: ${{ steps.select.outputs.task_id }}
+          TASK_TITLE: ${{ steps.select.outputs.task_title }}
+        run: |
+          set -euo pipefail
+          url="$(gh pr create --base "$BASE_BRANCH" --head "$TASK_BRANCH" --title "$TASK_ID: $TASK_TITLE" --body "Autonomous backlog task \`$TASK_ID\`.
+
+          Scope and acceptance criteria are defined in \`.github/autonomous/tasks.json\` and \`docs/AUTONOMOUS_ROADMAP.md\`.
+
+          This PR does not deploy, change DNS, modify \`main\`, or enable production payment/SMS/order side effects. CI and required human review remain authoritative.")"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Request guarded auto-merge
+        if: steps.select.outputs.has_task == 'true' && vars.AUTONOMY_AUTO_MERGE == 'true'
+        env:
+          PR_URL: ${{ steps.pr.outputs.url }}
+        run: |
+          set -euo pipefail
+          protection="$(gh api "repos/$GITHUB_REPOSITORY/branches/$BASE_BRANCH/protection")"
+          checks="$(jq '.required_status_checks.contexts | length' <<<"$protection")"
+          reviews="$(jq '.required_pull_request_reviews.required_approving_review_count' <<<"$protection")"
+          if (( checks < 1 || reviews < 1 )); then
+            echo "Auto-merge refused: vps-migration must require both CI checks and approving reviews."
+            exit 1
+          fi
+          gh pr merge --auto --squash "$PR_URL"
+
+      - name: Record autonomous failure
+        if: failure() && steps.select.outputs.task_id != ''
+        env:
+          TASK_ID: ${{ steps.select.outputs.task_id }}
+          TASK_TITLE: ${{ steps.select.outputs.task_title }}
+        run: |
+          set -euo pipefail
+          title="[autonomous:blocker] $TASK_ID"
+          body="Autonomous run failed for **$TASK_ID — $TASK_TITLE**.
+
+          Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
+
+          Inspect the failing step, record any external decision or credential that is required, and retry safely. Do not put secrets in this issue."
+          issue="$(gh issue list --state open --search \"$title in:title\" --json number --jq '.[0].number // empty')"
+          if [[ -n "$issue" ]]; then
+            gh issue comment "$issue" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body"
+          fi

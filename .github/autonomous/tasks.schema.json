@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["schema_version", "updated_at", "tasks"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "updated_at": { "type": "string", "format": "date" },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "status", "readiness", "depends_on", "allowed_paths", "acceptance"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[A-Z]+-[0-9]{3}$" },
+          "title": { "type": "string", "minLength": 5 },
+          "status": { "enum": ["pending", "in_progress", "in_review", "done", "blocked"] },
+          "readiness": { "enum": ["demo", "integration", "production"] },
+          "depends_on": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+          "allowed_paths": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+          "acceptance": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+          "pr": { "type": ["integer", "null"] },
+          "blocker": { "type": ["string", "null"] }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
