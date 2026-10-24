@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { SiteFooter } from '@/components/layout/site-footer';
 import { SiteHeader } from '@/components/layout/site-header';
 import { CartProvider } from '@/components/cart/cart-provider';
+import { AuthProvider } from '@/components/auth/auth-provider';
 import { getCatalogService } from '@/services/service-provider.server';
 import './globals.css';
 
@@ -17,10 +18,12 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     <html lang="uk">
       <body>
         <CartProvider>
-          <a className="skip-link" href="#main-content">Перейти до вмісту</a>
-          <SiteHeader categories={categories} products={products.items} />
-          <main id="main-content">{children}</main>
-          <SiteFooter />
+          <AuthProvider>
+            <a className="skip-link" href="#main-content">Перейти до вмісту</a>
+            <SiteHeader categories={categories} products={products.items} />
+            <main id="main-content">{children}</main>
+            <SiteFooter />
+          </AuthProvider>
         </CartProvider>
       </body>
     </html>

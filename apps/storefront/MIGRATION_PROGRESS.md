@@ -28,6 +28,21 @@ All catalog, availability, reviews, and cart data remain deterministic demo data
 
 Delivery branch lookup and tariffs are not live. Shipping is shown only as `вартість за тарифами перевізника`; no shipping amount is included in totals.
 
+## Phase D phone authentication UI
+
+- [x] Approved responsive phone-only login modal launched from the shared header
+- [x] Dedicated `/account/login` and `/account/register` routes with no password or email-login alternative
+- [x] Ukrainian phone formatting, normalization, validation, and masked confirmation display
+- [x] Six-position OTP UI with keyboard movement, paste distribution, focus management, and resend countdown
+- [x] Registration profile and consent fields with accessible validation and first-error focus
+- [x] Loading, invalid-code, expired-code, rate-limit, resend, network-error, and completed-preview states
+- [x] Modal Escape, backdrop dismissal, focus trap, scroll lock, and trigger focus return
+- [x] Typed `IdentityService` contract and isolated deterministic preview adapter
+
+This phase is demo-ready UI only. The fixed code `123456` advances the preview without authenticating; `654321`, `999999`, and `000000` produce deterministic expired, enforced rate-limit, and network-error states for developer QA. Other six-digit values show the invalid-code state. No SMS is sent, account or session is created, authentication flag is set, or protected user data is exposed. OTP values and complete phone numbers are not persisted in browser storage or written to logs. The checkbox acknowledges only a demo preview; no unapproved legal terms are displayed or accepted. Password login, email login, password reset, and Shopify account activation remain out of scope.
+
+Production identity remains pending: server-issued challenges, expiry and attempt enforcement, resend throttling, replay prevention, provider-confirmed SMS delivery, secure HttpOnly sessions, CSRF protection, redacted observability, and approved privacy/legal/retention decisions.
+
 ## Source mapping
 
 | Standalone file | Shopify reference at `105d10f` |
@@ -40,12 +55,14 @@ Delivery branch lookup and tariffs are not live. Shipping is shown only as `ва
 | `components/product/product-detail.tsx`, `app/products/[handle]/page.tsx` | `sections/bazar-main-product.liquid`, `assets/bazar-product.css` |
 | `components/cart/*`, `domain/cart/cart.ts` | approved cart interactions reimplemented without Shopify cart endpoints |
 | `app/checkout`, `components/checkout`, `domain/checkout`, `services/contracts/checkout.ts` | `snippets/cart-summary.liquid`, payment presentation in `assets/bazar-account.{css,js}`, and the approved three-step target documented in `docs/APPROVED_SCREENS_AUDIT.md` |
+| `components/auth/*`, `app/account/login/page.tsx`, `app/account/register/page.tsx` | `snippets/bazar-auth-modal.liquid`, `snippets/bazar-phone-input.liquid`, `snippets/bazar-sms-code-input.liquid`, `sections/bazar-auth-login.liquid`, `sections/bazar-auth-register.liquid`, `assets/bazar-auth.{css,js}` |
+| `domain/identity/identity.ts`, `services/contracts/identity.ts`, `services/mock/identity-service.ts` | standalone typed identity boundary and deterministic demo replacement for Shopify customer/auth runtime behavior |
 | `fixtures/catalog.ts`, `services/mock/catalog-service.ts` | isolated deterministic replacements for Shopify product and collection records |
 
 ## Pending
 
 - [ ] Live catalog API, inventory, pricing, media, and seller data
-- [ ] Authentication, profile, orders, wishlist, and messages
+- [ ] Production phone authentication and secure sessions; profile, orders, wishlist, and messages
 - [ ] Authoritative promotions, payment gateway, SMS, shipping-provider integration, and order creation
 - [ ] PostgreSQL/backend integration, merchant settings/content export, analytics, and complete SEO redirect parity
 - [ ] Production accessibility and visual-regression baselines against every approved screen
