@@ -29,6 +29,7 @@ test('checkout validates fields and preserves data through all three demo steps'
 
   await expect(page.getByRole('heading', { name: 'Підтвердження' })).toBeVisible();
   await expect(page.getByText('Демо завершується на цьому кроці.')).toBeVisible();
+  await expect(page.getByRole('button', { name: /створити замовлення|підтвердити оплату/i })).toHaveCount(0);
   await expect(page.getByText('Олена Коваль')).toBeVisible();
   await page.getByRole('button', { name: 'Назад до оплати' }).click();
   await expect(page.locator('#promoCode')).toHaveValue('BAZAR10');
@@ -48,7 +49,7 @@ test('checkout refresh keeps cart and draft but never offers order completion', 
   await page.locator('#branch').fill('3');
   await page.reload();
   await expect(page.locator('#fullName')).toHaveValue('Іван Петренко');
-  await page.getByRole('link', { name: /1 товарів у кошику/ }).click();
-  await expect(page.getByText('Apple iPhone 15 Pro 128GB')).toBeVisible();
   await expect(page.getByRole('button', { name: /створити замовлення|підтвердити оплату/i })).toHaveCount(0);
+  await page.goto('/cart');
+  await expect(page.getByText('Apple iPhone 15 Pro 128GB')).toBeVisible();
 });
