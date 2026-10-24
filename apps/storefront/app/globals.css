@@ -383,12 +383,12 @@ svg { display: block; }
 .auth-otp__input { width: 100%; min-width: 0; aspect-ratio: 1; padding: 0; border: 1px solid var(--bazar-color-border-strong); border-radius: 12px; background: #fff; color: var(--bazar-color-navy); font-size: 22px; font-weight: 900; line-height: 1; text-align: center; }
 .auth-otp__input:focus { border-color: var(--bazar-color-blue); outline: none; box-shadow: 0 0 0 3px rgb(17 115 245 / 18%); }
 .auth-primary, .auth-secondary { display: inline-flex; width: 100%; min-height: 47px; align-items: center; justify-content: center; padding-inline: 24px; border-radius: 16px; cursor: pointer; font-size: 14px; font-weight: 900; }
-.auth-primary { border: 1px solid transparent; background: var(--bazar-color-blue); color: #fff; }
-.auth-primary:hover { background: var(--bazar-color-blue-hover); }
-.auth-secondary { border: 1px solid var(--bazar-color-blue); background: #fff; color: var(--bazar-color-blue); }
+.auth-primary { border: 1px solid transparent; background: var(--bazar-color-blue-hover); color: #fff; }
+.auth-primary:hover { background: #0a53b5; }
+.auth-secondary { border: 1px solid var(--bazar-color-blue-hover); background: #fff; color: var(--bazar-color-blue-hover); }
 .auth-primary:disabled, .auth-secondary:disabled { cursor: not-allowed; opacity: .55; }
-.auth-link { padding: 0; border: 0; background: transparent; color: var(--bazar-color-blue); cursor: pointer; font-size: inherit; font-weight: 900; text-decoration: none; }
-.auth-link:hover { color: var(--bazar-color-blue-hover); text-decoration: underline; }
+.auth-link { padding: 0; border: 0; background: transparent; color: var(--bazar-color-blue-hover); cursor: pointer; font-size: inherit; font-weight: 900; text-decoration: none; }
+.auth-link:hover { color: #0a53b5; text-decoration: underline; }
 .auth-link:disabled, .auth-link[aria-disabled='true'] { color: var(--bazar-color-muted); cursor: not-allowed; opacity: .65; text-decoration: none; }
 .auth-inline-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; }
 .auth-profile-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }

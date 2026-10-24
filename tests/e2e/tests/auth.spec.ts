@@ -13,7 +13,16 @@ async function openAuthModal(page: Page) {
 async function beginPreview(container: Locator, phone = '+380671234567') {
   const input = container.getByLabel('Номер телефону');
   await input.fill(phone);
-  await expect(input).toHaveValue('67 123 45 67');
+  const nationalDigits = phone.replace(/\D/g, '').replace(/^380/, '').replace(/^0/, '');
+  const expectedValue = [
+    nationalDigits.slice(0, 2),
+    nationalDigits.slice(2, 5),
+    nationalDigits.slice(5, 7),
+    nationalDigits.slice(7, 9),
+  ]
+    .filter(Boolean)
+    .join(' ');
+  await expect(input).toHaveValue(expectedValue);
   const continueButton = container.getByRole('button', { name: 'Продовжити' });
   await continueButton.click();
   await expect(container.getByRole('status')).toContainText('Готуємо безпечний демо-перегляд');
@@ -39,6 +48,8 @@ async function expectNoAuthPersistence(page: Page) {
   expect(serialized).not.toMatch(/auth|identity|otp|token|session/i);
   expect(serialized).not.toContain('0671234567');
   expect(serialized).not.toContain('+380671234567');
+  expect(serialized).not.toContain('0501234567');
+  expect(serialized).not.toContain('+380501234567');
   expect(serialized).not.toContain('123456');
 }
 
