@@ -126,12 +126,12 @@
     {
       "id": "AUTHUI-001",
       "title": "Build approved phone-only identity UI and typed service boundary",
-      "status": "in_progress",
+      "status": "in_review",
       "readiness": "demo",
       "depends_on": ["PHB-001"],
       "allowed_paths": ["apps/storefront/", "tests/e2e/", "docs/", ".github/autonomous/tasks.json"],
       "acceptance": ["Responsive header modal and login/register routes expose only the approved phone flow", "Ukrainian phone validation and six-position OTP keyboard, paste, focus, resend and overflow behavior pass desktop/mobile tests", "Registration consent plus loading, invalid, expired, rate-limit, resend and network states are accessible", "Preview sends no SMS, creates no session or auth flag, exposes no protected data, and persists or logs no OTP or complete phone number"],
-      "pr": null,
+      "pr": 9,
       "blocker": null
     },
     {
