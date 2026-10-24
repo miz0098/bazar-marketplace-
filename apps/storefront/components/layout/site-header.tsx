@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
+import { useAuthModal } from '@/components/auth/auth-provider';
 import { useCart } from '@/components/cart/cart-provider';
 import { Logo } from '@/components/brand/logo';
 import { SearchBox } from '@/components/search/search-box';
@@ -12,6 +13,7 @@ export function SiteHeader({ categories, products }: { categories: readonly Cate
   const closeTimer = useRef<number | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const { itemCount } = useCart();
+  const { openAuth } = useAuthModal();
 
   const cancelClose = () => { if (closeTimer.current) window.clearTimeout(closeTimer.current); };
   const scheduleClose = () => { closeTimer.current = window.setTimeout(() => setMenuOpen(false), 180); };
@@ -34,12 +36,19 @@ export function SiteHeader({ categories, products }: { categories: readonly Cate
         <SearchBox products={products} />
         <nav className="header-actions" aria-label="Дії користувача">
           <Action href="/profile/wishlist" label="Обране"><HeartIcon /></Action>
-          <Action href="/profile" label="Увійти"><UserIcon /></Action>
+          <button className="header-action header-auth-trigger" type="button" onClick={() => openAuth('login')}>
+            <span><UserIcon /></span><small>Увійти</small>
+          </button>
           <Action href="/cart" label="Кошик"><CartIcon /><span className="cart-count" aria-label={`${itemCount} товарів у кошику`}>{itemCount}</span></Action>
         </nav>
-        <button className="mobile-menu-button" type="button" aria-expanded={menuOpen} aria-controls="catalog-menu" onClick={() => setMenuOpen((value) => !value)}>
-          <span /><span /><span className="sr-only">Відкрити навігацію</span>
-        </button>
+        <div className="header-mobile-actions">
+          <button className="mobile-auth-button" type="button" aria-label="Увійти за номером телефону" onClick={() => openAuth('login')}>
+            <UserIcon />
+          </button>
+          <button className="mobile-menu-button" type="button" aria-expanded={menuOpen} aria-controls="catalog-menu" onClick={() => setMenuOpen((value) => !value)}>
+            <span /><span /><span className="sr-only">Відкрити навігацію</span>
+          </button>
+        </div>
         <div className="catalog-menu" id="catalog-menu" hidden={!menuOpen} onPointerEnter={cancelClose} onPointerLeave={scheduleClose}>
           <p>Популярні категорії</p>
           <div>{categories.map((category) => <section key={category.id}><Link className="catalog-menu__category" href={`/catalog?category=${category.id}`} onClick={() => setMenuOpen(false)}><span>{category.icon}</span>{category.title}</Link><div className="catalog-menu__subs">{category.subcategories.map((subcategory) => <Link href={`/catalog?category=${category.id}&subcategory=${encodeURIComponent(subcategory)}`} key={subcategory} onClick={() => setMenuOpen(false)}>{subcategory}</Link>)}</div></section>)}</div>

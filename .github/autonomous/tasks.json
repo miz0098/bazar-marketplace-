@@ -124,11 +124,22 @@
       "blocker": "Нова пошта and Meest credentials, commercial terms and approved service selection are required."
     },
     {
+      "id": "AUTHUI-001",
+      "title": "Build approved phone-only identity UI and typed service boundary",
+      "status": "in_progress",
+      "readiness": "demo",
+      "depends_on": ["PHB-001"],
+      "allowed_paths": ["apps/storefront/", "tests/e2e/", "docs/", ".github/autonomous/tasks.json"],
+      "acceptance": ["Responsive header modal and login/register routes expose only the approved phone flow", "Ukrainian phone validation and six-position OTP keyboard, paste, focus, resend and overflow behavior pass desktop/mobile tests", "Registration consent plus loading, invalid, expired, rate-limit, resend and network states are accessible", "Preview sends no SMS, creates no session or auth flag, exposes no protected data, and persists or logs no OTP or complete phone number"],
+      "pr": null,
+      "blocker": null
+    },
+    {
       "id": "AUTH-001",
       "title": "Implement phone OTP identity and secure session boundary",
       "status": "pending",
       "readiness": "integration",
-      "depends_on": ["BE-001", "DB-001", "UI-001"],
+      "depends_on": ["BE-001", "DB-001", "UI-001", "AUTHUI-001"],
       "allowed_paths": ["apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
       "acceptance": ["Only phone OTP authentication is offered", "Challenges expire and enforce replay, attempt and rate limits", "Sessions use secure HttpOnly cookies with CSRF protection", "Demo OTP is visibly isolated and impossible in production mode", "PII and OTP values are redacted from logs"],
       "pr": null,
