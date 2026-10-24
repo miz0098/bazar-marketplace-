@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-23",
+  "updated_at": "2026-10-24",
   "tasks": [
     {
       "id": "OPS-001",
@@ -104,12 +104,12 @@
     {
       "id": "CHECKOUT-001",
       "title": "Build approved three-step checkout UI and service boundary",
-      "status": "pending",
+      "status": "in_review",
       "readiness": "demo",
       "depends_on": ["CART-001", "PROMO-001"],
       "allowed_paths": ["apps/storefront/", "packages/contracts/", "tests/e2e/", "docs/", ".github/autonomous/tasks.json"],
       "acceptance": ["Exactly three approved Ukrainian steps are implemented", "Нова пошта and Meest are represented while BAZAR pickup remains disabled", "Back/forward preserves validated state", "Confirmation cannot claim payment or order creation without a live adapter"],
-      "pr": null,
+      "pr": 8,
       "blocker": null
     },
     {

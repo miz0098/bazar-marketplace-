@@ -17,6 +17,17 @@
 
 All catalog, availability, reviews, and cart data remain deterministic demo data. Cart persistence uses local browser storage and does not reserve inventory, create orders, or initiate payment.
 
+## Phase C three-step checkout
+
+- [x] Exactly three steps: contact and delivery, payment, confirmation
+- [x] Ukrainian contact/address validation with focus on the first invalid field
+- [x] Нова пошта and Meest demo choices; ПВЗ BAZAR visible and disabled
+- [x] Current-tab draft persistence, back/forward navigation, deterministic `BAZAR10` demo promo
+- [x] Cart-backed item summary and integer-minor-unit discount total
+- [x] Explicit demo stop without order creation, payment confirmation, inventory reservation, or cart clearing
+
+Delivery branch lookup and tariffs are not live. Shipping is shown only as `вартість за тарифами перевізника`; no shipping amount is included in totals.
+
 ## Source mapping
 
 | Standalone file | Shopify reference at `105d10f` |
@@ -28,13 +39,14 @@ All catalog, availability, reviews, and cart data remain deterministic demo data
 | `components/product/product-card.tsx` | `snippets/bazar-product-card.liquid` |
 | `components/product/product-detail.tsx`, `app/products/[handle]/page.tsx` | `sections/bazar-main-product.liquid`, `assets/bazar-product.css` |
 | `components/cart/*`, `domain/cart/cart.ts` | approved cart interactions reimplemented without Shopify cart endpoints |
+| `app/checkout`, `components/checkout`, `domain/checkout`, `services/contracts/checkout.ts` | `snippets/cart-summary.liquid`, payment presentation in `assets/bazar-account.{css,js}`, and the approved three-step target documented in `docs/APPROVED_SCREENS_AUDIT.md` |
 | `fixtures/catalog.ts`, `services/mock/catalog-service.ts` | isolated deterministic replacements for Shopify product and collection records |
 
 ## Pending
 
 - [ ] Live catalog API, inventory, pricing, media, and seller data
 - [ ] Authentication, profile, orders, wishlist, and messages
-- [ ] Discounts, checkout, payments, SMS, shipping-provider integration, and order creation
+- [ ] Authoritative promotions, payment gateway, SMS, shipping-provider integration, and order creation
 - [ ] PostgreSQL/backend integration, merchant settings/content export, analytics, and complete SEO redirect parity
 - [ ] Production accessibility and visual-regression baselines against every approved screen
 
