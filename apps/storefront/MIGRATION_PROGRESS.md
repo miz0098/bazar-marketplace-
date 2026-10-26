@@ -1,5 +1,7 @@
 # Storefront migration progress
 
+Phase F2 adds API PostgreSQL schema/migrations and readiness only. This storefront, demo identity, components, service providers and mock persistence remain unchanged; no DB credential enters the browser.
+
 ## Phase A foundation
 
 - [x] Next.js App Router and strict TypeScript foundation under `apps/storefront`

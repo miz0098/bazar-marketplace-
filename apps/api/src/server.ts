@@ -21,9 +21,9 @@ function validateBody(request: IncomingMessage, response: ServerResponse) {
   }
 }
 
-export function createApiServer(config: ApiConfig, logger: Logger, dependencies: { isReady?: () => boolean } = {}) {
+export function createApiServer(config: ApiConfig, logger: Logger, dependencies: { isReady?: () => boolean | Promise<boolean> } = {}) {
   let draining = false;
-  const server = createServer({ maxHeaderSize: 16384, headersTimeout: 10000, requestTimeout: 15000, keepAliveTimeout: 5000 }, (request, response) => {
+  const server = createServer({ maxHeaderSize: 16384, headersTimeout: 10000, requestTimeout: 15000, keepAliveTimeout: 5000 }, async (request, response) => {
     const requestId = randomUUID();
     const start = performance.now();
     const method = request.method;
@@ -61,8 +61,8 @@ export function createApiServer(config: ApiConfig, logger: Logger, dependencies:
       let data: HealthData | ReadinessData | VersionData;
       if (matched === '/health') data = { status: 'ok', scope: 'process', uptimeSeconds: Math.floor(process.uptime()) };
       else if (matched === '/ready') {
-        if (draining || (dependencies.isReady && !dependencies.isReady())) throw new ApiError(503, 'SERVICE_UNAVAILABLE', 'Service is not ready.');
-        data = { status: 'ready', dependencies: [], businessModulesAvailable: false };
+        if (draining || !dependencies.isReady || !await dependencies.isReady()) throw new ApiError(503, 'SERVICE_UNAVAILABLE', 'PostgreSQL is unavailable or schema is not current.');
+        data = { status: 'ready', dependencies: [{ name: 'postgresql', status: 'ready' }], businessModulesAvailable: false };
       } else data = { service: 'bazar-api', apiVersion: 'v1', businessModulesAvailable: false };
       reply(response, method, 200, { ok: true, data, meta: { requestId } });
     } catch (reason) {

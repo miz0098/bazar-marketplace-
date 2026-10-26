@@ -1,4 +1,5 @@
 import { isIP } from 'node:net';
+import { readDatabaseConfig, type DatabaseConfig } from './database/config.js';
 
 export interface ApiConfig {
   readonly environment: 'development' | 'test' | 'production';
@@ -7,6 +8,7 @@ export interface ApiConfig {
   readonly corsOrigins: readonly string[];
   readonly logLevel: 'info' | 'error';
   readonly shutdownTimeoutMs: number;
+  readonly database?: DatabaseConfig;
 }
 
 function integer(value: string, name: string, minimum: number, maximum: number): number {
@@ -34,5 +36,6 @@ export function readConfig(env: Readonly<Record<string, string | undefined>>): A
     environment: environment as ApiConfig['environment'], host, port,
     corsOrigins: Object.freeze(corsOrigins), logLevel,
     shutdownTimeoutMs: integer(env.SHUTDOWN_TIMEOUT_MS ?? '5000', 'SHUTDOWN_TIMEOUT_MS', 100, 30000),
+    database: readDatabaseConfig(env),
   });
 }

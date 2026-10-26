@@ -49,7 +49,7 @@
     {
       "id": "BE-001",
       "title": "Bootstrap first-party API service and health endpoints",
-      "status": "in_review",
+      "status": "done",
       "readiness": "integration",
       "depends_on": ["CONTRACT-001"],
       "allowed_paths": ["apps/api/", "apps/storefront/lib/", "apps/storefront/services/http/", "apps/storefront/tests/", "apps/storefront/.env.example", "apps/storefront/README.md", "apps/storefront/MIGRATION_PROGRESS.md", "infra/postgres/", "packages/contracts/", "docs/", "ARCHITECTURE.md", "MIGRATION_PLAN.md", ".github/"],
@@ -60,10 +60,10 @@
     {
       "id": "DB-001",
       "title": "Add PostgreSQL schema, migrations and isolated integration tests",
-      "status": "pending",
+      "status": "in_progress",
       "readiness": "integration",
       "depends_on": ["BE-001"],
-      "allowed_paths": ["apps/api/", "packages/database/", "docs/", ".github/", ".github/autonomous/tasks.json"],
+      "allowed_paths": ["apps/api/", "packages/database/", "infra/postgres/", "docs/", "ARCHITECTURE.md", "MIGRATION_PLAN.md", "apps/storefront/MIGRATION_PROGRESS.md", ".github/"],
       "acceptance": ["Forward-only migrations cover users, catalog, carts, orders, wishlist, reviews, addresses and messages", "Constraints and indexes enforce ownership and idempotency invariants", "Integration tests run against disposable PostgreSQL", "Backup/restore expectations are documented"],
       "pr": null,
       "blocker": null

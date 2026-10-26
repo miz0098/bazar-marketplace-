@@ -10,7 +10,7 @@ import { createApiServer } from '../src/server.js';
 
 async function application(t: TestContext, dependencies: { isReady?: () => boolean } = {}) {
   const lines: string[] = [];
-  const app = createApiServer(readConfig({ NODE_ENV: 'test', PORT: '0', SHUTDOWN_TIMEOUT_MS: '100' }), createLogger('info', (line) => lines.push(line)), dependencies);
+  const app = createApiServer(readConfig({ NODE_ENV: 'test', PORT: '0', SHUTDOWN_TIMEOUT_MS: '100' }), createLogger('info', (line) => lines.push(line)), { isReady: () => true, ...dependencies });
   app.server.listen(0, '127.0.0.1');
   await once(app.server, 'listening');
   const address = app.server.address();

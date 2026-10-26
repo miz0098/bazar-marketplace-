@@ -25,6 +25,7 @@ test('compiled API starts, serves health and exits cleanly on SIGTERM', { timeou
   const client = createFoundationClient({ baseUrl: `http://127.0.0.1:${startup.port}`, timeoutMs: 1000 });
   assert.equal((await client.getHealth()).scope, 'process');
   assert.equal((await client.getVersion()).businessModulesAvailable, false);
+  assert.equal((await fetch(`http://127.0.0.1:${startup.port}/ready`)).status, 503);
   const exit = once(child, 'exit');
   child.kill('SIGTERM');
   assert.equal((await exit)[0], 0);

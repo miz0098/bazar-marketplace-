@@ -117,4 +117,5 @@ jobs:
       - run: npm test
       - run: npm run build
       - run: npm run test:production
+      - run: npm run test:integration
       - run: npm audit --audit-level=high

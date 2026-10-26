@@ -1,6 +1,6 @@
 # BAZAR API foundation
 
-Node 24 + TypeScript, native `node:http`, no runtime dependencies. F1 is infrastructure only. No database, phone authentication, catalog, orders, messages, payments or other business operation is implemented.
+Node 24 + TypeScript, native `node:http` plus the `pg` driver. F2 adds PostgreSQL schema/migrations and readiness; phone authentication, catalog, orders, messages, payments and all other business HTTP operations remain unimplemented.
 
 ```sh
 cd apps/api
@@ -17,7 +17,7 @@ Defaults: `127.0.0.1:4000`; storefront remains independently available on port 3
 ## Implemented HTTP surface
 
 - GET/HEAD `/health`: process liveness and integer uptime. No dependency health claim.
-- GET/HEAD `/ready`: process readiness, false during shutdown or a failing injected predicate; current `dependencies: []`, `businessModulesAvailable: false`. No PostgreSQL/provider is configured.
+- GET/HEAD `/ready`: process readiness, false during shutdown or a failing injected predicate; checks PostgreSQL connectivity and exact migration history/checksums; reports a PostgreSQL dependency and `businessModulesAvailable: false`. Missing configuration, stale/missing schema or unavailable DB returns 503. No business/provider readiness is claimed.
 - GET/HEAD `/api/v1`: service/version discovery with business modules explicitly unavailable.
 - OPTIONS on those routes: validated CORS preflight, 204 without a body.
 - All other paths: 404. Unsupported methods: 405 with Allow; malformed URL/query/body: 400. Header overflow: 431. Unexpected application errors: sanitized 500. Readiness failure: 503. HEAD has no body, including errors.
@@ -49,10 +49,11 @@ npm run typecheck
 npm test
 npm run build
 npm run test:production
+npm run test:integration
 npm audit --audit-level=high
 ```
 
-Tests bind to loopback ephemeral ports and cover config, CORS/preflight, validation, actual HTTP responses/errors, missing business routes, logs, readiness, bounded shutdown and the compiled Node process. Production smoke tests also call the actual API through the opt-in storefront client to verify protocol compatibility. CI runs these checks independently from the full storefront regression suite. No external SMS/payment/database/provider is used.
+Tests bind to loopback ephemeral ports and cover config, CORS/preflight, validation, actual HTTP responses/errors, missing business routes, logs, readiness, bounded shutdown and the compiled Node process. Production smoke tests also call the actual API through the opt-in storefront client to verify protocol compatibility. CI runs these checks independently from the full storefront regression suite. No external SMS/payment/provider is used; the database integration suite uses an isolated local PostgreSQL container.
 
 ## Design and next modules
 
@@ -61,3 +62,13 @@ Tests bind to loopback ephemeral ports and cover config, CORS/preflight, validat
 - [PostgreSQL architecture and migration policy](../../docs/POSTGRES_ARCHITECTURE.md)
 
 Module types in `src/contracts/modules.ts` are provisional design contracts, not live adapters. Implement one reviewed domain at a time; activate request/response schemas, authorization, persistence and contract tests before switching the corresponding storefront service off mocks.
+
+## Phase F2 database configuration
+
+`DATABASE_URL` is optional for starting HTTP, but required for /ready to return 200. Supply it only through environment or ignored `.env.local`; never NEXT_PUBLIC variables. `DATABASE_SSL` is disable for local development or verify-full for remote/production (the latter verifies certificates). `DATABASE_TIMEOUT_MS` defaults to 1500, range 100–5000. Connection URLs require a user, password and database and reject query/fragment overrides. Configuration and pg errors never echo values.
+
+`MIGRATION_DATABASE_URL` / optional `MIGRATION_DATABASE_SSL` are separate owner-only configuration for `npm run db:migrate`; the server never uses them. Do not reuse migration credentials for the runtime. Production migrations require a separately approved release workflow, and the local CLI refuses production execution. Provision runtime grants as described in [PostgreSQL architecture](../../docs/POSTGRES_ARCHITECTURE.md).
+
+No DB configured still permits /health and /api/v1, but /ready returns 503. A healthy PostgreSQL/schema probe does not activate any of the thirteen planned business modules. API startup does not create tables, apply migrations or manufacture authentication/payment success.
+
+The build artifact must be shipped with the reviewed `migrations/` directory, whose checksums the runtime reads. Migration tests and ordinary PR CI use an isolated pinned PostgreSQL image, generated throwaway passwords and loopback-only ports. All questions deferred from F1 are tracked in [ADR 0002](../../docs/adr/0002-postgresql-foundation.md).
