@@ -1,6 +1,6 @@
 import type { Money } from '@/services/contracts/catalog';
 
-export type DeliveryMethod = 'nova-poshta' | 'meest';
+export type DeliveryMethod = 'nova-poshta' | 'meest' | 'ukrposhta';
 export type PaymentMethod = 'card-online' | 'on-receipt';
 
 export interface CheckoutContact {

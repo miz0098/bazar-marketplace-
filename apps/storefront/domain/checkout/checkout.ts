@@ -28,7 +28,7 @@ export function parseCheckoutDraft(value: string | null): CheckoutDraft {
   if (!value) return EMPTY_CHECKOUT_DRAFT;
   try {
     const candidate = JSON.parse(value) as Partial<CheckoutDraft>;
-    const deliveryMethod = candidate.delivery?.method === 'meest' ? 'meest' : 'nova-poshta';
+    const deliveryMethod = candidate.delivery?.method === 'ukrposhta' ? 'ukrposhta' : candidate.delivery?.method === 'meest' ? 'meest' : 'nova-poshta';
     const paymentMethod = candidate.paymentMethod === 'on-receipt' ? 'on-receipt' : 'card-online';
     return {
       contact: {

@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "BAZAR API",
-    "version": "1.5.0",
-    "description": "PostgreSQL catalog and test-isolated server authentication foundation. Runtime SMS authentication is unavailable (503) pending approved provider, keys, security policy and rollout. Cart activation remains blocked on current-cart policy. F5 adds isolated exact-integer promotion evaluation; no real redemption/checkout activation. F6 adds isolated three-step checkout and immutable pending integration orders; no live placement/provider operation. F7 adds isolated shipping directories, selections, expiring estimates and final transaction freshness guards. Live carrier contracts/transports remain disabled."
+    "version": "1.6.0",
+    "description": "PostgreSQL catalog and test-isolated server authentication foundation. Runtime SMS authentication is unavailable (503) pending approved provider, keys, security policy and rollout. Cart activation remains blocked on current-cart policy. F5 adds isolated exact-integer promotion evaluation; no real redemption/checkout activation. F6 adds isolated three-step checkout and immutable pending integration orders; no live placement/provider operation. F7 adds isolated shipping directories, selections, expiring estimates and final transaction freshness guards. Live carrier contracts/transports remain disabled. F8 adds isolated provider-neutral payment protocol/security and Ukrposhta delivery; no real financial/provider activation."
   },
   "servers": [
     {
@@ -3226,6 +3226,668 @@
           }
         }
       }
+    },
+    "/api/v1/payments/capabilities": {
+      "get": {
+        "description": "Ordinary runtime 503. Isolated payment protocol only: realPayment/orderPaid always false; no real payable/order/refund or hosted payment route. Durable operation prepared before submission; replay never resubmits. Pending/submitting/unknown/succeeded block new attempts. Only verified server observations change outcome; cancellation must be confirmed. Verified same-origin session; POST requires flow-bound CSRF. No price, wallet token, PAN, CVV, owner ID, callback result or return URL is accepted.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Integration-test protocol result only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentCapabilitiesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/payments/attempts": {
+      "post": {
+        "description": "Ordinary runtime 503. Isolated payment protocol only: realPayment/orderPaid always false; no real payable/order/refund or hosted payment route. Durable operation prepared before submission; replay never resubmits. Pending/submitting/unknown/succeeded block new attempts. Only verified server observations change outcome; cancellation must be confirmed. Verified same-origin session; POST requires flow-bound CSRF. No price, wallet token, PAN, CVV, owner ID, callback result or return URL is accepted.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Integration-test protocol result only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentProtocolResultResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePaymentProtocolInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/payments/attempts/{id}": {
+      "get": {
+        "description": "Ordinary runtime 503. Isolated payment protocol only: realPayment/orderPaid always false; no real payable/order/refund or hosted payment route. Durable operation prepared before submission; replay never resubmits. Pending/submitting/unknown/succeeded block new attempts. Only verified server observations change outcome; cancellation must be confirmed. Verified same-origin session; POST requires flow-bound CSRF. No price, wallet token, PAN, CVV, owner ID, callback result or return URL is accepted.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Integration-test protocol result only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentProtocolAttemptResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/payments/attempts/{id}/reconcile": {
+      "post": {
+        "description": "Ordinary runtime 503. Isolated payment protocol only: realPayment/orderPaid always false; no real payable/order/refund or hosted payment route. Durable operation prepared before submission; replay never resubmits. Pending/submitting/unknown/succeeded block new attempts. Only verified server observations change outcome; cancellation must be confirmed. Verified same-origin session; POST requires flow-bound CSRF. No price, wallet token, PAN, CVV, owner ID, callback result or return URL is accepted.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Integration-test protocol result only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentProtocolResultResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyPaymentOperationInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/payments/attempts/{id}/cancel": {
+      "post": {
+        "description": "Ordinary runtime 503. Isolated payment protocol only: realPayment/orderPaid always false; no real payable/order/refund or hosted payment route. Durable operation prepared before submission; replay never resubmits. Pending/submitting/unknown/succeeded block new attempts. Only verified server observations change outcome; cancellation must be confirmed. Verified same-origin session; POST requires flow-bound CSRF. No price, wallet token, PAN, CVV, owner ID, callback result or return URL is accepted.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Integration-test protocol result only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentProtocolResultResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyPaymentOperationInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/payments/webhooks/isolated": {
+      "post": {
+        "description": "Ordinary runtime 503. Isolated payment protocol only: realPayment/orderPaid always false; no real payable/order/refund or hosted payment route. Durable operation prepared before submission; replay never resubmits. Pending/submitting/unknown/succeeded block new attempts. Only verified server observations change outcome; cancellation must be confirmed. Raw body authenticated by explicit synthetic adapter signature/account/timestamp rules before parsing. This is NOT a selected production provider webhook contract.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Integration-test protocol result only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentEventReceiptResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-Isolated-Signature",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 300
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Exact raw UTF-8 JSON bytes; <=4096 bytes, <=2 seconds. Do not reserialize before authenticating. Isolated adapter defines normalized event fixture.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3424,7 +4086,10 @@
                   "CHECKOUT_POLICY_REQUIRED",
                   "DELIVERY_UNAVAILABLE",
                   "DELIVERY_REJECTED",
-                  "DELIVERY_STALE"
+                  "DELIVERY_STALE",
+                  "PAYMENT_REJECTED",
+                  "PAYMENT_STALE",
+                  "PAYMENT_AUTH_FAILED"
                 ]
               },
               "message": {
@@ -4279,7 +4944,8 @@
           "carrier": {
             "enum": [
               "nova-poshta",
-              "meest"
+              "meest",
+              "ukrposhta"
             ]
           },
           "cityRef": {
@@ -5006,7 +5672,8 @@
           "carrier": {
             "enum": [
               "nova-poshta",
-              "meest"
+              "meest",
+              "ukrposhta"
             ]
           },
           "cityRef": {
@@ -5084,7 +5751,8 @@
           "carrier": {
             "enum": [
               "nova-poshta",
-              "meest"
+              "meest",
+              "ukrposhta"
             ]
           },
           "kind": {
@@ -5173,7 +5841,7 @@
           },
           "carriers": {
             "type": "array",
-            "maxItems": 2,
+            "maxItems": 3,
             "items": {
               "type": "object",
               "additionalProperties": false,
@@ -5181,7 +5849,8 @@
                 "code": {
                   "enum": [
                     "nova-poshta",
-                    "meest"
+                    "meest",
+                    "ukrposhta"
                   ]
                 },
                 "pickupKinds": {
@@ -5234,7 +5903,8 @@
           "carrier": {
             "enum": [
               "nova-poshta",
-              "meest"
+              "meest",
+              "ukrposhta"
             ]
           },
           "items": {
@@ -5261,7 +5931,8 @@
           "carrier": {
             "enum": [
               "nova-poshta",
-              "meest"
+              "meest",
+              "ukrposhta"
             ]
           },
           "items": {
@@ -5481,7 +6152,8 @@
           "carrier": {
             "enum": [
               "nova-poshta",
-              "meest"
+              "meest",
+              "ukrposhta"
             ]
           },
           "query": {
@@ -5502,7 +6174,8 @@
           "carrier": {
             "enum": [
               "nova-poshta",
-              "meest"
+              "meest",
+              "ukrposhta"
             ]
           },
           "cityRef": {
@@ -5587,6 +6260,301 @@
           "expectedVersion",
           "quoteId"
         ]
+      },
+      "PaymentProtocolAttempt": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "checkoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "mode": {
+            "const": "integration-test"
+          },
+          "amountBasis": {
+            "const": "isolated-test-plan"
+          },
+          "method": {
+            "enum": [
+              "card",
+              "apple-pay",
+              "google-pay"
+            ]
+          },
+          "status": {
+            "enum": [
+              "submitting",
+              "pending",
+              "unknown",
+              "declined",
+              "cancelled",
+              "succeeded"
+            ]
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "canRetry": {
+            "type": "boolean"
+          },
+          "realPayment": {
+            "const": false
+          },
+          "orderPaid": {
+            "const": false
+          }
+        },
+        "required": [
+          "id",
+          "checkoutId",
+          "mode",
+          "amountBasis",
+          "method",
+          "status",
+          "amount",
+          "createdAt",
+          "version",
+          "canRetry",
+          "realPayment",
+          "orderPaid"
+        ]
+      },
+      "PaymentProtocolResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "attempt": {
+            "$ref": "#/components/schemas/PaymentProtocolAttempt"
+          },
+          "replayed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "attempt",
+          "replayed"
+        ]
+      },
+      "PaymentCapabilities": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "const": "integration-test"
+          },
+          "methods": {
+            "type": "array",
+            "maxItems": 3,
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "card",
+                "apple-pay",
+                "google-pay"
+              ]
+            }
+          },
+          "productionAvailable": {
+            "const": false
+          }
+        },
+        "required": [
+          "mode",
+          "methods",
+          "productionAvailable"
+        ]
+      },
+      "PaymentEventReceipt": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "const": "integration-test"
+          },
+          "receivedForTest": {
+            "const": true
+          },
+          "replayed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "mode",
+          "receivedForTest",
+          "replayed"
+        ]
+      },
+      "CreatePaymentProtocolInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "checkoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "method": {
+            "enum": [
+              "card",
+              "apple-pay",
+              "google-pay"
+            ]
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "checkoutId",
+          "expectedVersion",
+          "method",
+          "idempotencyKey"
+        ]
+      },
+      "EmptyPaymentOperationInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {},
+        "required": []
+      },
+      "PaymentProtocolAttemptResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ok",
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/PaymentProtocolAttempt"
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "requestId"
+            ]
+          }
+        }
+      },
+      "PaymentProtocolResultResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ok",
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/PaymentProtocolResult"
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "requestId"
+            ]
+          }
+        }
+      },
+      "PaymentCapabilitiesResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ok",
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/PaymentCapabilities"
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "requestId"
+            ]
+          }
+        }
+      },
+      "PaymentEventReceiptResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ok",
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/PaymentEventReceipt"
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "requestId"
+            ]
+          }
+        }
       }
     },
     "securitySchemes": {
@@ -5656,8 +6624,9 @@
     },
     {
       "name": "payments",
-      "status": "not-implemented",
-      "contract": "src/contracts/modules.ts"
+      "status": "blocked-production-payment-provider",
+      "contract": "src/contracts/modules.ts",
+      "implemented_contract": "src/contracts/payments.ts"
     },
     {
       "name": "delivery",

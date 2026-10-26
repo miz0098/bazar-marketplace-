@@ -30,7 +30,7 @@ test('compiled API starts, serves health and exits cleanly on SIGTERM', { timeou
   assert.equal(disabled.status,503);assert.equal(disabled.headers.get('set-cookie'),null);
   const pricing=await fetch(`http://127.0.0.1:${startup.port}/api/v1/pricing/promotions/evaluate`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({subtotal:1,code:'INVENTED'})});
   assert.equal(pricing.status,503);assert.equal(pricing.headers.get('set-cookie'),null);
-  for(const path of ['/api/v1/orders','/api/v1/checkouts','/api/v1/delivery/carriers','/api/v1/delivery/quotes']){const unavailable=await fetch(`http://127.0.0.1:${startup.port}${path}`);assert.equal(unavailable.status,503);assert.equal(unavailable.headers.get('set-cookie'),null);}
+  for(const path of ['/api/v1/orders','/api/v1/checkouts','/api/v1/delivery/carriers','/api/v1/delivery/quotes','/api/v1/payments/attempts','/api/v1/payments/webhooks/isolated']){const unavailable=await fetch(`http://127.0.0.1:${startup.port}${path}`);assert.equal(unavailable.status,503);assert.equal(unavailable.headers.get('set-cookie'),null);}
   const exit = once(child, 'exit');
   child.kill('SIGTERM');
   assert.equal((await exit)[0], 0);

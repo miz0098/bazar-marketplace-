@@ -34,7 +34,7 @@ const text = (v: unknown): v is string =>
   typeof v === "string" && v.length > 0 && v.length <= 200;
 const count = (v: unknown): v is number =>
   typeof v === "number" && Number.isSafeInteger(v) && v >= 0;
-const code = (v: unknown) => v === "nova-poshta" || v === "meest";
+const code = (v: unknown) => v === "nova-poshta" || v === "meest" || v === "ukrposhta";
 const pickup = (v: unknown) => v === "branch" || v === "parcel-locker";
 const date = (v: unknown): v is string =>
   typeof v === "string" &&
@@ -204,7 +204,7 @@ export function createShippingBusinessClient(
           object(v.bazarPickup) &&
           v.bazarPickup.available === false &&
           Array.isArray(v.carriers) &&
-          v.carriers.length <= 2 &&
+          v.carriers.length <= 3 &&
           new Set(v.carriers.map((c) => (object(c) ? c.code : null))).size ===
             v.carriers.length &&
           v.carriers.every(

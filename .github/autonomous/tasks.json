@@ -115,7 +115,7 @@
     {
       "id": "SHIP-001",
       "title": "Integrate delivery quote and shipment provider boundaries",
-      "status": "in_review",
+      "status": "done",
       "readiness": "integration",
       "depends_on": ["CHECKOUT-001", "BE-001"],
       "allowed_paths": ["ARCHITECTURE.md", "MIGRATION_PLAN.md", "apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
@@ -225,13 +225,13 @@
     {
       "id": "PAYMENT-001",
       "title": "Integrate tokenized payment provider and payment methods",
-      "status": "pending",
+      "status": "in_progress",
       "readiness": "integration",
       "depends_on": ["ORDER-001", "PROFILE-001"],
-      "allowed_paths": ["apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
+      "allowed_paths": ["ARCHITECTURE.md", "MIGRATION_PLAN.md", "apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
       "acceptance": ["Raw card data never touches BAZAR storage or logs", "Provider tokens and safe display metadata are server-authorized", "Webhook verification and idempotency are tested", "Decline, timeout, retry and uncertain outcome states never claim success"],
       "pr": null,
-      "blocker": "Payment provider, merchant account, PCI scope and legal approval are required."
+      "blocker": "F8 isolated payment protocol/security plus Ukrposhta extension implemented. Real provider/merchant/PCI/SDK/signature/finality, authoritative payable/financial/refund policy, carrier credentials/terms and production rollout require approval."
     },
     {
       "id": "SUPPORT-001",

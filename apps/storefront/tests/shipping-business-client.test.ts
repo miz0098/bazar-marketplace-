@@ -117,3 +117,10 @@ test("shipping client refuses invented BAZAR availability, wrong points and priv
     code: "invalid-input",
   });
 });
+
+test('shipping client accepts the third carrier without enabling BAZAR pickup or a live shipment',async()=>{
+ const client=createShippingBusinessClient(()=>'a'.repeat(43),async()=>response({mode:'integration-test',carrier:'ukrposhta',items:[{ref:'2700',cityRef:'286-29713',name:'Тестове відділення',kind:'branch',available:true,revision:'test'}]}));
+ assert.equal((await client.points({carrier:'ukrposhta',cityRef:'286-29713',kind:'branch'})).items[0].ref,'2700');
+ const carriers=createShippingBusinessClient(()=>'a'.repeat(43),async()=>response({mode:'integration-test',carriers:['nova-poshta','meest','ukrposhta'].map(code=>({code,pickupKinds:['branch'],liveAvailable:false})),bazarPickup:{available:false}}));
+ assert.equal((await carriers.carriers()).carriers.length,3);
+});

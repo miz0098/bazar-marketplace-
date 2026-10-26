@@ -7,7 +7,7 @@ import type {
   QuoteShippingInput,
 } from "../contracts/shipping.js";
 export function carrier(value: unknown): Carrier {
-  if (value !== "nova-poshta" && value !== "meest") invalid();
+  if (value !== "nova-poshta" && value !== "meest" && value !== "ukrposhta") invalid();
   return value;
 }
 export function kind(value: unknown): PickupKind {

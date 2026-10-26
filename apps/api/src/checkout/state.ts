@@ -99,7 +99,7 @@ export async function delivery(
     )
   ).rows[0];
   if (!r) throw missing();
-  if (r.carrier !== 'nova-poshta' && r.carrier !== 'meest')
+  if (r.carrier !== 'nova-poshta' && r.carrier !== 'meest' && r.carrier !== 'ukrposhta')
     throw new Error('Invalid stored carrier');
   return {
     addressId: uuid(r.id),
@@ -288,7 +288,7 @@ export async function readOrder(
       BigInt(money(r.subtotal_minor))
   )
     throw new Error('Invalid order aggregate');
-  if (r.carrier !== 'nova-poshta' && r.carrier !== 'meest')
+  if (r.carrier !== 'nova-poshta' && r.carrier !== 'meest' && r.carrier !== 'ukrposhta')
     throw new Error('Invalid order carrier');
   return {
     id: uuid(r.id),

@@ -1,5 +1,7 @@
 # PostgreSQL architecture — Phase F2 foundation
 
+Phase F8 adds migration 0008 to expand carrier CHECKs to Ukrposhta and 0009 for immutable test payment intents, durable operations, verified event deduplication and trigger-generated transition audit. Owner/cart/version FKs, active-or-successful uniqueness and terminal immutability apply. Earlier migrations are unchanged; no real merchant/credential/PII is seeded. See ADRs 0008–0009.
+
 Phase F7 adds migration 0007: empty carrier registry, city/point observations, owned checkout shipping selections and immutable integration quotes with integer costs, bindings, explicit expiry, FKs and indexes. Recorded selections are immutable. No real tariff/key/recipient data is seeded; earlier migrations are unchanged. See [ADR 0007](adr/0007-delivery-shipping-foundation.md).
 
 Phase F6 adds migration 0006: owned checkout drafts, immutable checkout/order snapshots and request keys, with aggregate/link constraints and explicit integration-mode/provider guards. Previous migrations and legacy rows are preserved. See [ADR 0006](adr/0006-orders-checkout-foundation.md).

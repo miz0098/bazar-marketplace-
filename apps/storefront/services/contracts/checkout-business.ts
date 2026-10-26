@@ -4,7 +4,7 @@ export type CheckoutStage = 'contact-delivery' | 'payment' | 'confirmation';
 export type PaymentSelection = 'card-online' | 'on-receipt';
 export interface DeliveryReference {
   addressId: string;
-  carrier: 'nova-poshta' | 'meest';
+  carrier: 'nova-poshta' | 'meest' | 'ukrposhta';
   cityRef: string;
   locationRef: string;
   cost: null;

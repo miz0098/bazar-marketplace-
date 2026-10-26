@@ -1,5 +1,7 @@
 # BAZAR Shopify-to-Next.js Migration Plan
 
+Phase F8: additive migrations 0008 (Ukrposhta carrier constraints) and 0009 (isolated payment protocol/security), typed clients and test adapters are implemented. Provider/merchant and real payable/financial rules remain blockers; see ADRs 0008–0009.
+
 Phase F7 Delivery & Shipping Foundation: additive migration 0007, verified Meest contract subset, isolated adapters/HTTP/client and shipping freshness guards are implemented. Live Nova Poshta/Meest credentials/contracts, parcel/recipient/TTL policies remain blockers; see [ADR 0007](docs/adr/0007-delivery-shipping-foundation.md).
 
 Phase F6 implements Orders & Checkout Business API foundation on f6b52db with additive migration 0006, idempotent test records and future typed client contracts. [ADR 0006](docs/adr/0006-orders-checkout-foundation.md) records live order/provider/inventory/promo blockers; demo UI is unchanged.
