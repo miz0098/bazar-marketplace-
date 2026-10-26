@@ -109,7 +109,7 @@ export function AccountShell({ children }: Readonly<{ children: React.ReactNode 
             </div>
             <nav className="account-nav" aria-label="Розділи акаунта">
               {navigation.map((item) => {
-                const active = pathname === item.href || (item.href === '/profile/orders' && pathname.startsWith('/profile/orders/'));
+                const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
                 return (
                   <Link className={`account-nav__item${active ? ' is-active' : ''}`} href={item.href} aria-current={active ? 'page' : undefined} key={item.href} onClick={() => closeDrawer(false)}>
                     <span className="account-nav__icon"><AccountIcon name={item.icon} /></span>

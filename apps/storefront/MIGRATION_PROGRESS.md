@@ -56,6 +56,18 @@ Production identity remains pending: server-issued challenges, expiry and attemp
 
 This phase is a demo-ready UI preview, not an authenticated account. `IdentityService` remains anonymous and the profile routes expose only fictional deterministic fixtures, never protected customer data. Account mutations are kept in memory and reset on reload; they are not evidence of account persistence. The preview does not collect, transmit, or persist personal information; use fictional values only and do not enter real personal information. Wishlist add-to-cart uses the separately documented demo-cart persistence, but wishlist state itself is not synchronized to an account. No real order, shipment, payment method, review, address, support ticket, or message is fetched, created, changed, or delivered.
 
+## Phase E2 customer messages and support UI
+
+- [x] Dedicated `/profile/messages/[id]` and `/profile/support/[id]` demo detail routes alongside both list routes
+- [x] Searchable dialog list with avatars, last-message previews/times, pins and unread-dialog counting
+- [x] Chronological DOM histories, open-at-bottom behavior and internal scrolling with separate header/composer
+- [x] Mobile list/conversation navigation, keyboard composer, explicit demo-only notices and metadata-only file previews
+- [x] Wishlist-style white empty message cards without actions; loading, missing-record, read-error and mutation-error states
+- [x] Support landing, ticket list/statuses, validated creation and replies, and closed-ticket behavior
+- [x] Separate typed services, isolated fixtures and in-memory adapters; account/session/cart behavior from E1 is preserved
+
+Every outgoing message and support reply is a local preview, not a delivery. No real users/operators, server persistence, sockets, push, SMS or paid services are involved. Reload resets communication data, read/pin state and ticket creation. Attachment contents are never opened or transmitted. Real transport, authorization, attachment upload/scanning, reply/delete/context-menu workflows and retention remain integration work.
+
 ## Source mapping
 
 | Standalone file | Shopify reference at `105d10f` |
@@ -78,7 +90,7 @@ This phase is a demo-ready UI preview, not an authenticated account. `IdentitySe
 - [ ] Live catalog API, inventory, pricing, media, and seller data
 - [ ] Production phone authentication, secure sessions, route authorization, personal-data persistence, phone re-verification, and server logout
 - [ ] Authoritative current-user orders, synchronized wishlist, verified reviews, owned addresses, and tokenized payment methods
-- [ ] Phase E2 authorized messaging and support services, including delivery/error, privacy, attachment, and retention decisions
+- [ ] Live authorized messaging and support services, including delivery/error, privacy, attachment upload/scanning, and retention decisions
 - [ ] Authoritative promotions, payment gateway, SMS, shipping-provider integration, and order creation
 - [ ] PostgreSQL/backend integration, merchant settings/content export, analytics, and complete SEO redirect parity
 - [ ] Production accessibility and visual-regression baselines against every approved screen
