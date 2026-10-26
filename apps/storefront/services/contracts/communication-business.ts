@@ -6,6 +6,8 @@ export const notificationKinds = [
   "support.replied",
   "order.cancelled",
   "refund.completed",
+  "return.requested",
+  "return.status_changed",
 ] as const;
 export type NotificationKind = (typeof notificationKinds)[number];
 export type FutureNotificationEnvelope = Readonly<{

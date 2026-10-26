@@ -80,7 +80,7 @@ test('orders filter deterministic demo records and expose only verified detail f
   await expect(page.getByRole('heading', { name: 'Замовлення BZ-DEMO-005' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Товари' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Підсумок' })).toBeVisible();
-  await expect(page.getByText(/Дані про оплату, продавця, доставку, відстеження.*не показані/)).toBeVisible();
+  await expect(page.getByText(/Реальні дані про оплату, продавця, доставку та відстеження не підтверджені/)).toBeVisible();
   await expect(page.getByRole('heading', { name: /Продавець|Доставка|Оплата|Статус замовлення/ })).toHaveCount(0);
   await expect(page.getByText(/ТТН|Нова пошта|Meest|Apple Pay|Google Pay/)).toHaveCount(0);
 });

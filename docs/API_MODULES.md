@@ -1,5 +1,7 @@
 # BAZAR API modules — provisional v1 contracts
 
+F14: OpenAPI1.10 adds /api/v1/order-lifecycle/orders list/detail and cancellation/return request POST. Internal review/refund planning/verified test observation have no customer HTTP endpoint. Ordinary runtime503; F4 auth gates preserved. [ADR0013](adr/0013-order-lifecycle-requests-refunds.md).
+
 F13: OpenAPI 1.9 adds the explicit /api/v1/communication prefix for isolated membership-scoped messages, owner support and notification inbox/read. Old provisional /conversations and /support/tickets stay unavailable. [ADR 0012](adr/0012-messages-support-notifications.md) distinguishes working test routes from future staff/CRM/channels.
 
 F12: OpenAPI 1.8 adds private /customer/profile, /customer/addresses, /customer/reviews and /wishlist/items contracts. All success is isolated verified-session only; production remains 503. Old generic public review/address placeholders are not implicitly activated. See [ADR 0011](adr/0011-customer-account-foundation.md).

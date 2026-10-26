@@ -1,3 +1,4 @@
+import type {DemoOrderLifecycle,DemoReturnDraft} from '@/domain/account/order-lifecycle';
 import type { ProductSummary } from '@/services/contracts/catalog';
 import type {
   AccountAddress,
@@ -63,6 +64,8 @@ export interface AccountService {
 
   listOrders(query?: AccountOrderQuery): Promise<AccountOrderPage>;
   getOrder(id: string): Promise<AccountOrderDetail | null>;
+  getOrderLifecycle(id:string):Promise<DemoOrderLifecycle|null>;
+  createOrderReturn(id:string,draft:DemoReturnDraft):Promise<AccountMutationResult<DemoOrderLifecycle>>;
 
   subscribeWishlist(listener: () => void): () => void;
   getWishlistSnapshot(): readonly AccountWishlistItem[];

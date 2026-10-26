@@ -1,5 +1,7 @@
 # BAZAR Shopify-to-Next.js Migration Plan
 
+F14 (base merged PR #24): additive0013, isolated owned lifecycle request/refund protocols, future client and bounded My Orders preview. No existing order/payment/delivery facts are rewritten; legal/financial/logistics rules remain blockers. [Scope](docs/F14_ORDER_LIFECYCLE_ACCEPTANCE.md).
+
 F13: merged F12 PR #23 verified; additive migration 0012 and isolated communication protocols implemented without rewriting existing UI. [Acceptance and remaining gates](docs/F13_COMMUNICATION_ACCEPTANCE.md). Notification/staff/channel/upload production work remains blocked.
 
 Phase F12: additive migration 0011, owner-scoped customer/wishlist contracts and typed client, isolated review policy/immutable anti-duplicate claims, and local product-ID wishlist persistence. No real PII/provider/business policy is inferred. See [ADR 0011](docs/adr/0011-customer-account-foundation.md) and [acceptance](docs/F12_CUSTOMER_ACCOUNT_ACCEPTANCE.md).

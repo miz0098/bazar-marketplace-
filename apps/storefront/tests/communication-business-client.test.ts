@@ -110,5 +110,5 @@ test("F13 client rejects forged delivery/owner payloads, mismatched messages, un
       }),
   );
   await assert.rejects(huge.conversations(), { code: "invalid-response" });
-  assert.equal(notificationKinds.length, 6);
+  assert.equal(notificationKinds.length, 8);
 });

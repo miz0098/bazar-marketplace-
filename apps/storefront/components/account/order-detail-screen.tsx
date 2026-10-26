@@ -1,4 +1,5 @@
 'use client';
+import {OrderLifecyclePreview} from './order-lifecycle-preview';
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
@@ -54,6 +55,7 @@ export function OrderDetailScreen({ id, scenario }: { id: string; scenario: Acco
               ))}
             </div>
           </section>
+          <OrderLifecyclePreview key={order.id} order={order} scenario={scenario}/>
         </div>
         <aside className="account-order-detail__side" aria-label="Підсумок замовлення">
           <section className="account-order-detail-card">
@@ -65,7 +67,7 @@ export function OrderDetailScreen({ id, scenario }: { id: string; scenario: Acco
               <div><dt>Разом</dt><dd>{formatMoney(order.total)}</dd></div>
             </dl>
           </section>
-          <p className="account-order-detail__notice">Дані про оплату, продавця, доставку, відстеження та часову шкалу навмисно не показані: демо-сервіс не має перевірених фактів.</p>
+          <p className="account-order-detail__notice">Реальні дані про оплату, продавця, доставку та відстеження не підтверджені. Історія й запити — лише демонстрація без фінансових або логістичних дій.</p>
         </aside>
       </div>
     </article>

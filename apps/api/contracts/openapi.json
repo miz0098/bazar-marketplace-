@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "BAZAR API",
-    "version": "1.9.0",
-    "description": "PostgreSQL catalog and test-isolated server authentication foundation. Runtime SMS authentication is unavailable (503) pending approved provider, keys, security policy and rollout. F9 approves one active cart/user, explicit creation, local guest cart with no merge; live activation remains blocked on production SMS/security rollout. F5 adds isolated exact-integer promotion evaluation; no real redemption/checkout activation. F6 adds isolated three-step checkout and immutable pending integration orders; no live placement/provider operation. F7 adds isolated shipping directories, selections, expiring estimates and final transaction freshness guards. Live carrier contracts/transports remain disabled. F8 adds isolated provider-neutral payment protocol/security and Ukrposhta delivery; no real financial/provider activation. F9 adds verified-session current-cart HTTP and linked isolated checkout confirmation; no production orders or paid-order claims. F12 adds isolated owned wishlist, name-only profile and opaque address operations plus explicitly policy-gated private reviews. No real PII/provider/publication activation. F13 adds isolated membership-authorized chat history, idempotent support and notification inbox contracts. No real staff, channels, files or production activation."
+    "version": "1.10.0",
+    "description": "PostgreSQL catalog and test-isolated server authentication foundation. Runtime SMS authentication is unavailable (503) pending approved provider, keys, security policy and rollout. F9 approves one active cart/user, explicit creation, local guest cart with no merge; live activation remains blocked on production SMS/security rollout. F5 adds isolated exact-integer promotion evaluation; no real redemption/checkout activation. F6 adds isolated three-step checkout and immutable pending integration orders; no live placement/provider operation. F7 adds isolated shipping directories, selections, expiring estimates and final transaction freshness guards. Live carrier contracts/transports remain disabled. F8 adds isolated provider-neutral payment protocol/security and Ukrposhta delivery; no real financial/provider activation. F9 adds verified-session current-cart HTTP and linked isolated checkout confirmation; no production orders or paid-order claims. F12 adds isolated owned wishlist, name-only profile and opaque address operations plus explicitly policy-gated private reviews. No real PII/provider/publication activation. F13 adds isolated membership-authorized chat history, idempotent support and notification inbox contracts. No real staff, channels, files or production activation. F14 adds isolated owned cancellation/return requests, immutable lifecycle history and strictly test-only refund capacity/authenticated-event protocols. No live transitions or financial/logistics activation."
   },
   "servers": [
     {
@@ -8205,6 +8205,737 @@
           }
         }
       }
+    },
+    "/api/v1/order-lifecycle/orders": {
+      "get": {
+        "operationId": "listLifecycleOrders",
+        "description": "Isolated-test-only, ordinary runtime 503. Verified F4 owner session and same-origin checks. Requests do not cancel, approve returns, reserve stock or refund real funds. No customer status/refund/provider write endpoint.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LifecyclePageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string",
+              "maxLength": 150
+            },
+            "description": "F6 owner/limit-bound cursor, not authorization."
+          }
+        ]
+      },
+      "head": {
+        "operationId": "headLifecycleOrders",
+        "description": "Isolated-test-only, ordinary runtime 503. Verified F4 owner session and same-origin checks. Requests do not cancel, approve returns, reserve stock or refund real funds. No customer status/refund/provider write endpoint.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LifecyclePageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string",
+              "maxLength": 150
+            },
+            "description": "F6 owner/limit-bound cursor, not authorization."
+          }
+        ]
+      }
+    },
+    "/api/v1/order-lifecycle/orders/{id}": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getOwnedLifecycle",
+        "description": "Isolated-test-only, ordinary runtime 503. Verified F4 owner session and same-origin checks. Requests do not cancel, approve returns, reserve stock or refund real funds. No customer status/refund/provider write endpoint.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LifecycleViewResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "head": {
+        "operationId": "headOwnedLifecycle",
+        "description": "Isolated-test-only, ordinary runtime 503. Verified F4 owner session and same-origin checks. Requests do not cancel, approve returns, reserve stock or refund real funds. No customer status/refund/provider write endpoint.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LifecycleViewResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/order-lifecycle/orders/{id}/cancellations": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "requestCancellations",
+        "description": "Isolated-test-only, ordinary runtime 503. Verified F4 owner session and same-origin checks. Requests do not cancel, approve returns, reserve stock or refund real funds. No customer status/refund/provider write endpoint.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LifecycleViewResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LifecycleCancellationInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/order-lifecycle/orders/{id}/returns": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "requestReturns",
+        "description": "Isolated-test-only, ordinary runtime 503. Verified F4 owner session and same-origin checks. Requests do not cancel, approve returns, reserve stock or refund real funds. No customer status/refund/provider write endpoint.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LifecycleViewResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Private bounded JSON envelope; no real side effect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LifecycleReturnInput"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -11977,7 +12708,9 @@
               "message.created",
               "support.replied",
               "order.cancelled",
-              "refund.completed"
+              "refund.completed",
+              "return.requested",
+              "return.status_changed"
             ]
           },
           "sourceId": {
@@ -12024,7 +12757,9 @@
               "message.created",
               "support.replied",
               "order.cancelled",
-              "refund.completed"
+              "refund.completed",
+              "return.requested",
+              "return.status_changed"
             ]
           },
           "recipientId": {
@@ -12290,6 +13025,567 @@
           },
           "data": {
             "$ref": "#/components/schemas/CommunicationView"
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "requestId"
+            ],
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          }
+        }
+      },
+      "LifecycleCancellationInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "idempotencyKey",
+          "reason"
+        ],
+        "properties": {
+          "idempotencyKey": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        }
+      },
+      "LifecycleReturnInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "idempotencyKey",
+          "reason",
+          "items"
+        ],
+        "properties": {
+          "idempotencyKey": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "orderLineId",
+                "quantity"
+              ],
+              "properties": {
+                "orderLineId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 2147483647
+                }
+              }
+            }
+          }
+        }
+      },
+      "LifecycleRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "state",
+          "version",
+          "reason",
+          "items",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "enum": [
+              "cancellation",
+              "return"
+            ]
+          },
+          "state": {
+            "enum": [
+              "requested",
+              "under-review",
+              "closed-for-test"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "items": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "orderLineId",
+                "quantity"
+              ],
+              "properties": {
+                "orderLineId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 2147483647
+                }
+              }
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LifecycleRefund": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "requestId",
+          "paymentOperationId",
+          "extent",
+          "amountMinor",
+          "currency",
+          "state",
+          "version",
+          "basis",
+          "realRefund",
+          "fundsReturned"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "requestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "paymentOperationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "extent": {
+            "enum": [
+              "partial",
+              "full"
+            ]
+          },
+          "amountMinor": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "currency": {
+            "const": "UAH"
+          },
+          "state": {
+            "enum": [
+              "prepared",
+              "pending",
+              "unknown",
+              "confirmed-for-test",
+              "rejected-for-test"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "basis": {
+            "const": "isolated-test-plan"
+          },
+          "realRefund": {
+            "const": false
+          },
+          "fundsReturned": {
+            "const": false
+          }
+        }
+      },
+      "LifecycleHistory": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "sequence",
+          "requestId",
+          "refundId",
+          "fromState",
+          "toState",
+          "version",
+          "source",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "requestId": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "refundId": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "fromState": {
+            "oneOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "toState": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "source": {
+            "enum": [
+              "immutable-order",
+              "customer-request",
+              "isolated-review",
+              "test-plan",
+              "verified-test-event"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LifecycleOrder": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "createdAt",
+          "status",
+          "paymentStatus",
+          "deliveryStatus",
+          "returnStatus",
+          "refundStatus",
+          "orderPaid",
+          "fundsReturned",
+          "lines"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "const": "pending"
+          },
+          "paymentStatus": {
+            "const": "not-initiated"
+          },
+          "deliveryStatus": {
+            "const": "not-requested"
+          },
+          "returnStatus": {
+            "enum": [
+              "not-requested",
+              "requested-for-test"
+            ]
+          },
+          "refundStatus": {
+            "enum": [
+              "not-initiated",
+              "test-attempts-only"
+            ]
+          },
+          "orderPaid": {
+            "const": false
+          },
+          "fundsReturned": {
+            "const": false
+          },
+          "lines": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "title",
+                "quantity",
+                "unitPriceMinor",
+                "lineTotalMinor"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "title": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 9007199254740991
+                },
+                "unitPriceMinor": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "lineTotalMinor": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                }
+              }
+            }
+          }
+        }
+      },
+      "LifecycleView": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "mode",
+          "resource",
+          "order",
+          "eligibility",
+          "requests",
+          "refunds",
+          "history"
+        ],
+        "properties": {
+          "mode": {
+            "const": "integration-test"
+          },
+          "resource": {
+            "const": "order-lifecycle"
+          },
+          "order": {
+            "$ref": "#/components/schemas/LifecycleOrder"
+          },
+          "eligibility": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "cancellation",
+              "returns"
+            ],
+            "properties": {
+              "cancellation": {
+                "enum": [
+                  "policy-required",
+                  "request-only",
+                  "unavailable"
+                ]
+              },
+              "returns": {
+                "enum": [
+                  "policy-required",
+                  "request-only",
+                  "unavailable"
+                ]
+              }
+            }
+          },
+          "requests": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "$ref": "#/components/schemas/LifecycleRequest"
+            }
+          },
+          "refunds": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "$ref": "#/components/schemas/LifecycleRefund"
+            }
+          },
+          "history": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "$ref": "#/components/schemas/LifecycleHistory"
+            }
+          }
+        }
+      },
+      "LifecyclePage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "mode",
+          "resource",
+          "items",
+          "nextCursor"
+        ],
+        "properties": {
+          "mode": {
+            "const": "integration-test"
+          },
+          "resource": {
+            "const": "order-lifecycle-list"
+          },
+          "items": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "createdAt",
+                "status"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "status": {
+                  "const": "pending"
+                }
+              }
+            }
+          },
+          "nextCursor": {
+            "oneOf": [
+              {
+                "type": "string",
+                "maxLength": 150
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "LifecycleViewResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ok",
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/LifecycleView"
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "requestId"
+            ],
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          }
+        }
+      },
+      "LifecyclePageResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ok",
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/LifecyclePage"
           },
           "meta": {
             "type": "object",
