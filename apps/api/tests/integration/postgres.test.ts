@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { once } from 'node:events';
 import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import test, { type TestContext } from 'node:test';
 import pg from 'pg';
+import { createCatalog, parseCatalogQuery } from '../../src/business/catalog.js';
+import { createCartRepository } from '../../src/business/cart.js';
 import { readConfig } from '../../src/config.js';
 import { createLogger } from '../../src/logger.js';
 import { createApiServer } from '../../src/server.js';
@@ -61,9 +63,9 @@ test('fresh database, previous schema upgrade, rerun and concurrent migrators ar
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(`${migrationDirectory}/0001_core.sql`, `${dir}/0001_core.sql`);
   assert.equal(await migrate(db.config, dir), 1);
-  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 1]);
+  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 2]);
   assert.equal(await migrate(db.config), 0);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 2);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 3);
   assert.ok((await db.pool.query("SELECT indexname FROM pg_indexes WHERE schemaname='bazar' AND indexname='variants_available_idx'")).rowCount);
 });
 
@@ -75,10 +77,10 @@ test('modified/unknown migrations are rejected and failed DDL rolls back without
   writeFileSync(`${dir}/0001_core.sql`, first + '\n-- modified\n');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   writeFileSync(`${dir}/0001_core.sql`, first);
-  writeFileSync(`${dir}/0003_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
+  writeFileSync(`${dir}/0004_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   assert.equal((await db.pool.query("SELECT to_regclass('bazar.must_rollback') AS name")).rows[0].name, null);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 2);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 3);
   await db.pool.query("INSERT INTO bazar_meta.schema_migrations(version,checksum) VALUES ('9999',repeat('0',64))");
   await assert.rejects(migrate(db.config), /Database migration failed/);
 });
@@ -197,6 +199,13 @@ test('compiled API reads environment database config, never auto-migrates and cl
   await migrate(db.config);
   const ready=await fetch(endpoint+'/ready'); assert.equal(ready.status,200);
   assert.equal((await ready.json()).data.businessModulesAvailable,false);
+  await seed(db.pool);
+  // Actual storefront adapter -> compiled API -> disposable PostgreSQL, without switching any UI.
+  const adapterUrl=new URL('../../../storefront/lib/catalog-api-client.ts',import.meta.url).href;
+  const adapterCode=`import {createCatalogApiClient} from ${JSON.stringify(adapterUrl)}; const client=createCatalogApiClient({baseUrl:${JSON.stringify(endpoint)},timeoutMs:1000}); const page=await client.list(); if(page.items.length!==1 || page.items[0].price.amountMinor!==12345) throw new Error('Catalog adapter mismatch'); const detail=await client.get('synthetic'); if(detail.variants[0].stock!==5) throw new Error('Variant mismatch'); const categories=await client.categories(); if(categories.length!==1) throw new Error('Categories mismatch');`;
+  const adapter=spawnSync(process.execPath,['--import','tsx','--input-type=module','-e',adapterCode],{encoding:'utf8',timeout:5000});
+  assert.equal(adapter.status,0,adapter.stderr);
+
   const exit=once(child,'exit'); child.kill('SIGTERM'); assert.equal((await exit)[0],0);
   assert.equal(output.includes(new URL(db.url).password),false); assert.equal(errors,'');
 });
@@ -207,4 +216,254 @@ test('hashed session/OTP storage rejects invalid lifetimes and exhausted attempt
   await assert.rejects(db.pool.query("INSERT INTO bazar.sessions(user_id,token_digest,expires_at) VALUES ($1,$2,now()-interval '1 hour')",[s.user,Buffer.alloc(32,3)]),{code:'23514'});
   await db.pool.query("INSERT INTO bazar.otp_challenges(subject_digest,code_digest,max_attempts,expires_at) VALUES ($1,$2,3,now()+interval '5 minutes')",[Buffer.alloc(32,1),Buffer.alloc(32,2)]);
   await assert.rejects(db.pool.query('UPDATE bazar.otp_challenges SET attempts=4'),{code:'23514'});
+});
+
+test('catalog HTTP reads real PostgreSQL with Ukrainian search, subtree filters, stable pagination and sanitized failures', async (t) => {
+  const db = await database(t);
+  await migrate(db.config);
+  const s = await seed(db.pool);
+  const parent = (
+    await db.pool.query(
+      "INSERT INTO bazar.categories(handle,title) VALUES ('electronics','Електроніка') RETURNING id",
+    )
+  ).rows[0].id;
+  await db.pool.query(
+    'UPDATE bazar.categories SET parent_id=$1 WHERE id=(SELECT category_id FROM bazar.products WHERE id=$2)',
+    [parent, s.product],
+  );
+  await db.pool.query(
+    "UPDATE bazar.products SET title='Телефон тестовий',description='Український опис' WHERE id=$1",
+    [s.product],
+  );
+  const second = (
+    await db.pool.query(
+      "INSERT INTO bazar.products(category_id,handle,title) VALUES ($1,'unavailable','Телефон інший') RETURNING id",
+      [parent],
+    )
+  ).rows[0].id;
+  await db.pool.query(
+    "INSERT INTO bazar.variants(product_id,sku,price_minor,stock) VALUES ($1,'SECOND',999,0)",
+    [second],
+  );
+  const catalog = createCatalog(db.pool);
+  const app = createApiServer(
+    readConfig({ NODE_ENV: 'test' }),
+    createLogger('error', () => {}),
+    { isReady: async () => true, catalog },
+  );
+  app.server.listen(0, '127.0.0.1');
+  await once(app.server, 'listening');
+  t.after(() => app.shutdown());
+  const addr = app.server.address();
+  assert.ok(addr && typeof addr !== 'string');
+  const base = `http://127.0.0.1:${addr.port}`;
+  const get = async (path: string) => {
+    const r = await fetch(base + path);
+    return { status: r.status, body: await r.json() };
+  };
+  const first = await get(
+    `/api/v1/products?query=${encodeURIComponent('Телефон')}&categoryId=${parent}&limit=1&sort=price-asc`,
+  );
+  assert.equal(first.status, 200);
+  assert.equal(first.body.data.items[0].id, second);
+  assert.equal(first.body.data.items[0].price.amountMinor, 999);
+  const cursor = first.body.data.nextCursor;
+  assert.ok(cursor);
+  const next = await get(
+    `/api/v1/products?query=${encodeURIComponent('Телефон')}&categoryId=${parent}&limit=1&sort=price-asc&cursor=${cursor}`,
+  );
+  assert.equal(next.body.data.items[0].id, s.product);
+  assert.equal(next.body.data.nextCursor, null);
+  assert.equal((await get(`/api/v1/products?cursor=${cursor}`)).status, 400);
+  const available = await get(
+    '/api/v1/products?available=true&minPrice=1000&maxPrice=20000',
+  );
+  assert.equal(available.body.data.items.length, 1);
+  const detail = await get('/api/v1/products/synthetic');
+  assert.equal(detail.body.data.variants[0].stock, 5);
+  assert.equal((await get('/api/v1/products/missing')).status, 404);
+  assert.equal(
+    (await get('/api/v1/products?query=%27%20OR%201=1--')).body.data.items
+      .length,
+    0,
+  );
+  assert.equal(
+    (await get('/api/v1/categories?parentId=root')).body.data.length,
+    1,
+  );
+  assert.equal(
+    (await get(`/api/v1/categories?parentId=${parent}`)).body.data.length,
+    1,
+  );
+  assert.equal((await get('/api/v1/categories?unknown=1')).status, 400);
+  for (const method of ['GET', 'POST', 'PATCH', 'DELETE']) {
+    const r = await fetch(base + '/api/v1/cart/lines/' + s.variant, {
+      method,
+      headers: {
+        'x-user-id': s.user,
+        authorization: 'Bearer invented',
+        'content-type': 'application/json',
+      },
+      ...(method === 'GET'
+        ? {}
+        : { body: JSON.stringify({ userId: s.user, price: 1 }) }),
+    });
+    assert.equal(r.status, 401);
+  }
+  await db.pool.query(
+    'ALTER TABLE bazar.products RENAME TO temporarily_missing',
+  );
+  const failed = await get('/api/v1/products');
+  assert.equal(failed.status, 503);
+  assert.doesNotMatch(
+    JSON.stringify(failed),
+    /temporarily_missing|SELECT|relation/,
+  );
+});
+
+test('cart repository enforces owners, atomic versions, stock, authoritative prices and integer totals', async (t) => {
+  const db = await database(t);
+  await migrate(db.config);
+  const s = await seed(db.pool);
+  const carts = createCartRepository(db.pool);
+  assert.equal((await carts.get(s.user, s.cart)).subtotal.amountMinor, 0);
+  await assert.rejects(carts.get(s.other, s.cart), { status: 404 });
+  await assert.rejects(
+    carts.mutate(s.other, s.cart, {
+      operation: 'add',
+      variantId: s.variant,
+      quantity: 1,
+      expectedVersion: 1,
+    }),
+    { status: 404 },
+  );
+  for (const quantity of [0, -1, 1.5, 2147483648, NaN])
+    await assert.rejects(
+      carts.mutate(s.user, s.cart, {
+        operation: 'add',
+        variantId: s.variant,
+        quantity,
+        expectedVersion: 1,
+      }),
+      { status: 400 },
+    );
+  const op = {
+    operation: 'add' as const,
+    variantId: s.variant,
+    quantity: 2,
+    expectedVersion: 1,
+  };
+  const results = await Promise.allSettled([
+    carts.mutate(s.user, s.cart, op),
+    carts.mutate(s.user, s.cart, op),
+  ]);
+  assert.equal(results.filter((r) => r.status === 'fulfilled').length, 1);
+  assert.equal(
+    (results.find((r) => r.status === 'rejected') as PromiseRejectedResult)
+      .reason.status,
+    409,
+  );
+  let cart = await carts.get(s.user, s.cart);
+  assert.equal(cart.lines[0].quantity, 2);
+  assert.equal(cart.subtotal.amountMinor, 24690);
+  await assert.rejects(
+    carts.mutate(s.user, s.cart, {
+      ...op,
+      quantity: 6,
+      expectedVersion: cart.version,
+    }),
+    { status: 409 },
+  );
+  assert.equal((await carts.get(s.user, s.cart)).version, cart.version);
+  await db.pool.query(
+    'UPDATE bazar.variants SET price_minor=20000 WHERE id=$1',
+    [s.variant],
+  );
+  cart = await carts.mutate(s.user, s.cart, {
+    operation: 'set',
+    variantId: s.variant,
+    quantity: 3,
+    expectedVersion: cart.version,
+  });
+  assert.equal(cart.subtotal.amountMinor, 60000);
+  await db.pool.query('UPDATE bazar.variants SET stock=1 WHERE id=$1', [
+    s.variant,
+  ]);
+  await assert.rejects(
+    carts.mutate(s.user, s.cart, {
+      operation: 'set',
+      variantId: s.variant,
+      quantity: 2,
+      expectedVersion: cart.version,
+    }),
+    { status: 409 },
+  );
+  await db.pool.query(
+    'UPDATE bazar.variants SET price_minor=9007199254740991,stock=5 WHERE id=$1',
+    [s.variant],
+  );
+  await assert.rejects(
+    carts.mutate(s.user, s.cart, {
+      operation: 'set',
+      variantId: s.variant,
+      quantity: 2,
+      expectedVersion: cart.version,
+    }),
+    { status: 409 },
+  );
+  cart = await carts.mutate(s.user, s.cart, {
+    operation: 'remove',
+    variantId: s.variant,
+    expectedVersion: cart.version,
+  });
+  assert.equal(cart.subtotal.amountMinor, 0);
+  assert.equal(cart.lines.length, 0);
+});
+
+test('catalog runtime works with read-only catalog grants and cannot access carts or modify prices', async (t) => {
+  const db = await database(t);
+  await migrate(db.config);
+  await seed(db.pool);
+  const role = `bazar_catalog_${randomBytes(8).toString('hex')}`;
+  const password = randomBytes(32).toString('hex');
+  const ddl = (
+    await db.pool.query(
+      "SELECT format('CREATE ROLE %I LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE PASSWORD %L',$1::text,$2::text) AS sql",
+      [role, password],
+    )
+  ).rows[0].sql;
+  await db.pool.query(ddl);
+  await db.pool.query(`GRANT USAGE ON SCHEMA bazar,bazar_meta TO "${role}"`);
+  await db.pool.query(
+    `GRANT SELECT ON bazar_meta.schema_migrations,bazar.products,bazar.categories,bazar.variants TO "${role}"`,
+  );
+  const url = new URL(db.url);
+  url.username = role;
+  url.password = password;
+  const runtime = createDatabase({
+    ...readDatabaseConfig({ DATABASE_URL: url.toString(), NODE_ENV: 'test' })!,
+    requireRestrictedRole: true,
+  });
+  try {
+    assert.equal(await runtime.check(), true);
+    const catalog = createCatalog(runtime.pool);
+    assert.equal(
+      (await catalog.list(parseCatalogQuery(new URLSearchParams()))).items
+        .length,
+      1,
+    );
+    assert.equal((await catalog.get('synthetic'))?.variants.length, 1);
+    assert.equal((await catalog.categories()).length, 1);
+    await assert.rejects(runtime.pool.query('SELECT * FROM bazar.carts'), {
+      code: '42501',
+    });
+    await assert.rejects(
+      runtime.pool.query('UPDATE bazar.variants SET price_minor=0'),
+      { code: '42501' },
+    );
+  } finally {
+    await runtime.close();
+    await db.pool.query(`DROP OWNED BY "${role}"`);
+    await db.pool.query(`DROP ROLE "${role}"`);
+  }
 });

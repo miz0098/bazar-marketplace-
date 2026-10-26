@@ -17,9 +17,11 @@ function isVersion(value: unknown): value is FoundationVersion {
   return record(value) && value.service === 'bazar-api' && value.apiVersion === 'v1' && value.businessModulesAvailable === false;
 }
 
-/** Health/discovery only. No business mutation, credentials, cookies, redirects or automatic retry. */
-export function createFoundationClient(config: ApiClientConfig, transport: typeof fetch = fetch) {
-  async function get<T>(path: '/health' | '/api/v1', validate: (data: unknown) => data is T): Promise<T> {
+/** Bounded validated reads. No mutations, credentials, cookies, redirects or automatic retry. */
+export function createApiReader(config: ApiClientConfig, transport: typeof fetch = fetch) {
+  async function get<T>(path: string, validate: (data: unknown) => data is T): Promise<T> {
+    if (!/^\/api\/v1(?:\/|\?|$)/.test(path) && path !== '/health') throw new ApiClientError('invalid-response');
+    if (path.startsWith('//') || path.includes('#') || path.includes('\\')) throw new ApiClientError('invalid-response');
     const signal = AbortSignal.timeout(config.timeoutMs);
     try {
       const response = await transport(`${config.baseUrl}${path}`, { method: 'GET', headers: { accept: 'application/json' }, credentials: 'omit', cache: 'no-store', redirect: 'error', signal });
@@ -52,5 +54,10 @@ export function createFoundationClient(config: ApiClientConfig, transport: typeo
       throw new ApiClientError(signal.aborted ? 'timeout' : 'unavailable');
     }
   }
+  return { get };
+}
+
+export function createFoundationClient(config: ApiClientConfig, transport: typeof fetch = fetch) {
+  const { get } = createApiReader(config, transport);
   return { getHealth: () => get('/health', isHealth), getVersion: () => get('/api/v1', isVersion) };
 }

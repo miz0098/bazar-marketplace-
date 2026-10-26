@@ -54,29 +54,29 @@ test('liveness, readiness and v1 discovery have validated envelopes and no busin
   assert.equal(await head.text(), '');
 });
 
-test('all thirteen business contracts remain unimplemented HTTP routes', async (t) => {
+test('planned private modules remain unavailable and catalog fails closed without PostgreSQL', async (t) => {
   const app = await application(t);
   assert.equal(plannedModules.length, 13);
   for (const module of plannedModules) {
     const response = await fetch(app.url + module.path);
-    assert.equal(response.status, 404, module.name);
+    assert.equal(response.status, ['catalog','categories'].includes(module.name) ? 503 : module.name === 'cart' ? 401 : 404, module.name);
     const body = await response.json();
     assert.equal(body.ok, false);
-    assert.equal(body.error.code, 'NOT_FOUND');
+    assert.equal(body.error.code, ['catalog','categories'].includes(module.name) ? 'SERVICE_UNAVAILABLE' : module.name === 'cart' ? 'AUTH_REQUIRED' : 'NOT_FOUND');
   }
   for (const path of ['/api/v1/auth/otp/challenges', '/api/v1/payments', '/api/v1/orders']) {
     assert.equal((await fetch(app.url + path, { method: 'POST' })).status, 404);
   }
 });
 
-test('OpenAPI exposes only actual foundation routes and labels business contracts as planned', async (t) => {
+test('OpenAPI describes catalog and blocked cart while retaining foundation schemas', async (t) => {
   const contract = JSON.parse(readFileSync(new URL('../contracts/openapi.json', import.meta.url), 'utf8'));
   const app = await application(t);
   assert.equal(contract.openapi, '3.1.0');
-  assert.deepEqual(Object.keys(contract.paths).sort(), ['/api/v1', '/health', '/ready']);
+  assert.deepEqual(Object.keys(contract.paths).sort(), ['/api/v1', '/api/v1/cart', '/api/v1/categories', '/api/v1/products', '/api/v1/products/{handle}', '/health', '/ready']);
   assert.deepEqual(contract['x-planned-modules'].map((module: { name: string }) => module.name), plannedModules.map((module) => module.name));
-  for (const module of contract['x-planned-modules']) assert.equal(module.status, 'not-implemented');
-  for (const path of Object.keys(contract.paths)) {
+  for (const module of contract['x-planned-modules']) assert.equal(module.status, ['catalog','categories'].includes(module.name) ? 'implemented' : module.name === 'cart' ? 'blocked-authentication' : 'not-implemented');
+  for (const path of ['/health','/ready','/api/v1']) {
     const response = await fetch(app.url + path);
     const body = await response.json();
     const reference = contract.paths[path].get.responses['200'].content['application/json'].schema.$ref.split('/').at(-1);

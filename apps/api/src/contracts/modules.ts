@@ -1,4 +1,4 @@
-/** Provisional transport contracts only. No business handler or adapter implements these in F1. */
+/** Versioned transport contracts. F3 activates catalog/categories; cart HTTP and remaining modules stay blocked/planned. */
 export type Id = string;
 export type IsoTimestamp = string;
 export type Money = Readonly<{ amountMinor: number; currency: 'UAH' }>;
@@ -16,7 +16,7 @@ export interface ProductDto {
   readonly id: Id; readonly handle: string; readonly title: string; readonly description: string;
   readonly categoryId: Id; readonly price: Money; readonly availability: 'available' | 'unavailable';
 }
-export interface ProductQuery { readonly query?: string; readonly categoryId?: Id; readonly cursor?: string; readonly limit?: number }
+export interface ProductQuery { readonly query?: string; readonly categoryId?: Id; readonly cursor?: string; readonly limit?: number; readonly minPrice?: number; readonly maxPrice?: number; readonly available?: boolean; readonly sort?: 'newest' | 'price-asc' | 'price-desc' | 'name' }
 export interface CartLineDto { readonly productId: Id; readonly variantId: Id; readonly quantity: number; readonly lineTotal: Money }
 export interface CartDto { readonly id: Id; readonly version: number; readonly lines: readonly CartLineDto[]; readonly subtotal: Money }
 export interface CartLineInput { readonly variantId: Id; readonly quantity: number; readonly expectedVersion: number }

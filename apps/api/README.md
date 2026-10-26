@@ -1,6 +1,8 @@
 # BAZAR API foundation
 
-Node 24 + TypeScript, native `node:http` plus the `pg` driver. F2 adds PostgreSQL schema/migrations and readiness; phone authentication, catalog, orders, messages, payments and all other business HTTP operations remain unimplemented.
+Phase F3 update: public PostgreSQL catalog GET/HEAD routes are available at /api/v1/products, /api/v1/products/{handle}, /api/v1/categories. Cart paths return 401 AUTH_REQUIRED, with no caller identity fallback. Internal transactional cart persistence is integration-tested but not exposed. See [ADR 0003](../../docs/adr/0003-catalog-cart-boundaries.md) and OpenAPI. The F1/F2 sections below describe the foundation history.
+
+Historical F2 foundation: Node 24 + TypeScript, native `node:http` plus the `pg` driver. F2 adds PostgreSQL schema/migrations and readiness; phone authentication, catalog, orders, messages, payments and all other business HTTP operations remain unimplemented.
 
 ```sh
 cd apps/api
@@ -20,7 +22,7 @@ Defaults: `127.0.0.1:4000`; storefront remains independently available on port 3
 - GET/HEAD `/ready`: process readiness, false during shutdown or a failing injected predicate; checks PostgreSQL connectivity and exact migration history/checksums; reports a PostgreSQL dependency and `businessModulesAvailable: false`. Missing configuration, stale/missing schema or unavailable DB returns 503. No business/provider readiness is claimed.
 - GET/HEAD `/api/v1`: service/version discovery with business modules explicitly unavailable.
 - OPTIONS on those routes: validated CORS preflight, 204 without a body.
-- All other paths: 404. Unsupported methods: 405 with Allow; malformed URL/query/body: 400. Header overflow: 431. Unexpected application errors: sanitized 500. Readiness failure: 503. HEAD has no body, including errors.
+- Cart paths: 401 AUTH_REQUIRED; catalog paths use the F3 OpenAPI contract. Other unmatched paths: 404. Unsupported methods: 405 with Allow; malformed URL/query/body: 400. Header overflow: 431. Unexpected application errors: sanitized 500. Readiness failure: 503. HEAD has no body, including errors.
 
 Success/error envelopes, UUID request IDs and exact schemas: [OpenAPI](contracts/openapi.json). GETs do not accept query strings or bodies; no business input or JSON mutation parser exists. HTTP header/request/keep-alive limits bound idle clients. There are no production-looking business stubs.
 

@@ -1,3 +1,5 @@
+import { parseCatalogQuery, type Catalog } from './business/catalog.js';
+import { invalid, uuid } from './business/validation.js';
 import { randomUUID } from 'node:crypto';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import type { ApiConfig } from './config.js';
@@ -21,7 +23,7 @@ function validateBody(request: IncomingMessage, response: ServerResponse) {
   }
 }
 
-export function createApiServer(config: ApiConfig, logger: Logger, dependencies: { isReady?: () => boolean | Promise<boolean> } = {}) {
+export function createApiServer(config: ApiConfig, logger: Logger, dependencies: { isReady?: () => boolean | Promise<boolean>; catalog?: Catalog } = {}) {
   let draining = false;
   const server = createServer({ maxHeaderSize: 16384, headersTimeout: 10000, requestTimeout: 15000, keepAliveTimeout: 5000 }, async (request, response) => {
     const requestId = randomUUID();
@@ -35,7 +37,9 @@ export function createApiServer(config: ApiConfig, logger: Logger, dependencies:
       if (!request.url?.startsWith('/') || request.url.startsWith('//')) throw new ApiError(400, 'INVALID_REQUEST', 'Invalid request target.');
       let url: URL;
       try { decodeURIComponent(request.url); url = new URL(request.url, 'http://api.invalid'); } catch { throw new ApiError(400, 'INVALID_REQUEST', 'Invalid request target.'); }
-      const matched = routes.find((item) => item === url.pathname);
+      const catalogRoute = url.pathname === '/api/v1/products' || /^\/api\/v1\/products\/[^/]+$/.test(url.pathname) ? '/api/v1/products' : url.pathname === '/api/v1/categories' ? '/api/v1/categories' : undefined;
+      const cartRoute = url.pathname === '/api/v1/cart' || url.pathname.startsWith('/api/v1/cart/');
+      const matched = routes.find((item) => item === url.pathname) ?? catalogRoute ?? (cartRoute ? '/api/v1/cart' : undefined);
       if (matched) route = matched;
       const origin = request.headers.origin;
       if (origin !== undefined) {
@@ -43,9 +47,11 @@ export function createApiServer(config: ApiConfig, logger: Logger, dependencies:
         response.setHeader('access-control-allow-origin', origin);
         response.setHeader('access-control-expose-headers', 'X-Request-Id');
       }
+      // No principal resolver exists. Fail closed without consulting caller-provided identity.
+      if (cartRoute) { request.resume(); response.setHeader('connection', 'close'); throw new ApiError(401, 'AUTH_REQUIRED', 'Verified authentication is required; cart API is not enabled.'); }
       validateBody(request, response);
       if (!matched) throw new ApiError(404, 'NOT_FOUND', 'Route not found.');
-      if (url.search) throw new ApiError(400, 'INVALID_REQUEST', 'This endpoint does not accept query parameters.');
+      if (!catalogRoute && url.search) throw new ApiError(400, 'INVALID_REQUEST', 'This endpoint does not accept query parameters.');
       if (method === 'OPTIONS') {
         if (!origin || !request.headers['access-control-request-method']) throw new ApiError(400, 'INVALID_REQUEST', 'A CORS preflight requires an origin and method.');
         if (!methods.includes(request.headers['access-control-request-method'])) throw new ApiError(405, 'METHOD_NOT_ALLOWED', 'Method not allowed.');
@@ -57,6 +63,26 @@ export function createApiServer(config: ApiConfig, logger: Logger, dependencies:
       if (!methods.includes(method ?? '')) {
         response.setHeader('allow', 'GET, HEAD, OPTIONS');
         throw new ApiError(405, 'METHOD_NOT_ALLOWED', 'Method not allowed.');
+      }
+      if (catalogRoute) {
+        if (draining || !dependencies.catalog || !dependencies.isReady || !await dependencies.isReady()) throw new ApiError(503, 'SERVICE_UNAVAILABLE', 'Catalog is temporarily unavailable.');
+        let data: unknown;
+        try {
+          if (catalogRoute === '/api/v1/categories') {
+            for (const key of url.searchParams.keys()) if (key !== 'parentId' || url.searchParams.getAll(key).length !== 1) invalid();
+            const parent = url.searchParams.get('parentId');
+            data = await dependencies.catalog.categories(parent === null ? undefined : parent === 'root' ? null : uuid(parent));
+          } else if (url.pathname === catalogRoute) data = await dependencies.catalog.list(parseCatalogQuery(url.searchParams));
+          else {
+            if (url.search) invalid();
+            data = await dependencies.catalog.get(decodeURIComponent(url.pathname.slice('/api/v1/products/'.length)));
+            if (!data) throw new ApiError(404, 'NOT_FOUND', 'Product not found.');
+          }
+        } catch (error) {
+          if (error instanceof ApiError) throw error;
+          throw new ApiError(503, 'SERVICE_UNAVAILABLE', 'Catalog is temporarily unavailable.');
+        }
+        reply(response, method, 200, { ok: true, data, meta: { requestId } }); return;
       }
       let data: HealthData | ReadinessData | VersionData;
       if (matched === '/health') data = { status: 'ok', scope: 'process', uptimeSeconds: Math.floor(process.uptime()) };
