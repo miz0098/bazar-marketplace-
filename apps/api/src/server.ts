@@ -1,4 +1,6 @@
 import { isCheckoutPath, handleCheckout } from './checkout/http.js';
+import { isShippingPath, handleShipping } from './shipping/http.js';
+import type { ShippingService } from './shipping/service.js';
 import type { CheckoutBusinessService } from './checkout/service.js';
 import { promotionPath, handlePromotion } from './promotions/http.js';
 import type { PromotionService } from './promotions/service.js';
@@ -30,10 +32,11 @@ function validateBody(request: IncomingMessage, response: ServerResponse) {
   }
 }
 
-export function createApiServer(config: ApiConfig, logger: Logger, dependencies: { isReady?: () => boolean | Promise<boolean>; catalog?: Catalog; auth?: AuthService; promotions?: PromotionService; checkout?: CheckoutBusinessService } = {}) {
+export function createApiServer(config: ApiConfig, logger: Logger, dependencies: { isReady?: () => boolean | Promise<boolean>; catalog?: Catalog; auth?: AuthService; promotions?: PromotionService; checkout?: CheckoutBusinessService; shipping?: ShippingService } = {}) {
   if (dependencies.auth && config.environment !== 'test') throw new Error('Test authentication cannot be registered outside an isolated test server');
   if (dependencies.promotions && config.environment !== 'test') throw new Error('Promotion integration cannot be registered outside a test server');
   if (dependencies.checkout && config.environment !== 'test') throw new Error('Checkout integration cannot be registered outside a test server');
+  if (dependencies.shipping && config.environment !== 'test') throw new Error('Shipping integration cannot be registered outside a test server');
   let draining = false;
   const server = createServer({ maxHeaderSize: 16384, headersTimeout: 10000, requestTimeout: 15000, keepAliveTimeout: 5000 }, async (request, response) => {
     const requestId = randomUUID();
@@ -47,6 +50,12 @@ export function createApiServer(config: ApiConfig, logger: Logger, dependencies:
       if (!request.url?.startsWith('/') || request.url.startsWith('//')) throw new ApiError(400, 'INVALID_REQUEST', 'Invalid request target.');
       let url: URL;
       try { decodeURIComponent(request.url); url = new URL(request.url, 'http://api.invalid'); } catch { throw new ApiError(400, 'INVALID_REQUEST', 'Invalid request target.'); }
+      if(isShippingPath(url.pathname)){
+        route='/api/v1/delivery';
+        if(draining || (dependencies.shipping && (!dependencies.isReady || !await dependencies.isReady())))throw new ApiError(503,'SERVICE_UNAVAILABLE','Delivery is unavailable.');
+        const data=await handleShipping(request,response,url,dependencies.auth,dependencies.shipping);
+        reply(response,method,200,{ok:true,data,meta:{requestId}});return;
+      }
       if(isCheckoutPath(url.pathname)){
         route=url.pathname.startsWith('/api/v1/orders')?'/api/v1/orders':'/api/v1/checkouts';
         if(draining || (dependencies.checkout && (!dependencies.isReady || !await dependencies.isReady())))throw new ApiError(503,'SERVICE_UNAVAILABLE','Checkout is unavailable.');

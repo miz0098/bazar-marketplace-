@@ -115,13 +115,13 @@
     {
       "id": "SHIP-001",
       "title": "Integrate delivery quote and shipment provider boundaries",
-      "status": "pending",
+      "status": "in_review",
       "readiness": "integration",
       "depends_on": ["CHECKOUT-001", "BE-001"],
-      "allowed_paths": ["apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
+      "allowed_paths": ["ARCHITECTURE.md", "MIGRATION_PLAN.md", "apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
       "acceptance": ["Provider-neutral contract validates cities, branches, quotes and timeouts", "Provider outages and stale quotes have truthful recovery states", "Secrets remain server-only", "Production mode fails closed without configured providers"],
-      "pr": null,
-      "blocker": "Нова пошта and Meest credentials, commercial terms and approved service selection are required."
+      "pr": 18,
+      "blocker": "F7 isolated directory/selection/quote/freshness foundation implemented. Live carrier keys/contracts/schema verification, fulfillment/package/declared-value/TTL rules, recipient privacy and TTN/tracking lifecycle require approval."
     },
     {
       "id": "AUTHUI-001",
@@ -192,7 +192,7 @@
     {
       "id": "ORDER-001",
       "title": "Implement order placement transaction and approved checkout confirmation",
-      "status": "in_review",
+      "status": "done",
       "readiness": "integration",
       "depends_on": ["CHECKOUT-001", "SHIP-001", "AUTH-001"],
       "allowed_paths": ["ARCHITECTURE.md", "MIGRATION_PLAN.md", "apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],

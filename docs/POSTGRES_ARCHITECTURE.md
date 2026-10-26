@@ -1,5 +1,7 @@
 # PostgreSQL architecture — Phase F2 foundation
 
+Phase F7 adds migration 0007: empty carrier registry, city/point observations, owned checkout shipping selections and immutable integration quotes with integer costs, bindings, explicit expiry, FKs and indexes. Recorded selections are immutable. No real tariff/key/recipient data is seeded; earlier migrations are unchanged. See [ADR 0007](adr/0007-delivery-shipping-foundation.md).
+
 Phase F6 adds migration 0006: owned checkout drafts, immutable checkout/order snapshots and request keys, with aggregate/link constraints and explicit integration-mode/provider guards. Previous migrations and legacy rows are preserved. See [ADR 0006](adr/0006-orders-checkout-foundation.md).
 
 Phase F5 adds immutable migration 0005 for promotions, eligible products and immutable integration-only usage claims, including global/per-owner cap checks under a campaign lock. No real campaign/order/payment/redemption or automatic migration is created. See [ADR 0005](adr/0005-promotions-pricing-foundation.md).

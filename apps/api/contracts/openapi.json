@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "BAZAR API",
-    "version": "1.4.0",
-    "description": "PostgreSQL catalog and test-isolated server authentication foundation. Runtime SMS authentication is unavailable (503) pending approved provider, keys, security policy and rollout. Cart activation remains blocked on current-cart policy. F5 adds isolated exact-integer promotion evaluation; no real redemption/checkout activation. F6 adds isolated three-step checkout and immutable pending integration orders; no live placement/provider operation."
+    "version": "1.5.0",
+    "description": "PostgreSQL catalog and test-isolated server authentication foundation. Runtime SMS authentication is unavailable (503) pending approved provider, keys, security policy and rollout. Cart activation remains blocked on current-cart policy. F5 adds isolated exact-integer promotion evaluation; no real redemption/checkout activation. F6 adds isolated three-step checkout and immutable pending integration orders; no live placement/provider operation. F7 adds isolated shipping directories, selections, expiring estimates and final transaction freshness guards. Live carrier contracts/transports remain disabled."
   },
   "servers": [
     {
@@ -2441,6 +2441,791 @@
           }
         }
       }
+    },
+    "/api/v1/delivery/carriers": {
+      "get": {
+        "description": "Ordinary runtime: 503. Isolated verified-session composition only. Same-origin/CSRF for all POST/PATCH including searches. No production provider, shipment creation, recipient PII, real-order placement, guaranteed tariff or payable total. Directory results are bounded to 100 (503 on overflow, never silently truncated). Quote replay is historical and does not renew expiry; check re-evaluates selection/price/stock/plan/provider cost.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Explicit integration-test result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShippingCarriersResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/delivery/cities": {
+      "post": {
+        "description": "Ordinary runtime: 503. Isolated verified-session composition only. Same-origin/CSRF for all POST/PATCH including searches. No production provider, shipment creation, recipient PII, real-order placement, guaranteed tariff or payable total. Directory results are bounded to 100 (503 on overflow, never silently truncated). Quote replay is historical and does not renew expiry; check re-evaluates selection/price/stock/plan/provider cost.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Explicit integration-test result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShippingCitiesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShippingCityInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/delivery/points": {
+      "post": {
+        "description": "Ordinary runtime: 503. Isolated verified-session composition only. Same-origin/CSRF for all POST/PATCH including searches. No production provider, shipment creation, recipient PII, real-order placement, guaranteed tariff or payable total. Directory results are bounded to 100 (503 on overflow, never silently truncated). Quote replay is historical and does not renew expiry; check re-evaluates selection/price/stock/plan/provider cost.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Explicit integration-test result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShippingPointsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShippingPointInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/delivery/checkouts/{id}/selection": {
+      "get": {
+        "description": "Ordinary runtime: 503. Isolated verified-session composition only. Same-origin/CSRF for all POST/PATCH including searches. No production provider, shipment creation, recipient PII, real-order placement, guaranteed tariff or payable total. Directory results are bounded to 100 (503 on overflow, never silently truncated). Quote replay is historical and does not renew expiry; check re-evaluates selection/price/stock/plan/provider cost.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Explicit integration-test result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShippingSelectionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      },
+      "patch": {
+        "description": "Ordinary runtime: 503. Isolated verified-session composition only. Same-origin/CSRF for all POST/PATCH including searches. No production provider, shipment creation, recipient PII, real-order placement, guaranteed tariff or payable total. Directory results are bounded to 100 (503 on overflow, never silently truncated). Quote replay is historical and does not renew expiry; check re-evaluates selection/price/stock/plan/provider cost.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Explicit integration-test result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShippingSelectionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelectShippingInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/delivery/checkouts/{id}/quotes": {
+      "post": {
+        "description": "Ordinary runtime: 503. Isolated verified-session composition only. Same-origin/CSRF for all POST/PATCH including searches. No production provider, shipment creation, recipient PII, real-order placement, guaranteed tariff or payable total. Directory results are bounded to 100 (503 on overflow, never silently truncated). Quote replay is historical and does not renew expiry; check re-evaluates selection/price/stock/plan/provider cost.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Explicit integration-test result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShippingQuoteResultResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuoteShippingInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/delivery/checkouts/{id}/check": {
+      "post": {
+        "description": "Ordinary runtime: 503. Isolated verified-session composition only. Same-origin/CSRF for all POST/PATCH including searches. No production provider, shipment creation, recipient PII, real-order placement, guaranteed tariff or payable total. Directory results are bounded to 100 (503 on overflow, never silently truncated). Quote replay is historical and does not renew expiry; check re-evaluates selection/price/stock/plan/provider cost.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Explicit integration-test result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShippingCheckResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckShippingInput"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2636,7 +3421,10 @@
                   "PRICING_CHANGED",
                   "CHECKOUT_REJECTED",
                   "CHECKOUT_STALE",
-                  "CHECKOUT_POLICY_REQUIRED"
+                  "CHECKOUT_POLICY_REQUIRED",
+                  "DELIVERY_UNAVAILABLE",
+                  "DELIVERY_REJECTED",
+                  "DELIVERY_STALE"
                 ]
               },
               "message": {
@@ -4128,6 +4916,677 @@
             "format": "uuid"
           }
         }
+      },
+      "ShippingCity": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ref": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "pattern": "^[A-Za-z0-9_-]{1,200}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "ref",
+          "name"
+        ]
+      },
+      "ShippingPoint": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ref": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "pattern": "^[A-Za-z0-9_-]{1,200}$"
+          },
+          "cityRef": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "pattern": "^[A-Za-z0-9_-]{1,200}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "kind": {
+            "enum": [
+              "branch",
+              "parcel-locker"
+            ]
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "revision": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "ref",
+          "cityRef",
+          "name",
+          "kind",
+          "available",
+          "revision"
+        ]
+      },
+      "ShippingSelection": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "const": "integration-test"
+          },
+          "checkoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "checkoutVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "addressId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "carrier": {
+            "enum": [
+              "nova-poshta",
+              "meest"
+            ]
+          },
+          "cityRef": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "pattern": "^[A-Za-z0-9_-]{1,200}$"
+          },
+          "pointRef": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "pattern": "^[A-Za-z0-9_-]{1,200}$"
+          },
+          "kind": {
+            "enum": [
+              "branch",
+              "parcel-locker"
+            ]
+          },
+          "pointRevision": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "quoteId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "canCreateShipment": {
+            "const": false
+          }
+        },
+        "required": [
+          "mode",
+          "checkoutId",
+          "checkoutVersion",
+          "addressId",
+          "carrier",
+          "cityRef",
+          "pointRef",
+          "kind",
+          "pointRevision",
+          "quoteId",
+          "canCreateShipment"
+        ]
+      },
+      "ShippingQuote": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "const": "integration-test"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "checkoutId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "checkoutVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "carrier": {
+            "enum": [
+              "nova-poshta",
+              "meest"
+            ]
+          },
+          "kind": {
+            "enum": [
+              "branch",
+              "parcel-locker"
+            ]
+          },
+          "cost": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "quotedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "validitySource": {
+            "const": "integration-policy"
+          },
+          "binding": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "status": {
+            "const": "estimate-for-test"
+          },
+          "canCreateShipment": {
+            "const": false
+          }
+        },
+        "required": [
+          "mode",
+          "id",
+          "checkoutId",
+          "checkoutVersion",
+          "carrier",
+          "kind",
+          "cost",
+          "quotedAt",
+          "expiresAt",
+          "validitySource",
+          "binding",
+          "status",
+          "canCreateShipment"
+        ]
+      },
+      "ShippingCheck": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "const": "integration-test"
+          },
+          "quoteId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "current": {
+            "const": true
+          },
+          "checkedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "canPlaceRealOrder": {
+            "const": false
+          }
+        },
+        "required": [
+          "mode",
+          "quoteId",
+          "current",
+          "checkedAt",
+          "canPlaceRealOrder"
+        ]
+      },
+      "ShippingCarriers": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "const": "integration-test"
+          },
+          "carriers": {
+            "type": "array",
+            "maxItems": 2,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "code": {
+                  "enum": [
+                    "nova-poshta",
+                    "meest"
+                  ]
+                },
+                "pickupKinds": {
+                  "type": "array",
+                  "maxItems": 2,
+                  "items": {
+                    "enum": [
+                      "branch",
+                      "parcel-locker"
+                    ]
+                  }
+                },
+                "liveAvailable": {
+                  "const": false
+                }
+              },
+              "required": [
+                "code",
+                "pickupKinds",
+                "liveAvailable"
+              ]
+            }
+          },
+          "bazarPickup": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "available": {
+                "const": false
+              }
+            },
+            "required": [
+              "available"
+            ]
+          }
+        },
+        "required": [
+          "mode",
+          "carriers",
+          "bazarPickup"
+        ]
+      },
+      "ShippingCities": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "const": "integration-test"
+          },
+          "carrier": {
+            "enum": [
+              "nova-poshta",
+              "meest"
+            ]
+          },
+          "items": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/ShippingCity"
+            }
+          }
+        },
+        "required": [
+          "mode",
+          "carrier",
+          "items"
+        ]
+      },
+      "ShippingPoints": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "const": "integration-test"
+          },
+          "carrier": {
+            "enum": [
+              "nova-poshta",
+              "meest"
+            ]
+          },
+          "items": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/ShippingPoint"
+            }
+          }
+        },
+        "required": [
+          "mode",
+          "carrier",
+          "items"
+        ]
+      },
+      "ShippingQuoteResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "quote": {
+            "$ref": "#/components/schemas/ShippingQuote"
+          },
+          "replayed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "quote",
+          "replayed"
+        ]
+      },
+      "ShippingCarriersResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ok",
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/ShippingCarriers"
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "requestId"
+            ]
+          }
+        }
+      },
+      "ShippingCitiesResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ok",
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/ShippingCities"
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "requestId"
+            ]
+          }
+        }
+      },
+      "ShippingPointsResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ok",
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/ShippingPoints"
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "requestId"
+            ]
+          }
+        }
+      },
+      "ShippingSelectionResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ok",
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/ShippingSelection"
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "requestId"
+            ]
+          }
+        }
+      },
+      "ShippingQuoteResultResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ok",
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/ShippingQuoteResult"
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "requestId"
+            ]
+          }
+        }
+      },
+      "ShippingCheckResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ok",
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/ShippingCheck"
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "requestId"
+            ]
+          }
+        }
+      },
+      "ShippingCityInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "carrier": {
+            "enum": [
+              "nova-poshta",
+              "meest"
+            ]
+          },
+          "query": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "carrier",
+          "query"
+        ]
+      },
+      "ShippingPointInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "carrier": {
+            "enum": [
+              "nova-poshta",
+              "meest"
+            ]
+          },
+          "cityRef": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "pattern": "^[A-Za-z0-9_-]{1,200}$"
+          },
+          "kind": {
+            "enum": [
+              "branch",
+              "parcel-locker"
+            ]
+          }
+        },
+        "required": [
+          "carrier",
+          "cityRef",
+          "kind"
+        ]
+      },
+      "SelectShippingInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "addressId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "enum": [
+              "branch",
+              "parcel-locker"
+            ]
+          }
+        },
+        "required": [
+          "expectedVersion",
+          "addressId",
+          "kind"
+        ]
+      },
+      "QuoteShippingInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "expectedVersion",
+          "idempotencyKey"
+        ]
+      },
+      "CheckShippingInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "quoteId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "expectedVersion",
+          "quoteId"
+        ]
       }
     },
     "securitySchemes": {
@@ -4202,8 +5661,9 @@
     },
     {
       "name": "delivery",
-      "status": "not-implemented",
-      "contract": "src/contracts/modules.ts"
+      "status": "blocked-production-provider",
+      "contract": "src/contracts/modules.ts",
+      "implemented_contract": "src/contracts/shipping.ts"
     }
   ]
 }

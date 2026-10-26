@@ -1,3 +1,6 @@
+import { createShippingService } from '../../src/shipping/service.js';
+import { shippingFixture } from '../helpers/shipping.js';
+import { createShippingBusinessClient } from '../../../storefront/lib/shipping-business-client.js';
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { randomBytes, randomUUID } from 'node:crypto';
@@ -72,9 +75,9 @@ test('fresh database, previous schema upgrade, rerun and concurrent migrators ar
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(`${migrationDirectory}/0001_core.sql`, `${dir}/0001_core.sql`);
   assert.equal(await migrate(db.config, dir), 1);
-  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 5]);
+  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 6]);
   assert.equal(await migrate(db.config), 0);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 6);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 7);
   assert.ok((await db.pool.query("SELECT indexname FROM pg_indexes WHERE schemaname='bazar' AND indexname='variants_available_idx'")).rowCount);
 });
 
@@ -86,10 +89,10 @@ test('modified/unknown migrations are rejected and failed DDL rolls back without
   writeFileSync(`${dir}/0001_core.sql`, first + '\n-- modified\n');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   writeFileSync(`${dir}/0001_core.sql`, first);
-  writeFileSync(`${dir}/0007_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
+  writeFileSync(`${dir}/0008_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   assert.equal((await db.pool.query("SELECT to_regclass('bazar.must_rollback') AS name")).rows[0].name, null);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 6);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 7);
   await db.pool.query("INSERT INTO bazar_meta.schema_migrations(version,checksum) VALUES ('9999',repeat('0',64))");
   await assert.rejects(migrate(db.config), /Database migration failed/);
 });
@@ -2375,4 +2378,602 @@ test('F6 multi-line exact snapshots work while empty or changed-cart drafts cann
     }),
     { code: 'CHECKOUT_STALE' },
   );
+});
+
+// F7 uses synthetic carrier responses only, with real PostgreSQL and the existing verified-session protocol.
+async function shippingCase(t: TestContext, ttl = 60000) {
+  const a = await checkoutFixture(t),
+    fixture = shippingFixture();
+  fixture.config.quoteTtlMs = ttl;
+  const shipping = createShippingService(
+    a.pool,
+    fixture.adapters,
+    fixture.config,
+  );
+  const checkout = createCheckoutBusinessService(a.pool, shipping);
+  const draft = await checkout.start(a.s.user, {
+    cartId: a.s.cart,
+    expectedCartVersion: 1,
+    idempotencyKey: randomUUID(),
+  });
+  const selected = await shipping.select(a.s.user, draft.id, {
+    expectedVersion: draft.version,
+    addressId: a.s.address,
+    kind: "branch",
+  });
+  return { ...a, ...fixture, shipping, checkout, draft, selected };
+}
+test("F7 upgrades F6 without rewriting existing orders; directories cover only explicit carrier capabilities", async (t) => {
+  const db = await database(t),
+    dir = mkdtempSync(`${tmpdir()}/bazar-f7-upgrade-`);
+  t.after(() => rmSync(dir, { recursive: true }));
+  for (const file of [
+    "0001_core.sql",
+    "0002_version_indexes.sql",
+    "0003_catalog_search.sql",
+    "0004_server_auth.sql",
+    "0005_promotions.sql",
+    "0006_checkout_orders.sql",
+  ]) {
+    // Use the actual immutable inventory names rather than maintaining a second migration registry.
+    const all = readFileSync(`${migrationDirectory}/${file}`, "utf8");
+    writeFileSync(`${dir}/${file}`, all);
+  }
+  await migrate(db.config, dir);
+  const s = await seed(db.pool);
+  assert.equal(await migrate(db.config), 1);
+  assert.equal(await migrate(db.config), 0);
+  assert.equal(
+    (
+      await db.pool.query(
+        "SELECT total_minor::text FROM bazar.orders WHERE id=$1",
+        [s.order],
+      )
+    ).rows[0].total_minor,
+    "24690",
+  );
+  const f = shippingFixture(),
+    service = createShippingService(db.pool, f.adapters, f.config);
+  const carriers = await service.carriers();
+  assert.equal(carriers.bazarPickup.available, false);
+  assert.equal(carriers.carriers.length, 2);
+  for (const carrier of ["nova-poshta", "meest"]) {
+    assert.equal(
+      (await service.cities({ carrier, query: "Тест" })).items.length,
+      1,
+    );
+    assert.equal(
+      (
+        await service.points({
+          carrier,
+          cityRef: "synthetic-city",
+          kind: "branch",
+        })
+      ).items[0].available,
+      true,
+    );
+    await assert.rejects(
+      service.points({
+        carrier,
+        cityRef: "synthetic-city",
+        kind: "parcel-locker",
+      }),
+      { code: "DELIVERY_REJECTED" },
+    );
+  }
+  assert.equal(
+    (
+      await db.pool.query(
+        "SELECT count(*)::int AS n FROM bazar.shipping_points",
+      )
+    ).rows[0].n,
+    2,
+  );
+});
+test("F7 selections enforce owner/version and quote replay never refreshes an estimate", async (t) => {
+  const a = await shippingCase(t),
+    input = {
+      expectedVersion: a.selected.checkoutVersion,
+      idempotencyKey: randomUUID(),
+    };
+  await assert.rejects(a.shipping.getSelection(a.s.other, a.draft.id), {
+    status: 404,
+  });
+  const foreign = (
+    await a.pool.query(
+      "INSERT INTO bazar.addresses(user_id,carrier,city_ref,location_ref) VALUES ($1,'meest','synthetic-city','synthetic-location') RETURNING id",
+      [a.s.other],
+    )
+  ).rows[0].id;
+  await assert.rejects(
+    a.shipping.select(a.s.user, a.draft.id, {
+      expectedVersion: a.selected.checkoutVersion,
+      addressId: foreign,
+      kind: "branch",
+    }),
+    { status: 404 },
+  );
+  const results = await Promise.all([
+    a.shipping.quote(a.s.user, a.draft.id, input),
+    a.shipping.quote(a.s.user, a.draft.id, input),
+  ]);
+  assert.equal(results[0].quote.id, results[1].quote.id);
+  assert.equal(results.filter((x) => x.replayed).length, 1);
+  assert.equal(a.state.calls, 1);
+  assert.equal(results[0].quote.cost.amountMinor, 7350);
+  assert.equal(results[0].quote.validitySource, "integration-policy");
+  await assert.rejects(
+    a.shipping.quote(a.s.user, a.draft.id, { ...input, expectedVersion: 1 }),
+    { code: "CONFLICT" },
+  );
+  assert.equal(
+    (
+      await a.shipping.check(a.s.user, a.draft.id, {
+        expectedVersion: a.selected.checkoutVersion,
+        quoteId: results[0].quote.id,
+      })
+    ).current,
+    true,
+  );
+  const edits = await Promise.allSettled(
+    [1, 2].map(() =>
+      a.shipping.select(a.s.user, a.draft.id, {
+        expectedVersion: a.selected.checkoutVersion,
+        addressId: a.s.address,
+        kind: "branch",
+      }),
+    ),
+  );
+  assert.equal(edits.filter((x) => x.status === "fulfilled").length, 1);
+  assert.equal(
+    (await a.shipping.getSelection(a.s.user, a.draft.id)).quoteId,
+    null,
+  );
+  const replay = await a.shipping.quote(a.s.user, a.draft.id, input);
+  assert.equal(replay.quote.expiresAt, results[0].quote.expiresAt);
+});
+test("F7 current checks reject changed tariff, package plan, point, address, prices, and expired quotes", async (t) => {
+  const a = await shippingCase(t),
+    q = await a.shipping.quote(a.s.user, a.draft.id, {
+      expectedVersion: 2,
+      idempotencyKey: randomUUID(),
+    }),
+    check = { expectedVersion: 2, quoteId: q.quote.id };
+  a.state.amount++;
+  await assert.rejects(a.shipping.check(a.s.user, a.draft.id, check), {
+    code: "DELIVERY_STALE",
+  });
+  a.state.amount--;
+  a.state.planRevision = "changed";
+  await assert.rejects(a.shipping.check(a.s.user, a.draft.id, check), {
+    code: "DELIVERY_STALE",
+  });
+  a.state.planRevision = "synthetic-plan-1";
+  a.state.pointRevision = "changed";
+  await assert.rejects(a.shipping.check(a.s.user, a.draft.id, check), {
+    code: "DELIVERY_STALE",
+  });
+  a.state.pointRevision = "synthetic-point-1";
+  a.state.available = false;
+  await assert.rejects(a.shipping.check(a.s.user, a.draft.id, check), {
+    code: "DELIVERY_REJECTED",
+  });
+  a.state.available = true;
+  await a.pool.query(
+    "UPDATE bazar.variants SET price_minor=price_minor+1 WHERE id=$1",
+    [a.s.variant],
+  );
+  await assert.rejects(a.shipping.check(a.s.user, a.draft.id, check), {
+    code: "DELIVERY_STALE",
+  });
+  await a.pool.query(
+    "UPDATE bazar.addresses SET location_ref='other-point' WHERE id=$1",
+    [a.s.address],
+  );
+  await assert.rejects(a.shipping.check(a.s.user, a.draft.id, check), {
+    code: "DELIVERY_STALE",
+  });
+  const b = await shippingCase(t, 1),
+    expiredQuote = await b.shipping.quote(b.s.user, b.draft.id, {
+      expectedVersion: 2,
+      idempotencyKey: randomUUID(),
+    });
+  await new Promise((r) => setTimeout(r, 10));
+  await assert.rejects(
+    b.shipping.check(b.s.user, b.draft.id, {
+      expectedVersion: 2,
+      quoteId: expiredQuote.quote.id,
+    }),
+    { code: "DELIVERY_STALE" },
+  );
+});
+test("F7 carrier errors, timeout and unavailable points never persist a successful quote or expose private errors", async (t) => {
+  const a = await shippingCase(t),
+    input = { expectedVersion: 2, idempotencyKey: randomUUID() };
+  a.state.fail = true;
+  await assert.rejects(
+    a.shipping.quote(a.s.user, a.draft.id, input),
+    (e) =>
+      e instanceof Error &&
+      !e.message.includes("private") &&
+      "code" in e &&
+      e.code === "DELIVERY_UNAVAILABLE",
+  );
+  a.state.fail = false;
+  a.state.stall = true;
+  await assert.rejects(a.shipping.quote(a.s.user, a.draft.id, input), {
+    status: 503,
+  });
+  a.state.stall = false;
+  assert.equal(
+    (await a.pool.query("SELECT count(*)::int AS n FROM bazar.shipping_quotes"))
+      .rows[0].n,
+    0,
+  );
+  assert.equal(
+    (await a.shipping.getSelection(a.s.user, a.draft.id)).quoteId,
+    null,
+  );
+  a.state.available = false;
+  await assert.rejects(
+    a.shipping.select(a.s.user, a.draft.id, {
+      expectedVersion: 2,
+      addressId: a.s.address,
+      kind: "branch",
+    }),
+    { code: "DELIVERY_REJECTED" },
+  );
+  assert.equal(
+    (await a.shipping.getSelection(a.s.user, a.draft.id)).checkoutVersion,
+    2,
+  );
+  a.state.available = true;
+  assert.equal(
+    (await a.shipping.quote(a.s.user, a.draft.id, input)).replayed,
+    false,
+  );
+});
+test("F7 final F6 transaction requires a current quote and never upgrades it to shipment/payment/payable success", async (t) => {
+  const a = await shippingCase(t);
+  let draft = await a.checkout.setPayment(a.s.user, a.draft.id, {
+    expectedVersion: 2,
+    paymentSelection: "on-receipt",
+    promoCode: null,
+  });
+  const input = {
+    expectedVersion: draft.version,
+    expectedFingerprint: draft.pricing!.fingerprint,
+    idempotencyKey: randomUUID(),
+  };
+  await assert.rejects(
+    a.checkout.recordOrderForTest(a.s.user, draft.id, input),
+    { code: "DELIVERY_STALE" },
+  );
+  const q = await a.shipping.quote(a.s.user, draft.id, {
+    expectedVersion: draft.version,
+    idempotencyKey: randomUUID(),
+  });
+  await assert.rejects(
+    a.service.recordOrderForTest(a.s.user, draft.id, input),
+    { code: "CHECKOUT_POLICY_REQUIRED" },
+  );
+  a.state.amount++;
+  await assert.rejects(
+    a.checkout.recordOrderForTest(a.s.user, draft.id, input),
+    { code: "DELIVERY_STALE" },
+  );
+  a.state.amount--;
+  const result = await a.checkout.recordOrderForTest(a.s.user, draft.id, input);
+  assert.equal(result.order.delivery.cost, null);
+  assert.equal(result.order.delivery.status, "not-requested");
+  assert.equal(result.order.payableTotal, null);
+  assert.equal(result.order.paymentStatus, "not-initiated");
+  assert.equal(
+    (await a.checkout.recordOrderForTest(a.s.user, draft.id, input)).replayed,
+    true,
+  );
+  for (const sql of [
+    "UPDATE bazar.shipping_quotes SET amount_minor=0 WHERE id=$1",
+    "DELETE FROM bazar.shipping_quotes WHERE id=$1",
+  ])
+    await assert.rejects(a.pool.query(sql, [q.quote.id]), { code: "23514" });
+  await assert.rejects(
+    a.pool.query(
+      "UPDATE bazar.checkout_shipping SET quote_id=NULL WHERE checkout_id=$1",
+      [draft.id],
+    ),
+    { code: "23514" },
+  );
+  assert.equal(
+    (
+      await a.pool.query(
+        "SELECT (SELECT count(*)::int FROM bazar.shipments)+(SELECT count(*)::int FROM bazar.payment_attempts) AS n",
+      )
+    ).rows[0].n,
+    0,
+  );
+  draft = await a.checkout.get(a.s.user, draft.id);
+  assert.equal(draft.canPlaceRealOrder, false);
+});
+test("F7 quote insertion and selection update are atomic; failed persistence permits the same retry key", async (t) => {
+  const a = await shippingCase(t),
+    input = { expectedVersion: 2, idempotencyKey: randomUUID() };
+  await a.pool.query(
+    "CREATE FUNCTION bazar.test_shipping_failure() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'forced'; END $$; CREATE TRIGGER test_shipping_failure BEFORE UPDATE ON bazar.checkout_shipping FOR EACH ROW EXECUTE FUNCTION bazar.test_shipping_failure()",
+  );
+  await assert.rejects(a.shipping.quote(a.s.user, a.draft.id, input));
+  assert.equal(
+    (await a.pool.query("SELECT count(*)::int AS n FROM bazar.shipping_quotes"))
+      .rows[0].n,
+    0,
+  );
+  await a.pool.query(
+    "DROP TRIGGER test_shipping_failure ON bazar.checkout_shipping",
+  );
+  assert.equal(
+    (await a.shipping.quote(a.s.user, a.draft.id, input)).replayed,
+    false,
+  );
+  const foreign = (
+    await a.pool.query(
+      "INSERT INTO bazar.users(first_name,last_name) VALUES ('Test','Foreign') RETURNING id",
+    )
+  ).rows[0].id;
+  await assert.rejects(
+    a.pool.query(
+      "UPDATE bazar.checkout_shipping SET user_id=$1 WHERE checkout_id=$2",
+      [foreign, a.draft.id],
+    ),
+    { code: "23514" },
+  );
+});
+test("F7 typed shipping client uses verified HTTP sessions, CSRF, no PII and the existing checkout stages", async (t) => {
+  const a = await checkoutFixture(t),
+    f = shippingFixture(),
+    fixture = authFixture(),
+    auth = createAuthService(a.pool, fixture.config, fixture.sms);
+  const registration = await registered({ ...a, ...fixture, auth }),
+    actor = registration.session.data.user.id;
+  await a.pool.query("UPDATE bazar.carts SET user_id=$1 WHERE id=$2", [
+    actor,
+    a.s.cart,
+  ]);
+  const addressId = (
+    await a.pool.query(
+      "INSERT INTO bazar.addresses(user_id,carrier,city_ref,location_ref) VALUES ($1,'meest','synthetic-city','synthetic-location') RETURNING id",
+      [actor],
+    )
+  ).rows[0].id;
+  const shipping = createShippingService(a.pool, f.adapters, f.config),
+    checkout = createCheckoutBusinessService(a.pool, shipping),
+    logs: string[] = [];
+  const app = createApiServer(
+    readConfig({ NODE_ENV: "test" }),
+    createLogger("info", (line) => logs.push(line)),
+    { auth, checkout, shipping, isReady: async () => true },
+  );
+  app.server.listen(0, "127.0.0.1");
+  await once(app.server, "listening");
+  t.after(() => app.shutdown());
+  const address = app.server.address();
+  assert.ok(address && typeof address !== "string");
+  const base = `http://127.0.0.1:${address.port}`;
+  const cookie = `__Host-bazar-session=${registration.session.token}; __Host-bazar-flow=${registration.session.flow}`;
+  const transport: typeof fetch = async (path, init) => {
+    const headers = new Headers(init?.headers);
+    headers.set("origin", fixture.config.publicOrigin);
+    headers.set("cookie", cookie);
+    return fetch(base + path, { ...init, headers });
+  };
+  const client = createShippingBusinessClient(
+      () => registration.session.data.csrfToken,
+      transport,
+    ),
+    checkoutClient = createCheckoutBusinessClient(
+      () => registration.session.data.csrfToken,
+      transport,
+    );
+  assert.equal((await client.carriers()).bazarPickup.available, false);
+  await client.cities({ carrier: "meest", query: "Тест" });
+  await client.points({
+    carrier: "meest",
+    cityRef: "synthetic-city",
+    kind: "branch",
+  });
+  let draft = await checkoutClient.start({
+    cartId: a.s.cart,
+    expectedCartVersion: 1,
+    idempotencyKey: randomUUID(),
+  });
+  const s = await client.select(draft.id, {
+    expectedVersion: draft.version,
+    addressId,
+    kind: "branch",
+  });
+  assert.equal((await client.getSelection(draft.id)).checkoutVersion, 2);
+  const q = await client.quote(draft.id, {
+    expectedVersion: s.checkoutVersion,
+    idempotencyKey: randomUUID(),
+  });
+  assert.equal(
+    (await client.check(draft.id, { expectedVersion: 2, quoteId: q.quote.id }))
+      .canPlaceRealOrder,
+    false,
+  );
+  draft = await checkoutClient.setPayment(draft.id, {
+    expectedVersion: 2,
+    paymentSelection: "card-online",
+    promoCode: null,
+  });
+  assert.equal(
+    (
+      await client.check(draft.id, {
+        expectedVersion: draft.version,
+        quoteId: q.quote.id,
+      })
+    ).current,
+    true,
+  );
+  const raw = (body: unknown, headers: Record<string, string> = {}) =>
+    fetch(base + `/api/v1/delivery/checkouts/${draft.id}/quotes`, {
+      method: "POST",
+      headers: {
+        origin: fixture.config.publicOrigin,
+        cookie,
+        "content-type": "application/json",
+        "x-csrf-token": registration.session.data.csrfToken,
+        ...headers,
+      },
+      body: JSON.stringify(body),
+    });
+  const input = {
+    expectedVersion: draft.version,
+    idempotencyKey: randomUUID(),
+  };
+  assert.equal((await raw(input, { "x-csrf-token": "" })).status, 403);
+  assert.equal((await raw(input, { origin: "https://evil.test" })).status, 403);
+  assert.equal((await raw(input, { cookie: "" })).status, 403);
+  assert.equal(
+    (
+      await raw(input, {
+        cookie: `__Host-bazar-flow=${registration.session.flow}`,
+      })
+    ).status,
+    401,
+  );
+  for (const extra of [
+    { amountMinor: 0 },
+    { userId: a.s.other },
+    { recipientPhone: "+380671234567" },
+    { apiKey: "secret" },
+  ])
+    assert.equal((await raw({ ...input, ...extra })).status, 400);
+  f.state.fail = true;
+  const failed = await raw(input);
+  assert.equal(failed.status, 503);
+  assert.ok(!(await failed.text()).includes("private"));
+  f.state.fail = false;
+  assert.equal(
+    (
+      await fetch(base + "/api/v1/delivery/tracking/test", {
+        headers: { origin: fixture.config.publicOrigin, cookie },
+      })
+    ).status,
+    404,
+  );
+  assert.ok(!logs.join("").includes("synthetic-city"));
+  assert.ok(!logs.join("").includes(registration.session.token));
+  assert.ok(!logs.join("").includes("+380671234567"));
+  const order = await checkoutClient.recordOrderForTest(draft.id, {
+    expectedVersion: draft.version,
+    expectedFingerprint: draft.pricing!.fingerprint,
+    idempotencyKey: randomUUID(),
+  });
+  assert.equal(order.order.recordState, "recorded-for-test");
+});
+test("F7 competing quotes expose only the current selection; concurrent selection changes cannot keep an old quote", async (t) => {
+  const a = await shippingCase(t);
+  const quotes = await Promise.all(
+    [1, 2].map(() =>
+      a.shipping.quote(a.s.user, a.draft.id, {
+        expectedVersion: 2,
+        idempotencyKey: randomUUID(),
+      }),
+    ),
+  );
+  const selected = await a.shipping.getSelection(a.s.user, a.draft.id);
+  const old = quotes.find((q) => q.quote.id !== selected.quoteId)!;
+  await assert.rejects(
+    a.shipping.check(a.s.user, a.draft.id, {
+      expectedVersion: 2,
+      quoteId: old.quote.id,
+    }),
+    { code: "DELIVERY_STALE" },
+  );
+  const results = await Promise.allSettled([
+    a.shipping.quote(a.s.user, a.draft.id, {
+      expectedVersion: 2,
+      idempotencyKey: randomUUID(),
+    }),
+    a.shipping.select(a.s.user, a.draft.id, {
+      expectedVersion: 2,
+      addressId: a.s.address,
+      kind: "branch",
+    }),
+  ]);
+  assert.equal(results[1].status, "fulfilled");
+  assert.equal(
+    (await a.shipping.getSelection(a.s.user, a.draft.id)).quoteId,
+    null,
+  );
+  a.state.amount = -1;
+  await assert.rejects(
+    a.shipping.quote(a.s.user, a.draft.id, {
+      expectedVersion: 3,
+      idempotencyKey: randomUUID(),
+    }),
+    { code: "DELIVERY_UNAVAILABLE" },
+  );
+});
+test("F7 parcel lockers are searchable/selectable only through an explicitly capable adapter, never by guessing a type", async (t) => {
+  const a = await checkoutFixture(t),
+    f = shippingFixture();
+  const locker = {
+    ref: "synthetic-locker",
+    cityRef: "synthetic-city",
+    name: "Тестовий поштомат",
+    kind: "parcel-locker" as const,
+    available: true,
+    revision: "synthetic-locker-1",
+  };
+  const adapters = f.adapters.map((adapter) => ({
+    ...adapter,
+    pickupKinds: ["branch", "parcel-locker"] as const,
+    async points(_city: string, kind: string) {
+      return kind === "parcel-locker"
+        ? [locker]
+        : adapter.points(_city, "branch", new AbortController().signal);
+    },
+    async point(city: string, ref: string, kind: string) {
+      return ref === locker.ref &&
+        city === locker.cityRef &&
+        kind === locker.kind
+        ? locker
+        : adapter.point(city, ref, "branch", new AbortController().signal);
+    },
+  }));
+  const shipping = createShippingService(a.pool, adapters, f.config),
+    checkout = createCheckoutBusinessService(a.pool, shipping);
+  const result = await shipping.points({
+    carrier: "meest",
+    cityRef: "synthetic-city",
+    kind: "parcel-locker",
+  });
+  assert.equal(result.items[0].kind, "parcel-locker");
+  const addressId = (
+    await a.pool.query(
+      "INSERT INTO bazar.addresses(user_id,carrier,city_ref,location_ref) VALUES ($1,'meest','synthetic-city','synthetic-locker') RETURNING id",
+      [a.s.user],
+    )
+  ).rows[0].id;
+  const draft = await checkout.start(a.s.user, {
+    cartId: a.s.cart,
+    expectedCartVersion: 1,
+    idempotencyKey: randomUUID(),
+  });
+  assert.equal(
+    (
+      await shipping.select(a.s.user, draft.id, {
+        expectedVersion: 1,
+        addressId,
+        kind: "parcel-locker",
+      })
+    ).kind,
+    "parcel-locker",
+  );
+  const q = await shipping.quote(a.s.user, draft.id, {
+    expectedVersion: 2,
+    idempotencyKey: randomUUID(),
+  });
+  assert.equal(q.quote.kind, "parcel-locker");
 });
