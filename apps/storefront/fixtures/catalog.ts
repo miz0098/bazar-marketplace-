@@ -34,6 +34,8 @@ const seeds: readonly Seed[] = [
 export const demoProducts: readonly Product[] = seeds.map(({ price, compareAtPrice, specs, tones, ...product }) => ({
   ...product,
   price: { amountMinor: price, currency: 'UAH' },
+  stock: product.available ? 5 : 0,
+  variants: [{id:product.id,title:product.id==='iphone-15'?'Синій титан, 128 ГБ':'Стандартний',sku:product.sku,price:{amountMinor:price,currency:'UAH'},stock:product.available?5:0,mediaIndex:0},...(product.id==='iphone-15'?[{id:'iphone-15-black',productTitle:'Apple iPhone 15 Pro 256GB',title:'Чорний титан, 256 ГБ',sku:'APP-IP15P-256-BLK',price:{amountMinor:4599900,currency:'UAH' as const},stock:2,mediaIndex:1},{id:'iphone-15-silver',productTitle:'Apple iPhone 15 Pro 256GB',title:'Сріблястий, 256 ГБ',sku:'APP-IP15P-256-SLV',price:{amountMinor:4599900,currency:'UAH' as const},stock:0,mediaIndex:2}]:[])],
   compareAtPrice: compareAtPrice ? { amountMinor: compareAtPrice, currency: 'UAH' } : undefined,
   gallery: tones.map((tone, index) => ({ id: `${product.id}-${index + 1}`, label: `${product.title} — вигляд ${index + 1}`, tone })),
   specifications: specs.map(([label, value]) => ({ label, value })),

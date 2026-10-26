@@ -1,5 +1,16 @@
 # Phase F10 — Demo Readiness Checklist
 
+## Оновлення Phase F11
+
+[Детальна acceptance evidence та persistence limits](docs/F11_STOREFRONT_ACCEPTANCE.md).
+
+B01–B06/B25 доповнено [новими desktop/mobile сценаріями](tests/e2e/tests/storefront-completion.spec.ts): category redirect/query, brand/price/sort, empty/error/retry, keyboard suggestions, variants/sold-out/stock, wishlist shared state і refresh reset, cart persistence, footer routes/socials, unknown 404 та axe/overflow. [Шість нових unit-тестів](apps/storefront/tests/storefront-completion.test.ts) перевіряють variant identity/totals, forged/stale storage, wishlist concurrency/reset, price bounds і content allowlist/recent-view storage isolation.
+
+Stock/ціни беруться з поточних **demo fixtures**, не production API. Обране не синхронізується з акаунтом і скидається після refresh; кошик залишається local. New info pages явно не оферта й не остаточні legal rules. Соціальні links — Shopify platform defaults, офіційні BAZAR-профілі ще не погоджені. B08/B19 та I09/I10 не закрито цією роботою. Product loading boundary не обгортає unknown routes, щоб notFound повертав HTTP 404; catalog/search loading і feature error boundaries збережено.
+
+Точний SHA та підсумки F11 перевірок наведено в PR F11; таблиця нижче фіксує історичний прогін F10. Design/manual acceptance і Demo 100% залишаються відкритими.
+
+
 Стан на `vps-migration` **89a0453**, 2026-10-26. Пов'язано з [44 областями audit](FUNCTIONAL_GAP_AUDIT.md) і [планом завершення](DEMO_COMPLETION_PLAN.md). **Фінальний gate Demo 100% відкритий.**
 
 ## Правила приймання

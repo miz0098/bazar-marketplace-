@@ -1,5 +1,6 @@
 'use client';
 
+import {useWishlist} from '@/components/product/wishlist-provider';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { AccountIcon } from '@/components/account/account-icons';
@@ -11,6 +12,7 @@ import type { AccountScenario, AccountWishlistPage, AccountWishlistSort } from '
 import { formatMoney } from '@/lib/money';
 
 export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
+  const {items:sharedItems}=useWishlist();
   const service = useAccountService(scenario);
   const cart = useCart();
   const [search, setSearch] = useState('');
@@ -18,10 +20,11 @@ export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
   const [pageSize, setPageSize] = useState(4);
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
   const [notice, setNotice] = useState('');
+  const [cartError,setCartError]=useState('');
   const [attempt, setAttempt] = useState(0);
   const [busy, setBusy] = useState(false);
 
-  const requestKey = useMemo(() => ({ attempt, pageSize, search, service, sort }), [attempt, pageSize, search, service, sort]);
+  const requestKey = useMemo(() => ({ sharedItems, attempt, pageSize, search, service, sort }), [sharedItems, attempt, pageSize, search, service, sort]);
   const [result, setResult] = useRequestState<AccountWishlistPage | null>(requestKey, null);
   const [error, setError] = useRequestState(requestKey, '');
 
@@ -33,7 +36,7 @@ export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
       if (active) setError(reason instanceof Error ? reason.message : 'Не вдалося завантажити обране.');
     });
     return () => { active = false; };
-  }, [attempt, pageSize, search, service, sort, setResult, setError]);
+  }, [sharedItems, attempt, pageSize, search, service, sort, setResult, setError]);
 
   const visibleIds = useMemo(() => result?.items.map((item) => item.id) ?? [], [result]);
   const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selected.has(id));
@@ -73,11 +76,12 @@ export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
         <label className="account-search"><span>Пошук в обраному</span><input type="search" value={search} placeholder="Назва або бренд" onChange={(event) => { setSearch(event.target.value); setPageSize(4); setSelected(new Set()); }} /><AccountIcon name="search" /></label>
         <label className="account-sort"><span>Сортування</span><select value={sort} onChange={(event) => { setSort(event.target.value as AccountWishlistSort); setPageSize(4); setSelected(new Set()); }}><option value="newest">Спочатку нові</option><option value="price-asc">Від дешевих</option><option value="price-desc">Від дорогих</option><option value="name">За назвою</option></select></label>
       </div>
+      {cartError&&<p role="alert">{cartError}</p>}
       {notice && <DemoMutationNotice>{notice} Зміна скинеться після оновлення сторінки.</DemoMutationNotice>}
       {error ? (
         <AccountState error icon="warning" title="Обране недоступне" text={error} action={<button className="account-button account-button--primary" type="button" onClick={refresh}>Спробувати ще раз</button>} />
       ) : !result ? <AccountLoading label="Завантажуємо демонстраційне обране…" /> : result.items.length === 0 ? (
-        <AccountState icon="wishlist" title={search ? 'Нічого не знайдено' : 'Список обраного порожній'} text={search ? 'Спробуйте змінити запит або очистити пошук.' : 'Додайте товари з каталогу, коли синхронізований сервіс стане доступним. У цій версії показано лише демо-стан.'} action={search ? <button className="account-button account-button--secondary" type="button" onClick={() => setSearch('')}>Очистити пошук</button> : <Link className="account-button account-button--primary" href="/catalog">Перейти до каталогу</Link>} />
+        <AccountState icon="wishlist" title={search ? 'Нічого не знайдено' : 'Список обраного порожній'} text={search ? 'Спробуйте змінити запит або очистити пошук.' : 'Додайте товари з каталогу. Обране працює лише у поточному демо-перегляді.'} action={search ? <button className="account-button account-button--secondary" type="button" onClick={() => setSearch('')}>Очистити пошук</button> : <Link className="account-button account-button--primary" href="/catalog">Перейти до каталогу</Link>} />
       ) : (
         <>
           <div className="account-wishlist-selection">
@@ -96,7 +100,7 @@ export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
                   <Link href={`/products/${item.product.handle}`}><h2>{item.product.title}</h2></Link>
                   <strong className="account-wishlist-card__price">{formatMoney(item.product.price)}</strong>
                   <div className="account-wishlist-card__actions">
-                    <button className="account-button account-button--primary account-wishlist-card__button" type="button" disabled={!item.product.available} onClick={() => { cart.add(item.product); setNotice(`${item.product.title} додано до демонстраційного кошика.`); }}><AccountIcon name="cart" />{item.product.available ? 'До кошика' : 'Немає в наявності'}</button>
+                    <button className="account-button account-button--primary account-wishlist-card__button" type="button" disabled={!item.product.available} onClick={() => { const error=cart.add(item.product); setCartError(error);setNotice(error?'':`${item.product.title} додано до демонстраційного кошика.`); }}><AccountIcon name="cart" />{item.product.available ? 'До кошика' : 'Немає в наявності'}</button>
                   </div>
                 </div>
               </article>

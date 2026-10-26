@@ -3,6 +3,7 @@
 import { createContext, useContext, useState } from 'react';
 import type { AccountScenario } from '@/domain/account/account';
 import type { AccountService } from '@/services/contracts/account';
+import {useWishlist} from '@/components/product/wishlist-provider';
 import { createDemoAccountService } from '@/services/mock/account-service';
 
 type AccountServices = Readonly<Record<AccountScenario, AccountService>>;
@@ -10,8 +11,9 @@ type AccountServices = Readonly<Record<AccountScenario, AccountService>>;
 const AccountPreviewContext = createContext<AccountServices | null>(null);
 
 export function AccountPreviewProvider({ children }: Readonly<{ children: React.ReactNode }>) {
+  const {service}=useWishlist();
   const [services] = useState<AccountServices>(() => ({
-    ready: createDemoAccountService(),
+    ready: service,
     empty: createDemoAccountService({ scenario: 'empty' }),
     error: createDemoAccountService({ scenario: 'error' }),
   }));

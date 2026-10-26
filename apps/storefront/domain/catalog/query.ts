@@ -19,7 +19,7 @@ export function parseProductSort(value?: string): ProductSort {
 export function queryProducts(products: readonly Product[], input: ProductQuery = {}): ProductPage {
   const query = normalizeSearch(input.query);
   const minPrice = Math.max(0, input.minPrice ?? 0);
-  const maxPrice = input.maxPrice && input.maxPrice > 0 ? input.maxPrice : Number.POSITIVE_INFINITY;
+  const maxPrice = input.maxPrice !== undefined && Number.isFinite(input.maxPrice) ? Math.max(0,input.maxPrice) : Number.POSITIVE_INFINITY;
   const pageSize = Math.max(1, Math.min(input.limit ?? DEFAULT_PAGE_SIZE, 24));
 
   const filtered = products.filter((product) => {

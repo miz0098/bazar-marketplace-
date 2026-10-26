@@ -21,6 +21,7 @@ import {
   type AccountWishlistPage,
   type AccountWishlistQuery,
 } from '@/domain/account/account';
+import { demoProducts } from '@/fixtures/catalog';
 import { demoAccountFixtures } from '@/fixtures/account';
 import {
   AccountServiceError,
@@ -52,7 +53,9 @@ function cloneProduct(product: ProductSummary): ProductSummary {
   return {
     ...product,
     price: cloneMoney(product.price),
-    compareAtPrice: product.compareAtPrice ? cloneMoney(product.compareAtPrice) : undefined,
+    compareAtPrice: product.compareAtPrice
+      ? cloneMoney(product.compareAtPrice)
+      : undefined,
   };
 }
 
@@ -76,23 +79,42 @@ function cloneReview(review: AccountReview): AccountReview {
   return { ...review, product: cloneProduct(review.product) };
 }
 
-function toFieldErrors(errors: Readonly<Record<string, string | undefined>>): Readonly<Record<string, string>> {
-  return Object.fromEntries(Object.entries(errors).filter((entry): entry is [string, string] => Boolean(entry[1])));
+function toFieldErrors(
+  errors: Readonly<Record<string, string | undefined>>,
+): Readonly<Record<string, string>> {
+  return Object.fromEntries(
+    Object.entries(errors).filter((entry): entry is [string, string] =>
+      Boolean(entry[1]),
+    ),
+  );
 }
 
-function validationError(errors: Readonly<Record<string, string | undefined>>): AccountServiceError {
-  return new AccountServiceError('validation', 'Перевірте позначені поля.', toFieldErrors(errors));
+function validationError(
+  errors: Readonly<Record<string, string | undefined>>,
+): AccountServiceError {
+  return new AccountServiceError(
+    'validation',
+    'Перевірте позначені поля.',
+    toFieldErrors(errors),
+  );
 }
 
 function notFound(resource: string): AccountServiceError {
-  return new AccountServiceError('not-found', `${resource} не знайдено у демо-перегляді.`);
+  return new AccountServiceError(
+    'not-found',
+    `${resource} не знайдено у демо-перегляді.`,
+  );
 }
 
 function previewResult<T>(value: T): AccountMutationResult<T> {
   return { status: 'preview-only', persisted: false, value };
 }
 
-function positiveInteger(value: number | undefined, fallback: number, maximum: number): number {
+function positiveInteger(
+  value: number | undefined,
+  fallback: number,
+  maximum: number,
+): number {
   if (!Number.isInteger(value) || Number(value) < 1) return fallback;
   return Math.min(Number(value), maximum);
 }
@@ -101,19 +123,32 @@ function normalizeSearch(value = ''): string {
   return normalizeAccountText(value).toLocaleLowerCase('uk-UA');
 }
 
-export function createDemoAccountService(options: DemoAccountServiceOptions = {}): AccountService {
+export function createDemoAccountService(
+  options: DemoAccountServiceOptions = {},
+): AccountService {
   const scenario = options.scenario ?? 'ready';
-  const latencyMs = Math.max(0, Math.trunc(options.latencyMs ?? DEFAULT_LATENCY_MS));
+  const latencyMs = Math.max(
+    0,
+    Math.trunc(options.latencyMs ?? DEFAULT_LATENCY_MS),
+  );
   const wait = options.wait ?? defaultWait;
   const fixtureSource = options.fixtures ?? demoAccountFixtures;
   const useCollections = scenario === 'ready';
 
   let profile: AccountProfile = { ...fixtureSource.profile };
   const orders = useCollections ? fixtureSource.orders.map(cloneOrder) : [];
-  let wishlist = useCollections ? fixtureSource.wishlist.map(cloneWishlistItem) : [];
+  let wishlist = useCollections
+    ? fixtureSource.wishlist.map(cloneWishlistItem)
+    : [];
+  const listeners = new Set<() => void>();
+  const notify = () => listeners.forEach((listener) => listener());
   let reviews = useCollections ? fixtureSource.reviews.map(cloneReview) : [];
-  let addresses = useCollections ? fixtureSource.addresses.map((address) => ({ ...address })) : [];
-  const paymentMethods = useCollections ? fixtureSource.paymentMethods.map((method) => ({ ...method })) : [];
+  let addresses = useCollections
+    ? fixtureSource.addresses.map((address) => ({ ...address }))
+    : [];
+  const paymentMethods = useCollections
+    ? fixtureSource.paymentMethods.map((method) => ({ ...method }))
+    : [];
   let addressSequence = addresses.length;
 
   async function run<T>(operation: () => T): Promise<T> {
@@ -131,10 +166,14 @@ export function createDemoAccountService(options: DemoAccountServiceOptions = {}
     return addresses.map((address) => ({ ...address }));
   }
 
-  function normalizeDefaultAddress(nextAddresses: readonly AccountAddress[], preferredId?: string): AccountAddress[] {
-    const selectedId = preferredId
-      ?? nextAddresses.find((address) => address.isDefault)?.id
-      ?? nextAddresses[0]?.id;
+  function normalizeDefaultAddress(
+    nextAddresses: readonly AccountAddress[],
+    preferredId?: string,
+  ): AccountAddress[] {
+    const selectedId =
+      preferredId ??
+      nextAddresses.find((address) => address.isDefault)?.id ??
+      nextAddresses[0]?.id;
 
     return nextAddresses.map((address) => ({
       ...address,
@@ -169,16 +208,26 @@ export function createDemoAccountService(options: DemoAccountServiceOptions = {}
     listOrders(query: AccountOrderQuery = {}) {
       return run(() => {
         const status = query.status ?? 'all';
-        const pageSize = positiveInteger(query.pageSize, DEFAULT_ORDER_PAGE_SIZE, 24);
+        const pageSize = positiveInteger(
+          query.pageSize,
+          DEFAULT_ORDER_PAGE_SIZE,
+          24,
+        );
         const counts = Object.fromEntries([
           ['all', orders.length],
-          ...ACCOUNT_ORDER_STATUSES.map((value) => [value, orders.filter((order) => order.status === value).length]),
+          ...ACCOUNT_ORDER_STATUSES.map((value) => [
+            value,
+            orders.filter((order) => order.status === value).length,
+          ]),
         ]) as Record<AccountOrderStatus | 'all', number>;
         const filtered = [...orders]
           .filter((order) => status === 'all' || order.status === status)
           .sort((left, right) => right.placedAt.localeCompare(left.placedAt));
         const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
-        const page = Math.min(positiveInteger(query.page, 1, Number.MAX_SAFE_INTEGER), pageCount);
+        const page = Math.min(
+          positiveInteger(query.page, 1, Number.MAX_SAFE_INTEGER),
+          pageCount,
+        );
         const start = (page - 1) * pageSize;
         const items = filtered.slice(start, start + pageSize).map((order) => ({
           id: order.id,
@@ -210,11 +259,42 @@ export function createDemoAccountService(options: DemoAccountServiceOptions = {}
       });
     },
 
+    subscribeWishlist(listener) {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+    getWishlistSnapshot() {
+      return wishlist;
+    },
+    addWishlistItem(product) {
+      return run(() => {
+        const canonical = demoProducts.find((p) => p.id === product.id);
+        if (!canonical) throw notFound('Товар');
+        if (!wishlist.some((i) => i.product.id === canonical.id)) {
+          wishlist = [
+            {
+              id: 'wishlist-' + canonical.id,
+              product: cloneProduct(canonical),
+              addedAt: new Date().toISOString(),
+            },
+            ...wishlist,
+          ];
+          notify();
+        }
+        return previewResult(wishlist.map(cloneWishlistItem));
+      });
+    },
     listWishlist(query: AccountWishlistQuery = {}) {
       return run(() => {
         const search = normalizeSearch(query.search);
         const sort = query.sort ?? 'newest';
-        const pageSize = positiveInteger(query.pageSize, DEFAULT_WISHLIST_PAGE_SIZE, 48);
+        const pageSize = positiveInteger(
+          query.pageSize,
+          DEFAULT_WISHLIST_PAGE_SIZE,
+          48,
+        );
         const filtered = wishlist.filter((item) => {
           if (!search) return true;
           return normalizeSearch(
@@ -222,13 +302,23 @@ export function createDemoAccountService(options: DemoAccountServiceOptions = {}
           ).includes(search);
         });
         const sorted = [...filtered].sort((left, right) => {
-          if (sort === 'price-asc') return left.product.price.amountMinor - right.product.price.amountMinor;
-          if (sort === 'price-desc') return right.product.price.amountMinor - left.product.price.amountMinor;
-          if (sort === 'name') return left.product.title.localeCompare(right.product.title, 'uk');
+          if (sort === 'price-asc')
+            return (
+              left.product.price.amountMinor - right.product.price.amountMinor
+            );
+          if (sort === 'price-desc')
+            return (
+              right.product.price.amountMinor - left.product.price.amountMinor
+            );
+          if (sort === 'name')
+            return left.product.title.localeCompare(right.product.title, 'uk');
           return right.addedAt.localeCompare(left.addedAt);
         });
         const pageCount = Math.max(1, Math.ceil(sorted.length / pageSize));
-        const page = Math.min(positiveInteger(query.page, 1, Number.MAX_SAFE_INTEGER), pageCount);
+        const page = Math.min(
+          positiveInteger(query.page, 1, Number.MAX_SAFE_INTEGER),
+          pageCount,
+        );
         const start = (page - 1) * pageSize;
         const result: AccountWishlistPage = {
           items: sorted.slice(start, start + pageSize).map(cloneWishlistItem),
@@ -244,8 +334,10 @@ export function createDemoAccountService(options: DemoAccountServiceOptions = {}
 
     removeWishlistItem(id: string) {
       return run(() => {
-        if (!wishlist.some((item) => item.id === id)) throw notFound('Обраний товар');
+        if (!wishlist.some((item) => item.id === id))
+          throw notFound('Обраний товар');
         wishlist = wishlist.filter((item) => item.id !== id);
+        notify();
         return previewResult(wishlist.map(cloneWishlistItem));
       });
     },
@@ -253,9 +345,12 @@ export function createDemoAccountService(options: DemoAccountServiceOptions = {}
     removeWishlistItems(ids: readonly string[]) {
       return run(() => {
         const selectedIds = new Set(ids.filter(Boolean));
-        if (!selectedIds.size) throw validationError({ ids: 'Оберіть хоча б один товар.' });
-        if (!wishlist.some((item) => selectedIds.has(item.id))) throw notFound('Обрані товари');
+        if (!selectedIds.size)
+          throw validationError({ ids: 'Оберіть хоча б один товар.' });
+        if (!wishlist.some((item) => selectedIds.has(item.id)))
+          throw notFound('Обрані товари');
         wishlist = wishlist.filter((item) => !selectedIds.has(item.id));
+        notify();
         return previewResult(wishlist.map(cloneWishlistItem));
       });
     },
@@ -268,18 +363,26 @@ export function createDemoAccountService(options: DemoAccountServiceOptions = {}
       return run(() => {
         const errors = validateAccountReview(draft);
         if (hasAccountValidationErrors(errors)) throw validationError(errors);
-        if (!reviews.some((review) => review.id === id)) throw notFound('Відгук');
+        if (!reviews.some((review) => review.id === id))
+          throw notFound('Відгук');
 
-        reviews = reviews.map((review) => review.id === id
-          ? { ...review, rating: draft.rating, text: normalizeAccountText(draft.text) }
-          : review);
+        reviews = reviews.map((review) =>
+          review.id === id
+            ? {
+                ...review,
+                rating: draft.rating,
+                text: normalizeAccountText(draft.text),
+              }
+            : review,
+        );
         return previewResult(reviews.map(cloneReview));
       });
     },
 
     deleteReview(id: string) {
       return run(() => {
-        if (!reviews.some((review) => review.id === id)) throw notFound('Відгук');
+        if (!reviews.some((review) => review.id === id))
+          throw notFound('Відгук');
         reviews = reviews.filter((review) => review.id !== id);
         return previewResult(reviews.map(cloneReview));
       });
@@ -309,7 +412,10 @@ export function createDemoAccountService(options: DemoAccountServiceOptions = {}
           location: normalizeAccountText(draft.location),
           isDefault: Boolean(draft.makeDefault) || addresses.length === 0,
         };
-        addresses = normalizeDefaultAddress([...addresses, address], address.isDefault ? address.id : undefined);
+        addresses = normalizeDefaultAddress(
+          [...addresses, address],
+          address.isDefault ? address.id : undefined,
+        );
         return previewResult(cloneAddresses());
       });
     },
@@ -318,19 +424,25 @@ export function createDemoAccountService(options: DemoAccountServiceOptions = {}
       return run(() => {
         const errors = validateAccountAddress(draft);
         if (hasAccountValidationErrors(errors)) throw validationError(errors);
-        if (!addresses.some((address) => address.id === id)) throw notFound('Адресу');
+        if (!addresses.some((address) => address.id === id))
+          throw notFound('Адресу');
 
-        addresses = addresses.map((address) => address.id === id
-          ? {
-              ...address,
-              label: normalizeAccountText(draft.label),
-              recipientName: normalizeAccountText(draft.recipientName),
-              deliveryMethod: draft.deliveryMethod,
-              city: normalizeAccountText(draft.city),
-              location: normalizeAccountText(draft.location),
-            }
-          : address);
-        addresses = normalizeDefaultAddress(addresses, draft.makeDefault ? id : undefined);
+        addresses = addresses.map((address) =>
+          address.id === id
+            ? {
+                ...address,
+                label: normalizeAccountText(draft.label),
+                recipientName: normalizeAccountText(draft.recipientName),
+                deliveryMethod: draft.deliveryMethod,
+                city: normalizeAccountText(draft.city),
+                location: normalizeAccountText(draft.location),
+              }
+            : address,
+        );
+        addresses = normalizeDefaultAddress(
+          addresses,
+          draft.makeDefault ? id : undefined,
+        );
         return previewResult(cloneAddresses());
       });
     },
@@ -340,14 +452,18 @@ export function createDemoAccountService(options: DemoAccountServiceOptions = {}
         const target = addresses.find((address) => address.id === id);
         if (!target) throw notFound('Адресу');
         addresses = addresses.filter((address) => address.id !== id);
-        addresses = normalizeDefaultAddress(addresses, target.isDefault ? addresses[0]?.id : undefined);
+        addresses = normalizeDefaultAddress(
+          addresses,
+          target.isDefault ? addresses[0]?.id : undefined,
+        );
         return previewResult(cloneAddresses());
       });
     },
 
     setDefaultAddress(id: string) {
       return run(() => {
-        if (!addresses.some((address) => address.id === id)) throw notFound('Адресу');
+        if (!addresses.some((address) => address.id === id))
+          throw notFound('Адресу');
         addresses = normalizeDefaultAddress(addresses, id);
         return previewResult(cloneAddresses());
       });
