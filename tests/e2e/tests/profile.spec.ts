@@ -253,7 +253,7 @@ test('address add, edit, default and remove actions validate and reset on refres
   await expect(page.getByRole('article', { name: 'Адреса Тестова' })).toHaveCount(0);
 });
 
-test('payment methods collect no card credentials and deferred screens create nothing', async ({ page }) => {
+test('payment methods collect no card credentials', async ({ page }) => {
   await page.goto('/profile/payment-methods');
   await expect(page.getByRole('heading', { name: 'Платіжні методи' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Платіжних методів немає' })).toBeVisible();
@@ -261,14 +261,6 @@ test('payment methods collect no card credentials and deferred screens create no
   await expect(page.locator('.account-content input')).toHaveCount(0);
   await expect(page.getByRole('button', { name: /додати|зберегти|оплатити/i })).toHaveCount(0);
 
-  for (const route of ['/profile/messages', '/profile/support']) {
-    await page.goto(route);
-    await expect(page.getByRole('heading', { name: 'Функціональність запланована для Phase E2' })).toBeVisible();
-    const shell = page.locator('.account-deferred');
-    await expect(shell.getByRole('textbox')).toHaveCount(0);
-    await expect(shell.getByRole('button')).toHaveCount(0);
-    await expect(shell.getByRole('note')).toContainText('нічого не надсилається, не створюється й не зберігається');
-  }
 });
 
 test('logout remains an anonymous preview boundary with no browser session state', async ({ page }, testInfo) => {

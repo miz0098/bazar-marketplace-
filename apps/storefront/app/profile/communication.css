@@ -1,0 +1,77 @@
+.communication-screen { min-width: 0; }
+.communication-workspace { display: grid; grid-template-columns: minmax(240px, 31%) minmax(0, 1fr); min-height: 620px; overflow: hidden; border: 1px solid var(--account-border); border-radius: var(--account-radius); background: #fff; }
+.communication-dialogs { min-width: 0; border-right: 1px solid var(--account-border); }
+.communication-list-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 16px 8px; }
+.communication-list-head h2 { margin: 0; font-size: 17px; }
+.communication-unread-total { display: inline-grid; min-width: 28px; height: 28px; place-items: center; border-radius: 50%; background: var(--account-blue); color: #fff; font-weight: 700; }
+.communication-search { padding: 10px 16px 16px; }
+.communication-dialog-list, .communication-message-list, .communication-ticket-list { margin: 0; padding: 0; list-style: none; }
+.communication-dialog-list { max-height: 630px; overflow-y: auto; }
+.communication-dialog-list > li { border-top: 1px solid var(--account-border); padding: 2px 8px 8px; }
+.communication-dialog-list > li.is-selected { background: var(--account-blue-soft); }
+.communication-dialog-link { display: flex; align-items: flex-start; gap: 10px; padding: 14px 6px 8px; color: var(--account-ink); text-decoration: none; }
+.communication-avatar { display: grid; flex: 0 0 42px; height: 42px; place-items: center; border-radius: 50%; background: #e7edff; color: var(--account-blue-dark); font-weight: 800; }
+.communication-dialog-copy { display: grid; min-width: 0; gap: 6px; }
+.communication-dialog-copy > strong { font-size: 14px; overflow-wrap: anywhere; }
+.communication-dialog-copy > span:not(.communication-dialog-meta) { overflow: hidden; color: #53617a; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.communication-dialog-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: #53617a; font-size: 12px; }
+.communication-unread { padding: 2px 7px; border-radius: 10px; background: var(--account-blue); color: #fff; }
+.communication-pin { min-height: 32px; padding: 5px 10px; margin-left: 52px; border: 1px solid var(--account-border-strong); border-radius: 8px; background: #fff; color: var(--account-blue-dark); cursor: pointer; font-size: 12px !important; }
+.communication-pin:disabled { cursor: wait; opacity: .65; }
+.communication-dialog-link:focus-visible, .communication-pin:focus-visible, .communication-history:focus-visible, .communication-file input:focus-visible { outline: 3px solid var(--account-blue); outline-offset: -3px; }
+.communication-conversation { min-width: 0; display: flex; flex-direction: column; }
+.communication-conversation > .account-state { margin: 20px; }
+.communication-thread-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--account-border); background: #fff; }
+.communication-thread-head h2 { flex: 1 1 200px; min-width: 0; margin: 0; overflow-wrap: anywhere; font-size: 16px; }
+.communication-thread-head > span { color: #53617a; font-size: 12px; }
+.communication-thread { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+.communication-history { height: 360px; min-height: 220px; overflow-y: auto; overscroll-behavior: contain; padding: 16px; background: #f5f7fb; scrollbar-gutter: stable; }
+.communication-message { display: grid; justify-items: start; margin-bottom: 14px; }
+.communication-message.is-own { justify-items: end; }
+.communication-date { justify-self: center; margin: 0 0 14px; color: #53617a; font-size: 12px; }
+.communication-bubble { width: fit-content; max-width: 90%; padding: 12px 14px; border: 1px solid var(--account-border); border-radius: 16px 16px 16px 4px; background: #fff; overflow-wrap: anywhere; }
+.is-own .communication-bubble { border-color: #cddaff; border-radius: 16px 16px 4px 16px; background: #edf3ff; }
+.communication-author { color: #4b5b77; font-size: 11px; font-weight: 700; }
+.communication-bubble p { margin: 5px 0 8px; font-size: 14px; line-height: 1.55; white-space: pre-wrap; }
+.communication-bubble footer { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; color: #4b5b77; font-size: 11px; }
+.communication-composer { display: grid; gap: 10px; padding: 16px; border-top: 1px solid var(--account-border); background: #fff; }
+.communication-composer textarea { min-height: 70px; resize: vertical; }
+.communication-disclaimer { margin: 0; padding: 10px 16px; color: #53617a; font-size: 12px; line-height: 1.6; }
+.communication-composer .communication-disclaimer { padding: 0; }
+.communication-send-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.communication-send-row > span { max-width: 230px; color: #53617a; font-size: 11px; }
+.communication-file { display: grid; gap: 6px; font-size: 12px; overflow-wrap: anywhere; }
+.communication-file label { display: grid; gap: 6px; font-weight: 700; }
+.communication-file > span { color: #53617a; }
+.communication-file-trigger { width: fit-content; }
+.communication-file label:focus-within .communication-file-trigger { outline: 3px solid var(--account-blue); outline-offset: 2px; }
+.communication-notice { margin: 0; color: var(--account-green); font-size: 12px; line-height: 1.6; }
+.communication-ticket-list { display: grid; gap: 12px; }
+.communication-ticket-list a { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; padding: 20px; border: 1px solid var(--account-border); border-radius: var(--account-radius); background: #fff; color: var(--account-ink); text-decoration: none; }
+.communication-ticket-list a:hover { border-color: var(--account-blue); }
+.communication-ticket-list a:focus-visible { outline: 3px solid var(--account-blue); outline-offset: 2px; }
+.communication-ticket-list a > span:first-child { display: grid; min-width: 0; gap: 7px; overflow-wrap: anywhere; }
+.communication-ticket-list a > span:first-child > span, .communication-ticket-meta { color: #53617a; font-size: 13px; }
+.communication-ticket-status { display: inline-flex; width: fit-content; padding: 5px 10px; border-radius: 20px; background: #edf3ff; color: #1747c7 !important; font-size: 12px; font-weight: 700; }
+.communication-ticket-status.is-waiting { background: #fff4d7; color: #7c4c00 !important; }
+.communication-ticket-status.is-closed { background: #e9f5ee; color: #17613e !important; }
+.communication-ticket-detail { overflow: hidden; border: 1px solid var(--account-border); border-radius: var(--account-radius); background: #fff; }
+.communication-ticket-meta { padding: 0 18px; }
+.communication-support-intro, .communication-new-ticket { margin-bottom: 18px; }
+.communication-support-intro h2, .communication-new-ticket h2 { margin: 0 0 12px; font-size: 18px; }
+.communication-support-intro p { margin: 0; line-height: 1.7; color: #53617a; }
+.communication-new-ticket { display: grid; gap: 14px; }
+@media (max-width: 767px) {
+  .communication-workspace { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+  .communication-workspace:not(.has-selection) .communication-conversation { display: none; }
+  .communication-workspace.has-selection .communication-dialogs { display: none; }
+  .communication-dialogs { border-right: 0; }
+  .communication-dialog-list { max-height: none; }
+  .communication-thread-head { padding: 12px; }
+  .communication-thread-head h2 { flex-basis: 100%; }
+  .communication-history { height: clamp(220px, 42dvh, 400px); padding: 12px; }
+  .communication-composer { padding: 12px; }
+  .communication-bubble { max-width: 96%; }
+  .communication-send-row .account-button { width: 100%; }
+  .communication-ticket-list a { padding: 16px; }
+}
