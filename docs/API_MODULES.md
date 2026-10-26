@@ -1,5 +1,7 @@
 # BAZAR API modules — provisional v1 contracts
 
+Phase F4 update: OTP, session/current-user and revocation handlers exist only in isolated test composition; ordinary runtime returns 503. Cart stays blocked on current-cart policy. See [ADR 0004](adr/0004-server-auth-foundation.md) and OpenAPI for exact routes and security limits. Earlier phase notes below are historical.
+
 Phase F3 update: catalog and categories have live read handlers; cart paths return 401 AUTH_REQUIRED because verified sessions are absent. The cart PostgreSQL repository is internal only. Remaining modules below are planned. See [ADR 0003](adr/0003-catalog-cart-boundaries.md) and the updated OpenAPI for actual query/response contracts. Historical F1 descriptions below are superseded for these three modules.
 
 Historical F1 baseline: only `/health`, `/ready` and `/api/v1` were implemented. The actual HTTP contract is [OpenAPI](../apps/api/contracts/openapi.json). All 13 modules below are **planned**; even their proposed paths return 404 today. Their representative transport types and service signatures are in [modules.ts](../apps/api/src/contracts/modules.ts), not handlers. They are deliberately separate from the existing frontend mock contracts.

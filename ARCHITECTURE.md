@@ -1,5 +1,7 @@
 # BAZAR Storefront Architecture
 
+Phase F4 adds isolated PostgreSQL OTP/session/CSRF/security composition. Production auth remains 503 without an approved SMS/provider/policy rollout; storefront mocks are unchanged. See [ADR 0004](docs/adr/0004-server-auth-foundation.md).
+
 Phase F3 adds public PostgreSQL catalog/category reads and tested internal cart persistence. Cart HTTP stays blocked with 401 until verified authentication exists; storefront remains on mocks. See [ADR 0003](docs/adr/0003-catalog-cart-boundaries.md).
 
 Phase F2 adds controlled PostgreSQL SQL migrations, a bounded API pool and exact-schema /ready probes. Business modules remain unavailable and storefront mocks are unchanged. See [ADR 0002](docs/adr/0002-postgresql-foundation.md) for implemented integrity rules and unresolved policy questions.

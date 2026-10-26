@@ -1,0 +1,48 @@
+# ADR 0004 — Server authentication, sessions and security foundation
+
+Status: implemented and tested in isolated PostgreSQL composition. Live SMS, production authentication and storefront activation are blocked. This supersedes F3's lack of a session implementation, not its unresolved cart or deployment policies.
+
+## Composition and readiness
+
+The production entry point does not construct an SMS adapter or auth service. Known auth routes return 503 without cookies; setting AUTH_MODE to anything except absent/disabled fails configuration. The service constructor requires an isolated NODE_ENV=test process, explicit test configuration and an isolated-test adapter; the HTTP server also rejects injected auth outside test mode. No environment flag enables a test sender in an ordinary or production process. Tests/helpers is excluded from the build and never imported by src. SmsAdapter defines an accepted/test-only submission boundary, but no real provider is implemented or selected and no provider acknowledgement is called delivery.
+
+The existing native HTTP shell is retained for the bounded, isolated handler. It has exact route dispatch, explicit per-operation validation and one 4 KiB/2 second JSON reader, not a general middleware framework. Revisit ADR 0001's framework choice with the approved live-provider/BFF activation review before exposing authenticated mutations in production. No framework migration, deployment or cross-origin credential architecture is silently introduced here.
+
+/health and catalog remain as implemented. /ready checks current PostgreSQL history/connectivity, not live SMS/auth readiness; businessModulesAvailable remains false. Auth success replies carry mode:test-only (challenge delivery:test-only). These are real database protocol tests with a synthetic sender, not proof that an SMS reached a real phone.
+
+## OTP and identity
+
+Accept normalized Ukrainian +380 numbers, matching Phase D's country scope; no password/email/social fallback. Six digits come from node:crypto randomInt, including leading zeroes. HMAC-SHA256 binds the code to challenge UUID and signed browser flow, with timingSafeEqual comparisons. Store only HMAC code/phone values, not phone, raw OTP or provider payloads. Separate explicit 32-byte phone/OTP/CSRF keys are required and must differ. No key value, production lifetime or rate policy is committed.
+
+An additive 0004 migration introduces auth_phone_identities and durable rate windows, and adds flow/intent/delivery metadata to OTPs and CSRF digests to sessions. Legacy rows remain intact and cannot become valid auth sessions/challenges merely by existing. Registration inserts a user/unique phone digest/consent timestamp only after successful one-time verification with validated names and explicit consent. Login never creates an unknown user. Registering an existing identity does not rename it or issue a registration session. Before OTP proof, existing/unknown numbers receive the same challenge response; after invalid verification, all failures use AUTH_FAILED without account details.
+
+There is no recoverable phone column, last-digits field or automatic contact backfill. Current-user output has a constant masked country prefix. Resend is a new phone+intent challenge: the UI must retain the phone only in transient memory. Challenge UUID alone cannot recover a phone for resend. Real phone display/contact use, phone/key migration and legal consent versioning require separately approved contracts.
+
+Each challenge expires and counts wrong eligible attempts atomically. Correct verification also consumes it atomically with identity/session creation. A phone advisory transaction lock serializes issue, verification and session revocation; row locks prevent concurrent replay. Issuing a new challenge invalidates previous active ones for that phone. Sending is outside the DB transaction, pending challenges cannot authenticate, and failure/timeout marks them unusable. A failed provider call never yields a successful challenge response; late completion cannot resurrect it.
+
+Durable PostgreSQL budgets cover phone cooldown/window, client and global challenge requests, and client/global verification requests across challenge IDs and restarts. Rejections and provider failures still consume applicable budgets. Retry-After is bounded from the stored window/cooldown. Client identity comes only from socket.remoteAddress: forwarded headers never select a user or bypass limits. This intentionally fails closed behind a shared proxy; trusted proxy/client attribution and abuse controls must be reviewed before deployment. No distributed in-memory limiter or reset-on-restart counter is used.
+
+## Sessions and request security
+
+Session secrets are random 256-bit opaque values; only SHA-256 digests are stored. No JWT/localStorage/browser auth flag grants access. Every principal lookup checks the database, revocation, expiry, verified identity and flow-bound CSRF digest. Login replaces the browser's flow/session values and revokes its previous matching session. Individual logout and logout-all are owner-scoped, persistent and serialized against phone verification; logout-all cannot revoke another user's sessions. No automatic refresh or remembered-login lifetime is invented.
+
+Both __Host-bazar-session and __Host-bazar-flow use Path=/, HttpOnly, Secure and SameSite=Strict, without Domain or an insecure development override. Logout expires both. The flow cookie is signed, has an explicit deadline and random nonce. Its derived CSRF token is returned in same-origin JSON and kept in client memory; raw flow/session secrets never appear in JSON. Authenticated sessions bind to the flow's CSRF digest. Pre-auth challenges and verify also require the flow-bound X-CSRF-Token, preventing login CSRF before a user session exists.
+
+Require the exact configured Origin for mutations and reject non-same-origin Fetch Metadata. Same-origin GET/HEAD without Origin additionally requires Sec-Fetch-Site:same-origin and matching Host; requests without either origin proof are rejected. No wildcard, credentialed CORS or auth preflight is enabled. Duplicate auth cookies, query parameters, unknown JSON keys, unsupported content encodings/types, oversized/slow/invalid UTF-8/JSON bodies, malformed IDs/codes/names and missing consent fail closed. Incoming user IDs, Authorization and forwarded headers never replace a verified principal. Logs retain only the existing static route/error/status allowlist, without phone/code/cookie/CSRF/body/SQL values.
+
+The Node HTTP integration transport explicitly carries test cookies to a loopback server; it verifies Secure attributes without weakening them. This is not a production TLS/browser-session deployment test. HTTPS termination, BFF cookie forwarding/Origin validation and real browser session rollout still need review.
+
+## Storefront and cart
+
+The new typed same-origin transport is separate from the preview-only IdentityService. It validates envelopes, bounds time/bytes, disables caching/redirects/retries, lets the browser manage cookies and keeps CSRF only in closure memory. It accepts only explicit test-only protocol success today. Phase D mock selection, copy, screens, pending states and persistence remain unchanged. No Next.js auth proxy, cross-origin cookie bridge, or live-mode switch is enabled. The existing termsAccepted field authorizes participation in a demo, not legal consent for live registration, and must never be silently mapped to server consent:true. Optional preview email has no backend storage contract and must not be silently sent or claimed saved. The existing preview verify-then-profile flow needs an explicitly reviewed mapping to registration's verify-with-profile request before activation; preview completion must never be converted into a session claim.
+
+Sessions can now derive an owned actor. However, current-cart creation/selection and guest identity/merge remain unspecified. Cart paths still expose no successful operation: without a principal they reject access; an isolated verified session receives 503 current-cart selection not configured. No arbitrary first cart, new cart per login, or guest merge is invented. The F3 repository's owner/version/inventory protection is preserved. Review cart selection, creation and reconciliation UX before wiring these methods to HTTP.
+
+## Required owner decisions before real SMS login
+
+1. SMS owner: approved provider/sender, sandbox/live endpoints, delivery semantics, credentials, consent and spending/abuse controls. Implement the actual adapter and its contract/failure tests; never label test-only acceptance as delivered.
+2. Security/privacy: production HMAC/session/CSRF key ownership, injection/rotation/versioning, phone lookup/contact policy, consent terms/version, explicit TTL/attempt/rate/resend policies, data retention/deletion and audit. Current numeric policies exist only in synthetic test fixtures; validation caps are technical guardrails, not approved production settings.
+3. Platform/security: BFF and HTTPS origin/cookie boundary, trusted proxy topology, distributed abuse detection, runtime role grants, release/migration/backups, monitoring and revocation behavior. Retention cleanup, key migration, session refresh and account recovery are not implemented.
+4. Product/backend: live Phase D state transitions and user-facing failure/reconciliation flows; current-cart ownership/creation/selection and guest/merge policy.
+
+These blockers do not prevent reviewing the tested technical foundation. They do prevent enabling live SMS, migrating real personal data, production auth, cart HTTP or a storefront live switch.
