@@ -71,7 +71,7 @@
     {
       "id": "CAT-001",
       "title": "Implement catalog and search API adapters",
-      "status": "in_review",
+      "status": "done",
       "readiness": "integration",
       "depends_on": ["DB-001", "PHB-001"],
       "allowed_paths": ["apps/api/", "apps/storefront/services/", "apps/storefront/lib/", "apps/storefront/tests/", "apps/storefront/MIGRATION_PROGRESS.md", "ARCHITECTURE.md", "MIGRATION_PLAN.md", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
@@ -88,7 +88,7 @@
       "allowed_paths": ["apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
       "acceptance": ["Guest cart identity and authenticated merge are explicit", "Every mutation reconciles price, inventory and totals", "Mutations are idempotent and reject invalid quantities", "Storefront handles stale inventory and API failures without false success"],
       "pr": 14,
-      "blocker": "F3 PostgreSQL repository tested; cart HTTP stays AUTH_REQUIRED. Security owner must implement verified sessions and CSRF; product owner must approve guest/current-cart/merge rules."
+      "blocker": "F4 isolated sessions/CSRF prove an actor; cart HTTP still has no success handler. Product owner must approve current-cart creation/selection and guest/merge policy; live SMS/session rollout remains blocked."
     },
     {
       "id": "PROMO-001",
@@ -148,13 +148,13 @@
     {
       "id": "AUTH-001",
       "title": "Implement phone OTP identity and secure session boundary",
-      "status": "pending",
+      "status": "in_progress",
       "readiness": "integration",
       "depends_on": ["BE-001", "DB-001", "UI-001", "AUTHUI-001"],
-      "allowed_paths": ["apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
+      "allowed_paths": ["ARCHITECTURE.md", "MIGRATION_PLAN.md", "apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
       "acceptance": ["Only phone OTP authentication is offered", "Challenges expire and enforce replay, attempt and rate limits", "Sessions use secure HttpOnly cookies with CSRF protection", "Demo OTP is visibly isolated and impossible in production mode", "PII and OTP values are redacted from logs"],
       "pr": null,
-      "blocker": "A production SMS provider, sender approval and privacy/legal decisions are required for production readiness."
+      "blocker": "F4 mechanisms are test-isolated. Real SMS/provider credentials, production keys/TTL/rate/consent/retention policies and BFF/TLS activation require owner approval; no live UI switch."
     },
     {
       "id": "PROFILE-001",

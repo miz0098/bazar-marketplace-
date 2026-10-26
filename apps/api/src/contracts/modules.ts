@@ -1,4 +1,4 @@
-/** Versioned transport contracts. F3 activates catalog/categories; cart HTTP and remaining modules stay blocked/planned. */
+/** Versioned transport contracts. F3 activates catalog/categories; F4 adds test-isolated identity/session contracts. Runtime SMS and cart activation remain blocked. */
 export type Id = string;
 export type IsoTimestamp = string;
 export type Money = Readonly<{ amountMinor: number; currency: 'UAH' }>;
@@ -8,9 +8,12 @@ export type OwnedResource = Readonly<{ id: Id; userId: Id }>;
 export interface UserDto { readonly id: Id; readonly firstName: string; readonly lastName: string; readonly maskedPhone: string }
 export interface OtpChallengeInput { readonly phone: string; readonly intent: 'login' | 'register' }
 export interface OtpChallengeDto { readonly challengeId: Id; readonly expiresAt: IsoTimestamp; readonly resendAfterSeconds: number }
-export interface OtpVerifyInput { readonly challengeId: Id; readonly code: string }
+export interface AuthRegistrationInput { readonly firstName: string; readonly lastName: string; readonly consent: true }
+export interface OtpVerifyInput { readonly challengeId: Id; readonly code: string; readonly profile?: AuthRegistrationInput }
+export interface TestOtpChallengeDto extends OtpChallengeDto { readonly delivery: 'test-only' }
 // A verified session will be a secure HttpOnly cookie, never a browser-readable bearer token.
 export interface SessionDto { readonly user: UserDto; readonly expiresAt: IsoTimestamp }
+export interface TestSessionDto extends SessionDto { readonly csrfToken: string; readonly mode: 'test-only' }
 export interface CategoryDto { readonly id: Id; readonly parentId: Id | null; readonly handle: string; readonly title: string }
 export interface ProductDto {
   readonly id: Id; readonly handle: string; readonly title: string; readonly description: string;

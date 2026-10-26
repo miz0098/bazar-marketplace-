@@ -104,3 +104,7 @@ Demo behavior must not be represented as live commerce or account functionality.
 ## Phase F3 — opt-in catalog transport
 
 Added a typed, runtime-validated catalog HTTP client and server-only factory, plus a future authenticated cart adapter interface. Existing service providers remain mock-only: no components, visual tokens, demo persistence, auth D, account E or communication flow changed. Mapping PostgreSQL data to the existing visual domain is blocked on approved media/vendor/ratings/navigation contracts; no mock visuals or facts are silently used as live data. See ADR 0003 and SHOPIFY_RESTORATION.md for cart access and commerce gates.
+
+## Phase F4 — prepared server-auth transport, preview preserved
+
+Added a separate typed same-origin server-auth client with bounded validated responses, browser-managed cookies and in-memory CSRF. It is not selected by the Phase D IdentityService or any screen and accepts explicit test-only success today. No component/style/persistence/preview completion is changed into a live session. BFF/TLS/provider/policy and registration-state mapping remain activation blockers documented in ADR 0004. Profile, catalog, checkout, messages and support keep their current behavior.

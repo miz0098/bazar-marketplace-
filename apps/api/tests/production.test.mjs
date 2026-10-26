@@ -26,6 +26,8 @@ test('compiled API starts, serves health and exits cleanly on SIGTERM', { timeou
   assert.equal((await client.getHealth()).scope, 'process');
   assert.equal((await client.getVersion()).businessModulesAvailable, false);
   assert.equal((await fetch(`http://127.0.0.1:${startup.port}/ready`)).status, 503);
+  const disabled=await fetch(`http://127.0.0.1:${startup.port}/api/v1/auth/csrf`);
+  assert.equal(disabled.status,503);assert.equal(disabled.headers.get('set-cookie'),null);
   const exit = once(child, 'exit');
   child.kill('SIGTERM');
   assert.equal((await exit)[0], 0);
@@ -41,4 +43,11 @@ test('invalid compiled configuration exits without echoing environment secrets',
   assert.equal(code, 1);
   assert.doesNotMatch(output, /private-value|stack|Error:/);
   assert.equal(JSON.parse(output).event, 'configuration_error');
+});
+
+
+test('compiled runtime refuses test-auth activation even with production-like settings', {timeout:3000}, async()=>{
+  const child=spawn(process.execPath,['dist/main.js'],{env:{PATH:process.env.PATH,NODE_ENV:'production',CORS_ORIGINS:'',AUTH_MODE:'test'},stdio:['ignore','pipe','pipe']});
+  let output='';child.stdout.on('data',d=>{output+=d;});child.stderr.on('data',d=>{output+=d;});
+  const [code]=await once(child,'exit');assert.equal(code,1);assert.equal(JSON.parse(output).event,'configuration_error');assert.doesNotMatch(output,/stack|OTP|phoneKey/);
 });

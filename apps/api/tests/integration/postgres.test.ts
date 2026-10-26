@@ -6,6 +6,11 @@ import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:f
 import { tmpdir } from 'node:os';
 import test, { type TestContext } from 'node:test';
 import pg from 'pg';
+import { createConnection } from 'node:net';
+import { createServerAuthClient } from '../../../storefront/lib/server-auth-client.js';
+import { createAuthService } from '../../src/auth/service.js';
+import { makeFlow, digest } from '../../src/auth/crypto.js';
+import { authFixture } from '../helpers/auth.js';
 import { createCatalog, parseCatalogQuery } from '../../src/business/catalog.js';
 import { createCartRepository } from '../../src/business/cart.js';
 import { readConfig } from '../../src/config.js';
@@ -63,9 +68,9 @@ test('fresh database, previous schema upgrade, rerun and concurrent migrators ar
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(`${migrationDirectory}/0001_core.sql`, `${dir}/0001_core.sql`);
   assert.equal(await migrate(db.config, dir), 1);
-  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 2]);
+  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 3]);
   assert.equal(await migrate(db.config), 0);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 3);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 4);
   assert.ok((await db.pool.query("SELECT indexname FROM pg_indexes WHERE schemaname='bazar' AND indexname='variants_available_idx'")).rowCount);
 });
 
@@ -77,10 +82,10 @@ test('modified/unknown migrations are rejected and failed DDL rolls back without
   writeFileSync(`${dir}/0001_core.sql`, first + '\n-- modified\n');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   writeFileSync(`${dir}/0001_core.sql`, first);
-  writeFileSync(`${dir}/0004_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
+  writeFileSync(`${dir}/0005_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   assert.equal((await db.pool.query("SELECT to_regclass('bazar.must_rollback') AS name")).rows[0].name, null);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 3);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 4);
   await db.pool.query("INSERT INTO bazar_meta.schema_migrations(version,checksum) VALUES ('9999',repeat('0',64))");
   await assert.rejects(migrate(db.config), /Database migration failed/);
 });
@@ -457,6 +462,7 @@ test('catalog runtime works with read-only catalog grants and cannot access cart
     await assert.rejects(runtime.pool.query('SELECT * FROM bazar.carts'), {
       code: '42501',
     });
+    await assert.rejects(runtime.pool.query('SELECT * FROM bazar.sessions'), {code:'42501'});
     await assert.rejects(
       runtime.pool.query('UPDATE bazar.variants SET price_minor=0'),
       { code: '42501' },
@@ -466,4 +472,666 @@ test('catalog runtime works with read-only catalog grants and cannot access cart
     await db.pool.query(`DROP OWNED BY "${role}"`);
     await db.pool.query(`DROP ROLE "${role}"`);
   }
+});
+
+// F4 tests use real PostgreSQL and an adapter that exists only in tests/helpers.
+async function authentication(
+  t: TestContext,
+  policy: Parameters<typeof authFixture>[0] = {},
+) {
+  const db = await database(t);
+  await migrate(db.config);
+  const fixture = authFixture(policy);
+  const auth = createAuthService(db.pool, fixture.config, fixture.sms);
+  return { ...db, ...fixture, auth };
+}
+async function registered(
+  a: Awaited<ReturnType<typeof authentication>>,
+  number = '+380671234567',
+) {
+  const flow = makeFlow(a.config),
+    challenge = await a.auth.challenge(
+      { phone: number, intent: 'register' },
+      flow,
+      'test-client',
+    );
+  const code = a.sent.get(challenge.challengeId)!.code;
+  const session = await a.auth.verify(
+    {
+      challengeId: challenge.challengeId,
+      code,
+      profile: { firstName: 'Синтетичний', lastName: 'Приклад', consent: true },
+    },
+    flow,
+    'test-client',
+    '',
+  );
+  return { session, challenge, code, flow };
+}
+
+test('F4 registration consumes the isolated OTP once, stores only HMAC/digests, rotates flow and creates no cart', async (t) => {
+  const a = await authentication(t);
+  const r = await registered(a);
+  const principal = await a.auth.principal(r.session.token, r.session.flow);
+  assert.equal(principal.userId, r.session.data.user.id);
+  assert.equal(principal.data.mode, 'test-only');
+  assert.notEqual(r.session.flow, r.flow);
+  assert.equal(
+    (await a.pool.query('SELECT count(*)::int AS n FROM bazar.carts')).rows[0]
+      .n,
+    0,
+  );
+  const stored = JSON.stringify(
+    (await a.pool.query('SELECT row_to_json(c) FROM bazar.otp_challenges c'))
+      .rows,
+  );
+  assert.equal(stored.includes(r.code), false);
+  assert.equal(stored.includes('+380671234567'), false);
+  assert.equal(stored.includes(r.flow), false);
+  const row = (
+    await a.pool.query(
+      'SELECT code_digest,attempts,consumed_at FROM bazar.otp_challenges',
+    )
+  ).rows[0];
+  assert.notDeepEqual(row.code_digest, digest(r.code));
+  assert.equal(row.attempts, 1);
+  assert.ok(row.consumed_at);
+  await assert.rejects(
+    a.auth.verify(
+      { challengeId: r.challenge.challengeId, code: r.code },
+      r.flow,
+      'test-client',
+      '',
+    ),
+    { status: 401 },
+  );
+  await assert.rejects(a.auth.principal(r.session.token, makeFlow(a.config)), {
+    status: 401,
+  });
+  await assert.rejects(a.auth.principal('invented', r.session.flow), {
+    status: 401,
+  });
+});
+
+test('F4 attempt exhaustion, expiry, binding, resend invalidation and concurrent verification fail closed', async (t) => {
+  const a = await authentication(t, { otpAttempts: 3 });
+  const flow = makeFlow(a.config);
+  const challenge = await a.auth.challenge(
+    { phone: '+380671234567', intent: 'register' },
+    flow,
+    'client',
+  );
+  const code = a.sent.get(challenge.challengeId)!.code;
+  await assert.rejects(
+    a.auth.challenge(
+      { phone: '+380671234567', intent: 'register' },
+      flow,
+      'other-client',
+    ),
+    { status: 429 },
+  );
+  await assert.rejects(
+    a.auth.verify(
+      { challengeId: challenge.challengeId, code },
+      makeFlow(a.config),
+      'client',
+      '',
+    ),
+    { status: 401 },
+  );
+  const wrong = code === '000000' ? '000001' : '000000';
+  for (let i = 0; i < 3; i++)
+    await assert.rejects(
+      a.auth.verify(
+        { challengeId: challenge.challengeId, code: wrong },
+        flow,
+        'client',
+        '',
+      ),
+      { status: 401 },
+    );
+  await assert.rejects(
+    a.auth.verify(
+      {
+        challengeId: challenge.challengeId,
+        code,
+        profile: { firstName: 'Тест', lastName: 'Тест', consent: true },
+      },
+      flow,
+      'client',
+      '',
+    ),
+    { status: 401 },
+  );
+  assert.equal(
+    (
+      await a.pool.query(
+        'SELECT attempts FROM bazar.otp_challenges WHERE id=$1',
+        [challenge.challengeId],
+      )
+    ).rows[0].attempts,
+    3,
+  );
+  await a.pool.query(
+    "UPDATE bazar.auth_rate_limits SET next_allowed_at=clock_timestamp()-interval '1 second'",
+  );
+  const replacement = await a.auth.challenge(
+    { phone: '+380671234567', intent: 'register' },
+    flow,
+    'client',
+  );
+  assert.ok(
+    (
+      await a.pool.query(
+        'SELECT consumed_at FROM bazar.otp_challenges WHERE id=$1',
+        [challenge.challengeId],
+      )
+    ).rows[0].consumed_at,
+  );
+  await a.pool.query(
+    "UPDATE bazar.otp_challenges SET created_at=clock_timestamp()-interval '1 hour',expires_at=clock_timestamp()-interval '1 second' WHERE id=$1",
+    [replacement.challengeId],
+  );
+  await assert.rejects(
+    a.auth.verify(
+      {
+        challengeId: replacement.challengeId,
+        code: a.sent.get(replacement.challengeId)!.code,
+      },
+      flow,
+      'client',
+      '',
+    ),
+    { status: 401 },
+  );
+  const fresh = await a.auth.challenge(
+    { phone: '+380501234567', intent: 'register' },
+    flow,
+    'client',
+  );
+  const input = {
+    challengeId: fresh.challengeId,
+    code: a.sent.get(fresh.challengeId)!.code,
+    profile: { firstName: 'Тест', lastName: 'Тест', consent: true as const },
+  };
+  const results = await Promise.allSettled([
+    a.auth.verify(input, flow, 'client', ''),
+    a.auth.verify(input, flow, 'client', ''),
+  ]);
+  assert.equal(results.filter((r) => r.status === 'fulfilled').length, 1);
+  assert.equal(
+    (await a.pool.query('SELECT count(*)::int AS n FROM bazar.sessions'))
+      .rows[0].n,
+    1,
+  );
+});
+
+test('F4 login rotates existing browser session and logout-all revokes only the verified owner', async (t) => {
+  const a = await authentication(t);
+  const r = await registered(a);
+  const other = await registered(a, '+380501234567');
+  await a.pool.query(
+    "UPDATE bazar.auth_rate_limits SET next_allowed_at=clock_timestamp()-interval '1 second'",
+  );
+  const challenge = await a.auth.challenge(
+    { phone: '+380671234567', intent: 'login' },
+    r.session.flow,
+    'client',
+  );
+  const login = await a.auth.verify(
+    {
+      challengeId: challenge.challengeId,
+      code: a.sent.get(challenge.challengeId)!.code,
+    },
+    r.session.flow,
+    'client',
+    r.session.token,
+  );
+  assert.equal(login.data.user.id, r.session.data.user.id);
+  await assert.rejects(a.auth.principal(r.session.token, r.session.flow), {
+    status: 401,
+  });
+  await a.pool.query(
+    "UPDATE bazar.auth_rate_limits SET next_allowed_at=clock_timestamp()-interval '1 second'",
+  );
+  const separateFlow = makeFlow(a.config),
+    secondChallenge = await a.auth.challenge(
+      { phone: '+380671234567', intent: 'login' },
+      separateFlow,
+      'second-browser',
+    );
+  const secondSession = await a.auth.verify(
+    {
+      challengeId: secondChallenge.challengeId,
+      code: a.sent.get(secondChallenge.challengeId)!.code,
+    },
+    separateFlow,
+    'second-browser',
+    '',
+  );
+  const owner = await a.auth.principal(login.token, login.flow);
+  await a.auth.revoke(owner, true);
+  await assert.rejects(
+    a.auth.principal(secondSession.token, secondSession.flow),
+    { status: 401 },
+  );
+  await assert.rejects(a.auth.principal(login.token, login.flow), {
+    status: 401,
+  });
+  assert.equal(
+    (await a.auth.principal(other.session.token, other.session.flow)).userId,
+    other.session.data.user.id,
+  );
+  const unknownFlow = makeFlow(a.config);
+  const unknown = await a.auth.challenge(
+    { phone: '+380931234567', intent: 'login' },
+    unknownFlow,
+    'client',
+  );
+  await assert.rejects(
+    a.auth.verify(
+      {
+        challengeId: unknown.challengeId,
+        code: a.sent.get(unknown.challengeId)!.code,
+      },
+      unknownFlow,
+      'client',
+      '',
+    ),
+    { status: 401 },
+  );
+  assert.equal(
+    (await a.pool.query('SELECT count(*)::int AS n FROM bazar.users')).rows[0]
+      .n,
+    2,
+  );
+});
+
+test('F4 durable client/global budgets survive service recreation; provider failure/timeout never issues usable OTP', async (t) => {
+  const a = await authentication(t, { challengeClientLimit: 2 });
+  for (const number of ['+380671234567', '+380501234567'])
+    await a.auth.challenge(
+      { phone: number, intent: 'login' },
+      makeFlow(a.config),
+      'same-client',
+    );
+  const another = createAuthService(a.pool, a.config, a.sms);
+  await assert.rejects(
+    another.challenge(
+      { phone: '+380931234567', intent: 'login' },
+      makeFlow(a.config),
+      'same-client',
+    ),
+    { status: 429 },
+  );
+  a.setFailure(true);
+  await assert.rejects(
+    a.auth.challenge(
+      { phone: '+380631234567', intent: 'login' },
+      makeFlow(a.config),
+      'different-client',
+    ),
+    { status: 503 },
+  );
+  a.setFailure(false);
+  a.setStall(true);
+  await assert.rejects(
+    a.auth.challenge(
+      { phone: '+380681234567', intent: 'login' },
+      makeFlow(a.config),
+      'different-client-2',
+    ),
+    { status: 503 },
+  );
+  const states = (
+    await a.pool.query(
+      "SELECT delivery_state,consumed_at FROM bazar.otp_challenges WHERE delivery_state='failed'",
+    )
+  ).rows;
+  assert.equal(states.length, 2);
+  assert.ok(states.every((r) => r.consumed_at));
+  assert.equal(
+    (await a.pool.query('SELECT count(*)::int AS n FROM bazar.sessions'))
+      .rows[0].n,
+    0,
+  );
+});
+
+test('F4 HTTP security: host cookies, pre-auth/session CSRF, origin, strict JSON, no identity spoofing or secret logs', async (t) => {
+  const a = await authentication(t);
+  const lines: string[] = [];
+  const app = createApiServer(
+    readConfig({ NODE_ENV: 'test', CORS_ORIGINS: a.config.publicOrigin }),
+    createLogger('info', (line) => lines.push(line)),
+    { isReady: async () => true, auth: a.auth },
+  );
+  app.server.listen(0, '127.0.0.1');
+  await once(app.server, 'listening');
+  t.after(() => app.shutdown());
+  const addr = app.server.address();
+  assert.ok(addr && typeof addr !== 'string');
+  const base = `http://127.0.0.1:${addr.port}`;
+  let jar = '',
+    csrfToken = '';
+  const call = async (
+    path: string,
+    body?: unknown,
+    headers: Record<string, string> = {},
+  ) => {
+    const r = await fetch(base + path, {
+      method: body === undefined ? 'GET' : 'POST',
+      headers: {
+        origin: a.config.publicOrigin,
+        cookie: jar,
+        'x-csrf-token': csrfToken,
+        ...(body === undefined ? {} : { 'content-type': 'application/json' }),
+        ...headers,
+      },
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    });
+    return { response: r, data: await r.json() };
+  };
+  const boot = await call('/api/v1/auth/csrf');
+  assert.equal(boot.response.status, 200);
+  jar = boot.response.headers.getSetCookie()[0].split(';')[0];
+  csrfToken = boot.data.data.csrfToken;
+  assert.match(
+    boot.response.headers.getSetCookie()[0],
+    /HttpOnly; Secure; SameSite=Strict/,
+  );
+  assert.equal(boot.response.headers.get('access-control-allow-origin'), null);
+  for (const headers of [
+    { 'x-csrf-token': '' },
+    { origin: 'https://evil.invalid' },
+    { 'sec-fetch-site': 'cross-site' },
+  ] as Record<string, string>[])
+    assert.equal(
+      (
+        await call(
+          '/api/v1/auth/otp/challenges',
+          { phone: '+380671234567', intent: 'register' },
+          headers,
+        )
+      ).response.status,
+      403,
+    );
+  assert.equal(
+    (
+      await call('/api/v1/auth/otp/challenges', {
+        phone: '+380671234567',
+        intent: 'register',
+        userId: randomUUID(),
+      })
+    ).response.status,
+    400,
+  );
+  assert.equal(
+    (
+      await call(
+        '/api/v1/auth/otp/challenges',
+        { phone: '+380671234567', intent: 'register' },
+        { 'content-type': 'text/plain' },
+      )
+    ).response.status,
+    400,
+  );
+  const challenge = await call('/api/v1/auth/otp/challenges', {
+    phone: '+380671234567',
+    intent: 'register',
+  });
+  assert.equal(challenge.response.status, 200);
+  assert.equal(challenge.data.data.delivery, 'test-only');
+  const retry = await call('/api/v1/auth/otp/challenges', {
+    phone: '+380671234567',
+    intent: 'register',
+  });
+  assert.equal(retry.response.status, 429);
+  assert.ok(Number(retry.response.headers.get('retry-after')) > 0);
+  const id = challenge.data.data.challengeId;
+  const code = a.sent.get(id)!.code;
+  assert.equal(
+    (
+      await call('/api/v1/auth/otp/verify', {
+        challengeId: id,
+        code,
+        profile: { firstName: 'Тест', lastName: 'Приклад', consent: false },
+      })
+    ).response.status,
+    400,
+  );
+  assert.equal(
+    (
+      await call('/api/v1/auth/otp/challenges', {
+        phone: '+380501234567',
+        intent: 'login',
+        padding: 'x'.repeat(5000),
+      })
+    ).response.status,
+    400,
+  );
+  const socket = createConnection({ host: '127.0.0.1', port: addr.port });
+  socket.on('error', () => {});
+  await once(socket, 'connect');
+  socket.write(
+    `POST /api/v1/auth/otp/challenges HTTP/1.1\r\nHost: local\r\nOrigin: ${a.config.publicOrigin}\r\nCookie: ${jar}\r\nX-CSRF-Token: ${csrfToken}\r\nContent-Type: application/json\r\nContent-Length: 100\r\n\r\n{`,
+  );
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  socket.destroy();
+  assert.equal((await fetch(base + '/health')).status, 200);
+  const verified = await call('/api/v1/auth/otp/verify', {
+    challengeId: id,
+    code,
+    profile: { firstName: 'Тест', lastName: 'Приклад', consent: true },
+  });
+  assert.equal(verified.response.status, 200);
+  const set = verified.response.headers.getSetCookie();
+  assert.equal(set.length, 2);
+  for (const value of set) {
+    assert.match(value, /^__Host-bazar-/);
+    assert.match(value, /Path=\//);
+    assert.match(value, /HttpOnly; Secure; SameSite=Strict/);
+    assert.doesNotMatch(value, /Domain=/);
+  }
+  assert.equal(
+    JSON.stringify(verified.data).includes(set[0].split(';')[0].split('=')[1]),
+    false,
+  );
+  const oldJar = jar,
+    oldCsrf = csrfToken;
+  jar = set.map((v) => v.split(';')[0]).join('; ');
+  csrfToken = verified.data.data.csrfToken;
+  const current = await call('/api/v1/users/me');
+  assert.equal(current.data.data.id, verified.data.data.user.id);
+  assert.equal(
+    (await call('/api/v1/users/me?userId=' + randomUUID())).response.status,
+    400,
+  );
+  assert.equal(
+    (await call('/api/v1/users/' + randomUUID())).response.status,
+    404,
+  );
+  assert.equal(
+    (
+      await call('/api/v1/auth/session', undefined, {
+        'x-user-id': randomUUID(),
+        authorization: 'Bearer invented',
+        cookie: '',
+      })
+    ).response.status,
+    401,
+  );
+  assert.equal(
+    (
+      await call('/api/v1/auth/session', undefined, {
+        cookie: jar + '; ' + jar.split(';')[0],
+      })
+    ).response.status,
+    403,
+  );
+  assert.equal((await call('/api/v1/cart')).response.status, 503); // No invented current-cart selection.
+  assert.equal(
+    (await call('/api/v1/auth/logout', {}, { 'x-csrf-token': oldCsrf }))
+      .response.status,
+    403,
+  );
+  assert.equal(
+    (
+      await call(
+        '/api/v1/auth/logout',
+        {},
+        { cookie: oldJar, 'x-csrf-token': oldCsrf },
+      )
+    ).response.status,
+    401,
+  );
+  const loggedOut = await call('/api/v1/auth/logout', {});
+  assert.equal(loggedOut.response.status, 200);
+  assert.ok(
+    loggedOut.response.headers
+      .getSetCookie()
+      .every((c) => c.includes('Max-Age=0')),
+  );
+  assert.equal((await call('/api/v1/auth/session')).response.status, 401);
+  a.setFailure(true);
+  const providerFailure = await call(
+    '/api/v1/auth/otp/challenges',
+    { phone: '+380501234567', intent: 'login' },
+    { 'x-forwarded-for': '203.0.113.9', 'x-real-ip': '203.0.113.9' },
+  );
+  assert.equal(providerFailure.response.status, 503);
+  assert.doesNotMatch(JSON.stringify(providerFailure.data), /provider-secret/);
+  assert.equal(
+    (
+      await a.pool.query(
+        "SELECT count(*)::int AS n FROM bazar.auth_rate_limits WHERE scope='challenge-client'",
+      )
+    ).rows[0].n,
+    1,
+  );
+  assert.doesNotMatch(
+    lines.join('\n'),
+    new RegExp(code + '|380671234567|' + csrfToken),
+  );
+});
+
+test('F4 expired sessions fail closed and persistent global verification budgets block brute force across clients', async (t) => {
+  const a = await authentication(t, { verifyGlobalLimit: 2 });
+  const r = await registered(a);
+  await a.pool.query(
+    "UPDATE bazar.sessions SET created_at=clock_timestamp()-interval '1 hour',expires_at=clock_timestamp()-interval '1 second'",
+  );
+  await assert.rejects(a.auth.principal(r.session.token, r.session.flow), {
+    status: 401,
+  });
+  for (const client of ['one', 'two']) {
+    const input = { challengeId: randomUUID(), code: '123456' };
+    await assert.rejects(a.auth.verify(input, makeFlow(a.config), client, ''), {
+      status: client === 'one' ? 401 : 429,
+    });
+  }
+  assert.equal(
+    (
+      await a.pool.query(
+        'SELECT count(*)::int AS n FROM bazar.sessions WHERE revoked_at IS NULL AND expires_at>clock_timestamp()',
+      )
+    ).rows[0].n,
+    0,
+  );
+});
+
+test('F4 authentication works under restricted table grants without DDL, cart or financial access', async (t) => {
+  const a = await authentication(t);
+  const role = `bazar_auth_${randomBytes(8).toString('hex')}`,
+    password = randomBytes(32).toString('hex');
+  const ddl = (
+    await a.pool.query(
+      "SELECT format('CREATE ROLE %I LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE PASSWORD %L',$1::text,$2::text) AS sql",
+      [role, password],
+    )
+  ).rows[0].sql;
+  await a.pool.query(ddl);
+  await a.pool.query(`GRANT USAGE ON SCHEMA bazar,bazar_meta TO "${role}"`);
+  await a.pool.query(
+    `GRANT SELECT ON bazar_meta.schema_migrations TO "${role}"`,
+  );
+  await a.pool.query(
+    `GRANT SELECT,INSERT ON bazar.users,bazar.auth_phone_identities TO "${role}"`,
+  );
+  await a.pool.query(
+    `GRANT SELECT,INSERT,UPDATE ON bazar.otp_challenges,bazar.sessions,bazar.auth_rate_limits TO "${role}"`,
+  );
+  const url = new URL(a.url);
+  url.username = role;
+  url.password = password;
+  const limited = createDatabase({
+    ...readDatabaseConfig({ DATABASE_URL: url.toString(), NODE_ENV: 'test' })!,
+    requireRestrictedRole: true,
+  });
+  try {
+    assert.equal(await limited.check(), true);
+    const auth = createAuthService(limited.pool, a.config, a.sms),
+      flow = makeFlow(a.config);
+    const challenge = await auth.challenge(
+      { phone: '+380671234567', intent: 'register' },
+      flow,
+      'client',
+    );
+    const session = await auth.verify(
+      {
+        challengeId: challenge.challengeId,
+        code: a.sent.get(challenge.challengeId)!.code,
+        profile: {
+          firstName: 'Синтетичний',
+          lastName: 'Приклад',
+          consent: true,
+        },
+      },
+      flow,
+      'client',
+      '',
+    );
+    const principal = await auth.principal(session.token, session.flow);
+    await auth.revoke(principal, true);
+    await assert.rejects(auth.principal(session.token, session.flow), {
+      status: 401,
+    });
+    for (const sql of [
+      'SELECT * FROM bazar.carts',
+      'SELECT * FROM bazar.payment_attempts',
+      'TRUNCATE bazar.sessions',
+      'CREATE TABLE bazar.forbidden(id integer)',
+    ])
+      await assert.rejects(limited.pool.query(sql), { code: '42501' });
+  } finally {
+    await limited.close();
+    await a.pool.query(`DROP OWNED BY "${role}"`);
+    await a.pool.query(`DROP ROLE "${role}"`);
+  }
+});
+
+test('F4 rejects weak/missing policy, shared keys, provider impersonation and non-test HTTP composition',async(t)=>{
+  const a=await authentication(t);
+  assert.throws(()=>createAuthService(a.pool,{...a.config,otpKey:a.config.phoneKey},a.sms),/key configuration/);
+  assert.throws(()=>createAuthService(a.pool,{...a.config,policy:{...a.config.policy,otpAttempts:0}},a.sms),/policy/);
+  assert.throws(()=>createAuthService(a.pool,{...a.config,policy:{...a.config.policy,verifyClientLimit:undefined} as never},a.sms),/policy/);
+  assert.throws(()=>createAuthService(a.pool,a.config,{...a.sms,kind:'provider'}),{status:503});
+  assert.throws(()=>createApiServer(readConfig({NODE_ENV:'production',CORS_ORIGINS:''}),createLogger('error',()=>{}),{auth:a.auth}),/isolated test server/);
+  assert.equal(a.sent.size,0);
+});
+
+test('F4 typed storefront adapter completes isolated registration/session/revocation against real HTTP and PostgreSQL',async(t)=>{
+  const a=await authentication(t);
+  const app=createApiServer(readConfig({NODE_ENV:'test'}),createLogger('error',()=>{}),{auth:a.auth,isReady:async()=>true});
+  app.server.listen(0,'127.0.0.1');await once(app.server,'listening');t.after(()=>app.shutdown());
+  const address=app.server.address();assert.ok(address&&typeof address!=='string');let jar='';
+  const client=createServerAuthClient(async(path,init)=>{
+    assert.equal(init?.credentials,'same-origin');const headers=new Headers(init?.headers);headers.set('origin',a.config.publicOrigin);headers.set('cookie',jar);
+    const response=await fetch(`http://127.0.0.1:${address.port}${path}`,{...init,headers});
+    const set=response.headers.getSetCookie();if(set.length)jar=set.map(c=>c.split(';')[0]).join('; ');return response;
+  });
+  await client.bootstrap();const challenge=await client.start({phone:'+380671234567',intent:'register'});
+  const session=await client.verify({challengeId:challenge.challengeId,code:a.sent.get(challenge.challengeId)!.code,profile:{firstName:'Синтетичний',lastName:'Приклад',consent:true}});
+  assert.equal(session.mode,'test-only');assert.equal((await client.getCurrentUser()).id,session.user.id);
+  assert.equal((await client.getSession()).user.id,session.user.id);await client.logout(true);
+  await assert.rejects(client.getSession(),{code:'http-error',status:401});
 });

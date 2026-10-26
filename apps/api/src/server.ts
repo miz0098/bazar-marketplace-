@@ -1,3 +1,6 @@
+import { authPaths, handleAuth, authorize } from './auth/http.js';
+import { RateLimitError } from './auth/rate-limit.js';
+import type { AuthService } from './auth/service.js';
 import { parseCatalogQuery, type Catalog } from './business/catalog.js';
 import { invalid, uuid } from './business/validation.js';
 import { randomUUID } from 'node:crypto';
@@ -23,7 +26,8 @@ function validateBody(request: IncomingMessage, response: ServerResponse) {
   }
 }
 
-export function createApiServer(config: ApiConfig, logger: Logger, dependencies: { isReady?: () => boolean | Promise<boolean>; catalog?: Catalog } = {}) {
+export function createApiServer(config: ApiConfig, logger: Logger, dependencies: { isReady?: () => boolean | Promise<boolean>; catalog?: Catalog; auth?: AuthService } = {}) {
+  if (dependencies.auth && config.environment !== 'test') throw new Error('Test authentication cannot be registered outside an isolated test server');
   let draining = false;
   const server = createServer({ maxHeaderSize: 16384, headersTimeout: 10000, requestTimeout: 15000, keepAliveTimeout: 5000 }, async (request, response) => {
     const requestId = randomUUID();
@@ -37,6 +41,12 @@ export function createApiServer(config: ApiConfig, logger: Logger, dependencies:
       if (!request.url?.startsWith('/') || request.url.startsWith('//')) throw new ApiError(400, 'INVALID_REQUEST', 'Invalid request target.');
       let url: URL;
       try { decodeURIComponent(request.url); url = new URL(request.url, 'http://api.invalid'); } catch { throw new ApiError(400, 'INVALID_REQUEST', 'Invalid request target.'); }
+      if (authPaths.some(path=>path===url.pathname)) {
+        route='/api/v1/auth';
+        if(draining || (dependencies.auth && (!dependencies.isReady || !await dependencies.isReady()))) throw new ApiError(503,'SERVICE_UNAVAILABLE','Authentication is unavailable.');
+        const data=await handleAuth(request,response,url,dependencies.auth);
+        reply(response,method,200,{ok:true,data,meta:{requestId}});return;
+      }
       const catalogRoute = url.pathname === '/api/v1/products' || /^\/api\/v1\/products\/[^/]+$/.test(url.pathname) ? '/api/v1/products' : url.pathname === '/api/v1/categories' ? '/api/v1/categories' : undefined;
       const cartRoute = url.pathname === '/api/v1/cart' || url.pathname.startsWith('/api/v1/cart/');
       const matched = routes.find((item) => item === url.pathname) ?? catalogRoute ?? (cartRoute ? '/api/v1/cart' : undefined);
@@ -47,8 +57,8 @@ export function createApiServer(config: ApiConfig, logger: Logger, dependencies:
         response.setHeader('access-control-allow-origin', origin);
         response.setHeader('access-control-expose-headers', 'X-Request-Id');
       }
-      // No principal resolver exists. Fail closed without consulting caller-provided identity.
-      if (cartRoute) { request.resume(); response.setHeader('connection', 'close'); throw new ApiError(401, 'AUTH_REQUIRED', 'Verified authentication is required; cart API is not enabled.'); }
+      // Sessions can prove ownership, but current-cart creation/selection policy is still unapproved.
+      if (cartRoute) { request.resume(); response.setHeader('connection', 'close'); if(dependencies.auth) { await authorize(request,dependencies.auth,method!=='GET'&&method!=='HEAD'); throw new ApiError(503,'SERVICE_UNAVAILABLE','Current-cart selection is not configured.'); } throw new ApiError(401, 'AUTH_REQUIRED', 'Verified authentication is required; cart API is not enabled.'); }
       validateBody(request, response);
       if (!matched) throw new ApiError(404, 'NOT_FOUND', 'Route not found.');
       if (!catalogRoute && url.search) throw new ApiError(400, 'INVALID_REQUEST', 'This endpoint does not accept query parameters.');
@@ -94,7 +104,9 @@ export function createApiServer(config: ApiConfig, logger: Logger, dependencies:
     } catch (reason) {
       const error = reason instanceof ApiError ? reason : new ApiError(500, 'INTERNAL_ERROR', 'An unexpected error occurred.');
       code = error.code;
-      if (error.status === 405) response.setHeader('allow', 'GET, HEAD, OPTIONS');
+      if(error instanceof RateLimitError)response.setHeader('retry-after',String(error.retryAfterSeconds));
+      if(request.headers['content-length'] || request.headers['transfer-encoding']) { request.resume(); response.setHeader('connection','close'); }
+      if (error.status === 405 && !response.hasHeader('allow')) response.setHeader('allow', 'GET, HEAD, OPTIONS');
       reply(response, method, error.status, { ok: false, error: { code: error.code, message: error.message }, meta: { requestId } });
     }
   });

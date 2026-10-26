@@ -1,5 +1,7 @@
 # PostgreSQL architecture — Phase F2 foundation
 
+Phase F4 adds immutable migration 0004: phone HMAC identities, persistent abuse budgets, challenge flow/intent/delivery metadata and session CSRF binding. No plaintext phone/code/token or production data is added. See [ADR 0004](adr/0004-server-auth-foundation.md).
+
 Phase F3 update: migration 0003 adds the simple-token catalog search GIN index. Public catalog handlers now read products/categories/variants; cart persistence is internal and HTTP remains authentication-blocked. See [ADR 0003](adr/0003-catalog-cart-boundaries.md). Historical F2 privileges below are extended by the explicit read-only catalog grants at the end.
 
 Historical F2 baseline: Phase F2 implements the reviewed technical schema in `apps/api/migrations`, an explicit migration runner, a bounded `pg` pool and database-aware readiness. All business HTTP routes remain absent and the storefront stays on mocks. The local [Compose file](../infra/postgres/compose.yaml) binds only 127.0.0.1; the separate [test Compose file](../infra/postgres/compose.test.yaml) uses a random loopback port, generated credentials and tmpfs. No hosted database or real data is used.
@@ -98,3 +100,9 @@ GRANT SELECT ON bazar.products, bazar.categories, bazar.variants TO bazar_api;
 ```
 
 Integration tests verify catalog reads with those restricted credentials and deny cart reads and price writes. Do not grant cart/user/session/financial access to the catalog runtime. Internal cart tests run with disposable test-owner credentials; no production cart role or session policy is activated. Existing migrations 0001/0002 remain immutable. The suite now upgrades 0001 through 0003 and rehearses repeat/concurrent execution and failed next migration rollback.
+
+## Phase F4 auth data and privilege boundary
+
+0004 is additive; 0001–0003 checksums stay unchanged. Existing OTP/session rows with null new metadata cannot authenticate. No automatic migration, import, key, role password or provider configuration is added. Rate-window keys are HMAC pseudonyms and still require a retention policy before production. Unique phone-digest identity creation and session/OTP updates happen transactionally. Contacts are not recoverable from a phone digest; production key migration/recovery needs owner review.
+
+Isolated auth tests need schema USAGE plus SELECT/INSERT on users and auth_phone_identities, and SELECT/INSERT/UPDATE on otp_challenges, sessions and auth_rate_limits. No DELETE/TRUNCATE/DDL/financial/cart access is required. These are test-role requirements, not instructions to grant production auth access before provider/security approval. Catalog-only credentials must retain their existing denial of auth tables. Tests verify this boundary. Production migration execution remains blocked on the approved release process.

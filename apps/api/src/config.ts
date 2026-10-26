@@ -18,6 +18,7 @@ function integer(value: string, name: string, minimum: number, maximum: number):
 
 /** Error messages contain names only, never rejected environment values. */
 export function readConfig(env: Readonly<Record<string, string | undefined>>): ApiConfig {
+  if (env.AUTH_MODE !== undefined && env.AUTH_MODE !== 'disabled') throw new Error('AUTH_MODE requires an approved live SMS integration; test adapters are not runtime configuration');
   const environment = env.NODE_ENV ?? 'development';
   if (!['development', 'test', 'production'].includes(environment)) throw new Error('Invalid NODE_ENV');
   const host = env.HOST ?? '127.0.0.1';
