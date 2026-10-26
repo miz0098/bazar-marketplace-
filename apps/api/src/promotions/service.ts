@@ -37,7 +37,7 @@ const moneyDto = (amountMinor: number) => ({
   amountMinor,
   currency: 'UAH' as const,
 });
-async function quote(
+export async function evaluatePromotionInTransaction(
   client: pg.PoolClient,
   actor: string,
   input: PromotionPricingInput,
@@ -172,7 +172,7 @@ export function createPromotionService(pool: pg.Pool) {
         client = await pool.connect();
       try {
         await client.query('BEGIN');
-        const result = await quote(client, actor, input, 'SHARE');
+        const result = await evaluatePromotionInTransaction(client, actor, input, 'SHARE');
         await client.query('COMMIT');
         return result;
       } catch (error) {
@@ -243,7 +243,7 @@ export function createPromotionService(pool: pg.Pool) {
             replayed: true,
           };
         }
-        const result = await quote(client, actor, input, 'UPDATE');
+        const result = await evaluatePromotionInTransaction(client, actor, input, 'UPDATE');
         if (result.pricingFingerprint !== expectedFingerprint) throw changed();
         const row = (
           await client.query(

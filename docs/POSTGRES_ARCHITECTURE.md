@@ -1,5 +1,7 @@
 # PostgreSQL architecture — Phase F2 foundation
 
+Phase F6 adds migration 0006: owned checkout drafts, immutable checkout/order snapshots and request keys, with aggregate/link constraints and explicit integration-mode/provider guards. Previous migrations and legacy rows are preserved. See [ADR 0006](adr/0006-orders-checkout-foundation.md).
+
 Phase F5 adds immutable migration 0005 for promotions, eligible products and immutable integration-only usage claims, including global/per-owner cap checks under a campaign lock. No real campaign/order/payment/redemption or automatic migration is created. See [ADR 0005](adr/0005-promotions-pricing-foundation.md).
 
 Phase F4 adds immutable migration 0004: phone HMAC identities, persistent abuse budgets, challenge flow/intent/delivery metadata and session CSRF binding. No plaintext phone/code/token or production data is added. See [ADR 0004](adr/0004-server-auth-foundation.md).

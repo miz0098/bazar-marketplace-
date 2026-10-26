@@ -5,7 +5,7 @@ import { integer, money, uuid } from './validation.js';
 const conflict = (message: string): never => {
   throw new ApiError(409, 'CONFLICT', message);
 };
-async function read(
+export async function readCartInTransaction(
   c: pg.PoolClient,
   cartId: string,
   userId: string,
@@ -56,7 +56,7 @@ export function createCartRepository(pool: pg.Pool) {
       const c = await pool.connect();
       try {
         await c.query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');
-        const cart = await read(c, cartId, userId, false);
+        const cart = await readCartInTransaction(c, cartId, userId, false);
         await c.query('COMMIT');
         return cart;
       } catch (e) {
@@ -138,7 +138,7 @@ export function createCartRepository(pool: pg.Pool) {
           'UPDATE bazar.carts SET version=version+1 WHERE id=$1 AND user_id=$2',
           [cartId, userId],
         );
-        const result = await read(
+        const result = await readCartInTransaction(
           c,
           cartId,
           userId,
