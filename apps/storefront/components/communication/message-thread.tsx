@@ -19,6 +19,7 @@ export function MessageThread({ messages, title, closed = false, attachments = f
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
+  const sendingRef = useRef(false);
 
   useEffect(() => {
     const history = historyRef.current;
@@ -31,11 +32,12 @@ export function MessageThread({ messages, title, closed = false, attachments = f
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (busy || closed) return;
+    if (sendingRef.current || closed) return;
     const validation = validateMessage(text, attachment);
     setError(validation);
     setNotice('');
     if (validation) { inputRef.current?.focus(); return; }
+    sendingRef.current = true;
     setBusy(true);
     try {
       await onSend(text, attachment);
@@ -46,6 +48,7 @@ export function MessageThread({ messages, title, closed = false, attachments = f
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Демо-дію не виконано. Спробуйте ще раз.');
     } finally {
+      sendingRef.current = false;
       setBusy(false);
     }
   };

@@ -1,3 +1,5 @@
+import {isCommunicationPath,handleCommunication} from './communication/http.js';
+import type {CommunicationService} from './communication/service.js';
 import {isCustomerPath,handleCustomer} from './customer/http.js';
 import type {CustomerService} from './customer/service.js';
 import { isCartPath, handleCart } from './cart/http.js';
@@ -38,7 +40,7 @@ function validateBody(request: IncomingMessage, response: ServerResponse) {
   }
 }
 
-export function createApiServer(config: ApiConfig, logger: Logger, dependencies: { isReady?: () => boolean | Promise<boolean>; catalog?: Catalog; auth?: AuthService; promotions?: PromotionService; checkout?: CheckoutBusinessService; shipping?: ShippingService; payments?: PaymentService; currentCart?: CurrentCartService; customer?:CustomerService } = {}) {
+export function createApiServer(config: ApiConfig, logger: Logger, dependencies: { isReady?: () => boolean | Promise<boolean>; catalog?: Catalog; auth?: AuthService; promotions?: PromotionService; checkout?: CheckoutBusinessService; shipping?: ShippingService; payments?: PaymentService; currentCart?: CurrentCartService; customer?:CustomerService; communication?:CommunicationService } = {}) {
   if (dependencies.auth && config.environment !== 'test') throw new Error('Test authentication cannot be registered outside an isolated test server');
   if (dependencies.promotions && config.environment !== 'test') throw new Error('Promotion integration cannot be registered outside a test server');
   if (dependencies.checkout && config.environment !== 'test') throw new Error('Checkout integration cannot be registered outside a test server');
@@ -46,6 +48,7 @@ export function createApiServer(config: ApiConfig, logger: Logger, dependencies:
   if (dependencies.payments && config.environment !== 'test') throw new Error('Payment integration cannot be registered outside a test server');
   if (dependencies.currentCart && config.environment !== 'test') throw new Error('Current cart integration cannot be registered outside a test server');
   if(dependencies.customer&&config.environment!=='test')throw new Error('Customer integration cannot be registered outside a test server');
+  if(dependencies.communication&&config.environment!=='test')throw new Error('Communication integration cannot be registered outside a test server');
   let draining = false;
   const server = createServer({ maxHeaderSize: 16384, headersTimeout: 10000, requestTimeout: 15000, keepAliveTimeout: 5000 }, async (request, response) => {
     const requestId = randomUUID();
@@ -59,6 +62,11 @@ export function createApiServer(config: ApiConfig, logger: Logger, dependencies:
       if (!request.url?.startsWith('/') || request.url.startsWith('//')) throw new ApiError(400, 'INVALID_REQUEST', 'Invalid request target.');
       let url: URL;
       try { decodeURIComponent(request.url); url = new URL(request.url, 'http://api.invalid'); } catch { throw new ApiError(400, 'INVALID_REQUEST', 'Invalid request target.'); }
+      if(isCommunicationPath(url.pathname)){
+        route='/api/v1/communication';
+        if(draining||(dependencies.communication&&(!dependencies.isReady||!await dependencies.isReady())))throw new ApiError(503,'SERVICE_UNAVAILABLE','Communication foundation is unavailable.');
+        const data=await handleCommunication(request,response,url,dependencies.auth,dependencies.communication);reply(response,method,200,{ok:true,data,meta:{requestId}});return;
+      }
       if(isCustomerPath(url.pathname)){
         route='/api/v1/customer';
         if(draining||(dependencies.customer&&(!dependencies.isReady||!await dependencies.isReady())))throw new ApiError(503,'SERVICE_UNAVAILABLE','Customer foundation is unavailable.');

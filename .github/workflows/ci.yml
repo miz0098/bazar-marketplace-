@@ -63,6 +63,23 @@ jobs:
         working-directory: apps/storefront
       - run: npm ci
         working-directory: tests/e2e
+      - name: Use official HTTPS Ubuntu mirrors for browser dependencies
+        run: |
+          sudo python3 - <<'PYTHON'
+          from pathlib import Path
+          for name in ('/etc/apt/apt-mirrors.txt', '/etc/apt/apt-mirrors-security.txt'):
+              path = Path(name)
+              if path.is_file():
+                  text = path.read_text()
+                  for old, new in (
+                      ('http://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu'),
+                      ('https://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu'),
+                      ('http://archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu'),
+                      ('http://security.ubuntu.com/ubuntu', 'https://security.ubuntu.com/ubuntu'),
+                  ):
+                      text = text.replace(old, new)
+                  path.write_text(text)
+          PYTHON
       - run: npx playwright install --with-deps chromium
         working-directory: tests/e2e
       - run: npm run build

@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "BAZAR API",
-    "version": "1.8.0",
-    "description": "PostgreSQL catalog and test-isolated server authentication foundation. Runtime SMS authentication is unavailable (503) pending approved provider, keys, security policy and rollout. F9 approves one active cart/user, explicit creation, local guest cart with no merge; live activation remains blocked on production SMS/security rollout. F5 adds isolated exact-integer promotion evaluation; no real redemption/checkout activation. F6 adds isolated three-step checkout and immutable pending integration orders; no live placement/provider operation. F7 adds isolated shipping directories, selections, expiring estimates and final transaction freshness guards. Live carrier contracts/transports remain disabled. F8 adds isolated provider-neutral payment protocol/security and Ukrposhta delivery; no real financial/provider activation. F9 adds verified-session current-cart HTTP and linked isolated checkout confirmation; no production orders or paid-order claims. F12 adds isolated owned wishlist, name-only profile and opaque address operations plus explicitly policy-gated private reviews. No real PII/provider/publication activation."
+    "version": "1.9.0",
+    "description": "PostgreSQL catalog and test-isolated server authentication foundation. Runtime SMS authentication is unavailable (503) pending approved provider, keys, security policy and rollout. F9 approves one active cart/user, explicit creation, local guest cart with no merge; live activation remains blocked on production SMS/security rollout. F5 adds isolated exact-integer promotion evaluation; no real redemption/checkout activation. F6 adds isolated three-step checkout and immutable pending integration orders; no live placement/provider operation. F7 adds isolated shipping directories, selections, expiring estimates and final transaction freshness guards. Live carrier contracts/transports remain disabled. F8 adds isolated provider-neutral payment protocol/security and Ukrposhta delivery; no real financial/provider activation. F9 adds verified-session current-cart HTTP and linked isolated checkout confirmation; no production orders or paid-order claims. F12 adds isolated owned wishlist, name-only profile and opaque address operations plus explicitly policy-gated private reviews. No real PII/provider/publication activation. F13 adds isolated membership-authorized chat history, idempotent support and notification inbox contracts. No real staff, channels, files or production activation."
   },
   "servers": [
     {
@@ -6257,6 +6257,1954 @@
           }
         ]
       }
+    },
+    "/api/v1/communication/conversations": {
+      "get": {
+        "operationId": "listOwnedConversations",
+        "description": "Isolated test server only; ordinary runtime returns 503. F4 verified session and exact same-origin checks required. No staff/CRM/upload or external delivery activation.",
+        "responses": {
+          "200": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommunicationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ]
+      },
+      "head": {
+        "operationId": "headOwnedConversations",
+        "description": "Isolated test server only; ordinary runtime returns 503. F4 verified session and exact same-origin checks required. No staff/CRM/upload or external delivery activation.",
+        "responses": {
+          "200": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommunicationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ]
+      }
+    },
+    "/api/v1/communication/tickets": {
+      "get": {
+        "operationId": "listOwnedTickets",
+        "description": "Isolated test server only; ordinary runtime returns 503. F4 verified session and exact same-origin checks required. No staff/CRM/upload or external delivery activation.",
+        "responses": {
+          "200": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommunicationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ]
+      },
+      "head": {
+        "operationId": "headOwnedTickets",
+        "description": "Isolated test server only; ordinary runtime returns 503. F4 verified session and exact same-origin checks required. No staff/CRM/upload or external delivery activation.",
+        "responses": {
+          "200": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommunicationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "createIsolatedTicket",
+        "description": "Isolated test server only; ordinary runtime returns 503. F4 verified session and exact same-origin checks required. No staff/CRM/upload or external delivery activation.",
+        "responses": {
+          "200": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommunicationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommunicationTicketInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/communication/notifications": {
+      "get": {
+        "operationId": "listOwnedNotifications",
+        "description": "Isolated test server only; ordinary runtime returns 503. F4 verified session and exact same-origin checks required. No staff/CRM/upload or external delivery activation.",
+        "responses": {
+          "200": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommunicationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "before",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "description": "Exclusive global sequence cursor; fetch older history."
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          }
+        ]
+      },
+      "head": {
+        "operationId": "headOwnedNotifications",
+        "description": "Isolated test server only; ordinary runtime returns 503. F4 verified session and exact same-origin checks required. No staff/CRM/upload or external delivery activation.",
+        "responses": {
+          "200": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommunicationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "before",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "description": "Exclusive global sequence cursor; fetch older history."
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/communication/conversations/{id}/messages": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getConversationsHistory",
+        "description": "Isolated test server only; ordinary runtime returns 503. F4 verified session and exact same-origin checks required. No staff/CRM/upload or external delivery activation.",
+        "responses": {
+          "200": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommunicationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "before",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "description": "Exclusive global sequence cursor; fetch older history."
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          }
+        ]
+      },
+      "head": {
+        "operationId": "headConversationsHistory",
+        "description": "Isolated test server only; ordinary runtime returns 503. F4 verified session and exact same-origin checks required. No staff/CRM/upload or external delivery activation.",
+        "responses": {
+          "200": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommunicationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "before",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "description": "Exclusive global sequence cursor; fetch older history."
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "appendConversationsMessage",
+        "description": "Isolated test server only; ordinary runtime returns 503. F4 verified session and exact same-origin checks required. No staff/CRM/upload or external delivery activation.",
+        "responses": {
+          "200": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommunicationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommunicationSendInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/communication/tickets/{id}/messages": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getTicketsHistory",
+        "description": "Isolated test server only; ordinary runtime returns 503. F4 verified session and exact same-origin checks required. No staff/CRM/upload or external delivery activation.",
+        "responses": {
+          "200": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommunicationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "before",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "description": "Exclusive global sequence cursor; fetch older history."
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          }
+        ]
+      },
+      "head": {
+        "operationId": "headTicketsHistory",
+        "description": "Isolated test server only; ordinary runtime returns 503. F4 verified session and exact same-origin checks required. No staff/CRM/upload or external delivery activation.",
+        "responses": {
+          "200": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommunicationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "before",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "description": "Exclusive global sequence cursor; fetch older history."
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "appendTicketsMessage",
+        "description": "Isolated test server only; ordinary runtime returns 503. F4 verified session and exact same-origin checks required. No staff/CRM/upload or external delivery activation.",
+        "responses": {
+          "200": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommunicationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommunicationSendInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/communication/conversations/{id}/pin": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "put": {
+        "operationId": "setConversationsPin",
+        "description": "Isolated test server only; ordinary runtime returns 503. F4 verified session and exact same-origin checks required. No staff/CRM/upload or external delivery activation.",
+        "responses": {
+          "200": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommunicationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommunicationPinInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/communication/conversations/{id}/read": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "put": {
+        "operationId": "setConversationsRead",
+        "description": "Isolated test server only; ordinary runtime returns 503. F4 verified session and exact same-origin checks required. No staff/CRM/upload or external delivery activation.",
+        "responses": {
+          "200": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommunicationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommunicationReadInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/communication/notifications/{id}/read": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "put": {
+        "operationId": "setNotificationsRead",
+        "description": "Isolated test server only; ordinary runtime returns 503. F4 verified session and exact same-origin checks required. No staff/CRM/upload or external delivery activation.",
+        "responses": {
+          "200": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommunicationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Private JSON envelope; HEAD has no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [],
+                "properties": {}
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -9788,6 +11736,573 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 2000
+          }
+        }
+      },
+      "CommunicationSendInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "clientMessageId",
+          "body"
+        ],
+        "properties": {
+          "clientMessageId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        }
+      },
+      "CommunicationTicketInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "clientRequestId",
+          "subject",
+          "category",
+          "body"
+        ],
+        "properties": {
+          "clientRequestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "subject": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 120
+          },
+          "category": {
+            "enum": [
+              "delivery",
+              "payment",
+              "other"
+            ]
+          },
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        }
+      },
+      "CommunicationPinInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "pinned"
+        ],
+        "properties": {
+          "pinned": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CommunicationReadInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "lastMessageId"
+        ],
+        "properties": {
+          "lastMessageId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "CommunicationMessage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "sequence",
+          "author",
+          "body",
+          "createdAt",
+          "clientMessageId"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "author": {
+            "enum": [
+              "self",
+              "member"
+            ]
+          },
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "clientMessageId": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "CommunicationConversation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "pinned",
+          "unread",
+          "lastReadSequence",
+          "lastSequence",
+          "preview",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "pinned": {
+            "type": "boolean"
+          },
+          "unread": {
+            "type": "boolean"
+          },
+          "lastReadSequence": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "lastSequence": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "preview": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CommunicationTicket": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "subject",
+          "category",
+          "status",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "subject": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 120
+          },
+          "category": {
+            "enum": [
+              "delivery",
+              "payment",
+              "other"
+            ]
+          },
+          "status": {
+            "enum": [
+              "open",
+              "waiting",
+              "closed"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CommunicationNotification": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "sequence",
+          "kind",
+          "sourceId",
+          "scopeId",
+          "read",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "kind": {
+            "enum": [
+              "order.created",
+              "order.status_changed",
+              "message.created",
+              "support.replied",
+              "order.cancelled",
+              "refund.completed"
+            ]
+          },
+          "sourceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "scopeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "read": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FutureNotificationEvent": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "version",
+          "eventId",
+          "kind",
+          "recipientId",
+          "sourceId",
+          "scopeId",
+          "occurredAt"
+        ],
+        "properties": {
+          "version": {
+            "const": 1
+          },
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "enum": [
+              "order.created",
+              "order.status_changed",
+              "message.created",
+              "support.replied",
+              "order.cancelled",
+              "refund.completed"
+            ]
+          },
+          "recipientId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sourceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "scopeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CommunicationConversationsView": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "mode",
+          "resource",
+          "scopeId",
+          "items",
+          "nextBefore",
+          "unreadChats"
+        ],
+        "properties": {
+          "mode": {
+            "const": "integration-test"
+          },
+          "resource": {
+            "const": "conversations"
+          },
+          "scopeId": {
+            "type": "null"
+          },
+          "items": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/CommunicationConversation"
+            }
+          },
+          "nextBefore": {
+            "type": "null"
+          },
+          "unreadChats": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        }
+      },
+      "CommunicationMessagesView": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "mode",
+          "resource",
+          "scopeId",
+          "items",
+          "nextBefore",
+          "unreadChats"
+        ],
+        "properties": {
+          "mode": {
+            "const": "integration-test"
+          },
+          "resource": {
+            "const": "messages"
+          },
+          "scopeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "items": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/CommunicationMessage"
+            }
+          },
+          "nextBefore": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "unreadChats": {
+            "type": "null"
+          }
+        }
+      },
+      "CommunicationRepliesView": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "mode",
+          "resource",
+          "scopeId",
+          "items",
+          "nextBefore",
+          "unreadChats"
+        ],
+        "properties": {
+          "mode": {
+            "const": "integration-test"
+          },
+          "resource": {
+            "const": "replies"
+          },
+          "scopeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "items": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/CommunicationMessage"
+            }
+          },
+          "nextBefore": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "unreadChats": {
+            "type": "null"
+          }
+        }
+      },
+      "CommunicationTicketsView": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "mode",
+          "resource",
+          "scopeId",
+          "items",
+          "nextBefore",
+          "unreadChats"
+        ],
+        "properties": {
+          "mode": {
+            "const": "integration-test"
+          },
+          "resource": {
+            "const": "tickets"
+          },
+          "scopeId": {
+            "type": "null"
+          },
+          "items": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/CommunicationTicket"
+            }
+          },
+          "nextBefore": {
+            "type": "null"
+          },
+          "unreadChats": {
+            "type": "null"
+          }
+        }
+      },
+      "CommunicationNotificationsView": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "mode",
+          "resource",
+          "scopeId",
+          "items",
+          "nextBefore",
+          "unreadChats"
+        ],
+        "properties": {
+          "mode": {
+            "const": "integration-test"
+          },
+          "resource": {
+            "const": "notifications"
+          },
+          "scopeId": {
+            "type": "null"
+          },
+          "items": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/CommunicationNotification"
+            }
+          },
+          "nextBefore": {
+            "oneOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "unreadChats": {
+            "type": "null"
+          }
+        }
+      },
+      "CommunicationView": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/CommunicationConversationsView"
+          },
+          {
+            "$ref": "#/components/schemas/CommunicationMessagesView"
+          },
+          {
+            "$ref": "#/components/schemas/CommunicationRepliesView"
+          },
+          {
+            "$ref": "#/components/schemas/CommunicationTicketsView"
+          },
+          {
+            "$ref": "#/components/schemas/CommunicationNotificationsView"
+          }
+        ],
+        "description": "Test-only private state. History pages arrive oldest-to-newest; nextBefore is exclusive and fetches an older page. Conversation lists are pinned-first, then latest sequence, then ID. unreadChats counts conversations, never messages. No delivery status is asserted. Lists above 100 fail 503."
+      },
+      "CommunicationResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ok",
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/CommunicationView"
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "requestId"
+            ],
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
           }
         }
       }

@@ -357,7 +357,7 @@
     {
       "id": "CUSTOMER-001",
       "title": "Complete persistent demo wishlist and isolated customer account foundation",
-      "status": "in_review",
+      "status": "done",
       "readiness": "integration",
       "depends_on": [
         "FRONT-001"
@@ -382,6 +382,36 @@
       ],
       "pr": 23,
       "blocker": "Production SMS/BFF/security, PII encryption/retention, confirmed-purchase/moderation/edit/delete rules and real account/server rollout remain unapproved."
+    },
+    {
+      "id": "COMM-001",
+      "title": "Complete demo communication and isolated owned messaging support notification foundation",
+      "status": "in_review",
+      "readiness": "integration",
+      "depends_on": [
+        "CUSTOMER-001"
+      ],
+      "allowed_paths": [
+        ".github/workflows/ci.yml",
+        "apps/api/",
+        "apps/storefront/",
+        "tests/e2e/",
+        "docs/",
+        "ARCHITECTURE.md",
+        "MIGRATION_PLAN.md",
+        "FUNCTIONAL_GAP_AUDIT.md",
+        "DEMO_READINESS_CHECKLIST.md",
+        "DEMO_COMPLETION_PLAN.md",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Preserve approved E2 screens with bounded demo read/send/search/pin/error and duplicate-submit coverage",
+        "Isolated PostgreSQL HTTP enforces membership ownership CSRF idempotency pagination and monotonic reads",
+        "Notification contracts distinguish test inbox records from blocked production events and channels",
+        "All regression security accessibility governance and audit checks pass without production activation"
+      ],
+      "pr": 24,
+      "blocker": "Production auth/BFF, staff and seller membership/CRM rules, privacy/encryption/retention, channels/consent/outbox and secure upload are unapproved."
     }
   ]
 }

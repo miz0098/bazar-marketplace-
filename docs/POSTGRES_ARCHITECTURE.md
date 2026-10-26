@@ -1,5 +1,7 @@
 # PostgreSQL architecture — Phase F2 foundation
 
+F13 migration 0012 reuses conversation/support core tables, adds chronological sequence backfill/cursor indexes, support idempotency keys/digest and isolated notification_events owner/dedup/page constraints. Previous migrations are unchanged. No staff grants, contact data, real event seeds or delivery worker. [ADR 0012](adr/0012-messages-support-notifications.md).
+
 F12 migration 0011 adds profile/address optimistic versions and immutable test review purchase claims (owned source-line FK, unique IDs, digest only). No prior checksums, raw contact/card fields, production grants or live eligibility policy change. See [ADR 0011](adr/0011-customer-account-foundation.md).
 
 Phase F9 adds migration 0010: carts.lifecycle defaults historical rows to unselected, partial unique index enforces one active cart/user, immutable cart_mutation_receipts store owner-scoped idempotency and historical snapshots, and checkout_completion_links bind owned integration orders/checkouts/succeeded synthetic payment operations with FK/correlation guards. No previous migration changes, data merge, cart clearing, stock reservation or production role activation. See [ADR 0010](adr/0010-cart-checkout-integration.md).

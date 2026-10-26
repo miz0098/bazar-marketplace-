@@ -1,3 +1,5 @@
+import {createCommunicationService} from '../../src/communication/service.js';
+import {createCommunicationBusinessClient} from '../../../storefront/lib/communication-business-client.js';
 import {createCustomerService} from '../../src/customer/service.js';
 import {createCustomerBusinessClient} from '../../../storefront/lib/customer-business-client.js';
 import { createCheckoutIntegrationServices } from '../../src/integration/checkout.js';
@@ -84,9 +86,9 @@ test('fresh database, previous schema upgrade, rerun and concurrent migrators ar
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(`${migrationDirectory}/0001_core.sql`, `${dir}/0001_core.sql`);
   assert.equal(await migrate(db.config, dir), 1);
-  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 10]);
+  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 11]);
   assert.equal(await migrate(db.config), 0);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 11);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 12);
   assert.ok((await db.pool.query("SELECT indexname FROM pg_indexes WHERE schemaname='bazar' AND indexname='variants_available_idx'")).rowCount);
 });
 
@@ -98,10 +100,10 @@ test('modified/unknown migrations are rejected and failed DDL rolls back without
   writeFileSync(`${dir}/0001_core.sql`, first + '\n-- modified\n');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   writeFileSync(`${dir}/0001_core.sql`, first);
-  writeFileSync(`${dir}/0012_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
+  writeFileSync(`${dir}/0013_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   assert.equal((await db.pool.query("SELECT to_regclass('bazar.must_rollback') AS name")).rows[0].name, null);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 11);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 12);
   await db.pool.query("INSERT INTO bazar_meta.schema_migrations(version,checksum) VALUES ('9999',repeat('0',64))");
   await assert.rejects(migrate(db.config), /Database migration failed/);
 });
@@ -2430,7 +2432,7 @@ test("F7 upgrades F6 without rewriting existing orders; directories cover only e
   }
   await migrate(db.config, dir);
   const s = await seed(db.pool);
-  assert.equal(await migrate(db.config), 5);
+  assert.equal(await migrate(db.config), 6);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -3607,6 +3609,7 @@ test('F8 upgrades the full F7 database without changing previously saved shippin
   rmSync(`${dir}/0009_payment_security.sql`);
   rmSync(`${dir}/0010_current_cart_checkout.sql`);
   rmSync(`${dir}/0011_customer_account.sql`);
+  rmSync(`${dir}/0012_communication_foundation.sql`);
   assert.equal(await migrate(db.config, dir), 7);
   const s = await seed(db.pool);
   await db.pool.query(
@@ -3630,7 +3633,7 @@ test('F8 upgrades the full F7 database without changing previously saved shippin
     expectedVersion: 2,
     idempotencyKey: randomUUID(),
   });
-  assert.equal(await migrate(db.config), 4);
+  assert.equal(await migrate(db.config), 5);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -4430,9 +4433,10 @@ test('F9 upgrades F8 without silently selecting legacy carts or changing payment
   cpSync(migrationDirectory, dir, { recursive: true });
   rmSync(`${dir}/0010_current_cart_checkout.sql`);
   rmSync(`${dir}/0011_customer_account.sql`);
+  rmSync(`${dir}/0012_communication_foundation.sql`);
   assert.equal(await migrate(db.config, dir), 9);
   const s = await seed(db.pool);
-  assert.equal(await migrate(db.config), 2);
+  assert.equal(await migrate(db.config), 3);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -5015,13 +5019,14 @@ test('F12 upgrade preserves F11 customer data and previous migrations while addi
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(migrationDirectory, dir, { recursive: true });
   rmSync(`${dir}/0011_customer_account.sql`);
+  rmSync(`${dir}/0012_communication_foundation.sql`);
   assert.equal(await migrate(db.config, dir), 10);
   const s = await seed(db.pool);
   await db.pool.query(
     'INSERT INTO bazar.wishlist_items(user_id,product_id) VALUES ($1,$2)',
     [s.user, s.product],
   );
-  assert.equal(await migrate(db.config), 1);
+  assert.equal(await migrate(db.config), 2);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -5045,4 +5050,490 @@ test('F12 upgrade preserves F11 customer data and previous migrations while addi
     ).rows[0].n,
     0,
   );
+});
+
+async function communicationCase(t: TestContext) {
+  const db = await database(t);
+  await migrate(db.config);
+  const s = await seed(db.pool);
+  const third = (
+    await db.pool.query(
+      "INSERT INTO bazar.users(first_name,last_name) VALUES('Synthetic','Third') RETURNING id",
+    )
+  ).rows[0].id;
+  const chat = (
+    await db.pool.query(
+      "INSERT INTO bazar.conversations DEFAULT VALUES RETURNING id",
+    )
+  ).rows[0].id;
+  await db.pool.query(
+    "INSERT INTO bazar.conversation_members(conversation_id,user_id) VALUES($1,$2),($1,$3)",
+    [chat, s.user, s.other],
+  );
+  return {
+    ...db,
+    s,
+    third,
+    chat,
+    service: createCommunicationService(db.pool),
+  };
+}
+test("F13 owned members send/receive once, count unread chats, reject foreign access and do not leak sender identities", async (t) => {
+  const a = await communicationCase(t),
+    key = randomUUID();
+  const sent = await a.service.send(a.s.user, a.chat, "messages", {
+    clientMessageId: key,
+    body: "Synthetic text",
+  });
+  assert.equal(sent.resource, "messages");
+  assert.equal(sent.items.length, 1);
+  assert.ok("author" in sent.items[0] && sent.items[0].author === "self");
+  const replay = await a.service.send(a.s.user, a.chat, "messages", {
+    clientMessageId: key,
+    body: "Synthetic text",
+  });
+  assert.deepEqual(replay, sent);
+  await assert.rejects(
+    a.service.send(a.s.user, a.chat, "messages", {
+      clientMessageId: key,
+      body: "Changed",
+    }),
+    { status: 409 },
+  );
+  const history = await a.service.history(a.s.other, a.chat, "messages");
+  assert.ok(
+    "author" in history.items[0] && history.items[0].author === "member",
+  );
+  const chats = await a.service.list(a.s.other, "conversations");
+  assert.equal(chats.unreadChats, 1);
+  await a.service.send(a.s.user, a.chat, "messages", {
+    clientMessageId: randomUUID(),
+    body: "Another",
+  });
+  assert.equal(
+    (await a.service.list(a.s.other, "conversations")).unreadChats,
+    1,
+  );
+  for (const op of [
+    () => a.service.history(a.third, a.chat, "messages"),
+    () =>
+      a.service.send(a.third, a.chat, "messages", {
+        clientMessageId: randomUUID(),
+        body: "Blocked",
+      }),
+    () => a.service.pin(a.third, a.chat, { pinned: true }),
+    () =>
+      a.service.markRead(a.third, a.chat, { lastMessageId: sent.items[0].id }),
+  ])
+    await assert.rejects(op(), { status: 404 });
+  assert.equal(JSON.stringify(history).includes(a.s.user), false);
+  assert.equal(
+    (await a.service.list(a.s.user, "notifications")).items.length,
+    0,
+  );
+  const inbox = await a.service.list(a.s.other, "notifications");
+  assert.equal(inbox.items.length, 2);
+  await assert.rejects(
+    a.service.readNotification(a.s.user, inbox.items[0].id, {}),
+    { status: 404 },
+  );
+  const read = await a.service.readNotification(
+    a.s.other,
+    inbox.items[0].id,
+    {},
+  );
+  assert.ok("read" in read.items[0] && read.items[0].read);
+  assert.equal(
+    (await a.pool.query("SELECT count(*)::int n FROM bazar.messages")).rows[0]
+      .n,
+    2,
+  );
+});
+test("F13 concurrent same-key sends and new messages stay unique with atomic notification creation", async (t) => {
+  const a = await communicationCase(t),
+    input = { clientMessageId: randomUUID(), body: "Concurrent fixture" };
+  const results = await Promise.all(
+    Array.from({ length: 4 }, () =>
+      a.service.send(a.s.user, a.chat, "messages", input),
+    ),
+  );
+  assert.equal(new Set(results.map((r) => r.items[0].id)).size, 1);
+  await Promise.all(
+    Array.from({ length: 4 }, (_, i) =>
+      a.service.send(a.s.user, a.chat, "messages", {
+        clientMessageId: randomUUID(),
+        body: `Fixture ${i}`,
+      }),
+    ),
+  );
+  assert.equal(
+    (await a.pool.query("SELECT count(*)::int n FROM bazar.messages")).rows[0]
+      .n,
+    5,
+  );
+  assert.equal(
+    (
+      await a.pool.query(
+        "SELECT count(*)::int n FROM bazar.notification_events",
+      )
+    ).rows[0].n,
+    5,
+  );
+  await a.pool.query(
+    "CREATE FUNCTION bazar.fail_notification_fixture() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'private-fixture';END $$;CREATE TRIGGER fail_notification_fixture BEFORE INSERT ON bazar.notification_events FOR EACH ROW EXECUTE FUNCTION bazar.fail_notification_fixture()",
+  );
+  const failed = { clientMessageId: randomUUID(), body: "Rolled back" };
+  await assert.rejects(a.service.send(a.s.user, a.chat, "messages", failed));
+  assert.equal(
+    (await a.pool.query("SELECT count(*)::int n FROM bazar.messages")).rows[0]
+      .n,
+    5,
+  );
+  await a.pool.query(
+    "DROP TRIGGER fail_notification_fixture ON bazar.notification_events",
+  );
+  await a.service.send(a.s.user, a.chat, "messages", failed);
+  assert.equal(
+    (await a.pool.query("SELECT count(*)::int n FROM bazar.messages")).rows[0]
+      .n,
+    6,
+  );
+});
+test("F13 history pagination is oldest-to-newest within newest-first pages and read watermarks never regress", async (t) => {
+  const a = await communicationCase(t);
+  const ids: string[] = [];
+  for (let i = 0; i < 5; i++)
+    ids.push(
+      (
+        await a.service.send(a.s.user, a.chat, "messages", {
+          clientMessageId: randomUUID(),
+          body: `Synthetic ${i}`,
+        })
+      ).items[0].id,
+    );
+  const first = await a.service.history(
+    a.s.other,
+    a.chat,
+    "messages",
+    Number.MAX_SAFE_INTEGER,
+    2,
+  );
+  assert.deepEqual(
+    first.items.map((i) => ("body" in i ? i.body : null)),
+    ["Synthetic 3", "Synthetic 4"],
+  );
+  assert.ok(first.nextBefore);
+  const second = await a.service.history(
+    a.s.other,
+    a.chat,
+    "messages",
+    first.nextBefore,
+    2,
+  );
+  assert.deepEqual(
+    second.items.map((i) => ("body" in i ? i.body : null)),
+    ["Synthetic 1", "Synthetic 2"],
+  );
+  const third = await a.service.history(
+    a.s.other,
+    a.chat,
+    "messages",
+    second.nextBefore!,
+    2,
+  );
+  assert.equal(third.items.length, 1);
+  assert.equal(third.nextBefore, null);
+  await a.service.markRead(a.s.other, a.chat, { lastMessageId: ids[3] });
+  assert.equal(
+    (await a.service.list(a.s.other, "conversations")).unreadChats,
+    1,
+  );
+  await Promise.all([
+    a.service.markRead(a.s.other, a.chat, { lastMessageId: ids[4] }),
+    a.service.markRead(a.s.other, a.chat, { lastMessageId: ids[0] }),
+  ]);
+  assert.equal(
+    (await a.service.list(a.s.other, "conversations")).unreadChats,
+    0,
+  );
+  await a.service.send(a.s.user, a.chat, "messages", {
+    clientMessageId: randomUUID(),
+    body: "New incoming",
+  });
+  assert.equal(
+    (await a.service.list(a.s.other, "conversations")).unreadChats,
+    1,
+  );
+  await a.service.pin(a.s.other, a.chat, { pinned: true });
+  const pin = await a.service.list(a.s.other, "conversations");
+  assert.ok("pinned" in pin.items[0] && pin.items[0].pinned);
+  const own = await a.service.list(a.s.user, "conversations");
+  assert.ok("pinned" in own.items[0] && !own.items[0].pinned);
+  const foreign = (
+    await a.pool.query(
+      "INSERT INTO bazar.conversations DEFAULT VALUES RETURNING id",
+    )
+  ).rows[0].id;
+  await a.pool.query(
+    "INSERT INTO bazar.conversation_members(conversation_id,user_id) VALUES($1,$2)",
+    [foreign, a.s.user],
+  );
+  const wrong = await a.service.send(a.s.user, foreign, "messages", {
+    clientMessageId: randomUUID(),
+    body: "Different chat",
+  });
+  await assert.rejects(
+    a.service.markRead(a.s.other, a.chat, { lastMessageId: wrong.items[0].id }),
+    { status: 404 },
+  );
+});
+test("F13 support creation/replies are owner scoped, atomic, idempotent and closed tickets reject new writes", async (t) => {
+  const a = await communicationCase(t),
+    input = {
+      clientRequestId: randomUUID(),
+      subject: "Synthetic issue",
+      category: "other",
+      body: "Synthetic description",
+    };
+  const created = await Promise.all([
+    a.service.createTicket(a.s.user, input),
+    a.service.createTicket(a.s.user, input),
+  ]);
+  assert.equal(created[0].items[0].id, created[1].items[0].id);
+  const id = created[0].items[0].id;
+  await assert.rejects(
+    a.service.createTicket(a.s.user, { ...input, body: "Changed" }),
+    { status: 409 },
+  );
+  await assert.rejects(a.service.history(a.s.other, id, "replies"), {
+    status: 404,
+  });
+  await assert.rejects(
+    a.service.send(a.s.other, id, "replies", {
+      clientMessageId: randomUUID(),
+      body: "Foreign",
+    }),
+    { status: 404 },
+  );
+  const reply = { clientMessageId: randomUUID(), body: "Synthetic reply" };
+  const replies = await Promise.all([
+    a.service.send(a.s.user, id, "replies", reply),
+    a.service.send(a.s.user, id, "replies", reply),
+  ]);
+  assert.deepEqual(replies[0], replies[1]);
+  await a.pool.query(
+    "UPDATE bazar.support_tickets SET status='closed' WHERE id=$1",
+    [id],
+  );
+  await assert.rejects(
+    a.service.send(a.s.user, id, "replies", {
+      ...reply,
+      clientMessageId: randomUUID(),
+    }),
+    { status: 409 },
+  );
+  assert.deepEqual(
+    await a.service.send(a.s.user, id, "replies", reply),
+    replies[0],
+  );
+  assert.equal(
+    (await a.service.history(a.s.user, id, "replies")).items.length,
+    2,
+  );
+  assert.equal(
+    (await a.service.list(a.s.user, "notifications")).items.length,
+    0,
+  );
+  await assert.rejects(
+    a.pool.query(
+      "INSERT INTO bazar.support_messages(ticket_id,user_id,body) VALUES($1,$2,'Foreign')",
+      [id, a.s.other],
+    ),
+    { code: "23503" },
+  );
+});
+test("F13 typed HTTP clients enforce sessions, CSRF, ownership and strict payloads with no leaked content", async (t) => {
+  const a = await authentication(t),
+    identity = await registered(a),
+    s = await seed(a.pool),
+    actor = identity.session.data.user.id;
+  const chat = (
+    await a.pool.query(
+      "INSERT INTO bazar.conversations DEFAULT VALUES RETURNING id",
+    )
+  ).rows[0].id;
+  await a.pool.query(
+    "INSERT INTO bazar.conversation_members(conversation_id,user_id) VALUES($1,$2),($1,$3)",
+    [chat, actor, s.user],
+  );
+  const service = createCommunicationService(a.pool),
+    logs: string[] = [];
+  const app = createApiServer(
+    readConfig({ NODE_ENV: "test" }),
+    createLogger("info", (l) => logs.push(l)),
+    { auth: a.auth, communication: service, isReady: () => true },
+  );
+  app.server.listen(0, "127.0.0.1");
+  await once(app.server, "listening");
+  a.beforeDrop.push(() => app.shutdown());
+  const addr = app.server.address();
+  assert.ok(addr && typeof addr !== "string");
+  const base = `http://127.0.0.1:${addr.port}`;
+  const cookie = `__Host-bazar-session=${identity.session.token}; __Host-bazar-flow=${identity.session.flow}`;
+  const headers = {
+    origin: a.config.publicOrigin,
+    cookie,
+    "content-type": "application/json",
+    "x-csrf-token": identity.session.data.csrfToken,
+  };
+  const transport: typeof fetch = (url, init) =>
+    fetch(base + String(url), {
+      ...init,
+      headers: {
+        ...Object.fromEntries(new Headers(init?.headers)),
+        origin: a.config.publicOrigin,
+        cookie,
+      },
+    });
+  const client = createCommunicationBusinessClient(
+    () => identity.session.data.csrfToken,
+    transport,
+  );
+  assert.equal((await client.conversations()).items.length, 1);
+  const sent = await client.send(
+    chat,
+    randomUUID(),
+    "Synthetic-private-content",
+  );
+  await client.history(chat, undefined, 1);
+  await client.markRead(chat, sent.items[0].id);
+  await client.pin(chat, true);
+  await service.send(s.user, chat, "messages", {
+    clientMessageId: randomUUID(),
+    body: "Synthetic incoming",
+  });
+  const inbox = await client.notifications();
+  assert.equal(inbox.items.length, 1);
+  await client.readNotification(inbox.items[0].id);
+  const ticket = (
+    await client.createTicket({
+      clientRequestId: randomUUID(),
+      subject: "Synthetic support",
+      category: "delivery",
+      body: "Fixture text",
+    })
+  ).items[0];
+  await client.send(ticket.id, randomUUID(), "Fixture reply", true);
+  assert.equal(
+    (await client.history(ticket.id, undefined, 50, true)).items.length,
+    2,
+  );
+  const path = "/api/v1/communication/conversations/" + chat + "/messages";
+  for (const [patch, status] of [
+    [{ cookie: "" }, 403],
+    [{ "x-csrf-token": "invalid" }, 403],
+    [{ origin: "https://evil.invalid" }, 403],
+    [{ "sec-fetch-site": "cross-site" }, 403],
+  ] as const) {
+    const r = await fetch(base + path, {
+      method: "POST",
+      headers: { ...headers, ...patch },
+      body: JSON.stringify({
+        clientMessageId: randomUUID(),
+        body: "Never accepted",
+      }),
+    });
+    assert.equal(r.status, status);
+    await r.body?.cancel();
+  }
+  for (const body of [
+    { clientMessageId: randomUUID(), body: "Test", senderId: actor },
+    {
+      clientMessageId: randomUUID(),
+      body: "Test",
+      attachment: { key: "unsafe" },
+    },
+  ]) {
+    const r = await fetch(base + path, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+    });
+    assert.equal(r.status, 400);
+    await r.body?.cancel();
+  }
+  const unicode = await fetch(base + path, {method:"POST",headers,body:JSON.stringify({clientMessageId:randomUUID(),body:"\u0344".repeat(1001)})});
+  assert.equal(unicode.status,400);await unicode.body?.cancel();
+  const anonymous = await fetch(base + path, {
+    headers: { origin: a.config.publicOrigin },
+  });
+  assert.equal(anonymous.status, 401);
+  await anonymous.body?.cancel();
+  const bad = await fetch(base + path + "?limit=101", { headers });
+  assert.equal(bad.status, 400);
+  await bad.body?.cancel();
+  const foreign = await fetch(
+    base + "/api/v1/communication/conversations/" + randomUUID() + "/messages",
+    { headers },
+  );
+  assert.equal(foreign.status, 404);
+  await foreign.body?.cancel();
+  const upload = await fetch(base + "/api/v1/communication/attachments", {
+    method: "POST",
+    headers,
+    body: "{}",
+  });
+  assert.equal(upload.status, 404);
+  await upload.body?.cancel();
+  assert.doesNotMatch(
+    logs.join(""),
+    /Synthetic-private-content|Fixture text|bazar-session|cookie|csrfToken/,
+  );
+  assert.ok(logs.some((l) => l.includes("/api/v1/communication")));
+});
+test("F13 upgrades F12 with legacy messages intact, ordered sequences, valid read markers and rerunnable migrations", async (t) => {
+  const a = await database(t),
+    dir = mkdtempSync(`${tmpdir()}/bazar-f13-upgrade-`);
+  t.after(() => rmSync(dir, { recursive: true }));
+  cpSync(migrationDirectory, dir, { recursive: true });
+  rmSync(`${dir}/0012_communication_foundation.sql`);
+  assert.equal(await migrate(a.config, dir), 11);
+  const s = await seed(a.pool);
+  const chat = (
+    await a.pool.query(
+      "INSERT INTO bazar.conversations DEFAULT VALUES RETURNING id",
+    )
+  ).rows[0].id;
+  await a.pool.query(
+    "INSERT INTO bazar.conversation_members(conversation_id,user_id) VALUES($1,$2)",
+    [chat, s.user],
+  );
+  const later = (
+    await a.pool.query(
+      "INSERT INTO bazar.messages(conversation_id,sender_id,client_message_id,body,created_at) VALUES($1,$2,$3,'Later','2026-10-26') RETURNING id",
+      [chat, s.user, randomUUID()],
+    )
+  ).rows[0].id;
+  await a.pool.query(
+    "INSERT INTO bazar.messages(conversation_id,sender_id,client_message_id,body,created_at) VALUES($1,$2,$3,'Earlier','2026-10-25')",
+    [chat, s.user, randomUUID()],
+  );
+  await a.pool.query(
+    "UPDATE bazar.conversation_members SET last_read_message_id=$1",
+    [later],
+  );
+  assert.equal(await migrate(a.config), 1);
+  assert.equal(await migrate(a.config), 0);
+  const service = createCommunicationService(a.pool);
+  const history = await service.history(s.user, chat, "messages");
+  assert.deepEqual(
+    history.items.map((i) => ("body" in i ? i.body : null)),
+    ["Earlier", "Later"],
+  );
+  const next = await service.send(s.user, chat, "messages", {
+    clientMessageId: randomUUID(),
+    body: "Newest",
+  });
+  assert.ok("sequence" in next.items[0] && next.items[0].sequence > 2);
+  assert.equal((await service.list(s.user, "conversations")).unreadChats, 0);
 });

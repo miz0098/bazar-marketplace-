@@ -108,3 +108,30 @@ test('support missing, closed and failing mutations never append messages', asyn
   assert.equal((await failed.getTicket('demo-ticket-1'))?.messages.length, 2);
   await assert.rejects(createDemoSupportService({ ...options, scenario: 'error' }).listTickets(), { code: 'unavailable' });
 });
+
+test("F13 demo reads/pins are isolated and concurrent sends do not lose history; controls are rejected", async () => {
+  const service = createDemoMessagingService(options);
+  await Promise.all([
+    service.addMessage("demo-chat-1", "Synthetic one"),
+    service.addMessage("demo-chat-1", "Synthetic two"),
+  ]);
+  const chat = await service.getConversation("demo-chat-1");
+  assert.equal(chat?.messages.length, 20);
+  assert.equal(new Set(chat?.messages.map((m) => m.id)).size, 20);
+  await Promise.all([
+    service.markRead("demo-chat-1"),
+    service.setPinned("demo-chat-1", true),
+  ]);
+  const current = await service.getConversation("demo-chat-1");
+  assert.equal(current?.unreadMessages, 0);
+  assert.equal(current?.pinned, true);
+  assert.ok(validateMessage("a\u0000b"));
+  assert.equal(validateMessage("Valid\nline\ttext"), "");
+  await assert.rejects(service.addMessage("demo-chat-1", "a\u0000b"), {
+    code: "validation",
+  });
+  assert.equal(
+    (await service.getConversation("demo-chat-1"))?.messages.length,
+    20,
+  );
+});

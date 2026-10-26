@@ -1,5 +1,7 @@
 # BAZAR API modules — provisional v1 contracts
 
+F13: OpenAPI 1.9 adds the explicit /api/v1/communication prefix for isolated membership-scoped messages, owner support and notification inbox/read. Old provisional /conversations and /support/tickets stay unavailable. [ADR 0012](adr/0012-messages-support-notifications.md) distinguishes working test routes from future staff/CRM/channels.
+
 F12: OpenAPI 1.8 adds private /customer/profile, /customer/addresses, /customer/reviews and /wishlist/items contracts. All success is isolated verified-session only; production remains 503. Old generic public review/address placeholders are not implicitly activated. See [ADR 0011](adr/0011-customer-account-foundation.md).
 
 Phase F9 update: current cart policy is approved (one active/user, explicit ensure, local guest/no merge). GET/HEAD and POST /api/v1/cart, POST /cart/lines, PATCH/DELETE /cart/lines/{variantId}, and POST /checkouts/{id}/confirmation are documented in OpenAPI 1.7.0. Success is isolated verified-session composition only; ordinary runtime SMS/session activation remains blocked. Integrated confirmation requires same-owner succeeded synthetic payment proof and fresh shipping/pricing; orderPaid stays false. See [ADR 0010](adr/0010-cart-checkout-integration.md). Earlier phase notes below are historical.

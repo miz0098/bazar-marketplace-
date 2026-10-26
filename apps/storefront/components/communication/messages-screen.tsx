@@ -16,8 +16,8 @@ export function MessagesScreen({ id, scenario }: { id?: string; scenario: Commun
   const [pinBusy, setPinBusy] = useState(false);
   const suffix = scenario === 'ready' ? '' : `?preview=${scenario}`;
   const load = useCallback(async () => {
-    const selected = id ? await messaging.getConversation(id) : null;
-    if (selected) await messaging.markRead(selected.id);
+    const found = id ? await messaging.getConversation(id) : null;
+    const selected = found ? (await messaging.markRead(found.id)).value : null;
     return { conversations: await messaging.listConversations(), selected };
   }, [id, messaging]);
   const { data, setData, error } = usePreviewQuery(load, attempt);
@@ -32,7 +32,7 @@ export function MessagesScreen({ id, scenario }: { id?: string; scenario: Commun
         <div className="communication-list-head"><h2>Ваші діалоги</h2><span className="communication-unread-total" aria-label="Непрочитаних діалогів">{unreadConversationCount(data.conversations)}</span></div>
         <label className="account-field communication-search"><span>Пошук діалогів</span><input type="search" value={search} onChange={(event) => setSearch(event.target.value)} /></label>
         {actionError && <p role="alert" className="account-field-error">{actionError}</p>}
-        {visible.length === 0 ? <p className="communication-disclaimer">Діалогів за цим запитом немає.</p> : <ul className="communication-dialog-list">{visible.map((conversation) => {
+        {visible.length === 0 ? <AccountState icon="messages" title="Діалогів за цим запитом немає." text="Спробуйте інше ім’я співрозмовника в полі пошуку." /> : <ul className="communication-dialog-list">{visible.map((conversation) => {
           const last = conversation.messages.at(-1);
           return <li className={conversation.id === id ? 'is-selected' : ''} key={conversation.id}>
             <Link className="communication-dialog-link" href={`/profile/messages/${conversation.id}${suffix}`} aria-current={conversation.id === id ? 'page' : undefined}>

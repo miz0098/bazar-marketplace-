@@ -204,3 +204,68 @@ test('message and support surfaces have no serious accessibility violations or h
   const results = await new AxeBuilder({ page }).include('[data-communication]').analyze();
   expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
 });
+
+test("F13 failed pin keeps ordering and search empty is an accessible white card without actions", async ({
+  page,
+}) => {
+  await page.goto("/profile/messages?preview=send-error");
+  const first = await page
+    .locator(".communication-dialog-link")
+    .first()
+    .getAttribute("href");
+  await page
+    .getByRole("button", {
+      name: "Закріпити Спорт · демо-магазин",
+      exact: true,
+    })
+    .click();
+  await expect(screen(page).getByRole("alert")).toContainText(
+    "Демо-дію не виконано",
+  );
+  await expect(page.locator(".communication-dialog-link").first()).toHaveAttribute(
+    "href", first!,
+  );
+  await expect(page.getByLabel("Непрочитаних діалогів")).toHaveText("2");
+  await page
+    .getByRole("searchbox", { name: "Пошук діалогів" })
+    .fill("нічого-не-знайдено");
+  const empty = page.locator(".communication-dialogs .account-state");
+  await expect(
+    empty.getByRole("heading", { name: "Діалогів за цим запитом немає." }),
+  ).toBeVisible();
+  await expect(empty.getByRole("button")).toHaveCount(0);
+  await expect(empty.getByRole("link")).toHaveCount(0);
+  expect(await empty.evaluate((e) => getComputedStyle(e).backgroundColor)).toBe(
+    "rgb(255, 255, 255)",
+  );
+  await assertNoOverflow(page);
+  const axe = await new AxeBuilder({ page })
+    .include("[data-communication]")
+    .analyze();
+  expect(
+    axe.violations.filter((v) =>
+      ["serious", "critical"].includes(v.impact ?? ""),
+    ),
+  ).toEqual([]);
+});
+test("F13 rapid repeated keyboard submission adds one demo item and read counter remains chat-based", async ({
+  page,
+}) => {
+  await page.goto("/profile/messages/demo-chat-1");
+  await expect(history(page).locator("[data-message-id]")).toHaveCount(18);
+  const input = page.getByRole("textbox", { name: "Ваше повідомлення" });
+  await input.fill("Демо F13 — лише локально");
+  await input.evaluate((e) => {
+    const f = (e as HTMLTextAreaElement).form!;
+    f.requestSubmit();
+    f.requestSubmit();
+  });
+  await expect(screen(page).getByRole("status")).toContainText(
+    "Нікому не доставлено",
+  );
+  await expect(history(page).locator("[data-message-id]")).toHaveCount(19);
+  await assertChronologyAndBottom(page);
+  await page.getByRole("link", { name: "← До діалогів" }).click();
+  await expect(page.getByLabel("Непрочитаних діалогів")).toHaveText("1");
+  await assertNoOverflow(page);
+});
