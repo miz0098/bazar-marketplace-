@@ -1,5 +1,7 @@
 # Storefront migration progress
 
+Phase F10 is a documentation-only post-F9 functional audit. [Matrix](../../FUNCTIONAL_GAP_AUDIT.md), [checklist](../../DEMO_READINESS_CHECKLIST.md) and [next stages](../../DEMO_COMPLETION_PLAN.md) record mock-only UI selection, missing variant/product/navigation/wishlist features and absent browser server-mode composition. Existing app code, design and Shopify source are preserved. Demo/design/production gates remain separate.
+
 Phase F9 adds opt-in typed server-cart and combined checkout integration clients, including fresh-cart checkout start, in-memory CSRF and explicit historical replay handling. Existing demo providers, screens, design and persistence are unchanged. The controller is exercised against actual isolated HTTP/PostgreSQL; it is not wired to real users. See [Demo readiness](../../docs/F9_DEMO_READINESS.md).
 
 Phase F2 adds API PostgreSQL schema/migrations and readiness only. This storefront, demo identity, components, service providers and mock persistence remain unchanged; no DB credential enters the browser.
