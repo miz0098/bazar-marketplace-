@@ -3651,3 +3651,14 @@ test('F8 changing cart version cannot bypass an unresolved payment scope',async(
  let draft=await a.service.start(a.s.user,{cartId:a.s.cart,expectedCartVersion:cart.version+1,idempotencyKey:randomUUID()});draft=await a.service.setDelivery(a.s.user,draft.id,{expectedVersion:draft.version,addressId:a.s.address});draft=await a.service.setPayment(a.s.user,draft.id,{expectedVersion:draft.version,paymentSelection:'card-online',promoCode:null});
  await assert.rejects(a.payments.create(a.s.user,{checkoutId:draft.id,expectedVersion:draft.version,method:'card',idempotencyKey:randomUUID()}),{status:409});assert.equal(a.state.submissions,1);
 });
+test('F8 a different merchant configuration cannot read, reconcile or authenticate events for another merchant operation',async(t)=>{
+ const a=await paymentCase(t),created=await a.payments.create(a.s.user,a.input),other=paymentFixture();
+ other.adapter.accountRef='different-merchant';
+ const payments=createPaymentService(a.pool,other.adapter,other.config);
+ await assert.rejects(payments.get(a.s.user,created.attempt.id),{status:404});await assert.rejects(payments.reconcile(a.s.user,created.attempt.id),{status:404});
+ const bad=other.signed({...a.event(created.attempt.id,'succeeded'),accountRef:other.adapter.accountRef});await assert.rejects(payments.webhook(bad.raw,bad.signature),{status:404});
+ await assert.rejects(payments.create(a.s.user,{...a.input,idempotencyKey:randomUUID()}),{code:'PAYMENT_STALE'});
+ assert.equal((await a.payments.get(a.s.user,created.attempt.id)).status,'pending');assert.equal(other.state.submissions,0);
+ await assert.rejects(a.pool.query("UPDATE bazar.payment_operations SET account_ref='another',version=version+1 WHERE id=$1",[created.attempt.id]),{code:'23514'});
+ const good=a.signed(a.event(created.attempt.id,'succeeded'));assert.equal((await a.payments.webhook(good.raw,good.signature)).attempt.status,'succeeded');
+});

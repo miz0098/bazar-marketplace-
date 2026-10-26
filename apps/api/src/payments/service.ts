@@ -79,8 +79,8 @@ export function createPaymentService(
   ): Promise<PaymentAttempt> {
     const r = (
       await c.query(
-        'SELECT o.*,o.amount_minor::text,o.version::text,i.checkout_id FROM bazar.payment_operations o JOIN bazar.payment_intents i ON i.id=o.intent_id WHERE o.id=$1 AND o.user_id=$2',
-        [id, actor],
+        'SELECT o.*,o.amount_minor::text,o.version::text,i.checkout_id FROM bazar.payment_operations o JOIN bazar.payment_intents i ON i.id=o.intent_id WHERE o.id=$1 AND o.user_id=$2 AND o.provider=$3 AND o.account_ref=$4',
+        [id, actor, adapter.name, adapter.accountRef],
       )
     ).rows[0];
     if (!r) throw missing();
@@ -155,7 +155,7 @@ export function createPaymentService(
     }
     return tx(async (c) => {
       await c.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))', [
-        `payment-event:${adapter.name}:${event.eventId}`,
+        `payment-event:${adapter.name}:${adapter.accountRef}:${event.eventId}`,
       ]);
       const r = (
         await c.query(
@@ -163,7 +163,12 @@ export function createPaymentService(
           [event.operationId],
         )
       ).rows[0];
-      if (!r || r.provider !== adapter.name) throw missing();
+      if (
+        !r ||
+        r.provider !== adapter.name ||
+        r.account_ref !== adapter.accountRef
+      )
+        throw missing();
       if (
         money(r.amount_minor) !== event.amountMinor ||
         r.currency !== event.currency ||
@@ -173,8 +178,8 @@ export function createPaymentService(
       const digest = hash(event),
         prior = (
           await c.query(
-            'SELECT digest,operation_id FROM bazar.payment_verified_events WHERE provider=$1 AND event_id=$2',
-            [adapter.name, event.eventId],
+            'SELECT digest,operation_id FROM bazar.payment_verified_events WHERE provider=$1 AND account_ref=$2 AND event_id=$3',
+            [adapter.name, adapter.accountRef, event.eventId],
           )
         ).rows[0];
       if (prior) {
@@ -189,8 +194,8 @@ export function createPaymentService(
         throw conflict();
       // Serialize event IDs across operations as well as operation state. A reused provider event is never reassigned.
       await c.query(
-        'INSERT INTO bazar.payment_verified_events(provider,event_id,operation_id,digest) VALUES ($1,$2,$3,$4)',
-        [adapter.name, event.eventId, r.id, digest],
+        'INSERT INTO bazar.payment_verified_events(provider,account_ref,event_id,operation_id,digest) VALUES ($1,$2,$3,$4,$5)',
+        [adapter.name, adapter.accountRef, event.eventId, r.id, digest],
       );
       if (
         !['succeeded', 'declined', 'cancelled'].includes(r.status) &&
@@ -289,6 +294,8 @@ export function createPaymentService(
         )
           throw stale();
         const binding = hash([
+          adapter.name,
+          adapter.accountRef,
           checkout.pricing.fingerprint,
           plan.amountMinor,
           plan.currency,
@@ -305,7 +312,7 @@ export function createPaymentService(
         } else
           intent = (
             await c.query(
-              "INSERT INTO bazar.payment_intents(checkout_id,user_id,amount_minor,currency,basis,binding,mode,cart_id,cart_version) VALUES ($1,$2,$3,'UAH','isolated-test-plan',$4,'integration-test',$5,$6) RETURNING *",
+              "INSERT INTO bazar.payment_intents(checkout_id,user_id,amount_minor,currency,basis,binding,mode,cart_id,cart_version,provider,account_ref) VALUES ($1,$2,$3,'UAH','isolated-test-plan',$4,'integration-test',$5,$6,$7,$8) RETURNING *",
               [
                 id,
                 actor,
@@ -313,6 +320,8 @@ export function createPaymentService(
                 binding,
                 row.cart_id,
                 row.cart_version,
+                adapter.name,
+                adapter.accountRef,
               ],
             )
           ).rows[0];
@@ -327,7 +336,7 @@ export function createPaymentService(
           throw conflict();
         const op = (
           await c.query(
-            "INSERT INTO bazar.payment_operations(intent_id,user_id,amount_minor,currency,request_key,request_digest,method,provider,status,last_source) VALUES ($1,$2,$3,'UAH',$4,$5,$6,$7,'submitting','submission') RETURNING id",
+            "INSERT INTO bazar.payment_operations(intent_id,user_id,amount_minor,currency,request_key,request_digest,method,provider,account_ref,status,last_source) VALUES ($1,$2,$3,'UAH',$4,$5,$6,$7,$8,'submitting','submission') RETURNING id",
             [
               intent.id,
               actor,
@@ -336,6 +345,7 @@ export function createPaymentService(
               digest,
               instrument,
               adapter.name,
+              adapter.accountRef,
             ],
           )
         ).rows[0];
