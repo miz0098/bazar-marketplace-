@@ -36,6 +36,7 @@ test('dialog search, pins and unread count operate on conversations and reset on
   await expect(page.locator('.account-nav a[href="/profile/messages"]')).toHaveAttribute('aria-current', 'page');
   await assertChronologyAndBottom(page);
   await page.getByRole('link', { name: '← До діалогів' }).click();
+  await expect(page).toHaveURL(/\/profile\/messages$/);
   await expect(page.getByLabel('Непрочитаних діалогів')).toHaveText('1');
   await expect(page.getByRole('button', { name: 'Відкріпити Спорт · демо-магазин', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await page.reload();
