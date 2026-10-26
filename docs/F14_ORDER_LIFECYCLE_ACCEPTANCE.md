@@ -1,5 +1,7 @@
 # F14 — My Orders demo acceptance
 
+Review: [PR #25](https://github.com/miz0098/bazar-marketplace-/pull/25).
+
 Base: merged PR #24 at1cf6e2a. [ADR0013](adr/0013-order-lifecycle-requests-refunds.md) documents status separation, request-only behavior, conservative capacity and production blockers.
 
 | Scenario | Demo acceptance | Isolated API/PostgreSQL evidence |

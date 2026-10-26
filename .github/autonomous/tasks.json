@@ -416,7 +416,7 @@
     {
       "id": "LIFECYCLE-001",
       "title": "Add isolated owned order lifecycle return/refund protocols and bounded customer preview",
-      "status": "in_progress",
+      "status": "in_review",
       "readiness": "integration",
       "depends_on": [
         "COMM-001"
@@ -439,7 +439,7 @@
         "Refund protocol uses isolated authenticated payment linkage explicit synthetic plans and no real funds/notifications",
         "Bounded My Orders demo and all required regression security accessibility audit governance checks pass"
       ],
-      "pr": null,
+      "pr": 25,
       "blocker": "Real order/cancellation/return/refund authority legal windows/logistics financial allocation and release policies providers PII production auth/BFF and browser API mapping remain unapproved."
     }
   ]
