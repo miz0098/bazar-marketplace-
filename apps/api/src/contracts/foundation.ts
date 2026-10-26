@@ -1,4 +1,4 @@
-export const errorCodes = ['INVALID_REQUEST', 'CORS_DENIED', 'METHOD_NOT_ALLOWED', 'NOT_FOUND', 'INTERNAL_ERROR', 'SERVICE_UNAVAILABLE', 'HEADERS_TOO_LARGE', 'AUTH_REQUIRED', 'CONFLICT', 'AUTH_FAILED', 'CSRF_DENIED', 'RATE_LIMITED', 'PROMOTION_REJECTED', 'PROMOTION_POLICY_REQUIRED', 'PRICING_CHANGED'] as const;
+export const errorCodes = ['INVALID_REQUEST', 'CORS_DENIED', 'METHOD_NOT_ALLOWED', 'NOT_FOUND', 'INTERNAL_ERROR', 'SERVICE_UNAVAILABLE', 'HEADERS_TOO_LARGE', 'AUTH_REQUIRED', 'CONFLICT', 'AUTH_FAILED', 'CSRF_DENIED', 'RATE_LIMITED', 'PROMOTION_REJECTED', 'PROMOTION_POLICY_REQUIRED', 'PRICING_CHANGED', 'CHECKOUT_REJECTED', 'CHECKOUT_STALE', 'CHECKOUT_POLICY_REQUIRED'] as const;
 export type ErrorCode = typeof errorCodes[number];
 export type ApiSuccess<T> = Readonly<{ ok: true; data: T; meta: { requestId: string } }>;
 export type ApiFailure = Readonly<{ ok: false; error: { code: ErrorCode; message: string }; meta: { requestId: string } }>;

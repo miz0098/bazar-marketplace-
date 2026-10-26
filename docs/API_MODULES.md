@@ -1,5 +1,7 @@
 # BAZAR API modules — provisional v1 contracts
 
+Phase F6 update: isolated checkout start/read/contact-delivery/payment/test-record and owned order list/detail routes are documented in OpenAPI. Ordinary runtime returns 503; no real placement/provider/status transition is enabled. See [ADR 0006](adr/0006-orders-checkout-foundation.md).
+
 Phase F5 update: isolated POST /api/v1/pricing/promotions/evaluate reads PostgreSQL prices with a verified actor/CSRF and returns a non-binding merchandise quote. Ordinary runtime is 503; no redemption endpoint exists. See [ADR 0005](adr/0005-promotions-pricing-foundation.md).
 
 Phase F4 update: OTP, session/current-user and revocation handlers exist only in isolated test composition; ordinary runtime returns 503. Cart stays blocked on current-cart policy. See [ADR 0004](adr/0004-server-auth-foundation.md) and OpenAPI for exact routes and security limits. Earlier phase notes below are historical.

@@ -6,6 +6,8 @@ import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:f
 import { tmpdir } from 'node:os';
 import test, { type TestContext } from 'node:test';
 import pg from 'pg';
+import { createCheckoutBusinessClient } from '../../../storefront/lib/checkout-business-client.js';
+import { createCheckoutBusinessService } from '../../src/checkout/service.js';
 import { createPromotionPricingClient } from '../../../storefront/lib/promotion-pricing-client.js';
 import { createPromotionService } from '../../src/promotions/service.js';
 import { createConnection } from 'node:net';
@@ -70,9 +72,9 @@ test('fresh database, previous schema upgrade, rerun and concurrent migrators ar
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(`${migrationDirectory}/0001_core.sql`, `${dir}/0001_core.sql`);
   assert.equal(await migrate(db.config, dir), 1);
-  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 4]);
+  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 5]);
   assert.equal(await migrate(db.config), 0);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 5);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 6);
   assert.ok((await db.pool.query("SELECT indexname FROM pg_indexes WHERE schemaname='bazar' AND indexname='variants_available_idx'")).rowCount);
 });
 
@@ -84,10 +86,10 @@ test('modified/unknown migrations are rejected and failed DDL rolls back without
   writeFileSync(`${dir}/0001_core.sql`, first + '\n-- modified\n');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   writeFileSync(`${dir}/0001_core.sql`, first);
-  writeFileSync(`${dir}/0006_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
+  writeFileSync(`${dir}/0007_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   assert.equal((await db.pool.query("SELECT to_regclass('bazar.must_rollback') AS name")).rows[0].name, null);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 5);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 6);
   await db.pool.query("INSERT INTO bazar_meta.schema_migrations(version,checksum) VALUES ('9999',repeat('0',64))");
   await assert.rejects(migrate(db.config), /Database migration failed/);
 });
@@ -1629,5 +1631,748 @@ test('F5 concurrent per-user claims on separate carts cannot exceed the configur
       )
     ).rows[0].n,
     1,
+  );
+});
+
+// F6 is an isolated technical order/checkout composition; no provider or real reservation is enabled.
+async function checkoutFixture(t: TestContext) {
+  const db = await database(t);
+  await migrate(db.config);
+  const s = await seed(db.pool);
+  await db.pool.query(
+    'INSERT INTO bazar.cart_lines(cart_id,variant_id,quantity) VALUES ($1,$2,2)',
+    [s.cart, s.variant],
+  );
+  return { ...db, s, service: createCheckoutBusinessService(db.pool) };
+}
+async function checkoutReview(
+  a: Awaited<ReturnType<typeof checkoutFixture>>,
+  cartId = a.s.cart,
+  actor = a.s.user,
+) {
+  let draft = await a.service.start(actor, {
+    cartId,
+    expectedCartVersion: 1,
+    idempotencyKey: randomUUID(),
+  });
+  draft = await a.service.setDelivery(actor, draft.id, {
+    expectedVersion: draft.version,
+    addressId: a.s.address,
+  });
+  draft = await a.service.setPayment(actor, draft.id, {
+    expectedVersion: draft.version,
+    paymentSelection: 'on-receipt',
+    promoCode: null,
+  });
+  return draft;
+}
+test('F6 persists three checkout stages and an immutable pending integration order, never a provider success', async (t) => {
+  const a = await checkoutFixture(t),
+    key = randomUUID();
+  const first = await a.service.start(a.s.user, {
+    cartId: a.s.cart,
+    expectedCartVersion: 1,
+    idempotencyKey: key,
+  });
+  assert.equal(first.stage, 'contact-delivery');
+  assert.equal(first.canPlaceRealOrder, false);
+  assert.equal(
+    (
+      await a.service.start(a.s.user, {
+        cartId: a.s.cart,
+        expectedCartVersion: 1,
+        idempotencyKey: key,
+      })
+    ).id,
+    first.id,
+  );
+  await assert.rejects(
+    a.service.setPayment(a.s.user, first.id, {
+      expectedVersion: 1,
+      paymentSelection: 'on-receipt',
+      promoCode: null,
+    }),
+    { code: 'CHECKOUT_REJECTED' },
+  );
+  const second = await a.service.setDelivery(a.s.user, first.id, {
+    expectedVersion: 1,
+    addressId: a.s.address,
+  });
+  assert.equal(second.stage, 'payment');
+  assert.equal(second.delivery?.cost, null);
+  const third = await a.service.setPayment(a.s.user, first.id, {
+    expectedVersion: second.version,
+    paymentSelection: 'card-online',
+    promoCode: null,
+  });
+  assert.equal(third.stage, 'confirmation');
+  assert.equal(third.pricing?.merchandiseTotal.amountMinor, 24690);
+  assert.equal(third.canRecordIntegrationOrder, true);
+  const input = {
+    expectedVersion: third.version,
+    expectedFingerprint: third.pricing!.fingerprint,
+    idempotencyKey: randomUUID(),
+  };
+  const recorded = await a.service.recordOrderForTest(
+    a.s.user,
+    third.id,
+    input,
+  );
+  assert.equal(recorded.order.status, 'pending');
+  assert.equal(recorded.order.recordState, 'recorded-for-test');
+  assert.equal(recorded.order.paymentStatus, 'not-initiated');
+  assert.equal(recorded.order.inventoryStatus, 'not-reserved');
+  assert.equal(recorded.order.payableTotal, null);
+  assert.equal(
+    (
+      await a.pool.query('SELECT stock FROM bazar.variants WHERE id=$1', [
+        a.s.variant,
+      ])
+    ).rows[0].stock,
+    5,
+  );
+  assert.equal(
+    (
+      await a.pool.query(
+        'SELECT count(*)::int AS n FROM bazar.payment_attempts',
+      )
+    ).rows[0].n,
+    0,
+  );
+  assert.equal(
+    (await a.pool.query('SELECT count(*)::int AS n FROM bazar.shipments'))
+      .rows[0].n,
+    0,
+  );
+  assert.equal(
+    (await a.service.recordOrderForTest(a.s.user, third.id, input)).order.id,
+    recorded.order.id,
+  );
+  await a.pool.query(
+    "UPDATE bazar.products SET title='Changed live title' WHERE id=$1",
+    [a.s.product],
+  );
+  await a.pool.query(
+    'UPDATE bazar.variants SET price_minor=30000,stock=0 WHERE id=$1',
+    [a.s.variant],
+  );
+  await a.pool.query(
+    "UPDATE bazar.addresses SET location_ref='changed-location' WHERE id=$1",
+    [a.s.address],
+  );
+  const historical = await a.service.getOrder(a.s.user, recorded.order.id);
+  assert.equal(historical.lines[0].title, 'Synthetic product');
+  assert.equal(historical.lines[0].unitPrice.amountMinor, 12345);
+  assert.equal(historical.delivery.locationRef, 'synthetic-location');
+  assert.equal(
+    (await a.service.get(a.s.user, third.id)).orderId,
+    historical.id,
+  );
+});
+test('F6 owner isolation, optimistic draft versions, changed price/address/stock and duplicate order keys fail closed', async (t) => {
+  const a = await checkoutFixture(t);
+  const draft = await checkoutReview(a);
+  await assert.rejects(a.service.get(a.s.other, draft.id), { status: 404 });
+  await assert.rejects(
+    a.service.setDelivery(a.s.other, draft.id, {
+      expectedVersion: draft.version,
+      addressId: a.s.address,
+    }),
+    { status: 404 },
+  );
+  const foreignAddress = (
+    await a.pool.query(
+      "INSERT INTO bazar.addresses(user_id,carrier,city_ref,location_ref) VALUES ($1,'meest','other','other') RETURNING id",
+      [a.s.other],
+    )
+  ).rows[0].id;
+  await assert.rejects(
+    a.service.setDelivery(a.s.user, draft.id, {
+      expectedVersion: draft.version,
+      addressId: foreignAddress,
+    }),
+    { status: 404 },
+  );
+  await assert.rejects(
+    a.service.setPayment(a.s.user, draft.id, {
+      expectedVersion: 1,
+      paymentSelection: 'card-online',
+      promoCode: null,
+    }),
+    { code: 'CHECKOUT_STALE' },
+  );
+  const input = {
+    expectedVersion: draft.version,
+    expectedFingerprint: draft.pricing!.fingerprint,
+    idempotencyKey: randomUUID(),
+  };
+  await a.pool.query(
+    'UPDATE bazar.variants SET price_minor=20000 WHERE id=$1',
+    [a.s.variant],
+  );
+  await assert.rejects(
+    a.service.recordOrderForTest(a.s.user, draft.id, input),
+    { code: 'CHECKOUT_STALE' },
+  );
+  assert.equal(
+    (
+      await a.pool.query(
+        "SELECT count(*)::int AS n FROM bazar.orders WHERE foundation_mode='integration-test'",
+      )
+    ).rows[0].n,
+    0,
+  );
+  const fresh = await a.service.setPayment(a.s.user, draft.id, {
+    expectedVersion: draft.version,
+    paymentSelection: 'on-receipt',
+    promoCode: null,
+  });
+  await a.pool.query('UPDATE bazar.variants SET stock=1 WHERE id=$1', [
+    a.s.variant,
+  ]);
+  await assert.rejects(
+    a.service.recordOrderForTest(a.s.user, draft.id, {
+      ...input,
+      expectedVersion: fresh.version,
+      expectedFingerprint: fresh.pricing!.fingerprint,
+    }),
+    { status: 409 },
+  );
+  await a.pool.query('UPDATE bazar.variants SET stock=5 WHERE id=$1', [
+    a.s.variant,
+  ]);
+  await a.pool.query(
+    "UPDATE bazar.addresses SET location_ref='changed' WHERE id=$1",
+    [a.s.address],
+  );
+  await assert.rejects(
+    a.service.recordOrderForTest(a.s.user, draft.id, {
+      ...input,
+      expectedVersion: fresh.version,
+      expectedFingerprint: fresh.pricing!.fingerprint,
+    }),
+    { code: 'CHECKOUT_STALE' },
+  );
+  const again = await a.service.setPayment(a.s.user, draft.id, {
+    expectedVersion: fresh.version,
+    paymentSelection: 'on-receipt',
+    promoCode: null,
+  });
+  const correct = {
+    expectedVersion: again.version,
+    expectedFingerprint: again.pricing!.fingerprint,
+    idempotencyKey: randomUUID(),
+  };
+  const results = await Promise.all([
+    a.service.recordOrderForTest(a.s.user, draft.id, correct),
+    a.service.recordOrderForTest(a.s.user, draft.id, correct),
+  ]);
+  assert.equal(results[0].order.id, results[1].order.id);
+  assert.equal(results.filter((r) => r.replayed).length, 1);
+  await assert.rejects(
+    a.service.recordOrderForTest(a.s.user, draft.id, {
+      ...correct,
+      expectedFingerprint: '0'.repeat(64),
+    }),
+    { code: 'CONFLICT' },
+  );
+  await assert.rejects(
+    a.service.recordOrderForTest(a.s.user, draft.id, {
+      ...correct,
+      idempotencyKey: randomUUID(),
+    }),
+    { code: 'CONFLICT' },
+  );
+  await assert.rejects(a.service.getOrder(a.s.other, results[0].order.id), {
+    status: 404,
+  });
+});
+test('F6 promotion evaluation is reused for payment preview but real/test-order redemption stays policy-blocked', async (t) => {
+  const a = await checkoutFixture(t);
+  const campaign = (
+    await a.pool.query(
+      "INSERT INTO bazar.promotions(code,kind,fixed_minor,currency,min_subtotal_minor,starts_at,ends_at,enabled,max_uses,per_user_limit) VALUES ('F6-SYNTHETIC','fixed',1000,'UAH',0,clock_timestamp()-interval '1 hour',clock_timestamp()+interval '1 hour',true,10,1) RETURNING id",
+    )
+  ).rows[0].id;
+  await a.pool.query(
+    'INSERT INTO bazar.promotion_products(promotion_id,product_id) VALUES ($1,$2)',
+    [campaign, a.s.product],
+  );
+  let draft = await a.service.start(a.s.user, {
+    cartId: a.s.cart,
+    expectedCartVersion: 1,
+    idempotencyKey: randomUUID(),
+  });
+  draft = await a.service.setDelivery(a.s.user, draft.id, {
+    expectedVersion: draft.version,
+    addressId: a.s.address,
+  });
+  draft = await a.service.setPayment(a.s.user, draft.id, {
+    expectedVersion: draft.version,
+    paymentSelection: 'on-receipt',
+    promoCode: 'F6-SYNTHETIC',
+  });
+  assert.equal(draft.pricing?.discount.amountMinor, 1000);
+  assert.equal(draft.pricing?.merchandiseTotal.amountMinor, 23690);
+  assert.equal(draft.canRecordIntegrationOrder, false);
+  await assert.rejects(
+    a.service.recordOrderForTest(a.s.user, draft.id, {
+      expectedVersion: draft.version,
+      expectedFingerprint: draft.pricing!.fingerprint,
+      idempotencyKey: randomUUID(),
+    }),
+    { code: 'CHECKOUT_POLICY_REQUIRED' },
+  );
+  assert.equal(
+    (
+      await a.pool.query(
+        'SELECT count(*)::int AS n FROM bazar.promotion_usage_claims',
+      )
+    ).rows[0].n,
+    0,
+  );
+  assert.equal(
+    (
+      await a.pool.query(
+        'SELECT count(*)::int AS n FROM bazar.checkout_order_requests',
+      )
+    ).rows[0].n,
+    0,
+  );
+  const cleared = await a.service.setPayment(a.s.user, draft.id, {
+    expectedVersion: draft.version,
+    paymentSelection: 'on-receipt',
+    promoCode: null,
+  });
+  assert.equal(cleared.pricing?.discount.amountMinor, 0);
+  assert.equal(cleared.canRecordIntegrationOrder, true);
+});
+test('F6 different drafts on one cart version and concurrent edits do not create duplicate orders or lose updates', async (t) => {
+  const a = await checkoutFixture(t);
+  const one = await checkoutReview(a),
+    two = await checkoutReview(a);
+  const results = await Promise.allSettled(
+    [one, two].map((draft) =>
+      a.service.recordOrderForTest(a.s.user, draft.id, {
+        expectedVersion: draft.version,
+        expectedFingerprint: draft.pricing!.fingerprint,
+        idempotencyKey: randomUUID(),
+      }),
+    ),
+  );
+  assert.equal(results.filter((r) => r.status === 'fulfilled').length, 1);
+  assert.equal(
+    (
+      await a.pool.query(
+        "SELECT count(*)::int AS n FROM bazar.orders WHERE foundation_mode='integration-test'",
+      )
+    ).rows[0].n,
+    1,
+  );
+  assert.equal(
+    (
+      await a.pool.query(
+        'SELECT count(*)::int AS n FROM bazar.checkout_order_requests',
+      )
+    ).rows[0].n,
+    1,
+  );
+  const anotherCart = (
+    await a.pool.query(
+      'INSERT INTO bazar.carts(user_id) VALUES ($1) RETURNING id',
+      [a.s.user],
+    )
+  ).rows[0].id;
+  await a.pool.query(
+    'INSERT INTO bazar.cart_lines(cart_id,variant_id,quantity) VALUES ($1,$2,1)',
+    [anotherCart, a.s.variant],
+  );
+  let draft = await a.service.start(a.s.user, {
+    cartId: anotherCart,
+    expectedCartVersion: 1,
+    idempotencyKey: randomUUID(),
+  });
+  draft = await a.service.setDelivery(a.s.user, draft.id, {
+    expectedVersion: draft.version,
+    addressId: a.s.address,
+  });
+  const edits = await Promise.allSettled(
+    ['card-online', 'on-receipt'].map((paymentSelection) =>
+      a.service.setPayment(a.s.user, draft.id, {
+        expectedVersion: draft.version,
+        paymentSelection,
+        promoCode: null,
+      }),
+    ),
+  );
+  assert.equal(edits.filter((r) => r.status === 'fulfilled').length, 1);
+  assert.equal(
+    (await a.service.get(a.s.user, draft.id)).version,
+    draft.version + 1,
+  );
+});
+test('F6 a failed line insert rolls back all order/request/snapshot writes and permits the same safe retry key', async (t) => {
+  const a = await checkoutFixture(t),
+    draft = await checkoutReview(a);
+  await a.pool.query(
+    "CREATE FUNCTION bazar.test_order_failure() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'synthetic-failure' USING ERRCODE='23514'; END $$; CREATE TRIGGER test_order_failure BEFORE INSERT ON bazar.order_lines FOR EACH ROW EXECUTE FUNCTION bazar.test_order_failure()",
+  );
+  const input = {
+    expectedVersion: draft.version,
+    expectedFingerprint: draft.pricing!.fingerprint,
+    idempotencyKey: randomUUID(),
+  };
+  await assert.rejects(
+    a.service.recordOrderForTest(a.s.user, draft.id, input),
+    { code: '23514' },
+  );
+  for (const table of ['order_checkout_snapshots', 'checkout_order_requests'])
+    assert.equal(
+      (await a.pool.query(`SELECT count(*)::int AS n FROM bazar.${table}`))
+        .rows[0].n,
+      0,
+    );
+  assert.equal(
+    (
+      await a.pool.query(
+        "SELECT count(*)::int AS n FROM bazar.orders WHERE foundation_mode='integration-test'",
+      )
+    ).rows[0].n,
+    0,
+  );
+  assert.equal(
+    (await a.service.get(a.s.user, draft.id)).version,
+    draft.version,
+  );
+  await a.pool.query('DROP TRIGGER test_order_failure ON bazar.order_lines');
+  assert.equal(
+    (await a.service.recordOrderForTest(a.s.user, draft.id, input)).replayed,
+    false,
+  );
+});
+test('F6 database constraints enforce immutable complete snapshots and reject provider operations on integration orders', async (t) => {
+  const a = await checkoutFixture(t),
+    draft = await checkoutReview(a);
+  const { order } = await a.service.recordOrderForTest(a.s.user, draft.id, {
+    expectedVersion: draft.version,
+    expectedFingerprint: draft.pricing!.fingerprint,
+    idempotencyKey: randomUUID(),
+  });
+  for (const sql of [
+    "UPDATE bazar.orders SET status='confirmed' WHERE id=$1",
+    "UPDATE bazar.order_lines SET title_snapshot='rewritten' WHERE order_id=$1",
+    'UPDATE bazar.order_checkout_snapshots SET merchandise_total_minor=0 WHERE order_id=$1',
+    'DELETE FROM bazar.order_checkout_snapshots WHERE order_id=$1',
+  ]) {
+    await assert.rejects(a.pool.query(sql, [order.id]), { code: '23514' });
+  }
+  await assert.rejects(
+    a.pool.query('DELETE FROM bazar.checkout_sessions WHERE id=$1', [draft.id]),
+    { code: '23514' },
+  );
+  await assert.rejects(
+    a.pool.query(
+      "INSERT INTO bazar.order_lines(order_id,user_id,product_id,variant_id,title_snapshot,quantity,unit_price_minor,line_total_minor) VALUES ($1,$2,$3,$4,'late-zero-line',1,0,0)",
+      [order.id, a.s.user, a.s.product, a.s.variant],
+    ),
+    { code: '23514' },
+  );
+  await assert.rejects(
+    a.pool.query(
+      "INSERT INTO bazar.payment_attempts(order_id,user_id,provider,amount_minor) VALUES ($1,$2,'not-a-provider',1)",
+      [order.id, a.s.user],
+    ),
+    { code: '23514' },
+  );
+  const legacyOrder = (await a.pool.query(
+    'INSERT INTO bazar.orders(user_id,total_minor) VALUES ($1,0) RETURNING id',
+    [a.s.user],
+  )).rows[0].id;
+  await a.pool.query(
+    "INSERT INTO bazar.order_lines(order_id,user_id,product_id,variant_id,title_snapshot,quantity,unit_price_minor,line_total_minor) VALUES ($1,$2,$3,$4,'legacy-zero-line',1,0,0)",
+    [legacyOrder, a.s.user, a.s.product, a.s.variant],
+  );
+  await assert.rejects(
+    a.pool.query('UPDATE bazar.order_lines SET order_id=$1 WHERE order_id=$2', [order.id, legacyOrder]),
+    { code: '23514' },
+  );
+  await assert.rejects(
+    a.pool.query(
+      "INSERT INTO bazar.shipments(order_id,user_id,carrier) VALUES ($1,$2,'meest')",
+      [order.id, a.s.user],
+    ),
+    { code: '23514' },
+  );
+  const c = await a.pool.connect();
+  try {
+    await c.query('BEGIN');
+    await c.query(
+      "INSERT INTO bazar.orders(user_id,total_minor,foundation_mode) VALUES ($1,100,'integration-test')",
+      [a.s.user],
+    );
+    await assert.rejects(c.query('COMMIT'), { code: '23514' });
+  } finally {
+    await c.query('ROLLBACK');
+    c.release();
+  }
+  assert.equal(
+    (
+      await a.pool.query(
+        "SELECT count(*)::int AS n FROM bazar.orders WHERE foundation_mode='integration-test'",
+      )
+    ).rows[0].n,
+    1,
+  );
+});
+test('F6 typed checkout HTTP completes only isolated records; owner/CSRF/financial input and order pagination are enforced', async (t) => {
+  const a = await checkoutFixture(t),
+    fixture = authFixture(),
+    auth = createAuthService(a.pool, fixture.config, fixture.sms);
+  const registration = await registered({ ...a, ...fixture, auth });
+  const actor = registration.session.data.user.id;
+  await a.pool.query('UPDATE bazar.carts SET user_id=$1 WHERE id=$2', [
+    actor,
+    a.s.cart,
+  ]);
+  const addressId = (
+    await a.pool.query(
+      "INSERT INTO bazar.addresses(user_id,carrier,city_ref,location_ref) VALUES ($1,'meest','test-city','test-location') RETURNING id",
+      [actor],
+    )
+  ).rows[0].id;
+  const logs: string[] = [];
+  const app = createApiServer(
+    readConfig({ NODE_ENV: 'test' }),
+    createLogger('info', (line) => logs.push(line)),
+    { auth, checkout: a.service, isReady: async () => true },
+  );
+  app.server.listen(0, '127.0.0.1');
+  await once(app.server, 'listening');
+  t.after(() => app.shutdown());
+  const address = app.server.address();
+  assert.ok(address && typeof address !== 'string');
+  const base = `http://127.0.0.1:${address.port}`;
+  const cookie = `__Host-bazar-session=${registration.session.token}; __Host-bazar-flow=${registration.session.flow}`;
+  const transport: typeof fetch = async (path, init) => {
+    const headers = new Headers(init?.headers);
+    headers.set('origin', fixture.config.publicOrigin);
+    headers.set('cookie', cookie);
+    return fetch(base + path, { ...init, headers });
+  };
+  const client = createCheckoutBusinessClient(
+    () => registration.session.data.csrfToken,
+    transport,
+  );
+  let draft = await client.start({
+    cartId: a.s.cart,
+    expectedCartVersion: 1,
+    idempotencyKey: randomUUID(),
+  });
+  draft = await client.setDelivery(draft.id, {
+    expectedVersion: draft.version,
+    addressId,
+  });
+  draft = await client.setPayment(draft.id, {
+    expectedVersion: draft.version,
+    paymentSelection: 'on-receipt',
+    promoCode: null,
+  });
+  const input = {
+    expectedVersion: draft.version,
+    expectedFingerprint: draft.pricing!.fingerprint,
+    idempotencyKey: randomUUID(),
+  };
+  const recorded = await client.recordOrderForTest(draft.id, input);
+  assert.equal(recorded.order.recordState, 'recorded-for-test');
+  assert.equal(recorded.order.payableTotal, null);
+  assert.equal(
+    (await client.recordOrderForTest(draft.id, input)).replayed,
+    true,
+  );
+  assert.equal(
+    (await client.getOrder(recorded.order.id)).id,
+    recorded.order.id,
+  );
+  assert.equal((await client.get(draft.id)).canPlaceRealOrder, false);
+  const secondCart = (
+    await a.pool.query(
+      'INSERT INTO bazar.carts(user_id) VALUES ($1) RETURNING id',
+      [actor],
+    )
+  ).rows[0].id;
+  await a.pool.query(
+    'INSERT INTO bazar.cart_lines(cart_id,variant_id,quantity) VALUES ($1,$2,1)',
+    [secondCart, a.s.variant],
+  );
+  let second = await client.start({
+    cartId: secondCart,
+    expectedCartVersion: 1,
+    idempotencyKey: randomUUID(),
+  });
+  second = await client.setDelivery(second.id, {
+    expectedVersion: second.version,
+    addressId,
+  });
+  second = await client.setPayment(second.id, {
+    expectedVersion: second.version,
+    paymentSelection: 'card-online',
+    promoCode: null,
+  });
+  await client.recordOrderForTest(second.id, {
+    expectedVersion: second.version,
+    expectedFingerprint: second.pricing!.fingerprint,
+    idempotencyKey: randomUUID(),
+  });
+  const page = await client.listOrders({ limit: 1 });
+  assert.equal(page.items.length, 1);
+  assert.ok(page.nextCursor);
+  const next = await client.listOrders({ limit: 1, cursor: page.nextCursor });
+  assert.equal(next.items.length, 1);
+  assert.notEqual(page.items[0].id, next.items[0].id);
+  assert.equal(next.nextCursor, null);
+  await assert.rejects(client.listOrders({ limit: 101 }), { status: 400 });
+  const raw = (
+    path: string,
+    body: unknown,
+    headers: Record<string, string> = {},
+  ) =>
+    fetch(base + path, {
+      method: 'POST',
+      headers: {
+        origin: fixture.config.publicOrigin,
+        cookie,
+        'x-csrf-token': registration.session.data.csrfToken,
+        'content-type': 'application/json',
+        ...headers,
+      },
+      body: JSON.stringify(body),
+    });
+  assert.equal(
+    (
+      await raw('/api/v1/checkouts', {
+        cartId: a.s.cart,
+        expectedCartVersion: 1,
+        idempotencyKey: randomUUID(),
+        userId: a.s.other,
+        total: 1,
+      })
+    ).status,
+    400,
+  );
+  assert.equal(
+    (
+      await raw(
+        '/api/v1/checkouts',
+        {
+          cartId: a.s.cart,
+          expectedCartVersion: 1,
+          idempotencyKey: randomUUID(),
+        },
+        { 'x-csrf-token': '' },
+      )
+    ).status,
+    403,
+  );
+  assert.equal(
+    (
+      await raw(
+        '/api/v1/checkouts',
+        {
+          cartId: a.s.cart,
+          expectedCartVersion: 1,
+          idempotencyKey: randomUUID(),
+        },
+        { origin: 'https://evil.invalid' },
+      )
+    ).status,
+    403,
+  );
+  const other = await registered({ ...a, ...fixture, auth }, '+380501234567');
+  const otherCookie = `__Host-bazar-session=${other.session.token}; __Host-bazar-flow=${other.session.flow}`;
+  for (const path of [
+    `/api/v1/orders/${recorded.order.id}`,
+    `/api/v1/checkouts/${draft.id}`,
+  ])
+    assert.equal(
+      (
+        await fetch(base + path, {
+          headers: {
+            origin: fixture.config.publicOrigin,
+            cookie: otherCookie,
+            'x-user-id': actor,
+          },
+        })
+      ).status,
+      404,
+    );
+  assert.doesNotMatch(
+    logs.join('\n'),
+    /test-location|test-city|380671234567|expectedFingerprint/,
+  );
+});
+test('F6 multi-line exact snapshots work while empty or changed-cart drafts cannot record orders', async (t) => {
+  const a = await checkoutFixture(t);
+  const category = (
+    await a.pool.query('SELECT category_id FROM bazar.products WHERE id=$1', [
+      a.s.product,
+    ])
+  ).rows[0].category_id;
+  const product = (
+    await a.pool.query(
+      "INSERT INTO bazar.products(category_id,handle,title) VALUES ($1,'f6-second','Другий синтетичний товар') RETURNING id",
+      [category],
+    )
+  ).rows[0].id;
+  const variant = (
+    await a.pool.query(
+      "INSERT INTO bazar.variants(product_id,sku,price_minor,stock) VALUES ($1,'F6-SECOND',999,10) RETURNING id",
+      [product],
+    )
+  ).rows[0].id;
+  await a.pool.query(
+    'INSERT INTO bazar.cart_lines(cart_id,variant_id,quantity) VALUES ($1,$2,3)',
+    [a.s.cart, variant],
+  );
+  const draft = await checkoutReview(a);
+  assert.equal(draft.pricing?.subtotal.amountMinor, 27687);
+  const { order } = await a.service.recordOrderForTest(a.s.user, draft.id, {
+    expectedVersion: draft.version,
+    expectedFingerprint: draft.pricing!.fingerprint,
+    idempotencyKey: randomUUID(),
+  });
+  assert.equal(order.lines.length, 2);
+  assert.equal(order.subtotal.amountMinor, 27687);
+  const empty = (
+    await a.pool.query(
+      'INSERT INTO bazar.carts(user_id) VALUES ($1) RETURNING id',
+      [a.s.user],
+    )
+  ).rows[0].id;
+  await assert.rejects(
+    a.service.start(a.s.user, {
+      cartId: empty,
+      expectedCartVersion: 1,
+      idempotencyKey: randomUUID(),
+    }),
+    { code: 'CHECKOUT_REJECTED' },
+  );
+  await a.pool.query(
+    'INSERT INTO bazar.cart_lines(cart_id,variant_id,quantity) VALUES ($1,$2,1)',
+    [empty, a.s.variant],
+  );
+  const another = await checkoutReview(a, empty);
+  await createCartRepository(a.pool).mutate(a.s.user, empty, {
+    operation: 'set',
+    variantId: a.s.variant,
+    quantity: 2,
+    expectedVersion: 1,
+  });
+  await assert.rejects(
+    a.service.recordOrderForTest(a.s.user, another.id, {
+      expectedVersion: another.version,
+      expectedFingerprint: another.pricing!.fingerprint,
+      idempotencyKey: randomUUID(),
+    }),
+    { code: 'CHECKOUT_STALE' },
   );
 });

@@ -112,3 +112,7 @@ Added a separate typed same-origin server-auth client with bounded validated res
 ## Phase F5 — future checkout promotion pricing boundary
 
 Added a separate typed, validated PromotionPricingService/client for step 2 using only cart ID/version/code and CSRF. The existing demo validatePromo(code, subtotal), its fixture rounding, UI, three-step flow and persistence are unchanged. No provider selects the new client. PostgreSQL quotes are explicit integration-test merchandise evaluations with checkoutAvailable:false; real redemption/payment/order and multi-line/rounding/compatibility/refund scenarios remain blocked in ADR 0005.
+
+## Phase F6 — server checkout/order boundary, demo preserved
+
+Added an opt-in typed CheckoutBusinessClient/contracts for three server draft stages and immutable pending integration records. It is never selected by the demo checkout/profile providers. Actual client → authenticated HTTP → PostgreSQL start/delivery/payment/test-record/order detail/list/replay is covered. canPlaceRealOrder remains false, payable/delivery amounts null and provider/inventory actions absent. Existing three-step UI/design/persistence, auth, cart, profile and communications are unchanged; see ADR 0006 for live blockers.

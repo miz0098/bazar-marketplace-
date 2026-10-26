@@ -93,7 +93,7 @@
     {
       "id": "PROMO-001",
       "title": "Implement promotions and authoritative discount calculations",
-      "status": "in_review",
+      "status": "done",
       "readiness": "integration",
       "depends_on": ["CART-001"],
       "allowed_paths": ["ARCHITECTURE.md", "MIGRATION_PLAN.md", "apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
@@ -192,13 +192,13 @@
     {
       "id": "ORDER-001",
       "title": "Implement order placement transaction and approved checkout confirmation",
-      "status": "pending",
+      "status": "in_progress",
       "readiness": "integration",
       "depends_on": ["CHECKOUT-001", "SHIP-001", "AUTH-001"],
-      "allowed_paths": ["apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
+      "allowed_paths": ["ARCHITECTURE.md", "MIGRATION_PLAN.md", "apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
       "acceptance": ["Order placement is idempotent and transactional", "Server revalidates cart, inventory, delivery and totals", "Failure never renders a success confirmation", "Audit trail contains no sensitive payment or OTP data"],
       "pr": null,
-      "blocker": "Legal order terms, numbering, fiscalization and inventory ownership require business approval."
+      "blocker": "F6 isolated drafts/idempotent immutable pending records are implemented. Live order terms/numbering/fiscalization, contact PII, inventory reservation, promo redemption, provider contracts and SMS/BFF activation remain owner decisions. No live checkout switch."
     },
     {
       "id": "ORDERS-001",
