@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-24",
+  "updated_at": "2026-10-25",
   "tasks": [
     {
       "id": "OPS-001",
@@ -104,7 +104,7 @@
     {
       "id": "CHECKOUT-001",
       "title": "Build approved three-step checkout UI and service boundary",
-      "status": "in_review",
+      "status": "done",
       "readiness": "demo",
       "depends_on": ["CART-001", "PROMO-001"],
       "allowed_paths": ["apps/storefront/", "packages/contracts/", "tests/e2e/", "docs/", ".github/autonomous/tasks.json"],
@@ -126,12 +126,23 @@
     {
       "id": "AUTHUI-001",
       "title": "Build approved phone-only identity UI and typed service boundary",
-      "status": "in_review",
+      "status": "done",
       "readiness": "demo",
       "depends_on": ["PHB-001"],
       "allowed_paths": ["apps/storefront/", "tests/e2e/", "docs/", ".github/autonomous/tasks.json"],
       "acceptance": ["Responsive header modal and login/register routes expose only the approved phone flow", "Ukrainian phone validation and six-position OTP keyboard, paste, focus, resend and overflow behavior pass desktop/mobile tests", "Registration consent plus loading, invalid, expired, rate-limit, resend and network states are accessible", "Preview sends no SMS, creates no session or auth flag, exposes no protected data, and persists or logs no OTP or complete phone number"],
       "pr": 9,
+      "blocker": null
+    },
+    {
+      "id": "PROFILEUI-001",
+      "title": "Build approved demo profile and account interface",
+      "status": "in_progress",
+      "readiness": "demo",
+      "depends_on": ["AUTHUI-001", "PHB-001"],
+      "allowed_paths": ["apps/storefront/", "tests/e2e/", "docs/", ".github/autonomous/tasks.json"],
+      "acceptance": ["The /profile overview and exact nine-entry desktop/mobile navigation contain no Overview item, and drawer focus, Escape, focus return and overflow checks pass", "Orders, wishlist, reviews, personal data, addresses and payment-method screens expose deterministic demo, loading, empty, validation and error states without claiming authenticated persistence or verified commerce facts", "Wishlist add-to-cart uses the existing cart domain, account mutations remain preview-only, and payment UI never collects or persists PAN or CVV", "Messages and support remain explicit Phase E2 shells, while logout truthfully states that no server session exists", "Typed service boundaries, unit tests and desktop/mobile Playwright tests pass while IdentityService remains anonymous"],
+      "pr": null,
       "blocker": null
     },
     {
@@ -150,11 +161,11 @@
       "title": "Implement authorized profile shell, personal data and logout",
       "status": "pending",
       "readiness": "integration",
-      "depends_on": ["AUTH-001"],
+      "depends_on": ["AUTH-001", "PROFILEUI-001"],
       "allowed_paths": ["apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
       "acceptance": ["Sidebar order exactly matches approved audit and contains no Overview item", "Unauthorized routes follow the approved OTP flow", "Mobile drawer focus, Escape and overflow pass", "Profile mutation rollback, phone re-verification and server logout are tested"],
       "pr": null,
-      "blocker": "The /profile landing route decision requires product approval."
+      "blocker": null
     },
     {
       "id": "ADDRESS-001",

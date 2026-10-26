@@ -1,0 +1,24 @@
+{
+  "name": "BAZAR Marketplace",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:5-24-bookworm",
+  "remoteUser": "node",
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "BAZAR storefront",
+      "onAutoForward": "notify"
+    }
+  },
+  "containerEnv": {
+    "NEXT_TELEMETRY_DISABLED": "1",
+    "STOREFRONT_DATA_SOURCE": "mock"
+  },
+  "postCreateCommand": "npm --prefix apps/storefront ci && npm --prefix tests/e2e ci && cd tests/e2e && npx playwright install --with-deps chromium",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  }
+}
