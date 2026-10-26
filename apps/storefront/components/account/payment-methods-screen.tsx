@@ -1,26 +1,27 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AccountIcon } from '@/components/account/account-icons';
+import { useRequestState } from '@/components/account/use-request-state';
 import { useAccountService } from '@/components/account/account-preview-provider';
 import { AccountLoading, AccountPageHeading, AccountState } from '@/components/account/account-ui';
 import type { AccountPaymentMethod, AccountScenario } from '@/domain/account/account';
 
 export function PaymentMethodsScreen({ scenario }: { scenario: AccountScenario }) {
   const service = useAccountService(scenario);
-  const [methods, setMethods] = useState<readonly AccountPaymentMethod[] | null>(null);
-  const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
+
+  const requestKey = useMemo(() => ({ attempt, service }), [attempt, service]);
+  const [methods, setMethods] = useRequestState<readonly AccountPaymentMethod[] | null>(requestKey, null);
+  const [error, setError] = useRequestState(requestKey, '');
 
   useEffect(() => {
     let active = true;
-    setMethods(null);
-    setError('');
     service.listPaymentMethods().then((value) => { if (active) setMethods(value); }).catch((reason: unknown) => {
       if (active) setError(reason instanceof Error ? reason.message : 'Не вдалося завантажити платіжні методи.');
     });
     return () => { active = false; };
-  }, [attempt, service]);
+  }, [attempt, service, setMethods, setError]);
 
   return (
     <>

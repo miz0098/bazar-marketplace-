@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { AccountIcon } from '@/components/account/account-icons';
+import { useRequestState } from '@/components/account/use-request-state';
 import { useAccountService } from '@/components/account/account-preview-provider';
 import { AccountLoading, AccountPageHeading, AccountState, DemoMutationNotice } from '@/components/account/account-ui';
 import { useCart } from '@/components/cart/cart-provider';
@@ -15,24 +16,24 @@ export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<AccountWishlistSort>('newest');
   const [pageSize, setPageSize] = useState(4);
-  const [result, setResult] = useState<AccountWishlistPage | null>(null);
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
-  const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [attempt, setAttempt] = useState(0);
   const [busy, setBusy] = useState(false);
 
+  const requestKey = useMemo(() => ({ attempt, pageSize, search, service, sort }), [attempt, pageSize, search, service, sort]);
+  const [result, setResult] = useRequestState<AccountWishlistPage | null>(requestKey, null);
+  const [error, setError] = useRequestState(requestKey, '');
+
   useEffect(() => {
     let active = true;
-    setResult(null);
-    setError('');
     service.listWishlist({ search, sort, pageSize }).then((value) => {
       if (active) setResult(value);
     }).catch((reason: unknown) => {
       if (active) setError(reason instanceof Error ? reason.message : 'Не вдалося завантажити обране.');
     });
     return () => { active = false; };
-  }, [attempt, pageSize, search, service, sort]);
+  }, [attempt, pageSize, search, service, sort, setResult, setError]);
 
   const visibleIds = useMemo(() => result?.items.map((item) => item.id) ?? [], [result]);
   const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selected.has(id));

@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AccountIcon } from '@/components/account/account-icons';
+import { useRequestState } from '@/components/account/use-request-state';
 import { useAccountService } from '@/components/account/account-preview-provider';
 import { AccountLoading, AccountPageHeading, AccountState } from '@/components/account/account-ui';
 import type { AccountScenario } from '@/domain/account/account';
@@ -16,14 +17,14 @@ interface OverviewData {
 
 export function OverviewScreen({ scenario }: { scenario: AccountScenario }) {
   const service = useAccountService(scenario);
-  const [data, setData] = useState<OverviewData | null>(null);
-  const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
+
+  const requestKey = useMemo(() => ({ attempt, service }), [attempt, service]);
+  const [data, setData] = useRequestState<OverviewData | null>(requestKey, null);
+  const [error, setError] = useRequestState(requestKey, '');
 
   useEffect(() => {
     let active = true;
-    setData(null);
-    setError('');
     Promise.all([
       service.getProfile(),
       service.listOrders({ pageSize: 1 }),
@@ -35,7 +36,7 @@ export function OverviewScreen({ scenario }: { scenario: AccountScenario }) {
       if (active) setError(reason instanceof Error ? reason.message : 'Не вдалося завантажити демо-профіль.');
     });
     return () => { active = false; };
-  }, [attempt, service]);
+  }, [attempt, service, setData, setError]);
 
   return (
     <>

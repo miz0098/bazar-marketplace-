@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { accountDeliveryLabels } from '@/components/account/account-format';
 import { AccountIcon } from '@/components/account/account-icons';
+import { useRequestState } from '@/components/account/use-request-state';
 import { useAccountService } from '@/components/account/account-preview-provider';
 import { AccountLoading, AccountPageHeading, AccountState, DemoMutationNotice } from '@/components/account/account-ui';
 import { hasAccountValidationErrors, validateAccountAddress, type AccountAddress, type AccountAddressDraft, type AccountAddressErrors, type AccountScenario } from '@/domain/account/account';
@@ -18,26 +19,26 @@ const emptyDraft: AccountAddressDraft = {
 
 export function AddressesScreen({ scenario }: { scenario: AccountScenario }) {
   const service = useAccountService(scenario);
-  const [addresses, setAddresses] = useState<readonly AccountAddress[] | null>(null);
   const [editingId, setEditingId] = useState<string | 'new' | null>(null);
   const [draft, setDraft] = useState<AccountAddressDraft>(emptyDraft);
   const [errors, setErrors] = useState<AccountAddressErrors>({});
-  const [loadError, setLoadError] = useState('');
   const [actionError, setActionError] = useState('');
   const [notice, setNotice] = useState('');
   const [attempt, setAttempt] = useState(0);
   const [busy, setBusy] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
+  const requestKey = useMemo(() => ({ attempt, service }), [attempt, service]);
+  const [addresses, setAddresses] = useRequestState<readonly AccountAddress[] | null>(requestKey, null);
+  const [loadError, setLoadError] = useRequestState(requestKey, '');
+
   useEffect(() => {
     let active = true;
-    setAddresses(null);
-    setLoadError('');
     service.listAddresses().then((value) => { if (active) setAddresses(value); }).catch((reason: unknown) => {
       if (active) setLoadError(reason instanceof Error ? reason.message : 'Не вдалося завантажити адреси.');
     });
     return () => { active = false; };
-  }, [attempt, service]);
+  }, [attempt, service, setAddresses, setLoadError]);
 
   const openNew = () => {
     setEditingId('new');

@@ -13,6 +13,7 @@ const accountNavigation = [
 ] as const;
 
 async function expectNoHorizontalOverflow(page: Page) {
+  await expect(page.locator('.account-loading')).toHaveCount(0);
   const widths = await page.evaluate(() => ({
     viewport: window.innerWidth,
     document: document.documentElement.scrollWidth,
@@ -97,8 +98,8 @@ test('orders expose empty and error states for deterministic preview scenarios',
 test('wishlist search, sorting, selection, removal and cart integration stay explicitly demo-only', async ({ page }) => {
   await page.goto('/profile/wishlist');
   await expect(page.getByRole('heading', { name: 'Обране' })).toBeVisible();
-  const search = page.getByLabel('Пошук в обраному');
-  const sort = page.getByLabel('Сортування');
+  const search = page.getByRole('searchbox', { name: 'Пошук в обраному' });
+  const sort = page.getByRole('combobox', { name: 'Сортування' });
 
   await search.fill('Sony');
   await expect(page.getByRole('article', { name: 'Навушники Sony WH-1000XM5' })).toBeVisible();
@@ -111,7 +112,7 @@ test('wishlist search, sorting, selection, removal and cart integration stay exp
   const shoes = page.getByRole('article', { name: 'Кросівки для бігу Air Flex' });
   await shoes.getByRole('button', { name: 'До кошика' }).click();
   await expect(page.getByRole('status')).toContainText('додано до демонстраційного кошика');
-  await expect(page.getByLabel('1 товарів у кошику')).toBeVisible();
+  await expect(page.getByLabel('1 товарів у кошику')).toHaveText('1');
 
   await shoes.getByRole('checkbox', { name: 'Обрати Кросівки для бігу Air Flex' }).check();
   await expect(page.getByText('Обрано: 1')).toBeVisible();
@@ -122,12 +123,48 @@ test('wishlist search, sorting, selection, removal and cart integration stay exp
   await page.reload();
   await sort.selectOption('price-asc');
   await expect(page.getByRole('article', { name: 'Кросівки для бігу Air Flex' })).toBeVisible();
-  await expect(page.getByLabel('1 товарів у кошику')).toBeVisible();
+  await expect(page.getByLabel('1 товарів у кошику')).toHaveText('1');
 
   await search.fill('товару-якого-немає');
   await expect(page.getByRole('heading', { name: 'Нічого не знайдено' })).toBeVisible();
-  await page.getByRole('button', { name: 'Очистити пошук' }).click();
+  await page.locator('.account-content').getByRole('button', { name: 'Очистити пошук' }).click();
   await expect(search).toHaveValue('');
+  await page.goto('/cart');
+  await expect(page.locator('.cart-line__info').getByRole('link', { name: 'Кросівки для бігу Air Flex' })).toBeVisible();
+});
+
+test('wishlist ignores superseded responses', async ({ page }) => {
+  await page.clock.install();
+  await page.goto('/profile/wishlist');
+  await expect(page.locator('.account-wishlist-card')).toHaveCount(4);
+  await page.clock.pauseAt(await page.evaluate(() => Date.now() + 1000));
+
+  const search = page.getByRole('searchbox', { name: 'Пошук в обраному' });
+  const loading = page.getByText('Завантажуємо демонстраційне обране…');
+  await search.fill('Sony');
+  await expect(loading).toBeVisible();
+  await page.clock.runFor(90);
+  await search.fill('Apple');
+  await page.clock.runFor(90);
+  // The older Sony request has completed, but must not replace the pending Apple result.
+  await expect(loading).toBeVisible();
+  await expect(page.locator('.account-wishlist-card')).toHaveCount(0);
+  await page.clock.runFor(90);
+  await expect(page.getByRole('article', { name: 'Apple iPhone 15 Pro 128GB' })).toBeVisible();
+  await expect(page.getByRole('article', { name: 'Навушники Sony WH-1000XM5' })).toHaveCount(0);
+
+});
+
+test('retry clears the previous account error while a new request is pending', async ({ page }) => {
+  await page.clock.install();
+  await page.goto('/profile/orders?preview=error');
+  await expect(page.locator('.account-content').getByRole('alert')).toBeVisible();
+  await page.clock.pauseAt(await page.evaluate(() => Date.now() + 1000));
+  await page.getByRole('button', { name: 'Спробувати ще раз' }).click();
+  await expect(page.locator('.account-content').getByRole('alert')).toHaveCount(0);
+  await expect(page.getByText('Завантажуємо демонстраційні замовлення…')).toBeVisible();
+  await page.clock.runFor(180);
+  await expect(page.locator('.account-content').getByRole('alert')).toBeVisible();
 });
 
 test('review editor validates, focuses and applies only in-memory changes', async ({ page }) => {
@@ -141,7 +178,7 @@ test('review editor validates, focuses and applies only in-memory changes', asyn
   await expect(review.getByText('Відгук має містити щонайменше 10 символів.')).toBeVisible();
   await expect(text).toBeFocused();
 
-  await review.getByLabel('Оцінка').selectOption('4');
+  await review.getByRole('combobox', { name: /^Оцінка/ }).selectOption('4');
   await text.fill('Оновлений текст існує лише під час цього демо-перегляду.');
   await review.getByRole('button', { name: 'Зберегти демо-зміни' }).click();
   await expect(page.getByRole('status')).toContainText('Після оновлення сторінки зміни зникнуть');
@@ -154,8 +191,8 @@ test('review editor validates, focuses and applies only in-memory changes', asyn
 test('personal data validation focuses the first error and never exposes a complete phone', async ({ page }) => {
   await page.goto('/profile/personal-data');
   await expect(page.getByRole('heading', { name: 'Особисті дані' })).toBeVisible();
-  await expect(page.getByLabel('Телефон')).toHaveValue('+380 67 *** ** 67');
-  await expect(page.getByLabel('Телефон')).toHaveAttribute('readonly', '');
+  await expect(page.getByRole('textbox', { name: /^Телефон/ })).toHaveValue('+380 67 *** ** 67');
+  await expect(page.getByRole('textbox', { name: /^Телефон/ })).toHaveAttribute('readonly', '');
 
   const firstName = page.getByLabel('Імʼя');
   await firstName.fill('');
@@ -221,7 +258,7 @@ test('payment methods collect no card credentials and deferred screens create no
   await expect(page.getByRole('heading', { name: 'Платіжні методи' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Платіжних методів немає' })).toBeVisible();
   await expect(page.getByText(/не просить вводити номер картки або CVV/)).toBeVisible();
-  await expect(page.locator('input')).toHaveCount(0);
+  await expect(page.locator('.account-content input')).toHaveCount(0);
   await expect(page.getByRole('button', { name: /додати|зберегти|оплатити/i })).toHaveCount(0);
 
   for (const route of ['/profile/messages', '/profile/support']) {
@@ -239,13 +276,13 @@ test('logout remains an anonymous preview boundary with no browser session state
   await page.goto('/profile');
   await accountNav(page).getByRole('button', { name: 'Вихід' }).click();
   await expect(page).toHaveURL('/profile');
-  await expect(page.getByRole('status')).toContainText('Серверної сесії немає');
+  await expect(page.getByRole('status').filter({ hasText: 'Серверної сесії немає' })).toBeVisible();
   const state = await page.evaluate(() => ({
     cookies: document.cookie,
     localKeys: Object.keys(localStorage),
     sessionKeys: Object.keys(sessionStorage),
   }));
-  expect(JSON.stringify(state)).not.toMatch(/auth|identity|profile|session|token/i);
+  expect([state.cookies, ...state.localKeys, ...state.sessionKeys].join(' ')).not.toMatch(/auth|identity|profile|session|token/i);
 });
 
 test('mobile account drawer traps focus, closes safely and profile routes never overflow', async ({ page }, testInfo) => {
@@ -268,7 +305,7 @@ test('mobile account drawer traps focus, closes safely and profile routes never 
   await expect(trigger).toBeFocused();
 
   await trigger.click();
-  await page.locator('.account-drawer-backdrop').click({ position: { x: 2, y: 2 } });
+  await page.locator('.account-drawer-backdrop').click({ position: { x: page.viewportSize()!.width - 2, y: 2 } });
   await expect(drawer).toBeHidden();
   await expect(trigger).toBeFocused();
 
@@ -278,8 +315,7 @@ test('mobile account drawer traps focus, closes safely and profile routes never 
   }
 });
 
-test('account shell has no serious accessibility violations', async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== 'desktop-chromium', 'Desktop accessibility assertion.');
+test('account shell has no serious accessibility violations', async ({ page }) => {
   await page.goto('/profile');
   await waitForAccountPreview(page);
   const results = await new AxeBuilder({ page }).include('[data-account-shell]').analyze();

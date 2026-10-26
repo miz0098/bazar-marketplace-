@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { formatAccountDate } from '@/components/account/account-format';
 import { AccountIcon } from '@/components/account/account-icons';
+import { useRequestState } from '@/components/account/use-request-state';
 import { useAccountService } from '@/components/account/account-preview-provider';
 import { AccountLoading, AccountPageHeading, AccountState, DemoMutationNotice } from '@/components/account/account-ui';
 import { hasAccountValidationErrors, validateAccountReview, type AccountReview, type AccountReviewDraft, type AccountReviewErrors, type AccountScenario } from '@/domain/account/account';
@@ -12,26 +13,26 @@ const emptyDraft: AccountReviewDraft = { rating: 5, text: '' };
 
 export function ReviewsScreen({ scenario }: { scenario: AccountScenario }) {
   const service = useAccountService(scenario);
-  const [reviews, setReviews] = useState<readonly AccountReview[] | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<AccountReviewDraft>(emptyDraft);
   const [errors, setErrors] = useState<AccountReviewErrors>({});
-  const [loadError, setLoadError] = useState('');
   const [actionError, setActionError] = useState('');
   const [notice, setNotice] = useState('');
   const [attempt, setAttempt] = useState(0);
   const [busy, setBusy] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
+  const requestKey = useMemo(() => ({ attempt, service }), [attempt, service]);
+  const [reviews, setReviews] = useRequestState<readonly AccountReview[] | null>(requestKey, null);
+  const [loadError, setLoadError] = useRequestState(requestKey, '');
+
   useEffect(() => {
     let active = true;
-    setReviews(null);
-    setLoadError('');
     service.listReviews().then((value) => { if (active) setReviews(value); }).catch((reason: unknown) => {
       if (active) setLoadError(reason instanceof Error ? reason.message : 'Не вдалося завантажити відгуки.');
     });
     return () => { active = false; };
-  }, [attempt, service]);
+  }, [attempt, service, setReviews, setLoadError]);
 
   const beginEdit = (review: AccountReview) => {
     setEditingId(review.id);

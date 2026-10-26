@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { accountOrderStatusLabels, formatAccountDate } from '@/components/account/account-format';
 import { AccountIcon } from '@/components/account/account-icons';
+import { useRequestState } from '@/components/account/use-request-state';
 import { useAccountService } from '@/components/account/account-preview-provider';
 import { AccountLoading, AccountState, BackToOrdersLink } from '@/components/account/account-ui';
 import type { AccountOrderDetail, AccountScenario } from '@/domain/account/account';
@@ -11,19 +12,19 @@ import { formatMoney } from '@/lib/money';
 
 export function OrderDetailScreen({ id, scenario }: { id: string; scenario: AccountScenario }) {
   const service = useAccountService(scenario);
-  const [order, setOrder] = useState<AccountOrderDetail | null | undefined>(undefined);
-  const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
+
+  const requestKey = useMemo(() => ({ attempt, id, service }), [attempt, id, service]);
+  const [order, setOrder] = useRequestState<AccountOrderDetail | null | undefined>(requestKey, undefined);
+  const [error, setError] = useRequestState(requestKey, '');
 
   useEffect(() => {
     let active = true;
-    setOrder(undefined);
-    setError('');
     service.getOrder(id).then((value) => { if (active) setOrder(value); }).catch((reason: unknown) => {
       if (active) setError(reason instanceof Error ? reason.message : 'Не вдалося завантажити запис.');
     });
     return () => { active = false; };
-  }, [attempt, id, service]);
+  }, [attempt, id, service, setOrder, setError]);
 
   if (error) return <AccountState error icon="warning" title="Деталі недоступні" text={error} action={<button className="account-button account-button--primary" type="button" onClick={() => setAttempt((value) => value + 1)}>Спробувати ще раз</button>} />;
   if (order === undefined) return <AccountLoading label="Завантажуємо деталі демонстраційного замовлення…" />;

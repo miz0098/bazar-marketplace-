@@ -109,7 +109,7 @@ export function createDemoAccountService(options: DemoAccountServiceOptions = {}
   const useCollections = scenario === 'ready';
 
   let profile: AccountProfile = { ...fixtureSource.profile };
-  let orders = useCollections ? fixtureSource.orders.map(cloneOrder) : [];
+  const orders = useCollections ? fixtureSource.orders.map(cloneOrder) : [];
   let wishlist = useCollections ? fixtureSource.wishlist.map(cloneWishlistItem) : [];
   let reviews = useCollections ? fixtureSource.reviews.map(cloneReview) : [];
   let addresses = useCollections ? fixtureSource.addresses.map((address) => ({ ...address })) : [];

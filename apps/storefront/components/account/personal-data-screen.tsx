@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRequestState } from '@/components/account/use-request-state';
 import { useAccountService } from '@/components/account/account-preview-provider';
 import { AccountLoading, AccountPageHeading, AccountState, DemoMutationNotice } from '@/components/account/account-ui';
 import { hasAccountValidationErrors, validateAccountProfile, type AccountProfile, type AccountProfileDraft, type AccountProfileErrors, type AccountScenario } from '@/domain/account/account';
@@ -9,20 +10,20 @@ const emptyDraft: AccountProfileDraft = { firstName: '', lastName: '', email: ''
 
 export function PersonalDataScreen({ scenario }: { scenario: AccountScenario }) {
   const service = useAccountService(scenario);
-  const [profile, setProfile] = useState<AccountProfile | null>(null);
   const [draft, setDraft] = useState<AccountProfileDraft>(emptyDraft);
   const [errors, setErrors] = useState<AccountProfileErrors>({});
-  const [loadError, setLoadError] = useState('');
   const [actionError, setActionError] = useState('');
   const [notice, setNotice] = useState('');
   const [attempt, setAttempt] = useState(0);
   const [busy, setBusy] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
+  const requestKey = useMemo(() => ({ attempt, service }), [attempt, service]);
+  const [profile, setProfile] = useRequestState<AccountProfile | null>(requestKey, null);
+  const [loadError, setLoadError] = useRequestState(requestKey, '');
+
   useEffect(() => {
     let active = true;
-    setProfile(null);
-    setLoadError('');
     service.getProfile().then((value) => {
       if (!active) return;
       setProfile(value);
@@ -31,7 +32,7 @@ export function PersonalDataScreen({ scenario }: { scenario: AccountScenario }) 
       if (active) setLoadError(reason instanceof Error ? reason.message : 'Не вдалося завантажити особисті дані.');
     });
     return () => { active = false; };
-  }, [attempt, service]);
+  }, [attempt, service, setProfile, setLoadError]);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();

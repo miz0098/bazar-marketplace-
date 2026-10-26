@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { accountOrderStatusLabels, formatAccountDate } from '@/components/account/account-format';
 import { AccountIcon } from '@/components/account/account-icons';
+import { useRequestState } from '@/components/account/use-request-state';
 import { useAccountService } from '@/components/account/account-preview-provider';
 import { AccountLoading, AccountPageHeading, AccountState } from '@/components/account/account-ui';
 import type { AccountOrderPage, AccountOrderStatus, AccountScenario } from '@/domain/account/account';
@@ -24,21 +25,21 @@ export function OrdersScreen({ scenario }: { scenario: AccountScenario }) {
   const service = useAccountService(scenario);
   const [filter, setFilter] = useState<OrderFilter>('all');
   const [pageSize, setPageSize] = useState(5);
-  const [result, setResult] = useState<AccountOrderPage | null>(null);
-  const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
+
+  const requestKey = useMemo(() => ({ attempt, filter, pageSize, service }), [attempt, filter, pageSize, service]);
+  const [result, setResult] = useRequestState<AccountOrderPage | null>(requestKey, null);
+  const [error, setError] = useRequestState(requestKey, '');
 
   useEffect(() => {
     let active = true;
-    setResult(null);
-    setError('');
     service.listOrders({ status: filter, pageSize }).then((value) => {
       if (active) setResult(value);
     }).catch((reason: unknown) => {
       if (active) setError(reason instanceof Error ? reason.message : 'Не вдалося завантажити замовлення.');
     });
     return () => { active = false; };
-  }, [attempt, filter, pageSize, service]);
+  }, [attempt, filter, pageSize, service, setResult, setError]);
 
   const selectFilter = (value: OrderFilter) => {
     setFilter(value);
