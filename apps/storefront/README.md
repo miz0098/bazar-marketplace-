@@ -92,6 +92,8 @@ Live authorized transport, real read synchronization, moderation, retention, fil
 
 ## Verification
 
+Phase F1 adds an independent API foundation under `../api`; it is **not required** to run this storefront. The existing service providers remain mock-only. `services/http/api-client.server.ts` is an opt-in server-only factory for future health/version probes, with validated `BAZAR_API_BASE_URL` / `BAZAR_API_TIMEOUT_MS`, bounded reads/timeouts, sanitized errors, no credentials and no redirects. It is not called during rendering, does not implement domain adapters, and does not enable real identity or commerce. See [API foundation](../api/README.md) and [module boundaries](../../docs/API_MODULES.md).
+
 ```sh
 cd apps/storefront
 npm ci
