@@ -87,6 +87,8 @@ Every outgoing message and support reply is a local preview, not a delivery. No 
 
 ## Pending
 
+Phase F1 introduces a separate `apps/api` technical foundation and an unused server-only health/discovery client. Storefront domain mocks, layouts, design, demo persistence and Shopify source remain unchanged. Business contracts and PostgreSQL architecture are proposals; no live domain route, DB connection/migration, phone verification, payment or message delivery has been activated. See `docs/API_MODULES.md` and `docs/POSTGRES_ARCHITECTURE.md`.
+
 - [ ] Live catalog API, inventory, pricing, media, and seller data
 - [ ] Production phone authentication, secure sessions, route authorization, personal-data persistence, phone re-verification, and server logout
 - [ ] Authoritative current-user orders, synchronized wishlist, verified reviews, owned addresses, and tokenized payment methods

@@ -2,6 +2,8 @@
 
 ## Audit basis
 
+Phase F1 implementation update: `apps/api` now supplies technical HTTP/configuration/logging/shutdown foundations without activating any business operation. [API modules](docs/API_MODULES.md) and [PostgreSQL architecture](docs/POSTGRES_ARCHITECTURE.md) distinguish provisional contracts/schema design from implementation. Database migrations and live domain adapters remain future stages; no storefront mock switch or Shopify-source migration is part of F1.
+
 This plan was re-audited on 2026-10-23 using three explicit references:
 
 - `vps-migration` at `722a58b` supplies `AGENTS.md` and the migration base.

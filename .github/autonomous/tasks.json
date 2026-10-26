@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-25",
+  "updated_at": "2026-10-26",
   "tasks": [
     {
       "id": "OPS-001",
@@ -49,12 +49,12 @@
     {
       "id": "BE-001",
       "title": "Bootstrap first-party API service and health endpoints",
-      "status": "pending",
+      "status": "in_review",
       "readiness": "integration",
       "depends_on": ["CONTRACT-001"],
-      "allowed_paths": ["apps/api/", "packages/contracts/", "docs/", ".github/", ".github/autonomous/tasks.json"],
+      "allowed_paths": ["apps/api/", "apps/storefront/lib/", "apps/storefront/services/http/", "apps/storefront/tests/", "apps/storefront/.env.example", "apps/storefront/README.md", "apps/storefront/MIGRATION_PROGRESS.md", "infra/postgres/", "packages/contracts/", "docs/", "ARCHITECTURE.md", "MIGRATION_PLAN.md", ".github/"],
       "acceptance": ["Typed API application starts without production credentials", "Liveness and dependency-aware readiness endpoints are tested", "Structured logs redact secrets and personal data", "CI runs API lint, typecheck, tests and build"],
-      "pr": null,
+      "pr": 12,
       "blocker": null
     },
     {

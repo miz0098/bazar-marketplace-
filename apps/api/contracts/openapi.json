@@ -1,0 +1,559 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "BAZAR API Foundation",
+    "version": "1.0.0",
+    "description": "Only the paths in this document are implemented. No authentication, database, business operations or provider integrations are available. Provisional business DTOs are defined in src/contracts/modules.ts and docs/API_MODULES.md."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:4000",
+      "description": "Local development only; no deployment is implied"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "JSON envelope; HEAD has matching headers and no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON envelope; HEAD has matching headers and no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "JSON envelope; HEAD has matching headers and no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "JSON envelope; HEAD has matching headers and no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "head": {
+        "operationId": "getHealthHeaders",
+        "responses": {
+          "200": {
+            "description": "Same status and headers as GET, without a response body"
+          },
+          "default": {
+            "description": "Same error status/headers as GET, without a body"
+          }
+        }
+      },
+      "options": {
+        "operationId": "getHealthPreflight",
+        "description": "Requires an exact allow-listed Origin and Access-Control-Request-Method GET or HEAD. Only Content-Type is allowed in requested headers. No credentials.",
+        "responses": {
+          "204": {
+            "description": "Validated CORS preflight; no response body"
+          },
+          "default": {
+            "description": "JSON envelope; HEAD has matching headers and no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ready": {
+      "get": {
+        "operationId": "getReadiness",
+        "responses": {
+          "200": {
+            "description": "JSON envelope; HEAD has matching headers and no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON envelope; HEAD has matching headers and no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "JSON envelope; HEAD has matching headers and no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "JSON envelope; HEAD has matching headers and no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "JSON envelope; HEAD has matching headers and no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "head": {
+        "operationId": "getReadinessHeaders",
+        "responses": {
+          "200": {
+            "description": "Same status and headers as GET, without a response body"
+          },
+          "default": {
+            "description": "Same error status/headers as GET, without a body"
+          }
+        }
+      },
+      "options": {
+        "operationId": "getReadinessPreflight",
+        "description": "Requires an exact allow-listed Origin and Access-Control-Request-Method GET or HEAD. Only Content-Type is allowed in requested headers. No credentials.",
+        "responses": {
+          "204": {
+            "description": "Validated CORS preflight; no response body"
+          },
+          "default": {
+            "description": "JSON envelope; HEAD has matching headers and no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1": {
+      "get": {
+        "operationId": "getVersion",
+        "responses": {
+          "200": {
+            "description": "JSON envelope; HEAD has matching headers and no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON envelope; HEAD has matching headers and no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "JSON envelope; HEAD has matching headers and no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "JSON envelope; HEAD has matching headers and no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "head": {
+        "operationId": "getVersionHeaders",
+        "responses": {
+          "200": {
+            "description": "Same status and headers as GET, without a response body"
+          },
+          "default": {
+            "description": "Same error status/headers as GET, without a body"
+          }
+        }
+      },
+      "options": {
+        "operationId": "getVersionPreflight",
+        "description": "Requires an exact allow-listed Origin and Access-Control-Request-Method GET or HEAD. Only Content-Type is allowed in requested headers. No credentials.",
+        "responses": {
+          "204": {
+            "description": "Validated CORS preflight; no response body"
+          },
+          "default": {
+            "description": "JSON envelope; HEAD has matching headers and no body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HealthResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "const": "ok"
+              },
+              "scope": {
+                "const": "process"
+              },
+              "uptimeSeconds": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "status",
+              "scope",
+              "uptimeSeconds"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "requestId"
+            ]
+          }
+        },
+        "required": [
+          "ok",
+          "data",
+          "meta"
+        ]
+      },
+      "ReadinessResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "const": "ready"
+              },
+              "dependencies": {
+                "type": "array",
+                "maxItems": 0
+              },
+              "businessModulesAvailable": {
+                "const": false
+              }
+            },
+            "required": [
+              "status",
+              "dependencies",
+              "businessModulesAvailable"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "requestId"
+            ]
+          }
+        },
+        "required": [
+          "ok",
+          "data",
+          "meta"
+        ]
+      },
+      "VersionResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "service": {
+                "const": "bazar-api"
+              },
+              "apiVersion": {
+                "const": "v1"
+              },
+              "businessModulesAvailable": {
+                "const": false
+              }
+            },
+            "required": [
+              "service",
+              "apiVersion",
+              "businessModulesAvailable"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "requestId"
+            ]
+          }
+        },
+        "required": [
+          "ok",
+          "data",
+          "meta"
+        ]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ok": {
+            "const": false
+          },
+          "error": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "INVALID_REQUEST",
+                  "CORS_DENIED",
+                  "METHOD_NOT_ALLOWED",
+                  "NOT_FOUND",
+                  "INTERNAL_ERROR",
+                  "SERVICE_UNAVAILABLE",
+                  "HEADERS_TOO_LARGE"
+                ]
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "code",
+              "message"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "requestId"
+            ]
+          }
+        },
+        "required": [
+          "ok",
+          "error",
+          "meta"
+        ]
+      },
+      "Money": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "amountMinor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "currency": {
+            "const": "UAH"
+          }
+        },
+        "required": [
+          "amountMinor",
+          "currency"
+        ]
+      },
+      "PageInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "cursor": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "limit"
+        ]
+      }
+    }
+  },
+  "x-planned-modules": [
+    {
+      "name": "users",
+      "status": "not-implemented",
+      "contract": "src/contracts/modules.ts"
+    },
+    {
+      "name": "identity",
+      "status": "not-implemented",
+      "contract": "src/contracts/modules.ts"
+    },
+    {
+      "name": "catalog",
+      "status": "not-implemented",
+      "contract": "src/contracts/modules.ts"
+    },
+    {
+      "name": "categories",
+      "status": "not-implemented",
+      "contract": "src/contracts/modules.ts"
+    },
+    {
+      "name": "cart",
+      "status": "not-implemented",
+      "contract": "src/contracts/modules.ts"
+    },
+    {
+      "name": "orders",
+      "status": "not-implemented",
+      "contract": "src/contracts/modules.ts"
+    },
+    {
+      "name": "wishlist",
+      "status": "not-implemented",
+      "contract": "src/contracts/modules.ts"
+    },
+    {
+      "name": "reviews",
+      "status": "not-implemented",
+      "contract": "src/contracts/modules.ts"
+    },
+    {
+      "name": "addresses",
+      "status": "not-implemented",
+      "contract": "src/contracts/modules.ts"
+    },
+    {
+      "name": "messages",
+      "status": "not-implemented",
+      "contract": "src/contracts/modules.ts"
+    },
+    {
+      "name": "support",
+      "status": "not-implemented",
+      "contract": "src/contracts/modules.ts"
+    },
+    {
+      "name": "payments",
+      "status": "not-implemented",
+      "contract": "src/contracts/modules.ts"
+    },
+    {
+      "name": "delivery",
+      "status": "not-implemented",
+      "contract": "src/contracts/modules.ts"
+    }
+  ]
+}

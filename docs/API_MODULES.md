@@ -1,0 +1,35 @@
+# BAZAR API modules — provisional v1 contracts
+
+Only `/health`, `/ready` and `/api/v1` are implemented. The actual HTTP contract is [OpenAPI](../apps/api/contracts/openapi.json). All 13 modules below are **planned**; even their proposed paths return 404 today. Their representative transport types and service signatures are in [modules.ts](../apps/api/src/contracts/modules.ts), not handlers. They are deliberately separate from the existing frontend mock contracts.
+
+## Common rules before enabling a business route
+
+Use `{ok:true,data,meta:{requestId}}` or `{ok:false,error:{code,message},meta:{requestId}}`. Errors must have stable public codes and sanitized messages; never pass through database/provider errors. Map missing authentication to 401, ownership/role violations to 403 or a consistent non-disclosing 404, validation to 400/422, stale versions to 409, throttling to 429 with Retry-After and temporary outage to 503. These business error codes/statuses are not implemented in F1; extend the versioned error schema and tests when adding them.
+
+IDs are opaque UUIDs, timestamps are RFC3339 UTC instants, money uses nonnegative integer minor units (safe-integer range) and an explicit currency. F1 proposes UAH; multicurrency/tax behavior needs review. Lists use opaque bounded cursors and limits 1–100. Sort messages by `(created_at,id)` ascending; unread totals count conversations. Missing delivery/payment facts stay absent instead of being invented.
+
+Validate JSON objects at the transport boundary: content type, byte limit, unknown fields, string bounds, enums, UUIDs, timestamps and numerical ranges. F1 accepts no business JSON, so it rejects all nonempty request bodies instead of parsing them. Activate runtime request/response schemas with the first real module. Do not treat TypeScript interfaces as validation of external data.
+
+For mutations, define idempotency keys scoped to actor+operation, durable request hashes, replayed results and mismatch rejection before processing money/orders/messages. Ownership is derived from the server session, never a client-supplied `userId`. Validate all output from database/provider adapters and map to DTOs. No credentials or PII may enter URLs or logs.
+
+| Module / proposed route family | Representative contract | Required invariants and remaining decisions |
+| --- | --- | --- |
+| Users `/api/v1/users/me` | UserDto; get/update current | Server-derived user; validate names and optional approved profile fields; phone changes require re-verification. No arbitrary user lookup. |
+| Phone OTP `/api/v1/auth/otp/challenges`, `/verify`, `/session` | OtpChallengeInput, OtpChallengeDto, OtpVerifyInput, SessionDto | E.164 phone, opaque challenge, keyed hash of code, short expiry, one-time consumption, rate/attempt/resend limits and anti-enumeration. Provider-confirmed state is distinct from delivery. SMS provider, consent and retention remain undecided. No fixed code or mock-auth flag. Session only through secure HttpOnly cookies; rotation/revocation, SameSite and CSRF before activation. |
+| Catalog `/api/v1/products` | ProductDto, ProductQuery, Page | Approved source/import ownership, server prices/availability, indexed Ukrainian search, bounded filtering/cursors; cache freshness contract before caching. Map real media to UI without copying fixture visuals into transport. |
+| Categories `/api/v1/categories` | CategoryDto | Unique handle, valid parent, no cycles, stable ordering and reviewed navigation mapping. |
+| Cart `/api/v1/cart` | CartDto, CartLineInput | Positive bounded quantity, optimistic version checks, authoritative inventory/prices/totals, guest ownership and merge decision. UI localStorage cart is not authoritative. |
+| Orders `/api/v1/orders` | OrderDto | Current-user authorization, transactional/idempotent creation after validation; snapshot prices and addresses, inventory lock/reservation policy, verified status transitions. No fabricated shipment/payment timeline. |
+| Wishlist `/api/v1/wishlist` | WishlistDto | Unique user+product, authorized mutations, deterministic guest merge and synchronized counts. |
+| Reviews `/api/v1/reviews` | ReviewDto, ReviewInput | Rating 1–5, text bounds, verified order-line ownership and moderation; upload policy before photos. |
+| Addresses `/api/v1/addresses` | AddressDto, AddressInput | Ownership, E.164 recipient phone, approved carrier/location IDs, one default per user; create/edit/delete transactions and retention. No live carrier validation exists in F1. |
+| Messages `/api/v1/conversations` | ConversationDto, MessageDto, MessageInput | Membership enforced on every read/write; bounded text, durable clientMessageId deduplication, chronological history, per-member read cursor/pin state, conversation unread count; delivery acknowledgement differs from persistence. No WebSocket/upload until separately designed and approved. |
+| Support `/api/v1/support/tickets` | TicketDto, TicketInput | Actor ownership, bounded subject/text, authorized staff transitions, separate message history; operator channels/SLA, attachments and retention need review. |
+| Payments `/api/v1/payments` | PaymentDto, PaymentHandoffDto, TokenizedPaymentMethodDto | Provider selection and PCI/legal approval first. Hosted HTTPS allow-listed handoff only, signed/replay-safe webhooks, idempotency and explicit unknown state. No PAN/CVV, invented paid status or success on timeout. |
+| Delivery `/api/v1/delivery/quotes` | DeliveryQuoteDto | Approved Нова пошта/Meest adapter; authoritative location IDs, expiring quote bound to cart/address/version. Null cost means unavailable, never free shipping. Credentials/tariffs/fulfillment ownership remain external decisions. |
+
+## Gradual storefront integration
+
+Existing `CatalogService`, `AccountService`, `IdentityService`, `MessagingService`, `SupportService` and cart/checkout mocks remain unchanged. API DTOs do not claim the mocks' synchronous/local behavior is a live capability. Each future HTTP adapter must validate its responses, map DTOs to the existing domain, normalize errors and pass a shared behavior suite before that domain's server-side selector can opt in. Switch one domain at a time behind a reviewed server-only allow-list; never fall back to invented success when the API fails.
+
+There is no global `http` switch, live auth session, payment operation, persistent order or server wishlist in F1. The only opt-in client methods currently available are foundation health and discovery reads; they send no cookies/tokens, do not follow redirects, use bounded timeouts/responses and do not run during normal mock storefront rendering.
