@@ -6,3 +6,6 @@ npm-debug.log*
 *.tsbuildinfo
 !.env.example
 !package-lock.json
+
+# Separate harness-generated types are rebuilt by its own Next app.
+browser-integration/next-env.d.ts

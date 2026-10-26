@@ -31,6 +31,7 @@ test('compiled API starts, serves health and exits cleanly on SIGTERM', { timeou
   const pricing=await fetch(`http://127.0.0.1:${startup.port}/api/v1/pricing/promotions/evaluate`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({subtotal:1,code:'INVENTED'})});
   assert.equal(pricing.status,503);assert.equal(pricing.headers.get('set-cookie'),null);
   for(const path of ['/api/v1/order-lifecycle/orders','/api/v1/order-lifecycle/refunds/webhooks/isolated','/api/v1/communication/conversations','/api/v1/communication/tickets','/api/v1/communication/notifications','/api/v1/communication/attachments','/api/v1/orders','/api/v1/customer/profile','/api/v1/customer/addresses','/api/v1/customer/reviews','/api/v1/wishlist','/api/v1/checkouts','/api/v1/checkouts/12345678-1234-1234-1234-123456789abc/confirmation','/api/v1/delivery/carriers','/api/v1/delivery/quotes','/api/v1/payments/attempts','/api/v1/payments/webhooks/isolated']){const unavailable=await fetch(`http://127.0.0.1:${startup.port}${path}`);assert.equal(unavailable.status,503);assert.equal(unavailable.headers.get('set-cookie'),null);}
+  for(const path of ['/__browser/otp','/__browser/payment','/__control/action']){const r=await fetch(`http://127.0.0.1:${startup.port}${path}`);assert.equal(r.status,404);assert.equal(r.headers.get('set-cookie'),null);await r.body?.cancel();}
   const cart = await fetch(`http://127.0.0.1:${startup.port}/api/v1/cart`);
   assert.equal(cart.status, 401); assert.equal(cart.headers.get('set-cookie'), null);
   const exit = once(child, 'exit');

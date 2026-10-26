@@ -32,7 +32,10 @@ test('mobile navigation works and pages do not overflow horizontally', async ({ 
 });
 
 test('unknown routes render the Ukrainian not-found state', async ({ page }) => {
-  await page.goto('/route-that-does-not-exist');
-  await expect(page.getByRole('heading', { name: 'Сторінку не знайдено' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Повернутися на головну' })).toHaveAttribute('href', '/');
+  for (const path of ['/route-that-does-not-exist', '/__browser/otp', '/__browser/payment', '/__control/action']) {
+    const response = await page.goto(path);
+    expect(response?.status()).toBe(404);
+    await expect(page.getByRole('heading', { name: 'Сторінку не знайдено' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Повернутися на головну' })).toHaveAttribute('href', '/');
+  }
 });

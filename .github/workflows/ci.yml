@@ -136,3 +136,54 @@ jobs:
       - run: npm run test:production
       - run: npm run test:integration
       - run: npm audit --audit-level=high
+
+  browser-checkout:
+    name: Isolated HTTPS browser checkout
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            apps/api/package-lock.json
+            apps/storefront/package-lock.json
+            tests/e2e/package-lock.json
+      - run: npm ci
+        working-directory: apps/api
+      - run: npm ci
+        working-directory: apps/storefront
+      - run: npm ci
+        working-directory: tests/e2e
+      - name: Use official HTTPS Ubuntu mirrors for browser dependencies
+        run: |
+          sudo python3 - <<'PYTHON'
+          from pathlib import Path
+          for name in ('/etc/apt/apt-mirrors.txt', '/etc/apt/apt-mirrors-security.txt'):
+              path = Path(name)
+              if path.is_file():
+                  text = path.read_text()
+                  for old, new in (
+                      ('http://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu'),
+                      ('https://azure.archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu'),
+                      ('http://archive.ubuntu.com/ubuntu', 'https://archive.ubuntu.com/ubuntu'),
+                      ('http://security.ubuntu.com/ubuntu', 'https://security.ubuntu.com/ubuntu'),
+                  ):
+                      text = text.replace(old, new)
+                  path.write_text(text)
+          PYTHON
+      - run: npx playwright install --with-deps chromium
+        working-directory: tests/e2e
+      - run: npm run typecheck:browser
+        working-directory: apps/storefront
+      - run: npm run test:browser
+        working-directory: apps/api
+      - name: Upload isolated browser report on failure
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: isolated-browser-report
+          path: tests/e2e/browser-report
+          retention-days: 14

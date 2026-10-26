@@ -1,5 +1,7 @@
 # BAZAR Storefront Architecture
 
+F15 adds a separate isolated Next browser app and loopback HTTPS/BFF test entry using real PostgreSQL/F4–F14 modules. Normal storefront/API main do not select its OTP/payment helpers or server mode. No-promo/card confirmation/history is browser-tested; production, discounted completion and actual wallets remain blocked. [ADR0014](docs/adr/0014-isolated-browser-checkout.md), [acceptance](docs/F15_BROWSER_CHECKOUT_ACCEPTANCE.md).
+
 F14 adds isolated order-lifecycle sidecars, owner/request/return quantity guards, immutable audit and synthetic refund capacity/authenticated-event protocols without changing F6 immutable order facts. Demo detail adds explicit request-only return/history/status scopes. [ADR 0013](docs/adr/0013-order-lifecycle-requests-refunds.md); [acceptance](docs/F14_ORDER_LIFECYCLE_ACCEPTANCE.md). Real cancellation/return/refund remains blocked.
 
 Phase F13 preserves E2 communication preview and adds isolated membership/owner-scoped PostgreSQL chat/support/read/pin/idempotency and notification inbox contracts. No production channels, CRM/staff, upload or UI API switch. [ADR 0012](docs/adr/0012-messages-support-notifications.md) and [acceptance](docs/F13_COMMUNICATION_ACCEPTANCE.md).

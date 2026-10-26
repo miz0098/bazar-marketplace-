@@ -1,5 +1,7 @@
 # Shopify functionality restoration — mandatory before BAZAR Demo 100%
 
+F15 proves isolated browser no-promo/card confirmation/history with three test carriers. This is not restored production Shopify checkout: discounted completion, actual wallet/provider operations, legal order/inventory lifecycle and real contacts/notifications remain blocked. [Acceptance](F15_BROWSER_CHECKOUT_ACCEPTANCE.md).
+
 F14 advances owned order request/history and isolated return/refund capacity protocols plus ephemeral My Orders return preview. Real order cancellation, return approval/logistics, financial allocations and provider-confirmed real refunds remain mandatory restoration blockers, not completed features. See [ADR0013](adr/0013-order-lifecycle-requests-refunds.md).
 
 Phase F10 expands this commerce checklist to a [44-area source-based gap audit](../FUNCTIONAL_GAP_AUDIT.md), [demo acceptance register](../DEMO_READINESS_CHECKLIST.md) and [completion plan](../DEMO_COMPLETION_PLAN.md). These identify UI parity and customer/staff/notification gaps as well as financial/provider blockers. Isolated tests, mock screens and SQL tables are not production capability; no overall demo percentage is supported without approved scope and acceptance evidence.
