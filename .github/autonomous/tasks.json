@@ -392,6 +392,7 @@
         "CUSTOMER-001"
       ],
       "allowed_paths": [
+        ".github/workflows/ci.yml",
         "apps/api/",
         "apps/storefront/",
         "tests/e2e/",
