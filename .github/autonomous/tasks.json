@@ -60,12 +60,12 @@
     {
       "id": "DB-001",
       "title": "Add PostgreSQL schema, migrations and isolated integration tests",
-      "status": "in_progress",
+      "status": "in_review",
       "readiness": "integration",
       "depends_on": ["BE-001"],
       "allowed_paths": ["apps/api/", "packages/database/", "infra/postgres/", "docs/", "ARCHITECTURE.md", "MIGRATION_PLAN.md", "apps/storefront/MIGRATION_PROGRESS.md", ".github/"],
       "acceptance": ["Forward-only migrations cover users, catalog, carts, orders, wishlist, reviews, addresses and messages", "Constraints and indexes enforce ownership and idempotency invariants", "Integration tests run against disposable PostgreSQL", "Backup/restore expectations are documented"],
-      "pr": null,
+      "pr": 13,
       "blocker": null
     },
     {
