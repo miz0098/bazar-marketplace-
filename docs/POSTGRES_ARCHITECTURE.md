@@ -1,5 +1,7 @@
 # PostgreSQL architecture — Phase F2 foundation
 
+Phase F5 adds immutable migration 0005 for promotions, eligible products and immutable integration-only usage claims, including global/per-owner cap checks under a campaign lock. No real campaign/order/payment/redemption or automatic migration is created. See [ADR 0005](adr/0005-promotions-pricing-foundation.md).
+
 Phase F4 adds immutable migration 0004: phone HMAC identities, persistent abuse budgets, challenge flow/intent/delivery metadata and session CSRF binding. No plaintext phone/code/token or production data is added. See [ADR 0004](adr/0004-server-auth-foundation.md).
 
 Phase F3 update: migration 0003 adds the simple-token catalog search GIN index. Public catalog handlers now read products/categories/variants; cart persistence is internal and HTTP remains authentication-blocked. See [ADR 0003](adr/0003-catalog-cart-boundaries.md). Historical F2 privileges below are extended by the explicit read-only catalog grants at the end.

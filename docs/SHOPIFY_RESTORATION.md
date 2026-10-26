@@ -1,11 +1,11 @@
 # Shopify functionality restoration — mandatory before BAZAR Demo 100%
 
-F3 delivers PostgreSQL catalog reads and tested internal cart persistence. Existing Shopify theme/source remains preserved; neither catalog integration nor the demo checkout replaces Shopify commerce. “BAZAR Demo 100%” must not be claimed until all rows below have reviewed contracts, truthful UI states, failure tests and an approved end-to-end demonstration. Real provider activation additionally requires production approval; a demo may stop explicitly before a real side effect.
+F5 adds isolated exact-integer PostgreSQL promotion evaluation and usage-limit tests on top of F3 catalog/cart and F4 session foundations. Live redemption, checkout activation and unapproved business rules remain blocked (ADR 0005). Existing Shopify theme/source remains preserved; neither catalog integration nor the demo checkout replaces Shopify commerce. “BAZAR Demo 100%” must not be claimed until all rows below have reviewed contracts, truthful UI states, failure tests and an approved end-to-end demonstration. Real provider activation additionally requires production approval; a demo may stop explicitly before a real side effect.
 
 | Required capability | Next work / acceptance gate | Current boundary |
 | --- | --- | --- |
-| Discounts | Server promotion evaluation, eligibility, stacking/conflicts, expiry, currency/rounding, returned authoritative totals | No discount business engine; never infer sale prices |
-| Promo codes | Apply/remove, invalid/exhausted/expired states, concurrency and limits; prevent client total overrides | UI/demo values cannot change server cart totals |
+| Discounts | Server promotion evaluation, eligibility, stacking/conflicts, expiry, currency/rounding, returned authoritative totals | F5: one-code/one-line exact evaluation exists; fractional rounding, stacking and seller allocation are blocked |
+| Promo codes | Apply/remove, invalid/exhausted/expired states, concurrency and limits; prevent client total overrides | F5: server prices/stock/minimum/expiry and test claims are checked; real order-bound redemption remains unimplemented |
 | Checkout | Approved three-screen flow, verified principal/cart ownership, current price/stock reconciliation, authoritative quote binding, retry/unknown-state recovery | Demo remains explicit; no live handoff or placement |
 | Payment methods | Approved provider-neutral/tokenized contracts, merchant/legal/PCI decisions, signed replay-safe callbacks and idempotent outcome reconciliation | No raw card data, invented charge or “paid on redirect” |
 | Delivery | Нова пошта/Meest authoritative locations, tariffs, expiring cart/address/version quotes, unavailable-provider states and tracking | No fabricated quote; retain “вартість за тарифами перевізника” |

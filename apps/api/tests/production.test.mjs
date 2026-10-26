@@ -28,6 +28,8 @@ test('compiled API starts, serves health and exits cleanly on SIGTERM', { timeou
   assert.equal((await fetch(`http://127.0.0.1:${startup.port}/ready`)).status, 503);
   const disabled=await fetch(`http://127.0.0.1:${startup.port}/api/v1/auth/csrf`);
   assert.equal(disabled.status,503);assert.equal(disabled.headers.get('set-cookie'),null);
+  const pricing=await fetch(`http://127.0.0.1:${startup.port}/api/v1/pricing/promotions/evaluate`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({subtotal:1,code:'INVENTED'})});
+  assert.equal(pricing.status,503);assert.equal(pricing.headers.get('set-cookie'),null);
   const exit = once(child, 'exit');
   child.kill('SIGTERM');
   assert.equal((await exit)[0], 0);

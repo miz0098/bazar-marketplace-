@@ -73,7 +73,7 @@ test('OpenAPI describes catalog and blocked cart while retaining foundation sche
   const contract = JSON.parse(readFileSync(new URL('../contracts/openapi.json', import.meta.url), 'utf8'));
   const app = await application(t);
   assert.equal(contract.openapi, '3.1.0');
-  assert.deepEqual(Object.keys(contract.paths).sort(), ['/api/v1', '/api/v1/cart', '/api/v1/categories', '/api/v1/products', '/api/v1/products/{handle}', '/health', '/ready', '/api/v1/auth/csrf','/api/v1/auth/otp/challenges','/api/v1/auth/otp/verify','/api/v1/auth/session','/api/v1/users/me','/api/v1/auth/logout','/api/v1/auth/logout-all'].sort());
+  assert.deepEqual(Object.keys(contract.paths).sort(), ['/api/v1', '/api/v1/cart', '/api/v1/categories', '/api/v1/products', '/api/v1/products/{handle}', '/health', '/ready', '/api/v1/auth/csrf','/api/v1/auth/otp/challenges','/api/v1/auth/otp/verify','/api/v1/auth/session','/api/v1/users/me','/api/v1/auth/logout','/api/v1/auth/logout-all','/api/v1/pricing/promotions/evaluate'].sort());
   assert.deepEqual(contract['x-planned-modules'].map((module: { name: string }) => module.name), plannedModules.map((module) => module.name));
   for (const module of contract['x-planned-modules']) assert.equal(module.status, ['catalog','categories'].includes(module.name) ? 'implemented' : module.name === 'cart' ? 'blocked-current-cart-policy' : ['identity','users'].includes(module.name) ? 'blocked-production-sms' : 'not-implemented');
   for (const path of ['/health','/ready','/api/v1']) {

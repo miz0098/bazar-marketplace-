@@ -6,6 +6,8 @@ import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:f
 import { tmpdir } from 'node:os';
 import test, { type TestContext } from 'node:test';
 import pg from 'pg';
+import { createPromotionPricingClient } from '../../../storefront/lib/promotion-pricing-client.js';
+import { createPromotionService } from '../../src/promotions/service.js';
 import { createConnection } from 'node:net';
 import { createServerAuthClient } from '../../../storefront/lib/server-auth-client.js';
 import { createAuthService } from '../../src/auth/service.js';
@@ -68,9 +70,9 @@ test('fresh database, previous schema upgrade, rerun and concurrent migrators ar
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(`${migrationDirectory}/0001_core.sql`, `${dir}/0001_core.sql`);
   assert.equal(await migrate(db.config, dir), 1);
-  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 3]);
+  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 4]);
   assert.equal(await migrate(db.config), 0);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 4);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 5);
   assert.ok((await db.pool.query("SELECT indexname FROM pg_indexes WHERE schemaname='bazar' AND indexname='variants_available_idx'")).rowCount);
 });
 
@@ -82,10 +84,10 @@ test('modified/unknown migrations are rejected and failed DDL rolls back without
   writeFileSync(`${dir}/0001_core.sql`, first + '\n-- modified\n');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   writeFileSync(`${dir}/0001_core.sql`, first);
-  writeFileSync(`${dir}/0005_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
+  writeFileSync(`${dir}/0006_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   assert.equal((await db.pool.query("SELECT to_regclass('bazar.must_rollback') AS name")).rows[0].name, null);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 4);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 5);
   await db.pool.query("INSERT INTO bazar_meta.schema_migrations(version,checksum) VALUES ('9999',repeat('0',64))");
   await assert.rejects(migrate(db.config), /Database migration failed/);
 });
@@ -463,6 +465,7 @@ test('catalog runtime works with read-only catalog grants and cannot access cart
       code: '42501',
     });
     await assert.rejects(runtime.pool.query('SELECT * FROM bazar.sessions'), {code:'42501'});
+    await assert.rejects(runtime.pool.query('SELECT * FROM bazar.promotions'), {code:'42501'});
     await assert.rejects(
       runtime.pool.query('UPDATE bazar.variants SET price_minor=0'),
       { code: '42501' },
@@ -1134,4 +1137,497 @@ test('F4 typed storefront adapter completes isolated registration/session/revoca
   assert.equal(session.mode,'test-only');assert.equal((await client.getCurrentUser()).id,session.user.id);
   assert.equal((await client.getSession()).user.id,session.user.id);await client.logout(true);
   await assert.rejects(client.getSession(),{code:'http-error',status:401});
+});
+
+// F5 pricing/usage fixtures are synthetic and never activate the storefront or real redemption.
+async function promotionFixture(
+  t: TestContext,
+  rule: {
+    kind: 'fixed' | 'percentage';
+    amount?: number;
+    basisPoints?: number;
+    max?: number;
+    perUser?: number;
+  } = { kind: 'fixed', amount: 2000 },
+) {
+  const db = await database(t);
+  await migrate(db.config);
+  const s = await seed(db.pool);
+  await db.pool.query(
+    'UPDATE bazar.variants SET price_minor=10000,stock=100 WHERE id=$1',
+    [s.variant],
+  );
+  await db.pool.query(
+    'INSERT INTO bazar.cart_lines(cart_id,variant_id,quantity) VALUES ($1,$2,2)',
+    [s.cart, s.variant],
+  );
+  const promotion = (
+    await db.pool.query(
+      "INSERT INTO bazar.promotions(code,kind,percentage_basis_points,fixed_minor,currency,min_subtotal_minor,starts_at,ends_at,enabled,max_uses,per_user_limit) VALUES ('SYNTHETIC-PROMO',$1,$2,$3,'UAH',10000,clock_timestamp()-interval '1 hour',clock_timestamp()+interval '1 hour',true,$4,$5) RETURNING id",
+      [
+        rule.kind,
+        rule.basisPoints ?? null,
+        rule.amount ?? null,
+        rule.max ?? 10,
+        rule.perUser ?? 10,
+      ],
+    )
+  ).rows[0].id;
+  await db.pool.query(
+    'INSERT INTO bazar.promotion_products(promotion_id,product_id) VALUES ($1,$2)',
+    [promotion, s.product],
+  );
+  const service = createPromotionService(db.pool),
+    input = { cartId: s.cart, expectedCartVersion: 1, code: 'SYNTHETIC-PROMO' };
+  return { ...db, s, promotion, service, input };
+}
+test('F5 PostgreSQL prices, product eligibility and integer totals are authoritative; evaluation consumes no usage', async (t) => {
+  const a = await promotionFixture(t, {
+    kind: 'percentage',
+    basisPoints: 1000,
+  });
+  const quote = await a.service.evaluate(a.s.user, a.input);
+  assert.equal(quote.subtotal.amountMinor, 20000);
+  assert.equal(quote.discount.amountMinor, 2000);
+  assert.equal(quote.merchandiseTotal.amountMinor, 18000);
+  assert.equal(quote.checkoutAvailable, false);
+  assert.equal(
+    (
+      await a.pool.query(
+        'SELECT count(*)::int AS n FROM bazar.promotion_usage_claims',
+      )
+    ).rows[0].n,
+    0,
+  );
+  await assert.rejects(a.service.evaluate(a.s.other, a.input), { status: 404 });
+  await assert.rejects(
+    a.service.evaluate(a.s.user, { ...a.input, subtotal: 1 } as never),
+    { status: 400 },
+  );
+  await assert.rejects(
+    a.service.evaluate(a.s.user, { ...a.input, expectedCartVersion: 2 }),
+    { code: 'PRICING_CHANGED' },
+  );
+  await a.pool.query(
+    'UPDATE bazar.variants SET price_minor=15000 WHERE id=$1',
+    [a.s.variant],
+  );
+  assert.equal(
+    (await a.service.evaluate(a.s.user, a.input)).merchandiseTotal.amountMinor,
+    27000,
+  );
+  await a.pool.query('UPDATE bazar.variants SET stock=1 WHERE id=$1', [
+    a.s.variant,
+  ]);
+  await assert.rejects(a.service.evaluate(a.s.user, a.input), {
+    code: 'PROMOTION_REJECTED',
+  });
+});
+test('F5 rejects invalid, disabled, future, expired, minimum and ineligible promotions without changing cart/orders', async (t) => {
+  const a = await promotionFixture(t);
+  for (const code of ['MISSING', 'synthetic-promo', "' OR 1=1--"])
+    await assert.rejects(a.service.evaluate(a.s.user, { ...a.input, code }), {
+      code: 'PROMOTION_REJECTED',
+    });
+  for (const sql of [
+    'UPDATE bazar.promotions SET enabled=false',
+    "UPDATE bazar.promotions SET enabled=true,starts_at=clock_timestamp()+interval '10 minutes'",
+    "UPDATE bazar.promotions SET starts_at=clock_timestamp()-interval '2 hours',ends_at=clock_timestamp()-interval '1 hour'",
+    "UPDATE bazar.promotions SET ends_at=clock_timestamp()+interval '1 hour',min_subtotal_minor=20001",
+  ]) {
+    await a.pool.query(sql);
+    await assert.rejects(a.service.evaluate(a.s.user, a.input), {
+      code: 'PROMOTION_REJECTED',
+    });
+  }
+  await a.pool.query('UPDATE bazar.promotions SET min_subtotal_minor=0');
+  await a.pool.query('DELETE FROM bazar.promotion_products');
+  await assert.rejects(a.service.evaluate(a.s.user, a.input), {
+    code: 'PROMOTION_REJECTED',
+  });
+  assert.equal(
+    (
+      await a.pool.query('SELECT version::text FROM bazar.carts WHERE id=$1', [
+        a.s.cart,
+      ])
+    ).rows[0].version,
+    '1',
+  );
+  assert.equal(
+    (
+      await a.pool.query(
+        'SELECT total_minor::text FROM bazar.orders WHERE id=$1',
+        [a.s.order],
+      )
+    ).rows[0].total_minor,
+    '24690',
+  );
+});
+test('F5 fractional rounding, oversized fixed discounts and multiple lines remain policy-blocked', async (t) => {
+  const a = await promotionFixture(t, {
+    kind: 'percentage',
+    basisPoints: 1000,
+  });
+  await a.pool.query(
+    'UPDATE bazar.cart_lines SET quantity=1 WHERE cart_id=$1',
+    [a.s.cart],
+  );
+  await a.pool.query(
+    'UPDATE bazar.variants SET price_minor=12345 WHERE id=$1',
+    [a.s.variant],
+  );
+  await assert.rejects(a.service.evaluate(a.s.user, a.input), {
+    code: 'PROMOTION_POLICY_REQUIRED',
+  });
+  await a.pool.query(
+    "UPDATE bazar.promotions SET kind='fixed',percentage_basis_points=NULL,fixed_minor=50000",
+  );
+  await assert.rejects(a.service.evaluate(a.s.user, a.input), {
+    code: 'PROMOTION_POLICY_REQUIRED',
+  });
+  const variant = (
+    await a.pool.query(
+      "INSERT INTO bazar.variants(product_id,sku,price_minor,stock) VALUES ($1,'SECOND-PRICING',10000,10) RETURNING id",
+      [a.s.product],
+    )
+  ).rows[0].id;
+  await a.pool.query(
+    'INSERT INTO bazar.cart_lines(cart_id,variant_id,quantity) VALUES ($1,$2,1)',
+    [a.s.cart, variant],
+  );
+  await assert.rejects(a.service.evaluate(a.s.user, a.input), {
+    code: 'PROMOTION_POLICY_REQUIRED',
+  });
+});
+test('F5 usage claims are durable/idempotent; mismatches, repeat snapshots and stale prices cannot consume twice', async (t) => {
+  const a = await promotionFixture(t);
+  const quote = await a.service.evaluate(a.s.user, a.input);
+  const input = {
+    ...a.input,
+    idempotencyKey: randomUUID(),
+    expectedFingerprint: quote.pricingFingerprint,
+  };
+  const results = await Promise.all([
+    a.service.claimForTest(a.s.user, input),
+    a.service.claimForTest(a.s.user, input),
+  ]);
+  assert.equal(results[0].id, results[1].id);
+  assert.equal(results.filter((r) => r.replayed).length, 1);
+  assert.equal(
+    (
+      await a.pool.query(
+        'SELECT count(*)::int AS n FROM bazar.promotion_usage_claims',
+      )
+    ).rows[0].n,
+    1,
+  );
+  await assert.rejects(
+    a.service.claimForTest(a.s.user, {
+      ...input,
+      expectedFingerprint: '0'.repeat(64),
+    }),
+    { code: 'CONFLICT' },
+  );
+  await assert.rejects(
+    a.service.claimForTest(a.s.user, {
+      ...input,
+      idempotencyKey: randomUUID(),
+    }),
+    { code: 'CONFLICT' },
+  );
+  await a.pool.query('UPDATE bazar.carts SET version=2 WHERE id=$1', [
+    a.s.cart,
+  ]);
+  const fresh = await a.service.evaluate(a.s.user, {
+    ...a.input,
+    expectedCartVersion: 2,
+  });
+  await a.pool.query(
+    'UPDATE bazar.variants SET price_minor=15000 WHERE id=$1',
+    [a.s.variant],
+  );
+  await assert.rejects(
+    a.service.claimForTest(a.s.user, {
+      ...input,
+      idempotencyKey: randomUUID(),
+      expectedCartVersion: 2,
+      expectedFingerprint: fresh.pricingFingerprint,
+    }),
+    { code: 'PRICING_CHANGED' },
+  );
+  assert.equal(
+    (await a.service.claimForTest(a.s.user, input)).id,
+    results[0].id,
+  ); // Historical replay, not current pricing.
+  await assert.rejects(
+    a.pool.query('UPDATE bazar.promotion_usage_claims SET discount_minor=1'),
+    { code: '23514' },
+  );
+  await assert.rejects(
+    a.pool.query('DELETE FROM bazar.promotion_usage_claims'),
+    { code: '23514' },
+  );
+});
+test('F5 concurrent claims from different carts obey one global cap and explicit per-user cap', async (t) => {
+  const a = await promotionFixture(t, {
+    kind: 'fixed',
+    amount: 1000,
+    max: 1,
+    perUser: 1,
+  });
+  const cart = (
+    await a.pool.query(
+      'INSERT INTO bazar.carts(user_id) VALUES ($1) RETURNING id',
+      [a.s.other],
+    )
+  ).rows[0].id;
+  await a.pool.query(
+    'INSERT INTO bazar.cart_lines(cart_id,variant_id,quantity) VALUES ($1,$2,2)',
+    [cart, a.s.variant],
+  );
+  const otherInput = { ...a.input, cartId: cart },
+    one = await a.service.evaluate(a.s.user, a.input),
+    two = await a.service.evaluate(a.s.other, otherInput);
+  const results = await Promise.allSettled([
+    a.service.claimForTest(a.s.user, {
+      ...a.input,
+      idempotencyKey: randomUUID(),
+      expectedFingerprint: one.pricingFingerprint,
+    }),
+    a.service.claimForTest(a.s.other, {
+      ...otherInput,
+      idempotencyKey: randomUUID(),
+      expectedFingerprint: two.pricingFingerprint,
+    }),
+  ]);
+  assert.equal(results.filter((r) => r.status === 'fulfilled').length, 1);
+  assert.equal(
+    (
+      await a.pool.query(
+        'SELECT count(*)::int AS n FROM bazar.promotion_usage_claims',
+      )
+    ).rows[0].n,
+    1,
+  );
+  await a.pool.query('UPDATE bazar.promotions SET max_uses=10');
+  const winner =
+    results[0].status === 'fulfilled'
+      ? { user: a.s.user, input: a.input }
+      : { user: a.s.other, input: otherInput };
+  await a.pool.query('UPDATE bazar.carts SET version=2 WHERE id=$1', [
+    winner.input.cartId,
+  ]);
+  await assert.rejects(
+    a.service.evaluate(winner.user, {
+      ...winner.input,
+      expectedCartVersion: 2,
+    }),
+    { code: 'PROMOTION_REJECTED' },
+  );
+});
+test('F5 HTTP evaluation requires the verified owner and CSRF; typed checkout client uses database totals only', async (t) => {
+  const a = await promotionFixture(t);
+  const fixture = authFixture(),
+    auth = createAuthService(a.pool, fixture.config, fixture.sms);
+  const registration = await registered({ ...a, ...fixture, auth });
+  await a.pool.query('UPDATE bazar.carts SET user_id=$1 WHERE id=$2', [
+    registration.session.data.user.id,
+    a.s.cart,
+  ]);
+  const lines: string[] = [];
+  const app = createApiServer(
+    readConfig({ NODE_ENV: 'test', CORS_ORIGINS: fixture.config.publicOrigin }),
+    createLogger('info', (line) => lines.push(line)),
+    { auth, promotions: a.service, isReady: async () => true },
+  );
+  app.server.listen(0, '127.0.0.1');
+  await once(app.server, 'listening');
+  t.after(() => app.shutdown());
+  const address = app.server.address();
+  assert.ok(address && typeof address !== 'string');
+  const base = `http://127.0.0.1:${address.port}`,
+    path = '/api/v1/pricing/promotions/evaluate';
+  const cookie = `__Host-bazar-session=${registration.session.token}; __Host-bazar-flow=${registration.session.flow}`;
+  const call = (body: unknown, headers: Record<string, string> = {}) =>
+    fetch(base + path, {
+      method: 'POST',
+      headers: {
+        origin: fixture.config.publicOrigin,
+        cookie,
+        'x-csrf-token': registration.session.data.csrfToken,
+        'content-type': 'application/json',
+        ...headers,
+      },
+      body: JSON.stringify(body),
+    });
+  const valid = await call(a.input);
+  assert.equal(valid.status, 200);
+  const result = await valid.json();
+  assert.equal(result.data.merchandiseTotal.amountMinor, 18000);
+  assert.equal(valid.headers.get('access-control-allow-origin'), null);
+  assert.equal(
+    (
+      await call(a.input, {
+        cookie: '',
+        'x-user-id': a.s.user,
+        authorization: 'Bearer invented',
+      })
+    ).status,
+    403,
+  );
+  assert.equal((await call(a.input, { 'x-csrf-token': '' })).status, 403);
+  assert.equal(
+    (
+      await call(a.input, {
+        cookie: `__Host-bazar-flow=${registration.session.flow}`,
+      })
+    ).status,
+    401,
+  );
+  assert.equal(
+    (await call(a.input, { origin: 'https://evil.invalid' })).status,
+    403,
+  );
+  for (const extra of [
+    { subtotal: 1 },
+    { price: 0 },
+    { discount: 20000 },
+    { userId: a.s.other },
+    { codes: ['ONE', 'TWO'] },
+  ])
+    assert.equal((await call({ ...a.input, ...extra })).status, 400);
+  const foreign = (
+    await a.pool.query(
+      'INSERT INTO bazar.carts(user_id) VALUES ($1) RETURNING id',
+      [a.s.other],
+    )
+  ).rows[0].id;
+  assert.equal((await call({ ...a.input, cartId: foreign })).status, 404);
+  const client = createPromotionPricingClient(
+    () => registration.session.data.csrfToken,
+    async (input, init) => {
+      const headers = new Headers(init?.headers);
+      headers.set('origin', fixture.config.publicOrigin);
+      headers.set('cookie', cookie);
+      return fetch(base + input, { ...init, headers });
+    },
+  );
+  assert.equal((await client.evaluate(a.input)).discount.amountMinor, 2000);
+  assert.equal(
+    (
+      await a.pool.query(
+        'SELECT count(*)::int AS n FROM bazar.promotion_usage_claims',
+      )
+    ).rows[0].n,
+    0,
+  );
+  assert.equal(
+    (
+      await fetch(base + '/api/v1/pricing/promotions/claim', {
+        method: 'POST',
+        headers: { origin: fixture.config.publicOrigin },
+      })
+    ).status,
+    404,
+  );
+  assert.doesNotMatch(
+    lines.join('\n'),
+    /SYNTHETIC-PROMO|Bearer invented|subtotal|discount/,
+  );
+});
+test('F5 migration constraints and database trigger reject invalid campaigns, foreign claims and cap bypass', async (t) => {
+  const a = await promotionFixture(t, {
+    kind: 'fixed',
+    amount: 1000,
+    max: 1,
+    perUser: 1,
+  });
+  for (const sql of [
+    "UPDATE bazar.promotions SET kind='percentage',fixed_minor=NULL,percentage_basis_points=NULL",
+    'UPDATE bazar.promotions SET fixed_minor=-1',
+    'UPDATE bazar.promotions SET ends_at=starts_at',
+    'UPDATE bazar.promotions SET max_uses=0',
+    "UPDATE bazar.promotions SET currency='USD'",
+  ])
+    await assert.rejects(a.pool.query(sql), { code: '23514' });
+  const quote = await a.service.evaluate(a.s.user, a.input);
+  await a.service.claimForTest(a.s.user, {
+    ...a.input,
+    expectedFingerprint: quote.pricingFingerprint,
+    idempotencyKey: randomUUID(),
+  });
+  await assert.rejects(
+    a.pool.query(
+      "INSERT INTO bazar.promotion_usage_claims(promotion_id,user_id,cart_id,cart_version,idempotency_key,request_digest,pricing_fingerprint,subtotal_minor,discount_minor,merchandise_total_minor,currency,mode) VALUES ($1,$2,$3,2,$4,$5,$6,20000,1000,19000,'UAH','integration-test')",
+      [
+        a.promotion,
+        a.s.user,
+        a.s.cart,
+        randomUUID(),
+        Buffer.alloc(32),
+        quote.pricingFingerprint,
+      ],
+    ),
+    { code: '23514' },
+  );
+  await a.pool.query(
+    'UPDATE bazar.promotions SET max_uses=10,per_user_limit=10',
+  );
+  await assert.rejects(
+    a.pool.query(
+      "INSERT INTO bazar.promotion_usage_claims(promotion_id,user_id,cart_id,cart_version,idempotency_key,request_digest,pricing_fingerprint,subtotal_minor,discount_minor,merchandise_total_minor,currency,mode) VALUES ($1,$2,$3,2,$4,$5,$6,20000,1000,19000,'UAH','integration-test')",
+      [
+        a.promotion,
+        a.s.other,
+        a.s.cart,
+        randomUUID(),
+        Buffer.alloc(32),
+        quote.pricingFingerprint,
+      ],
+    ),
+    { code: '23503' },
+  );
+});
+test('F5 concurrent per-user claims on separate carts cannot exceed the configured user limit', async (t) => {
+  const a = await promotionFixture(t, {
+    kind: 'fixed',
+    amount: 1000,
+    max: 10,
+    perUser: 1,
+  });
+  const cart = (
+    await a.pool.query(
+      'INSERT INTO bazar.carts(user_id) VALUES ($1) RETURNING id',
+      [a.s.user],
+    )
+  ).rows[0].id;
+  await a.pool.query(
+    'INSERT INTO bazar.cart_lines(cart_id,variant_id,quantity) VALUES ($1,$2,2)',
+    [cart, a.s.variant],
+  );
+  const inputs = [a.input, { ...a.input, cartId: cart }],
+    quotes = await Promise.all(
+      inputs.map((input) => a.service.evaluate(a.s.user, input)),
+    );
+  const results = await Promise.allSettled(
+    inputs.map((input, i) =>
+      a.service.claimForTest(a.s.user, {
+        ...input,
+        idempotencyKey: randomUUID(),
+        expectedFingerprint: quotes[i].pricingFingerprint,
+      }),
+    ),
+  );
+  assert.equal(
+    results.filter((result) => result.status === 'fulfilled').length,
+    1,
+  );
+  assert.equal(
+    (
+      await a.pool.query(
+        'SELECT count(*)::int AS n FROM bazar.promotion_usage_claims',
+      )
+    ).rows[0].n,
+    1,
+  );
 });
