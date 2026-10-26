@@ -1,3 +1,6 @@
+import {createOrderLifecycleService} from '../../src/lifecycle/service.js';
+import {lifecycleFixture} from '../helpers/lifecycle.js';
+import {createOrderLifecycleClient} from '../../../storefront/lib/order-lifecycle-client.js';
 import {createCommunicationService} from '../../src/communication/service.js';
 import {createCommunicationBusinessClient} from '../../../storefront/lib/communication-business-client.js';
 import {createCustomerService} from '../../src/customer/service.js';
@@ -86,9 +89,9 @@ test('fresh database, previous schema upgrade, rerun and concurrent migrators ar
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(`${migrationDirectory}/0001_core.sql`, `${dir}/0001_core.sql`);
   assert.equal(await migrate(db.config, dir), 1);
-  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 11]);
+  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 12]);
   assert.equal(await migrate(db.config), 0);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 12);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 13);
   assert.ok((await db.pool.query("SELECT indexname FROM pg_indexes WHERE schemaname='bazar' AND indexname='variants_available_idx'")).rowCount);
 });
 
@@ -100,10 +103,10 @@ test('modified/unknown migrations are rejected and failed DDL rolls back without
   writeFileSync(`${dir}/0001_core.sql`, first + '\n-- modified\n');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   writeFileSync(`${dir}/0001_core.sql`, first);
-  writeFileSync(`${dir}/0013_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
+  writeFileSync(`${dir}/0014_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   assert.equal((await db.pool.query("SELECT to_regclass('bazar.must_rollback') AS name")).rows[0].name, null);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 12);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 13);
   await db.pool.query("INSERT INTO bazar_meta.schema_migrations(version,checksum) VALUES ('9999',repeat('0',64))");
   await assert.rejects(migrate(db.config), /Database migration failed/);
 });
@@ -2432,7 +2435,7 @@ test("F7 upgrades F6 without rewriting existing orders; directories cover only e
   }
   await migrate(db.config, dir);
   const s = await seed(db.pool);
-  assert.equal(await migrate(db.config), 6);
+  assert.equal(await migrate(db.config), 7);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -3610,6 +3613,7 @@ test('F8 upgrades the full F7 database without changing previously saved shippin
   rmSync(`${dir}/0010_current_cart_checkout.sql`);
   rmSync(`${dir}/0011_customer_account.sql`);
   rmSync(`${dir}/0012_communication_foundation.sql`);
+  rmSync(`${dir}/0013_order_lifecycle.sql`);
   assert.equal(await migrate(db.config, dir), 7);
   const s = await seed(db.pool);
   await db.pool.query(
@@ -3633,7 +3637,7 @@ test('F8 upgrades the full F7 database without changing previously saved shippin
     expectedVersion: 2,
     idempotencyKey: randomUUID(),
   });
-  assert.equal(await migrate(db.config), 5);
+  assert.equal(await migrate(db.config), 6);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -4109,13 +4113,13 @@ for (const carrier of ['nova-poshta', 'meest', 'ukrposhta'] as const)
     await a.client.auth.logout(true);
     await assert.rejects(a.client.cart.get(), { status: 401 });
   });
-async function readyIntegrated(t: TestContext, withShipping = true) {
+async function readyIntegrated(t: TestContext, withShipping = true, quantity=1) {
   const a = await integratedCase(t),
     session = await integrationLogin(a),
     view = await a.client.cart.ensureCurrent();
   await a.client.cart.add({
     variantId: a.s.variant,
-    quantity: 1,
+    quantity,
     expectedVersion: view.cart.version,
     idempotencyKey: randomUUID(),
   });
@@ -4434,9 +4438,10 @@ test('F9 upgrades F8 without silently selecting legacy carts or changing payment
   rmSync(`${dir}/0010_current_cart_checkout.sql`);
   rmSync(`${dir}/0011_customer_account.sql`);
   rmSync(`${dir}/0012_communication_foundation.sql`);
+  rmSync(`${dir}/0013_order_lifecycle.sql`);
   assert.equal(await migrate(db.config, dir), 9);
   const s = await seed(db.pool);
-  assert.equal(await migrate(db.config), 3);
+  assert.equal(await migrate(db.config), 4);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -5020,13 +5025,14 @@ test('F12 upgrade preserves F11 customer data and previous migrations while addi
   cpSync(migrationDirectory, dir, { recursive: true });
   rmSync(`${dir}/0011_customer_account.sql`);
   rmSync(`${dir}/0012_communication_foundation.sql`);
+  rmSync(`${dir}/0013_order_lifecycle.sql`);
   assert.equal(await migrate(db.config, dir), 10);
   const s = await seed(db.pool);
   await db.pool.query(
     'INSERT INTO bazar.wishlist_items(user_id,product_id) VALUES ($1,$2)',
     [s.user, s.product],
   );
-  assert.equal(await migrate(db.config), 2);
+  assert.equal(await migrate(db.config), 3);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -5497,6 +5503,7 @@ test("F13 upgrades F12 with legacy messages intact, ordered sequences, valid rea
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(migrationDirectory, dir, { recursive: true });
   rmSync(`${dir}/0012_communication_foundation.sql`);
+  rmSync(`${dir}/0013_order_lifecycle.sql`);
   assert.equal(await migrate(a.config, dir), 11);
   const s = await seed(a.pool);
   const chat = (
@@ -5522,7 +5529,7 @@ test("F13 upgrades F12 with legacy messages intact, ordered sequences, valid rea
     "UPDATE bazar.conversation_members SET last_read_message_id=$1",
     [later],
   );
-  assert.equal(await migrate(a.config), 1);
+  assert.equal(await migrate(a.config), 2);
   assert.equal(await migrate(a.config), 0);
   const service = createCommunicationService(a.pool);
   const history = await service.history(s.user, chat, "messages");
@@ -5536,4 +5543,647 @@ test("F13 upgrades F12 with legacy messages intact, ordered sequences, valid rea
   });
   assert.ok("sequence" in next.items[0] && next.items[0].sequence > 2);
   assert.equal((await service.list(s.user, "conversations")).unreadChats, 0);
+});
+
+async function lifecycleCase(t: TestContext, quantity = 3) {
+  const a = await readyIntegrated(t, true, quantity);
+  await a.settle();
+  const order = (
+    await a.client.checkout.confirmIntegratedForTest(a.draft.id, a.input)
+  ).order;
+  const f = lifecycleFixture(),
+    actor = a.session.user.id,
+    service = createOrderLifecycleService(a.pool, f.policy, f.adapter);
+  const view = await service.get(actor, order.id);
+  return { ...a, f, actor, order, service, line: view.order.lines[0].id };
+}
+test("F14 reads preserve F6 facts, owner isolation, policy blocker, immutable initial history and no implied refund", async (t) => {
+  const a = await lifecycleCase(t),
+    none = createOrderLifecycleService(a.pool),
+    view = await none.get(a.actor, a.order.id);
+  assert.equal(view.order.status, "pending");
+  assert.equal(view.order.paymentStatus, "not-initiated");
+  assert.equal(view.order.deliveryStatus, "not-requested");
+  assert.equal(view.order.orderPaid, false);
+  assert.equal(view.order.fundsReturned, false);
+  assert.equal(view.eligibility.cancellation, "policy-required");
+  assert.equal(view.history.length, 1);
+  await assert.rejects(
+    none.request(a.actor, a.order.id, "cancellation", {
+      idempotencyKey: randomUUID(),
+      reason: "Synthetic",
+    }),
+    { code: "CHECKOUT_POLICY_REQUIRED" },
+  );
+  await assert.rejects(a.service.get(a.s.user, a.order.id), { status: 404 });
+  await assert.rejects(
+    a.service.request(a.s.user, a.order.id, "return", {
+      idempotencyKey: randomUUID(),
+      reason: "Foreign",
+      items: [{ orderLineId: a.line, quantity: 1 }],
+    }),
+    { status: 404 },
+  );
+  assert.equal(
+    (await a.service.list(a.s.user, new URLSearchParams())).items.length,
+    0,
+  );
+  await assert.rejects(
+    a.pool.query(
+      "UPDATE bazar.order_lifecycle_history SET to_state='cancelled'",
+    ),
+    { code: "23514" },
+  );
+  await assert.rejects(
+    a.pool.query("DELETE FROM bazar.order_lifecycle_history"),
+    { code: "23514" },
+  );
+});
+test("F14 cancellation requests replay without cancelling orders; explicit review transitions use versions and immutable audit", async (t) => {
+  const a = await lifecycleCase(t),
+    input = {
+      idempotencyKey: randomUUID(),
+      reason: "Synthetic cancellation request",
+    };
+  const results = await Promise.all([
+    a.service.request(a.actor, a.order.id, "cancellation", input),
+    a.service.request(a.actor, a.order.id, "cancellation", input),
+  ]);
+  assert.equal(results[0].requests[0].id, results[1].requests[0].id);
+  assert.equal(results[0].history.length, 2);
+  const request = results[0].requests[0];
+  await assert.rejects(
+    a.service.request(a.actor, a.order.id, "cancellation", {
+      ...input,
+      reason: "Changed",
+    }),
+    { status: 409 },
+  );
+  await assert.rejects(
+    a.service.request(a.actor, a.order.id, "cancellation", {
+      ...input,
+      idempotencyKey: randomUUID(),
+    }),
+    { status: 409 },
+  );
+  await assert.rejects(
+    a.service.reviewForTest(a.actor, a.order.id, request.id, {
+      expectedVersion: 1,
+      state: "closed-for-test",
+    }),
+    { status: 409 },
+  );
+  const review = { expectedVersion: 1, state: "under-review" };
+  const r = await Promise.all([
+    a.service.reviewForTest(a.actor, a.order.id, request.id, review),
+    a.service.reviewForTest(a.actor, a.order.id, request.id, review),
+  ]);
+  assert.equal(r[0].history.length, 3);
+  assert.equal(r[1].history.length, 3);
+  await a.service.reviewForTest(a.actor, a.order.id, request.id, {
+    expectedVersion: 2,
+    state: "closed-for-test",
+  });
+  await assert.rejects(
+    a.service.reviewForTest(a.actor, a.order.id, request.id, {
+      expectedVersion: 3,
+      state: "under-review",
+    }),
+    { status: 409 },
+  );
+  const view = await a.service.get(a.actor, a.order.id);
+  assert.equal(view.order.status, "pending");
+  assert.equal(view.requests[0].state, "closed-for-test");
+  assert.equal(view.history.length, 4);
+  assert.equal(
+    (
+      await a.pool.query(
+        "SELECT count(*)::int n FROM bazar.notification_events WHERE kind='order.cancelled'",
+      )
+    ).rows[0].n,
+    0,
+  );
+});
+test("F14 partial item returns enforce cumulative purchased quantity under concurrent requests and emit only test request notifications", async (t) => {
+  const a = await lifecycleCase(t, 3),
+    input = {
+      idempotencyKey: randomUUID(),
+      reason: "Synthetic partial return",
+      items: [{ orderLineId: a.line, quantity: 2 }],
+    };
+  const [first, replay] = await Promise.all([
+    a.service.request(a.actor, a.order.id, "return", input),
+    a.service.request(a.actor, a.order.id, "return", input),
+  ]);
+  assert.equal(first.requests[0].id, replay.requests[0].id);
+  const results = await Promise.allSettled(
+    [1, 2].map(() =>
+      a.service.request(a.actor, a.order.id, "return", {
+        ...input,
+        idempotencyKey: randomUUID(),
+        items: [{ orderLineId: a.line, quantity: 1 }],
+      }),
+    ),
+  );
+  assert.equal(results.filter((r) => r.status === "fulfilled").length, 1);
+  const view = await a.service.get(a.actor, a.order.id);
+  assert.equal(view.requests.length, 2);
+  assert.equal(view.order.returnStatus, "requested-for-test");
+  assert.equal(view.order.paymentStatus, "not-initiated");
+  assert.equal(
+    (
+      await a.pool.query(
+        "SELECT sum(quantity)::int n FROM bazar.order_return_items",
+      )
+    ).rows[0].n,
+    3,
+  );
+  await assert.rejects(
+    a.service.request(a.actor, a.order.id, "return", {
+      ...input,
+      idempotencyKey: randomUUID(),
+      items: [{ orderLineId: randomUUID(), quantity: 1 }],
+    }),
+    { status: 409 },
+  );
+  const inbox = await createCommunicationService(a.pool).list(
+    a.actor,
+    "notifications",
+  );
+  assert.equal(inbox.items.length, 2);
+  assert.ok(
+    inbox.items.every((i) => "kind" in i && i.kind === "return.requested"),
+  );
+  const request = view.requests[0];
+  await a.service.reviewForTest(a.actor, a.order.id, request.id, {
+    expectedVersion: 1,
+    state: "under-review",
+  });
+  const after = await createCommunicationService(a.pool).list(
+    a.actor,
+    "notifications",
+  );
+  assert.ok(
+    after.items.some((i) => "kind" in i && i.kind === "return.status_changed"),
+  );
+});
+test("F14 return insert failures rollback requests audit notifications and request key for a safe retry", async (t) => {
+  const a = await lifecycleCase(t),
+    input = {
+      idempotencyKey: randomUUID(),
+      reason: "Synthetic",
+      items: [{ orderLineId: a.line, quantity: 1 }],
+    };
+  await a.pool.query(
+    "CREATE FUNCTION bazar.fail_return_fixture() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'private'; END $$;CREATE TRIGGER fail_return_fixture BEFORE INSERT ON bazar.order_return_items FOR EACH ROW EXECUTE FUNCTION bazar.fail_return_fixture()",
+  );
+  await assert.rejects(a.service.request(a.actor, a.order.id, "return", input));
+  assert.equal((await a.service.get(a.actor, a.order.id)).requests.length, 0);
+  assert.equal(
+    (
+      await a.pool.query(
+        "SELECT count(*)::int n FROM bazar.notification_events",
+      )
+    ).rows[0].n,
+    0,
+  );
+  await a.pool.query(
+    "DROP TRIGGER fail_return_fixture ON bazar.order_return_items",
+  );
+  await a.service.request(a.actor, a.order.id, "return", input);
+});
+async function requestForRefund(a: Awaited<ReturnType<typeof lifecycleCase>>) {
+  const v = await a.service.request(a.actor, a.order.id, "return", {
+    idempotencyKey: randomUUID(),
+    reason: "Synthetic refund source",
+    items: [{ orderLineId: a.line, quantity: 1 }],
+  });
+  return v.requests.at(-1)!.id;
+}
+test("F14 refund preparation is server-planned and bounded across partial concurrent claims; duplicate keys and per-request double refunds are blocked", async (t) => {
+  const a = await lifecycleCase(t),
+    ids = [
+      await requestForRefund(a),
+      await requestForRefund(a),
+      await requestForRefund(a),
+    ],
+    input = {
+      requestId: ids[0],
+      extent: "partial",
+      idempotencyKey: randomUUID(),
+    };
+  const first = await Promise.all([
+    a.service.prepareRefundForTest(a.actor, a.order.id, input),
+    a.service.prepareRefundForTest(a.actor, a.order.id, input),
+  ]);
+  assert.equal(first[0].refunds[0].id, first[1].refunds[0].id);
+  assert.equal((await a.pool.query('SELECT plan_revision FROM bazar.order_refund_attempts WHERE id=$1',[first[0].refunds[0].id])).rows[0].plan_revision,a.f.state.revision);
+  await assert.rejects(
+    a.service.prepareRefundForTest(a.actor, a.order.id, {
+      ...input,
+      idempotencyKey: randomUUID(),
+    }),
+    { status: 409 },
+  );
+  const results = await Promise.allSettled(
+    ids
+      .slice(1)
+      .map((requestId) =>
+        a.service.prepareRefundForTest(a.actor, a.order.id, {
+          requestId,
+          extent: "partial",
+          idempotencyKey: randomUUID(),
+        }),
+      ),
+  );
+  assert.equal(results.filter((r) => r.status === "fulfilled").length, 1);
+  const view = await a.service.get(a.actor, a.order.id);
+  assert.equal(view.refunds.length, 2);
+  assert.equal(
+    view.refunds.reduce((s, r) => s + r.amountMinor, 0),
+    18000,
+  );
+  assert.ok(
+    view.refunds.every(
+      (r) => r.state === "prepared" && !r.realRefund && !r.fundsReturned,
+    ),
+  );
+  await assert.rejects(
+    a.service.prepareRefundForTest(a.actor, a.order.id, {
+      ...input,
+      amountMinor: 1,
+    }),
+    { status: 400 },
+  );
+  a.f.state.denyPlan = true;
+  await assert.rejects(
+    a.service.prepareRefundForTest(a.actor, a.order.id, {
+      requestId: ids[2],
+      extent: "partial",
+      idempotencyKey: randomUUID(),
+    }),
+    { code: "CHECKOUT_POLICY_REQUIRED" },
+  );
+});
+test("F14 full refund capacity requires a linked confirmed test operation and never marks real funds returned", async (t) => {
+  const a = await lifecycleCase(t),
+    requestId = await requestForRefund(a),
+    input = { requestId, extent: "full", idempotencyKey: randomUUID() };
+  const view = await a.service.prepareRefundForTest(a.actor, a.order.id, input);
+  assert.equal(
+    view.refunds[0].amountMinor,
+    a.paymentAttempt.amount.amountMinor,
+  );
+  assert.equal(view.refunds[0].extent, "full");
+  const next = await requestForRefund(a);
+  await assert.rejects(
+    a.service.prepareRefundForTest(a.actor, a.order.id, {
+      ...input,
+      requestId: next,
+      idempotencyKey: randomUUID(),
+    }),
+    { status: 409 },
+  );
+  const none = createOrderLifecycleService(a.pool, a.f.policy);
+  await assert.rejects(
+    none.prepareRefundForTest(a.actor, a.order.id, {
+      requestId: next,
+      extent: "partial",
+      idempotencyKey: randomUUID(),
+    }),
+    { code: "CHECKOUT_POLICY_REQUIRED" },
+  );
+  assert.equal(view.order.fundsReturned, false);
+  assert.equal(
+    (
+      await a.pool.query(
+        "SELECT count(*)::int n FROM bazar.notification_events WHERE kind='refund.completed'",
+      )
+    ).rows[0].n,
+    0,
+  );
+});
+test("F14 signed test refund observations bind amount account and payment, deduplicate, reject forgery and terminal contradictions", async (t) => {
+  const a = await lifecycleCase(t),
+    requestId = await requestForRefund(a);
+  let view = await a.service.prepareRefundForTest(a.actor, a.order.id, {
+    requestId,
+    extent: "partial",
+    idempotencyKey: randomUUID(),
+  });
+  const refund = view.refunds[0];
+  const event = {
+    eventId: randomUUID(),
+    refundId: refund.id,
+    paymentOperationId: refund.paymentOperationId,
+    accountRef: a.f.adapter.accountRef,
+    amountMinor: refund.amountMinor,
+    currency: "UAH",
+    state: "confirmed-for-test",
+  };
+  const signed = a.f.signed(event);
+  await assert.rejects(a.service.observeRefundForTest(signed.raw, "invalid"), {
+    status: 401,
+  });
+  await assert.rejects(
+    a.service.observeRefundForTest(
+      Buffer.from(signed.raw.toString() + " "),
+      signed.signature,
+    ),
+    { status: 401 },
+  );
+  const old = a.f.signed(event, Date.now() - 600000);
+  await assert.rejects(a.service.observeRefundForTest(old.raw, old.signature), {
+    status: 401,
+  });
+  for (const patch of [
+    { amountMinor: 1 },
+    { currency: "USD" },
+    { accountRef: "foreign" },
+    { paymentOperationId: randomUUID() },
+  ]) {
+    const wrong = a.f.signed({ ...event, ...patch });
+    await assert.rejects(
+      a.service.observeRefundForTest(wrong.raw, wrong.signature),
+    );
+  }
+  const r = await Promise.all([
+    a.service.observeRefundForTest(signed.raw, signed.signature),
+    a.service.observeRefundForTest(signed.raw, signed.signature),
+  ]);
+  assert.equal(r[0].refunds[0].state, "confirmed-for-test");
+  assert.equal(r[0].history.length, r[1].history.length);
+  const contradictory = a.f.signed({
+    ...event,
+    eventId: randomUUID(),
+    state: "rejected-for-test",
+  });
+  await assert.rejects(
+    a.service.observeRefundForTest(contradictory.raw, contradictory.signature),
+    { status: 409 },
+  );
+  const changed = a.f.signed({ ...event, state: "pending" });
+  await assert.rejects(
+    a.service.observeRefundForTest(changed.raw, changed.signature),
+    { status: 409 },
+  );
+  view = await a.service.get(a.actor, a.order.id);
+  assert.equal(view.order.paymentStatus, "not-initiated");
+  assert.equal(view.order.fundsReturned, false);
+  assert.equal(view.refunds[0].fundsReturned, false);
+  await assert.rejects(
+    a.pool.query("DELETE FROM bazar.refund_verified_events"),
+    { code: "23514" },
+  );
+  await assert.rejects(
+    a.pool.query(
+      "UPDATE bazar.order_refund_attempts SET state='pending',version=version+1",
+    ),
+    { code: "23514" },
+  );
+});
+test("F14 authenticated lifecycle HTTP client rejects foreign orders CSRF and customer financial/status endpoints", async (t) => {
+  const a = await lifecycleCase(t),
+    logs: string[] = [],
+    app = createApiServer(
+      readConfig({ NODE_ENV: "test" }),
+      createLogger("info", (l) => logs.push(l)),
+      { auth: a.services.auth, lifecycle: a.service, isReady: () => true },
+    );
+  app.server.listen(0, "127.0.0.1");
+  await once(app.server, "listening");
+  a.beforeDrop.push(() => app.shutdown());
+  const addr = app.server.address();
+  assert.ok(addr && typeof addr !== "string");
+  const base = `http://127.0.0.1:${addr.port}`;
+  // Reuse the existing isolated integration cookie transport rather than exposing session secrets.
+  const transport: typeof fetch = (url, init) =>
+    fetch(base + String(url), {
+      ...init,
+      headers: {
+        ...Object.fromEntries(new Headers(init?.headers)),
+        origin: a.identity.config.publicOrigin,
+        cookie: a.getJar(),
+      },
+    });
+  const client = createOrderLifecycleClient(
+    () => a.session.csrfToken,
+    transport,
+  );
+  assert.equal((await client.listOrders()).items[0].id, a.order.id);
+  assert.equal((await client.getOrder(a.order.id)).history.length, 1);
+  const input = {
+    idempotencyKey: randomUUID(),
+    reason: "Synthetic private return",
+    items: [{ orderLineId: a.line, quantity: 1 }],
+  };
+  const v = await client.requestReturn(a.order.id, input);
+  assert.equal(v.requests.length, 1);
+  assert.equal(
+    (await client.requestReturn(a.order.id, input)).requests.length,
+    1,
+  );
+  const headers = {
+      origin: a.identity.config.publicOrigin,
+      cookie: a.getJar(),
+      "content-type": "application/json",
+      "x-csrf-token": a.session.csrfToken,
+    },
+    path = "/api/v1/order-lifecycle/orders/" + a.order.id;
+  for (const patch of [
+    { "x-csrf-token": "bad" },
+    { origin: "https://evil.invalid" },
+    { "sec-fetch-site": "cross-site" },
+  ] as Record<string, string>[]) {
+    const r = await fetch(base + path + "/cancellations", {
+      method: "POST",
+      headers: { ...headers, ...patch },
+      body: JSON.stringify({
+        idempotencyKey: randomUUID(),
+        reason: "Never accepted",
+      }),
+    });
+    assert.equal(r.status, 403);
+    await r.body?.cancel();
+  }
+  for (const endpoint of [
+    "/refunds",
+    "/status",
+    "/review",
+    "/refunds/webhooks/isolated",
+  ]) {
+    const r = await fetch(base + path + endpoint, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ amountMinor: 1, status: "refunded" }),
+    });
+    assert.equal(r.status, 404);
+    await r.body?.cancel();
+  }
+  const forged = await fetch(base + path + "/returns", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ ...input, userId: a.s.user, state: "approved" }),
+  });
+  assert.equal(forged.status, 400);
+  await forged.body?.cancel();
+  const foreign = await fetch(
+    base + "/api/v1/order-lifecycle/orders/" + a.s.order,
+    { headers },
+  );
+  assert.equal(foreign.status, 404);
+  await foreign.body?.cancel();
+  const anonymous = await fetch(base + path, {
+    headers: { origin: a.identity.config.publicOrigin },
+  });
+  assert.equal(anonymous.status, 401);
+  await anonymous.body?.cancel();
+  assert.doesNotMatch(
+    logs.join(""),
+    /Synthetic private return|bazar-session|csrfToken|requestKey/,
+  );
+});
+
+test("F14 F13 upgrade backfills immutable initial order history and preserves prior checkout snapshots", async (t) => {
+  const db = await database(t),
+    dir = mkdtempSync(`${tmpdir()}/bazar-f14-upgrade-`);
+  t.after(() => rmSync(dir, { recursive: true }));
+  cpSync(migrationDirectory, dir, { recursive: true });
+  rmSync(`${dir}/0013_order_lifecycle.sql`);
+  assert.equal(await migrate(db.config, dir), 12);
+  const s = await seed(db.pool);
+  await db.pool.query(
+    "INSERT INTO bazar.cart_lines(cart_id,variant_id,quantity) VALUES($1,$2,2)",
+    [s.cart, s.variant],
+  );
+  const checkout = createCheckoutBusinessService(db.pool);
+  let draft = await checkout.start(s.user, {
+    cartId: s.cart,
+    expectedCartVersion: 1,
+    idempotencyKey: randomUUID(),
+  });
+  draft = await checkout.setDelivery(s.user, draft.id, {
+    expectedVersion: draft.version,
+    addressId: s.address,
+  });
+  draft = await checkout.setPayment(s.user, draft.id, {
+    expectedVersion: draft.version,
+    paymentSelection: "on-receipt",
+    promoCode: null,
+  });
+  const original = (
+    await checkout.recordOrderForTest(s.user, draft.id, {
+      expectedVersion: draft.version,
+      expectedFingerprint: draft.pricing!.fingerprint,
+      idempotencyKey: randomUUID(),
+    })
+  ).order;
+  assert.equal(await migrate(db.config), 1);
+  assert.equal(await migrate(db.config), 0);
+  assert.deepEqual(await checkout.getOrder(s.user, original.id), original);
+  const f = lifecycleFixture(),
+    service = createOrderLifecycleService(db.pool, f.policy, f.adapter);
+  const view = await service.get(s.user, original.id);
+  assert.equal(view.history.length, 1);
+  assert.equal(view.history[0].createdAt, original.createdAt);
+  const request = (
+    await service.request(s.user, original.id, "return", {
+      idempotencyKey: randomUUID(),
+      reason: "Synthetic",
+      items: [{ orderLineId: view.order.lines[0].id, quantity: 1 }],
+    })
+  ).requests[0];
+  await assert.rejects(
+    service.prepareRefundForTest(s.user, original.id, {
+      requestId: request.id,
+      extent: "full",
+      idempotencyKey: randomUUID(),
+    }),
+    { code: "CHECKOUT_POLICY_REQUIRED" },
+  );
+});
+test("F14 refund plans cannot exceed paid capacity, pretend a partial is full or bypass missing financial policy", async (t) => {
+  const a = await lifecycleCase(t),
+    requestId = await requestForRefund(a),
+    input = { requestId, extent: "partial", idempotencyKey: randomUUID() };
+  for (const amount of [
+    a.paymentAttempt.amount.amountMinor,
+    a.paymentAttempt.amount.amountMinor + 1,
+  ]) {
+    a.f.state.amount = amount;
+    await assert.rejects(
+      a.service.prepareRefundForTest(a.actor, a.order.id, input),
+      { status: 409 },
+    );
+  }
+  assert.equal((await a.service.get(a.actor, a.order.id)).refunds.length, 0);
+  a.f.state.denyPlan = true;
+  await assert.rejects(
+    a.service.prepareRefundForTest(a.actor, a.order.id, input),
+    { code: "CHECKOUT_POLICY_REQUIRED" },
+  );
+  a.f.state.denyPlan = false;
+  a.f.state.amount = 9000;
+  await a.service.prepareRefundForTest(a.actor, a.order.id, input);
+});
+test("F14 unknown/timeout outcomes retain refund budget; verified receipt and state audit rollback atomically", async (t) => {
+  const a = await lifecycleCase(t),
+    requestId = await requestForRefund(a),
+    view = await a.service.prepareRefundForTest(a.actor, a.order.id, {
+      requestId,
+      extent: "partial",
+      idempotencyKey: randomUUID(),
+    }),
+    r = view.refunds[0];
+  const base = {
+    eventId: randomUUID(),
+    refundId: r.id,
+    paymentOperationId: r.paymentOperationId,
+    accountRef: a.f.adapter.accountRef,
+    amountMinor: r.amountMinor,
+    currency: "UAH",
+    state: "unknown",
+  };
+  const unknown = a.f.signed(base);
+  await a.service.observeRefundForTest(unknown.raw, unknown.signature);
+  a.f.state.stall = true;
+  await assert.rejects(
+    a.service.observeRefundForTest(unknown.raw, unknown.signature),
+    { status: 401 },
+  );
+  a.f.state.stall = false;
+  assert.equal(
+    (await a.service.get(a.actor, a.order.id)).refunds[0].state,
+    "unknown",
+  );
+  const event = { ...base, eventId: randomUUID(), state: "confirmed-for-test" },
+    signed = a.f.signed(event);
+  await a.pool.query(
+    "CREATE FUNCTION bazar.fail_refund_audit_fixture() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'private';END $$;CREATE TRIGGER fail_refund_audit_fixture BEFORE INSERT ON bazar.order_lifecycle_history FOR EACH ROW EXECUTE FUNCTION bazar.fail_refund_audit_fixture()",
+  );
+  await assert.rejects(
+    a.service.observeRefundForTest(signed.raw, signed.signature),
+  );
+  assert.equal(
+    (
+      await a.pool.query(
+        "SELECT count(*)::int n FROM bazar.refund_verified_events WHERE event_id=$1",
+        [event.eventId],
+      )
+    ).rows[0].n,
+    0,
+  );
+  assert.equal(
+    (await a.service.get(a.actor, a.order.id)).refunds[0].state,
+    "unknown",
+  );
+  await a.pool.query(
+    "DROP TRIGGER fail_refund_audit_fixture ON bazar.order_lifecycle_history",
+  );
+  const final = await a.service.observeRefundForTest(
+    signed.raw,
+    signed.signature,
+  );
+  assert.equal(final.refunds[0].state, "confirmed-for-test");
+  assert.equal(final.order.fundsReturned, false);
 });

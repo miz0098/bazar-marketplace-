@@ -386,7 +386,7 @@
     {
       "id": "COMM-001",
       "title": "Complete demo communication and isolated owned messaging support notification foundation",
-      "status": "in_review",
+      "status": "done",
       "readiness": "integration",
       "depends_on": [
         "CUSTOMER-001"
@@ -412,6 +412,35 @@
       ],
       "pr": 24,
       "blocker": "Production auth/BFF, staff and seller membership/CRM rules, privacy/encryption/retention, channels/consent/outbox and secure upload are unapproved."
+    },
+    {
+      "id": "LIFECYCLE-001",
+      "title": "Add isolated owned order lifecycle return/refund protocols and bounded customer preview",
+      "status": "in_progress",
+      "readiness": "integration",
+      "depends_on": [
+        "COMM-001"
+      ],
+      "allowed_paths": [
+        "apps/api/",
+        "apps/storefront/",
+        "tests/e2e/",
+        "docs/",
+        "ARCHITECTURE.md",
+        "MIGRATION_PLAN.md",
+        "FUNCTIONAL_GAP_AUDIT.md",
+        "DEMO_READINESS_CHECKLIST.md",
+        "DEMO_COMPLETION_PLAN.md",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Preserve F6 immutable order facts and independently model request return refund status",
+        "Owned requests enforce idempotency versions quantity/capacity concurrency and immutable audit",
+        "Refund protocol uses isolated authenticated payment linkage explicit synthetic plans and no real funds/notifications",
+        "Bounded My Orders demo and all required regression security accessibility audit governance checks pass"
+      ],
+      "pr": null,
+      "blocker": "Real order/cancellation/return/refund authority legal windows/logistics financial allocation and release policies providers PII production auth/BFF and browser API mapping remain unapproved."
     }
   ]
 }

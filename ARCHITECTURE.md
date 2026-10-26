@@ -1,5 +1,7 @@
 # BAZAR Storefront Architecture
 
+F14 adds isolated order-lifecycle sidecars, owner/request/return quantity guards, immutable audit and synthetic refund capacity/authenticated-event protocols without changing F6 immutable order facts. Demo detail adds explicit request-only return/history/status scopes. [ADR 0013](docs/adr/0013-order-lifecycle-requests-refunds.md); [acceptance](docs/F14_ORDER_LIFECYCLE_ACCEPTANCE.md). Real cancellation/return/refund remains blocked.
+
 Phase F13 preserves E2 communication preview and adds isolated membership/owner-scoped PostgreSQL chat/support/read/pin/idempotency and notification inbox contracts. No production channels, CRM/staff, upload or UI API switch. [ADR 0012](docs/adr/0012-messages-support-notifications.md) and [acceptance](docs/F13_COMMUNICATION_ACCEPTANCE.md).
 
 Phase F12 adds local ID-only persistent demo wishlist and isolated owned PostgreSQL customer contracts/operations; no server selector or production auth activation. [ADR 0011](docs/adr/0011-customer-account-foundation.md) documents name-only profile, opaque address references and policy-gated private reviews; [account acceptance](docs/F12_CUSTOMER_ACCOUNT_ACCEPTANCE.md) records section readiness. F12 supersedes only the historical F11 wishlist refresh-reset behavior.

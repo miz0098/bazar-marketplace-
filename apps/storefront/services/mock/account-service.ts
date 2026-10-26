@@ -1,3 +1,4 @@
+import {createDemoOrderLifecycle} from './order-lifecycle-service';
 import {
   ACCOUNT_ORDER_STATUSES,
   hasAccountValidationErrors,
@@ -137,6 +138,7 @@ export function createDemoAccountService(
 
   let profile: AccountProfile = { ...fixtureSource.profile };
   const orders = useCollections ? fixtureSource.orders.map(cloneOrder) : [];
+  const lifecycle = createDemoOrderLifecycle(orders);
   let wishlist = useCollections
     ? fixtureSource.wishlist.map(cloneWishlistItem)
     : [];
@@ -183,6 +185,8 @@ export function createDemoAccountService(
 
   return {
     mode: 'preview-only',
+    getOrderLifecycle: (id) => run(() => lifecycle.get(id)),
+    createOrderReturn: (id,draft) => run(() => previewResult(lifecycle.create(id,draft))),
     restoreDemoWishlist(ids) {
       wishlist = [...new Set(ids)].flatMap((id, index) => {
         const product = demoProducts.find((p) => p.id === id);

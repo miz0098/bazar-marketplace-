@@ -1,5 +1,7 @@
 # Storefront migration progress
 
+F14 preserves orders list/detail and account layout; adds separate-status/history/cancellation availability and ephemeral selected-quantity/reason return preview. Future typed lifecycle client remains unselected; no real cancel/refund/approval or PII persistence.
+
 F13 preserves communication layout and preview reset semantics; adds immediate submit guards, stable sort ties, selected read snapshot and white search-empty. Separate typed communication/CRM/channel/attachment contracts and bounded future client do not replace demo providers. See root F13 acceptance documents.
 
 Phase F12 replaces ephemeral wishlist behavior with bounded canonical product-ID-only local persistence and cross-tab sync; corrupt payloads reset safely, unavailable known items remain removable, no personal data is serialized. Existing account preview screens/layout stay intact; Ukrposhta branch is added to addresses. Future customer client is opt-in only. Names/contact/address/review real policy and server-mode rollout remain blocked; see root F12 acceptance docs.

@@ -1,5 +1,7 @@
 # PostgreSQL architecture — Phase F2 foundation
 
+F14 additive0013 adds order lifecycle requests, owned return-line claims, isolated refund attempts/evidence and immutable trigger audit with initial-order backfill. F6/F9 history/financial restrictions remain intact. No production data/grants/provider release. [ADR0013](adr/0013-order-lifecycle-requests-refunds.md).
+
 F13 migration 0012 reuses conversation/support core tables, adds chronological sequence backfill/cursor indexes, support idempotency keys/digest and isolated notification_events owner/dedup/page constraints. Previous migrations are unchanged. No staff grants, contact data, real event seeds or delivery worker. [ADR 0012](adr/0012-messages-support-notifications.md).
 
 F12 migration 0011 adds profile/address optimistic versions and immutable test review purchase claims (owned source-line FK, unique IDs, digest only). No prior checksums, raw contact/card fields, production grants or live eligibility policy change. See [ADR 0011](adr/0011-customer-account-foundation.md).
