@@ -329,7 +329,7 @@
     {
       "id": "FRONT-001",
       "title": "Complete demo storefront browsing, variants, wishlist and cart parity",
-      "status": "in_progress",
+      "status": "in_review",
       "readiness": "demo",
       "depends_on": [
         "GAP-001"
@@ -351,7 +351,7 @@
         "Header/footer destinations and only approved social platforms are verified",
         "Existing auth/profile/checkout/communication regressions and all required checks pass; no server API activation or design rewrite"
       ],
-      "pr": null,
+      "pr": 22,
       "blocker": "Real media/settings and approved screenshot parity, server-mode and production integration remain outside this demo completion increment."
     }
   ]

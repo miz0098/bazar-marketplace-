@@ -34,4 +34,4 @@ Real media/import/publication, full API-to-UI mapping і async search/facets; ap
 - API lint/typecheck/build, 32 unit, 3 compiled smoke; 73 disposable PostgreSQL/HTTP/security — passed. DB cleanup завершений до Playwright.
 - Storefront lint/typecheck/build; 64 unit (6 нових) — passed.
 - Dependency audit API/storefront/E2E: 0 vulnerabilities; governance ledger/path і 5 orchestration tests, `git diff --check`.
-- Browser: 76 passed, 8 existing viewport-specific skips на desktop 1440×900 / mobile 390×844. Recent-view external store додатково перевірено адресно на обох viewport. GitHub CI для head SHA наведено у PR F11. Existing skips — viewport-specific, не нові exceptions. Tests/rules/retries не вимикалися.
+- Browser: 76 passed, 8 existing viewport-specific skips на desktop 1440×900 / mobile 390×844. Recent-view external store додатково перевірено адресно на обох viewport. GitHub CI для head SHA наведено у [PR #22](https://github.com/miz0098/bazar-marketplace-/pull/22). Existing skips — viewport-specific, не нові exceptions. Tests/rules/retries не вимикалися.
