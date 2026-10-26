@@ -1,5 +1,10 @@
 # Phase F10 — Shopify Functional Gap Audit
 
+## Оновлення Phase F12
+
+F12 supersedes F11 wishlist reset-on-refresh: card/detail/header/account share canonical ID-only local persistence, malformed/unknown records are handled safely, known unavailable products remain removable and cross-tab changes synchronize. F12 adds isolated owned DB/HTTP wishlist, name-only profile, opaque address CRUD/default with versions and policy-gated private reviews with irreversible duplicate claims; prior migrations unchanged. None is production enabled or selected by demo. All agreed profile sections and safe empty payment methods are preserved; no Overview nav added. [Full readiness/limits](docs/F12_CUSTOMER_ACCOUNT_ACCEPTANCE.md), [ADR 0011](docs/adr/0011-customer-account-foundation.md). F18/F19/F23/G06 now have isolated service evidence, not real PII/eligibility/publication readiness. Remaining F10 production/commerce/privacy/visual gates remain open.
+
+
 ## Оновлення Phase F11 — поточний demo-стан
 
 База F11: merge PR #21 **114df1dca2dc2968fdec04c48f7803ff98919953**. Матриця F10 нижче збережена як dated audit; ця delta уточнює змінені області. API/PostgreSQL і production flags не активовано.

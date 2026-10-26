@@ -100,7 +100,7 @@ test('variants, sold-out state and stock limits stay authoritative in the local 
   ).toBeVisible();
 });
 
-test('wishlist buttons share an ephemeral preview with header counts and the existing account list', async ({
+test('wishlist buttons share a locally persisted demo with header counts and the existing account list', async ({
   page,
 }) => {
   await page.goto('/products/garden-lamp');
@@ -127,10 +127,11 @@ test('wishlist buttons share an ephemeral preview with header counts and the exi
     page.locator('.product-summary .wishlist-toggle'),
   ).toHaveAttribute('aria-pressed', 'false');
   await page.locator('.product-summary .wishlist-toggle').click();
+  await expect(page.locator('.product-summary .wishlist-toggle')).toHaveAttribute('aria-pressed','true');
   await page.reload();
   await expect(
     page.locator('.product-summary .wishlist-toggle'),
-  ).toHaveAttribute('aria-pressed', 'false');
+  ).toHaveAttribute('aria-pressed', 'true');
   await noOverflow(page);
 });
 

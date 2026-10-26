@@ -329,7 +329,7 @@
     {
       "id": "FRONT-001",
       "title": "Complete demo storefront browsing, variants, wishlist and cart parity",
-      "status": "in_review",
+      "status": "done",
       "readiness": "demo",
       "depends_on": [
         "GAP-001"
@@ -353,6 +353,35 @@
       ],
       "pr": 22,
       "blocker": "Real media/settings and approved screenshot parity, server-mode and production integration remain outside this demo completion increment."
+    },
+    {
+      "id": "CUSTOMER-001",
+      "title": "Complete persistent demo wishlist and isolated customer account foundation",
+      "status": "in_review",
+      "readiness": "integration",
+      "depends_on": [
+        "FRONT-001"
+      ],
+      "allowed_paths": [
+        "apps/api/",
+        "apps/storefront/",
+        "tests/e2e/",
+        "docs/",
+        "ARCHITECTURE.md",
+        "MIGRATION_PLAN.md",
+        "FUNCTIONAL_GAP_AUDIT.md",
+        "DEMO_READINESS_CHECKLIST.md",
+        "DEMO_COMPLETION_PLAN.md",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Demo wishlist persists only canonical product IDs and synchronizes safely without personal data",
+        "Isolated PostgreSQL customer operations enforce session owner, strict validation, optimistic versions and no production activation",
+        "Private reviews require an explicit isolated purchase/change policy, reject F9 orders and prevent duplicate recreation",
+        "Existing agreed account screens, payment safety and desktop/mobile accessibility regressions pass with updated readiness evidence"
+      ],
+      "pr": 23,
+      "blocker": "Production SMS/BFF/security, PII encryption/retention, confirmed-purchase/moderation/edit/delete rules and real account/server rollout remain unapproved."
     }
   ]
 }

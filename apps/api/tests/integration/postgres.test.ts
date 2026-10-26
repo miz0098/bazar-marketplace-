@@ -1,3 +1,5 @@
+import {createCustomerService} from '../../src/customer/service.js';
+import {createCustomerBusinessClient} from '../../../storefront/lib/customer-business-client.js';
 import { createCheckoutIntegrationServices } from '../../src/integration/checkout.js';
 import { createCurrentCartService } from '../../src/cart/service.js';
 import { createServerCheckoutIntegrationClients } from '../../../storefront/lib/server-checkout-integration.js';
@@ -82,9 +84,9 @@ test('fresh database, previous schema upgrade, rerun and concurrent migrators ar
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(`${migrationDirectory}/0001_core.sql`, `${dir}/0001_core.sql`);
   assert.equal(await migrate(db.config, dir), 1);
-  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 9]);
+  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 10]);
   assert.equal(await migrate(db.config), 0);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 10);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 11);
   assert.ok((await db.pool.query("SELECT indexname FROM pg_indexes WHERE schemaname='bazar' AND indexname='variants_available_idx'")).rowCount);
 });
 
@@ -96,10 +98,10 @@ test('modified/unknown migrations are rejected and failed DDL rolls back without
   writeFileSync(`${dir}/0001_core.sql`, first + '\n-- modified\n');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   writeFileSync(`${dir}/0001_core.sql`, first);
-  writeFileSync(`${dir}/0011_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
+  writeFileSync(`${dir}/0012_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   assert.equal((await db.pool.query("SELECT to_regclass('bazar.must_rollback') AS name")).rows[0].name, null);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 10);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 11);
   await db.pool.query("INSERT INTO bazar_meta.schema_migrations(version,checksum) VALUES ('9999',repeat('0',64))");
   await assert.rejects(migrate(db.config), /Database migration failed/);
 });
@@ -2428,7 +2430,7 @@ test("F7 upgrades F6 without rewriting existing orders; directories cover only e
   }
   await migrate(db.config, dir);
   const s = await seed(db.pool);
-  assert.equal(await migrate(db.config), 4);
+  assert.equal(await migrate(db.config), 5);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -3604,6 +3606,7 @@ test('F8 upgrades the full F7 database without changing previously saved shippin
   rmSync(`${dir}/0008_ukrposhta.sql`);
   rmSync(`${dir}/0009_payment_security.sql`);
   rmSync(`${dir}/0010_current_cart_checkout.sql`);
+  rmSync(`${dir}/0011_customer_account.sql`);
   assert.equal(await migrate(db.config, dir), 7);
   const s = await seed(db.pool);
   await db.pool.query(
@@ -3627,7 +3630,7 @@ test('F8 upgrades the full F7 database without changing previously saved shippin
     expectedVersion: 2,
     idempotencyKey: randomUUID(),
   });
-  assert.equal(await migrate(db.config), 3);
+  assert.equal(await migrate(db.config), 4);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -4426,9 +4429,10 @@ test('F9 upgrades F8 without silently selecting legacy carts or changing payment
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(migrationDirectory, dir, { recursive: true });
   rmSync(`${dir}/0010_current_cart_checkout.sql`);
+  rmSync(`${dir}/0011_customer_account.sql`);
   assert.equal(await migrate(db.config, dir), 9);
   const s = await seed(db.pool);
-  assert.equal(await migrate(db.config), 1);
+  assert.equal(await migrate(db.config), 2);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -4470,5 +4474,575 @@ test('F9 integrated confirmation cannot skip a shipping selection and current qu
   assert.equal(
     (await a.client.payments.get(a.paymentAttempt.id)).status,
     'succeeded',
+  );
+});
+
+// F12: owned customer foundation. All policies and identities below are isolated fixtures.
+async function customerCase(t: TestContext) {
+  const db = await database(t);
+  await migrate(db.config);
+  const s = await seed(db.pool);
+  const confirmed = new Set<string>();
+  let modifications = false;
+  const policy = {
+    scope: 'isolated-test' as const,
+    confirmPurchase: ({ orderLineId }: { orderLineId: string }) => ({
+      confirmed: confirmed.has(orderLineId),
+      proof: 'synthetic-proof-not-a-real-purchase',
+    }),
+    canChange: () => modifications,
+  };
+  return {
+    ...db,
+    s,
+    confirmed,
+    policy,
+    service: createCustomerService(db.pool, policy),
+    allowChanges: () => {
+      modifications = true;
+    },
+  };
+}
+test('F12 wishlist operations are owned/idempotent, retain unavailable products and resolve current database prices', async (t) => {
+  const a = await customerCase(t);
+  await Promise.all([
+    a.service.wishlist(a.s.user, a.s.product, true, {}),
+    a.service.wishlist(a.s.user, a.s.product, true, {}),
+  ]);
+  let view = await a.service.get(a.s.user, 'wishlist');
+  assert.equal(view.resource, 'wishlist');
+  if (view.resource !== 'wishlist') throw new Error();
+  assert.equal(view.items.length, 1);
+  assert.equal(view.items[0].price?.amountMinor, 12345);
+  assert.equal(
+    (await a.service.get(a.s.other, 'wishlist')).resource,
+    'wishlist',
+  );
+  await a.pool.query(
+    'UPDATE bazar.variants SET stock=0,price_minor=20000 WHERE id=$1',
+    [a.s.variant],
+  );
+  view = await a.service.get(a.s.user, 'wishlist');
+  if (view.resource !== 'wishlist') throw new Error();
+  assert.equal(view.items[0].available, false);
+  assert.equal(view.items[0].price?.amountMinor, 20000);
+  await a.service.wishlist(a.s.other, a.s.product, false, {});
+  assert.equal(
+    (
+      await a.pool.query(
+        'SELECT count(*)::int n FROM bazar.wishlist_items WHERE user_id=$1',
+        [a.s.user],
+      )
+    ).rows[0].n,
+    1,
+  );
+  for (const extra of [{ userId: a.s.other }, { price: 1 }, { guestItems: [] }])
+    await assert.rejects(
+      a.service.wishlist(a.s.user, a.s.product, true, extra),
+      { status: 400 },
+    );
+  await assert.rejects(a.service.wishlist(a.s.user, randomUUID(), true, {}), {
+    status: 404,
+  });
+  await a.service.wishlist(a.s.user, a.s.product, false, {});
+  await a.service.wishlist(a.s.user, a.s.product, false, {});
+  assert.equal(
+    (await a.pool.query('SELECT count(*)::int n FROM bazar.wishlist_items'))
+      .rows[0].n,
+    0,
+  );
+  const empty = (
+    await a.pool.query(
+      "INSERT INTO bazar.products(category_id,handle,title) SELECT category_id,'no-variants','No variants' FROM bazar.products WHERE id=$1 RETURNING id",
+      [a.s.product],
+    )
+  ).rows[0].id;
+  const result = await a.service.wishlist(a.s.user, empty, true, {});
+  if (result.resource !== 'wishlist') throw new Error();
+  assert.equal(result.items[0].price, null);
+  assert.equal(result.items[0].available, false);
+});
+test('F12 profile updates allow only names and serialize expected versions without exposing contact data', async (t) => {
+  const a = await customerCase(t);
+  const input = {
+    expectedVersion: 1,
+    firstName: 'Тестовий',
+    lastName: 'Приклад',
+  };
+  const attempts = await Promise.allSettled([
+    a.service.updateProfile(a.s.user, input),
+    a.service.updateProfile(a.s.user, input),
+  ]);
+  assert.equal(attempts.filter((r) => r.status === 'fulfilled').length, 1);
+  const view = await a.service.get(a.s.user, 'profile');
+  if (view.resource !== 'profile') throw new Error();
+  assert.equal(view.profile.version, 2);
+  assert.equal(view.profile.firstName, 'Тестовий');
+  for (const extra of [
+    { phone: '+380000000000' },
+    { email: 'x@example.invalid' },
+    { userId: a.s.other },
+    { birthday: '2000-01-01' },
+  ])
+    await assert.rejects(
+      a.service.updateProfile(a.s.user, { ...input, ...extra }),
+      { status: 400 },
+    );
+  await assert.rejects(
+    a.service.updateProfile(a.s.user, { ...input, firstName: ' ' }),
+    { status: 400 },
+  );
+  const other = await a.service.get(a.s.other, 'profile');
+  if (other.resource !== 'profile') throw new Error();
+  assert.equal(other.profile.firstName, 'Synthetic');
+});
+test('F12 address CRUD is owner/version scoped, defaults are explicit and referenced deletion fails atomically', async (t) => {
+  const a = await customerCase(t),
+    body = {
+      carrier: 'ukrposhta',
+      cityRef: '286-29713',
+      locationRef: '2700',
+      isDefault: false,
+    };
+  for (const extra of [
+    { phone: 'secret' },
+    { recipientName: 'secret' },
+    { address1: 'secret' },
+    { userId: a.s.other },
+  ])
+    await assert.rejects(
+      a.service.createAddress(a.s.user, { ...body, ...extra }),
+      { status: 400 },
+    );
+  await assert.rejects(
+    a.service.createAddress(a.s.user, { ...body, carrier: 'bazar-pickup' }),
+    { status: 400 },
+  );
+  await assert.rejects(
+    a.service.createAddress(a.s.user, { ...body, cityRef: 'City with PII' }),
+    { status: 400 },
+  );
+  let r = await a.service.createAddress(a.s.user, body);
+  if (r.resource !== 'addresses') throw new Error();
+  const id = r.items.find((v) => v.carrier === 'ukrposhta')!.id;
+  await assert.rejects(
+    a.service.changeAddress(a.s.other, id, { expectedVersion: 1 }, 'delete'),
+    { status: 404 },
+  );
+  const competing = await Promise.allSettled([
+    a.service.changeAddress(a.s.user, id, { expectedVersion: 1 }, 'default'),
+    a.service.changeAddress(a.s.user, id, { expectedVersion: 1 }, 'default'),
+  ]);
+  assert.equal(competing.filter((v) => v.status === 'fulfilled').length, 1);
+  r = await a.service.get(a.s.user, 'addresses');
+  if (r.resource !== 'addresses') throw new Error();
+  assert.equal(r.items.filter((v) => v.isDefault).length, 1);
+  assert.equal(r.items.find((v) => v.isDefault)!.id, id);
+  await assert.rejects(
+    a.service.changeAddress(
+      a.s.user,
+      id,
+      { ...body, expectedVersion: 1 },
+      'edit',
+    ),
+    { status: 409 },
+  );
+  r = await a.service.changeAddress(
+    a.s.user,
+    id,
+    { ...body, expectedVersion: 2, locationRef: '2701', isDefault: true },
+    'edit',
+  );
+  if (r.resource !== 'addresses') throw new Error();
+  assert.equal(r.items.find((v) => v.id === id)!.locationRef, '2701');
+  await a.service.changeAddress(a.s.user, id, { expectedVersion: 3 }, 'delete');
+  r = await a.service.get(a.s.user, 'addresses');
+  if (r.resource !== 'addresses') throw new Error();
+  assert.equal(r.items.filter((v) => v.isDefault).length, 0);
+  const existing = r.items.find((v) => v.id === a.s.address)!;
+  await assert.rejects(
+    a.service.changeAddress(
+      a.s.user,
+      a.s.address,
+      { expectedVersion: existing.version },
+      'delete',
+    ),
+    { status: 409 },
+  );
+  assert.equal(
+    (
+      await a.pool.query(
+        'SELECT count(*)::int n FROM bazar.addresses WHERE id=$1',
+        [a.s.address],
+      )
+    ).rows[0].n,
+    1,
+  );
+  await Promise.all([
+    a.service.createAddress(a.s.user, { ...body, isDefault: true }),
+    a.service.createAddress(a.s.user, {
+      ...body,
+      locationRef: 'another',
+      isDefault: true,
+    }),
+  ]);
+  r = await a.service.get(a.s.user, 'addresses');
+  if (r.resource !== 'addresses') throw new Error();
+  assert.equal(r.items.filter((v) => v.isDefault).length, 1);
+});
+test('F12 review proof/policy gates, owner checks and irreversible claims prevent duplicate reviews even after allowed test deletion', async (t) => {
+  const a = await customerCase(t),
+    input = {
+      orderLineId: a.s.line,
+      rating: 5,
+      body: 'Synthetic private review',
+    };
+  await assert.rejects(a.service.createReview(a.s.other, input), {
+    status: 404,
+  });
+  await assert.rejects(a.service.createReview(a.s.user, input), {
+    status: 409,
+  });
+  await assert.rejects(
+    createCustomerService(a.pool).createReview(a.s.user, input),
+    { status: 409 },
+  );
+  a.confirmed.add(a.s.line);
+  for (const extra of [
+    { published: true },
+    { userId: a.s.other },
+    { verifiedPurchase: true },
+  ])
+    await assert.rejects(
+      a.service.createReview(a.s.user, { ...input, ...extra }),
+      { status: 400 },
+    );
+  const created = await Promise.allSettled([
+    a.service.createReview(a.s.user, input),
+    a.service.createReview(a.s.user, input),
+  ]);
+  assert.equal(created.filter((v) => v.status === 'fulfilled').length, 1);
+  let view = await a.service.get(a.s.user, 'reviews');
+  if (view.resource !== 'reviews') throw new Error();
+  assert.equal(view.publication, 'not-asserted');
+  const id = view.items[0].id;
+  await assert.rejects(a.service.changeReview(a.s.other, id, {}, 'delete'), {
+    status: 404,
+  });
+  await assert.rejects(a.service.changeReview(a.s.user, id, {}, 'delete'), {
+    status: 409,
+  });
+  a.allowChanges();
+  view = await a.service.changeReview(
+    a.s.user,
+    id,
+    { rating: 4, body: 'Updated synthetic text' },
+    'edit',
+  );
+  if (view.resource !== 'reviews') throw new Error();
+  assert.equal(view.items[0].rating, 4);
+  const proof = (
+    await a.pool.query(
+      'SELECT proof_digest FROM bazar.review_foundation_claims WHERE review_id=$1',
+      [id],
+    )
+  ).rows[0].proof_digest;
+  assert.equal(proof.length, 32);
+  assert.notEqual(proof.toString(), 'synthetic-proof-not-a-real-purchase');
+  await a.service.changeReview(a.s.user, id, {}, 'delete');
+  await assert.rejects(a.service.createReview(a.s.user, input), {
+    status: 409,
+  });
+  assert.equal(
+    (await a.pool.query('SELECT count(*)::int n FROM bazar.reviews')).rows[0].n,
+    0,
+  );
+  await assert.rejects(
+    a.pool.query('DELETE FROM bazar.review_foundation_claims'),
+    { code: '23514' },
+  );
+});
+test('F12 failed review claim persistence rolls back the review and permits a safe retry', async (t) => {
+  const a = await customerCase(t);
+  a.confirmed.add(a.s.line);
+  await a.pool.query(
+    "CREATE FUNCTION bazar.fail_customer_claim() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'forced'; END $$;CREATE TRIGGER fail_customer_claim BEFORE INSERT ON bazar.review_foundation_claims FOR EACH ROW EXECUTE FUNCTION bazar.fail_customer_claim()",
+  );
+  const input = { orderLineId: a.s.line, rating: 5, body: 'Synthetic' };
+  await assert.rejects(a.service.createReview(a.s.user, input));
+  assert.equal(
+    (await a.pool.query('SELECT count(*)::int n FROM bazar.reviews')).rows[0].n,
+    0,
+  );
+  await a.pool.query(
+    'DROP TRIGGER fail_customer_claim ON bazar.review_foundation_claims',
+  );
+  await a.service.createReview(a.s.user, input);
+});
+test('F12 synthetic F9 payment/order completion cannot become confirmed-purchase review eligibility', async (t) => {
+  const a = await readyIntegrated(t);
+  await a.settle();
+  const order = (
+    await a.client.checkout.confirmIntegratedForTest(a.draft.id, a.input)
+  ).order;
+  const line = (
+    await a.pool.query('SELECT id FROM bazar.order_lines WHERE order_id=$1', [
+      order.id,
+    ])
+  ).rows[0].id;
+  const service = createCustomerService(a.pool, {
+    scope: 'isolated-test',
+    confirmPurchase: () => ({
+      confirmed: true,
+      proof: 'explicit-synthetic-proof',
+    }),
+    canChange: () => true,
+  });
+  await assert.rejects(
+    service.createReview(a.session.user.id, {
+      orderLineId: line,
+      rating: 5,
+      body: 'Synthetic',
+    }),
+    { status: 409 },
+  );
+});
+test('F12 typed clients use verified HTTP sessions, strict CSRF/Origin and sanitized failures without a demo fallback', async (t) => {
+  const a = await authentication(t),
+    identity = await registered(a),
+    s = await seed(a.pool),
+    logs: string[] = [],
+    confirmed = new Set<string>(),
+    customer = createCustomerService(a.pool, {
+      scope: 'isolated-test',
+      confirmPurchase: ({ orderLineId }) => ({
+        confirmed: confirmed.has(orderLineId),
+        proof: 'fixture-owned-purchase-proof',
+      }),
+      canChange: () => true,
+    });
+  const app = createApiServer(
+    readConfig({ NODE_ENV: 'test' }),
+    createLogger('info', (line) => logs.push(line)),
+    { auth: a.auth, customer, isReady: () => true },
+  );
+  app.server.listen(0, '127.0.0.1');
+  await once(app.server, 'listening');
+  a.beforeDrop.push(() => app.shutdown());
+  const addr = app.server.address();
+  assert.ok(addr && typeof addr !== 'string');
+  const base = `http://127.0.0.1:${addr.port}`;
+  const cookie = `__Host-bazar-session=${identity.session.token}; __Host-bazar-flow=${identity.session.flow}`;
+  const transport: typeof fetch = (url, init) =>
+    fetch(base + String(url), {
+      ...init,
+      headers: {
+        ...Object.fromEntries(new Headers(init?.headers)),
+        origin: a.config.publicOrigin,
+        cookie,
+      },
+    });
+  const client = createCustomerBusinessClient(
+    () => identity.session.data.csrfToken,
+    transport,
+  );
+  assert.equal(
+    (await client.getProfile()).profile.id,
+    identity.session.data.user.id,
+  );
+  assert.equal(
+    (
+      await client.updateProfile({
+        expectedVersion: 1,
+        firstName: 'Синтетичний',
+        lastName: 'Інший',
+      })
+    ).profile.version,
+    2,
+  );
+  assert.equal((await client.addWishlist(s.product)).items.length, 1);
+  assert.equal((await client.addWishlist(s.product)).items.length, 1);
+  assert.equal((await client.removeWishlist(s.product)).items.length, 0);
+  let addresses = (
+    await client.createAddress({
+      carrier: 'meest',
+      cityRef: 'synthetic-city',
+      locationRef: 'synthetic-location',
+      isDefault: true,
+    })
+  ).items;
+  const own = addresses[0];
+  addresses = (
+    await client.updateAddress(own.id, {
+      carrier: 'nova-poshta',
+      cityRef: 'synthetic-city',
+      locationRef: 'synthetic-location',
+      isDefault: false,
+      expectedVersion: 1,
+    })
+  ).items;
+  assert.equal(addresses[0].version, 2);
+  assert.equal((await client.setDefaultAddress(own.id, 2)).items[0].version, 3);
+  await client.removeAddress(own.id, 3);
+  await assert.rejects(
+    client.createReview({ orderLineId: s.line, rating: 5, body: 'Foreign' }),
+    { status: 404 },
+  );
+  assert.equal((await client.getReviews()).publication, 'not-asserted');
+  const ownOrder = (
+    await a.pool.query(
+      "INSERT INTO bazar.orders(user_id,total_minor,status) VALUES ($1,12345,'fulfilled') RETURNING id",
+      [identity.session.data.user.id],
+    )
+  ).rows[0].id;
+  const ownLine = (
+    await a.pool.query(
+      "INSERT INTO bazar.order_lines(order_id,user_id,product_id,variant_id,title_snapshot,quantity,unit_price_minor,line_total_minor) VALUES ($1,$2,$3,$4,'Synthetic owned purchase',1,12345,12345) RETURNING id",
+      [ownOrder, identity.session.data.user.id, s.product, s.variant],
+    )
+  ).rows[0].id;
+  confirmed.add(ownLine);
+  const ownReview = (
+    await client.createReview({
+      orderLineId: ownLine,
+      rating: 5,
+      body: 'Private-own-review',
+    })
+  ).items[0];
+  assert.equal(
+    (
+      await client.updateReview(ownReview.id, {
+        rating: 4,
+        body: 'Private-own-update',
+      })
+    ).items[0].rating,
+    4,
+  );
+  assert.equal((await client.removeReview(ownReview.id)).items.length, 0);
+  await assert.rejects(
+    client.createReview({
+      orderLineId: ownLine,
+      rating: 5,
+      body: 'Private-own-review',
+    }),
+    { status: 409 },
+  );
+
+  const call = (
+    path: string,
+    method = 'GET',
+    body?: unknown,
+    headers: Record<string, string> = {},
+  ) =>
+    fetch(base + path, {
+      method,
+      headers: {
+        origin: a.config.publicOrigin,
+        cookie,
+        'content-type': 'application/json',
+        'x-csrf-token': identity.session.data.csrfToken,
+        ...headers,
+      },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+  assert.equal(
+    (await call('/api/v1/wishlist', 'GET', undefined, { cookie: '' })).status,
+    401,
+  );
+  assert.equal(
+    (
+      await call(
+        '/api/v1/customer/profile',
+        'PATCH',
+        {},
+        { 'x-csrf-token': '' },
+      )
+    ).status,
+    403,
+  );
+  assert.equal(
+    (
+      await call(
+        '/api/v1/customer/profile',
+        'PATCH',
+        {},
+        { origin: 'https://evil.invalid' },
+      )
+    ).status,
+    403,
+  );
+  assert.equal(
+    (await call('/api/v1/customer/profile?userId=' + s.other)).status,
+    400,
+  );
+  assert.equal(
+    (
+      await call('/api/v1/wishlist/items/' + s.product, 'PUT', {
+        userId: s.other,
+      })
+    ).status,
+    400,
+  );
+  assert.equal(
+    (
+      await call('/api/v1/customer/profile', 'PATCH', {
+        expectedVersion: 2,
+        firstName: 'Synthetic',
+        lastName: 'Example',
+        phone: 'private-value',
+      })
+    ).status,
+    400,
+  );
+  assert.equal(
+    (
+      await call('/api/v1/customer/addresses/' + s.address, 'DELETE', {
+        expectedVersion: 1,
+      })
+    ).status,
+    404,
+  );
+  assert.equal((await call('/api/v1/wishlist', 'POST', {})).status, 405);
+  assert.doesNotMatch(
+    logs.join(''),
+    /Private-own|private-value|__Host-bazar|Synthetic|synthetic-city|Foreign/,
+  );
+  assert.ok(logs.some((line) => line.includes('/api/v1/customer')));
+});
+test('F12 upgrade preserves F11 customer data and previous migrations while adding only versions and empty review claims', async (t) => {
+  const db = await database(t),
+    dir = mkdtempSync(`${tmpdir()}/bazar-f12-upgrade-`);
+  t.after(() => rmSync(dir, { recursive: true }));
+  cpSync(migrationDirectory, dir, { recursive: true });
+  rmSync(`${dir}/0011_customer_account.sql`);
+  assert.equal(await migrate(db.config, dir), 10);
+  const s = await seed(db.pool);
+  await db.pool.query(
+    'INSERT INTO bazar.wishlist_items(user_id,product_id) VALUES ($1,$2)',
+    [s.user, s.product],
+  );
+  assert.equal(await migrate(db.config), 1);
+  assert.equal(await migrate(db.config), 0);
+  assert.equal(
+    (
+      await db.pool.query(
+        'SELECT profile_version::text v FROM bazar.users WHERE id=$1',
+        [s.user],
+      )
+    ).rows[0].v,
+    '1',
+  );
+  assert.equal(
+    (await db.pool.query('SELECT count(*)::int n FROM bazar.wishlist_items'))
+      .rows[0].n,
+    1,
+  );
+  assert.equal(
+    (
+      await db.pool.query(
+        'SELECT count(*)::int n FROM bazar.review_foundation_claims',
+      )
+    ).rows[0].n,
+    0,
   );
 });

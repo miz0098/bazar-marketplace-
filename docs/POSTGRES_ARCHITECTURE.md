@@ -1,5 +1,7 @@
 # PostgreSQL architecture — Phase F2 foundation
 
+F12 migration 0011 adds profile/address optimistic versions and immutable test review purchase claims (owned source-line FK, unique IDs, digest only). No prior checksums, raw contact/card fields, production grants or live eligibility policy change. See [ADR 0011](adr/0011-customer-account-foundation.md).
+
 Phase F9 adds migration 0010: carts.lifecycle defaults historical rows to unselected, partial unique index enforces one active cart/user, immutable cart_mutation_receipts store owner-scoped idempotency and historical snapshots, and checkout_completion_links bind owned integration orders/checkouts/succeeded synthetic payment operations with FK/correlation guards. No previous migration changes, data merge, cart clearing, stock reservation or production role activation. See [ADR 0010](adr/0010-cart-checkout-integration.md).
 
 Phase F8 adds migration 0008 to expand carrier CHECKs to Ukrposhta and 0009 for immutable test payment intents, durable operations, verified event deduplication and trigger-generated transition audit. Owner/cart/version FKs, active-or-successful uniqueness and terminal immutability apply. Earlier migrations are unchanged; no real merchant/credential/PII is seeded. See ADRs 0008–0009.
