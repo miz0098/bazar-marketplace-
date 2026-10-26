@@ -87,7 +87,7 @@
 | Playwright desktop/mobile | 62 passed, 8 existing viewport-specific skips; обидва projects виконані |
 | Dependency audit API / storefront / E2E | 0 vulnerabilities у кожному з трьох проєктів |
 | Governance ledger/path, orchestration tests, diff check, documentation links | Пройдено: ledger/path scope, 5 orchestration tests, git diff --check; 99 local і 30 pinned Shopify source links перевірено |
-| GitHub CI | Очікує PR; остаточний статус і run URL у PR/фінальному звіті |
+| GitHub CI | Результат для фінального SHA і run URL наведено у [PR #21](https://github.com/miz0098/bazar-marketplace-/pull/21); локальні перевірки не підміняють CI |
 | Shopify authenticated preview / visual approval / production tests | Не виконувалися; відповідні blockers відкриті |
 
 Вісім існуючих Playwright skips, якщо повторяться, — viewport-specific умови suite, не нові F10 exceptions. Не перетворювати pass count у % Demo Ready.

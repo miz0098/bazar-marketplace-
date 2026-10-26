@@ -302,7 +302,7 @@
     {
       "id": "GAP-001",
       "title": "Audit Shopify functional gaps and define demo acceptance gates",
-      "status": "in_progress",
+      "status": "in_review",
       "readiness": "demo",
       "depends_on": [
         "CART-001"
@@ -323,7 +323,7 @@
         "Critical gaps, executable acceptance scenarios, owners and ordered dependencies are documented without invented business rules",
         "Available regression, dependency and governance checks pass; audit does not change runtime or design"
       ],
-      "pr": null,
+      "pr": 21,
       "blocker": "Audit records open product/security/provider/visual gates; completing this audit does not complete BAZAR Demo 100%."
     }
   ]
