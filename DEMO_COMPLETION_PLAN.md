@@ -1,5 +1,12 @@
 # Phase F10 — Demo Completion Plan
 
+## Виконано у Phase F11 / оновлена черговість
+
+Частково виконано D02: category index/known redirects і query preservation, footer/info/social destinations, demo product variants/Q&A-empty/related/recently-viewed/safe buy-now, shared ephemeral wishlist і local cart quantity/stock reconciliation. Додано browser/unit/accessibility coverage без server activation. Реальні media/settings, pixel review, overlays та approved public SEO map не закриті.
+
+D01 business/scope/visual decisions залишаються потрібними; далі D03 mapping/customer APIs → D04 authoritative financial/order/inventory lifecycle → D05 isolated browser server-mode; D06 communication/staff/channels за approved scope → D07 final demo acceptance. D08/D09 real providers/release залишаються окремими. F11 не погоджує rounding/promo/order/refund/cart-after-order правила і не перетворює fixtures на production readiness.
+
+
 План ґрунтується на [functional audit](FUNCTIONAL_GAP_AUDIT.md) бази **89a0453** після merge PR #20, [checklist](DEMO_READINESS_CHECKLIST.md), усіх ADR та [Shopify Restoration](docs/SHOPIFY_RESTORATION.md). Це пропозиція наступних етапів і acceptance, а не погодження нових фінансових правил чи production-інтеграцій. **BAZAR Demo 100% ще не досягнуто.**
 
 ## Межі мети

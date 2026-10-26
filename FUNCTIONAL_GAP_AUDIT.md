@@ -1,5 +1,20 @@
 # Phase F10 — Shopify Functional Gap Audit
 
+## Оновлення Phase F11 — поточний demo-стан
+
+База F11: merge PR #21 **114df1dca2dc2968fdec04c48f7803ff98919953**. Матриця F10 нижче збережена як dated audit; ця delta уточнює змінені області. API/PostgreSQL і production flags не активовано.
+
+| Області | Закрито в demo F11 / evidence | Що залишається |
+| --- | --- | --- |
+| F02/F43, G05 | Footer internal destinations мають bounded info routes; Facebook/Instagram/Threads/Telegram відновлено; header має wishlist/cart counts на desktop/mobile. [Footer](apps/storefront/components/layout/site-footer.tsx), [info service](apps/storefront/services/mock/info-service.ts) | Соціальні URLs — platform-home defaults із Shopify, не вигадані BAZAR handles. Офіційні контакти/legal/careers content, favorites preview/cart drawer та screenshot approval ще не готові. |
+| F03/F05/F06 | `/collections` index; known category/all redirect із query preservation, unknown handle → 404; price range validation/filtering (включно max=0), sorting/empty/error retry; keyboard search options. [Catalog](apps/storefront/app/catalog/page.tsx), [search](apps/storefront/components/search/search-box.tsx) | Це demo IDs/fixtures, не approved global SEO/legacy handle migration. Live import/facets/media/server mapping і full-corpus async search залишаються G04. |
+| F08/F09/F10/F11 | Demo variant selector із price/SKU/gallery/stock/sold-out, variant URL, Q&A empty tab, static same-category recommendations, session-only recently viewed; safe buy-now додає до local cart і веде до existing demo checkout stop. [Detail](apps/storefront/components/product/product-detail.tsx), [related](apps/storefront/components/product/related-products.tsx) | Варіанти/stock — synthetic fixtures, не реальна комерційна пропозиція; CSS media ще placeholders. Questions submission/personalized recommendations і real order placement відсутні. Product exclusions збережено. |
+| F12/F13, частина G06 | Add/remove з card/detail, shared wishlist/header/account preview; wishlist ephemeral й reset-on-refresh. Cart variant identity, exact totals, stock/quantity error без false success; canonical demo price/stock restore замість довіри localStorage. [Wishlist](apps/storefront/components/product/wishlist-provider.tsx), [cart domain](apps/storefront/domain/cart/cart.ts) | Немає server wishlist persistence/merge, server cart UI switch, реального stock reservation. Account preview empty/error сценарії збережено. |
+| B01–B06/B25 | Нові browser regressions: browse/filter/search, variant stock, wishlist cross-route, internal links/404, axe і overflow; [F11 suite](tests/e2e/tests/storefront-completion.spec.ts), [unit](apps/storefront/tests/storefront-completion.test.ts) | Автоматична доступність не visual/manual acceptance. Contrast виправлено локальними відтінками на audited browsing controls без зміни layout/global brand tokens. |
+
+**Для обмеженого demo-приймання:** home/header/footer, category/catalog/search, product variants/tabs/related, ephemeral wishlist, local cart та bounded info pages. Це не означає pixel parity, backend integration або Demo 100%. G01–G15 лишаються відкритими у відповідних remaining частинах; усі financial/auth/provider/staff/privacy/release blockers F10 збережено.
+
+
 Аудит від 2026-10-26. **BAZAR Demo 100% не підтверджено; production-готовність не підтверджено.** Це перевірка фактичних можливостей, а не реалізація нових бізнес-функцій.
 
 ## Межі та джерела доказів

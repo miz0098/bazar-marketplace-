@@ -1,5 +1,7 @@
 # Storefront migration progress
 
+Phase F11 adds demo variants, wishlist add/remove shared with existing account preview/header, variant-aware stock-limited local cart, catalog price/URL/error handling, keyboard suggestions, category index/redirects/404 and truthful footer information/social links. Same-category recommendations and tab-local recent views are explicitly demo. Existing E1 refresh-reset semantics and checkout stop remain; no real API switch. New unit and desktop/mobile axe/keyboard/overflow tests cover these changes. See the F11 delta in the root readiness documents.
+
 Phase F10 is a documentation-only post-F9 functional audit. [Matrix](../../FUNCTIONAL_GAP_AUDIT.md), [checklist](../../DEMO_READINESS_CHECKLIST.md) and [next stages](../../DEMO_COMPLETION_PLAN.md) record mock-only UI selection, missing variant/product/navigation/wishlist features and absent browser server-mode composition. Existing app code, design and Shopify source are preserved. Demo/design/production gates remain separate.
 
 Phase F9 adds opt-in typed server-cart and combined checkout integration clients, including fresh-cart checkout start, in-memory CSRF and explicit historical replay handling. Existing demo providers, screens, design and persistence are unchanged. The controller is exercised against actual isolated HTTP/PostgreSQL; it is not wired to real users. See [Demo readiness](../../docs/F9_DEMO_READINESS.md).

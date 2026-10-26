@@ -1,5 +1,15 @@
 export type Money = Readonly<{ amountMinor: number; currency: 'UAH' }>;
-export type ProductVisual = 'phone' | 'laptop' | 'headphones' | 'home' | 'watch' | 'beauty' | 'camera' | 'console' | 'sport' | 'fashion';
+export type ProductVisual =
+  | 'phone'
+  | 'laptop'
+  | 'headphones'
+  | 'home'
+  | 'watch'
+  | 'beauty'
+  | 'camera'
+  | 'console'
+  | 'sport'
+  | 'fashion';
 export type ProductSort = 'featured' | 'price-asc' | 'price-desc' | 'name';
 
 export interface Category {
@@ -9,7 +19,21 @@ export interface Category {
   readonly subcategories: readonly string[];
 }
 
+export interface ProductVariant {
+  readonly productTitle?: string;
+  readonly id: string;
+  readonly title: string;
+  readonly sku: string;
+  readonly price: Money;
+  readonly stock: number;
+  readonly mediaIndex: number;
+}
+
 export interface ProductSummary {
+  readonly variants?: readonly ProductVariant[];
+  readonly variantId?: string;
+  readonly variantLabel?: string;
+  readonly stock?: number;
   readonly id: string;
   readonly handle: string;
   readonly title: string;
@@ -29,7 +53,13 @@ export interface Product extends ProductSummary {
   readonly description: string;
   readonly gallery: readonly { id: string; label: string; tone: string }[];
   readonly specifications: readonly { label: string; value: string }[];
-  readonly reviews: readonly { id: string; author: string; rating: number; text: string; date: string }[];
+  readonly reviews: readonly {
+    id: string;
+    author: string;
+    rating: number;
+    text: string;
+    date: string;
+  }[];
 }
 
 export interface ProductQuery {
@@ -56,5 +86,8 @@ export interface CatalogService {
   listProducts(input?: ProductQuery): Promise<ProductPage>;
   getProduct(handle: string): Promise<Product | null>;
   getCategories(): Promise<readonly Category[]>;
-  getSuggestions(query: string, limit?: number): Promise<readonly ProductSummary[]>;
+  getSuggestions(
+    query: string,
+    limit?: number,
+  ): Promise<readonly ProductSummary[]>;
 }

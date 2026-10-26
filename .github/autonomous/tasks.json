@@ -302,7 +302,7 @@
     {
       "id": "GAP-001",
       "title": "Audit Shopify functional gaps and define demo acceptance gates",
-      "status": "in_review",
+      "status": "done",
       "readiness": "demo",
       "depends_on": [
         "CART-001"
@@ -325,6 +325,34 @@
       ],
       "pr": 21,
       "blocker": "Audit records open product/security/provider/visual gates; completing this audit does not complete BAZAR Demo 100%."
+    },
+    {
+      "id": "FRONT-001",
+      "title": "Complete demo storefront browsing, variants, wishlist and cart parity",
+      "status": "in_progress",
+      "readiness": "demo",
+      "depends_on": [
+        "GAP-001"
+      ],
+      "allowed_paths": [
+        "apps/storefront/",
+        "tests/e2e/",
+        "ARCHITECTURE.md",
+        "MIGRATION_PLAN.md",
+        "FUNCTIONAL_GAP_AUDIT.md",
+        "DEMO_READINESS_CHECKLIST.md",
+        "DEMO_COMPLETION_PLAN.md",
+        "docs/",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Demo categories, URL filters/search, variants and sold-out states have desktop/mobile regression",
+        "Shared ephemeral wishlist and variant-aware local cart counters/stock errors stay truthful",
+        "Header/footer destinations and only approved social platforms are verified",
+        "Existing auth/profile/checkout/communication regressions and all required checks pass; no server API activation or design rewrite"
+      ],
+      "pr": null,
+      "blocker": "Real media/settings and approved screenshot parity, server-mode and production integration remain outside this demo completion increment."
     }
   ]
 }
