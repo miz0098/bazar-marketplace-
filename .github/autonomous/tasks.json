@@ -71,12 +71,12 @@
     {
       "id": "CAT-001",
       "title": "Implement catalog and search API adapters",
-      "status": "in_progress",
+      "status": "in_review",
       "readiness": "integration",
       "depends_on": ["DB-001", "PHB-001"],
       "allowed_paths": ["apps/api/", "apps/storefront/services/", "apps/storefront/lib/", "apps/storefront/tests/", "apps/storefront/MIGRATION_PROGRESS.md", "ARCHITECTURE.md", "MIGRATION_PLAN.md", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
       "acceptance": ["Catalog, categories, product details, facets and Ukrainian search satisfy shared contracts", "Price and availability remain server-authoritative", "Mock and HTTP adapters pass the same contract suite", "Timeout, invalid payload and unavailable dependency states are tested"],
-      "pr": null,
+      "pr": 14,
       "blocker": "F3 public reads and opt-in transport implemented; catalog source/import and visual-domain mapping remain owner decisions. No live UI switch."
     },
     {
@@ -87,7 +87,7 @@
       "depends_on": ["CAT-001"],
       "allowed_paths": ["apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
       "acceptance": ["Guest cart identity and authenticated merge are explicit", "Every mutation reconciles price, inventory and totals", "Mutations are idempotent and reject invalid quantities", "Storefront handles stale inventory and API failures without false success"],
-      "pr": null,
+      "pr": 14,
       "blocker": "F3 PostgreSQL repository tested; cart HTTP stays AUTH_REQUIRED. Security owner must implement verified sessions and CSRF; product owner must approve guest/current-cart/merge rules."
     },
     {
