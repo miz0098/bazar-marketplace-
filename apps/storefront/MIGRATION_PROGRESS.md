@@ -100,3 +100,7 @@ Phase F1 introduces a separate `apps/api` technical foundation and an unused ser
 - [ ] Production accessibility and visual-regression baselines against every approved screen
 
 Demo behavior must not be represented as live commerce or account functionality.
+
+## Phase F3 — opt-in catalog transport
+
+Added a typed, runtime-validated catalog HTTP client and server-only factory, plus a future authenticated cart adapter interface. Existing service providers remain mock-only: no components, visual tokens, demo persistence, auth D, account E or communication flow changed. Mapping PostgreSQL data to the existing visual domain is blocked on approved media/vendor/ratings/navigation contracts; no mock visuals or facts are silently used as live data. See ADR 0003 and SHOPIFY_RESTORATION.md for cart access and commerce gates.

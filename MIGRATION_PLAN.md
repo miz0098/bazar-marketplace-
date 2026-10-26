@@ -1,5 +1,7 @@
 # BAZAR Shopify-to-Next.js Migration Plan
 
+Phase F3 implements catalog read APIs and internal PostgreSQL cart transactions, without enabling cart HTTP or changing storefront mocks. [ADR 0003](docs/adr/0003-catalog-cart-boundaries.md) records access blockers; [Shopify restoration](docs/SHOPIFY_RESTORATION.md) lists mandatory commerce work before BAZAR Demo 100%.
+
 Phase F2 implements the PostgreSQL technical foundation: immutable migrations, integration tests and API readiness. Authentication, catalog/commerce endpoints and frontend HTTP switching remain later stages; no real data or provider operation is introduced.
 
 ## Audit basis

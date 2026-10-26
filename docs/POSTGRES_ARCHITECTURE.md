@@ -1,6 +1,8 @@
 # PostgreSQL architecture — Phase F2 foundation
 
-Phase F2 implements the reviewed technical schema in `apps/api/migrations`, an explicit migration runner, a bounded `pg` pool and database-aware readiness. All business HTTP routes remain absent and the storefront stays on mocks. The local [Compose file](../infra/postgres/compose.yaml) binds only 127.0.0.1; the separate [test Compose file](../infra/postgres/compose.test.yaml) uses a random loopback port, generated credentials and tmpfs. No hosted database or real data is used.
+Phase F3 update: migration 0003 adds the simple-token catalog search GIN index. Public catalog handlers now read products/categories/variants; cart persistence is internal and HTTP remains authentication-blocked. See [ADR 0003](adr/0003-catalog-cart-boundaries.md). Historical F2 privileges below are extended by the explicit read-only catalog grants at the end.
+
+Historical F2 baseline: Phase F2 implements the reviewed technical schema in `apps/api/migrations`, an explicit migration runner, a bounded `pg` pool and database-aware readiness. All business HTTP routes remain absent and the storefront stays on mocks. The local [Compose file](../infra/postgres/compose.yaml) binds only 127.0.0.1; the separate [test Compose file](../infra/postgres/compose.test.yaml) uses a random loopback port, generated credentials and tmpfs. No hosted database or real data is used.
 
 [ADR 0002](adr/0002-postgresql-foundation.md) records unresolved phone/recipient encryption, guest-cart, staff/seller, financial-transition and retention decisions. Schema existence is not authorization or production readiness.
 
@@ -85,3 +87,14 @@ Set API `DATABASE_URL` to that login, not the migration owner. No grants to busi
 Local loopback TCP may use `DATABASE_SSL=disable`; remote hosts and production require `verify-full` with certificate verification. Use the system/Node trust store for a reviewed private CA, never `rejectUnauthorized:false`. URL query overrides such as `sslmode=disable` are rejected. `DATABASE_TIMEOUT_MS` bounds connection/statement time and a client query deadline; the pool is capped at four connections and closed after HTTP shutdown. Do not change PostgreSQL int8 parsing globally: money returns as strings and must be range-checked before conversion to storefront integer minor units.
 
 `npm --prefix apps/api run test:integration` requires the local Linux Docker socket. It generates an isolated project, password and loopback port, creates synthetic case databases, and tears them down in finally. It refuses non-test database targets. The suite verifies the schema, keys/checks, upgrades/reruns/concurrent migrations, rollback/checksum protection, restricted runtime credentials, real /ready behavior and compiled-process cleanup. No production volume is mounted or reset.
+
+## Phase F3 runtime privilege addition
+
+After separate role provisioning and the usual F2 metadata grants, add only read-only catalog access as owner:
+
+```sql
+GRANT USAGE ON SCHEMA bazar TO bazar_api;
+GRANT SELECT ON bazar.products, bazar.categories, bazar.variants TO bazar_api;
+```
+
+Integration tests verify catalog reads with those restricted credentials and deny cart reads and price writes. Do not grant cart/user/session/financial access to the catalog runtime. Internal cart tests run with disposable test-owner credentials; no production cart role or session policy is activated. Existing migrations 0001/0002 remain immutable. The suite now upgrades 0001 through 0003 and rehearses repeat/concurrent execution and failed next migration rollback.

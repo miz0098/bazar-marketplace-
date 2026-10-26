@@ -1,7 +1,8 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
-const screen = (page: Page) => page.locator('[data-communication]');
+// Next.js streaming temporarily includes a second hidden Suspense copy; inspect the visible UI.
+const screen = (page: Page) => page.locator('[data-communication]').filter({ visible: true });
 const history = (page: Page) => page.getByRole('region', { name: 'Історія повідомлень' });
 
 async function assertChronologyAndBottom(page: Page) {

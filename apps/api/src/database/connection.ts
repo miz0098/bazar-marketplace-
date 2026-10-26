@@ -8,6 +8,7 @@ export function createDatabase(config: DatabaseConfig, onError: () => void = () 
   pool.on('error', () => onError());
   let closing: Promise<void> | undefined;
   return {
+    pool,
     async check(): Promise<boolean> {
       if (closing) return false;
       try {
