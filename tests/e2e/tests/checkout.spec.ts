@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
 async function addDemoProduct(page: import('@playwright/test').Page) {
@@ -52,4 +53,23 @@ test('checkout refresh keeps cart and draft but never offers order completion', 
   await expect(page.getByRole('button', { name: /створити замовлення|підтвердити оплату/i })).toHaveCount(0);
   await page.goto('/cart');
   await expect(page.getByText('Apple iPhone 15 Pro 128GB')).toBeVisible();
+});
+
+
+test('Ukrposhta preserves the three-step demo, keyboard selection, mobile layout and payment boundaries',async({page})=>{
+ await addDemoProduct(page);
+ await expect(page.getByLabel('ПВЗ BAZAR')).toBeDisabled();
+ await page.getByLabel('Укрпошта').focus();await page.keyboard.press('Space');await expect(page.getByLabel('Укрпошта')).toBeChecked();await expect(page.getByLabel('Укрпошта')).toBeFocused();
+ await page.locator('#fullName').fill('Олена Коваль');await page.locator('#phone').fill('+380671234567');await page.locator('#city').fill('Київ');await page.locator('#branch').fill('01001');
+ await page.reload();await expect(page.getByLabel('Укрпошта')).toBeChecked();
+ for(const step of [1,2,3]){
+  if(step===2)await page.getByRole('button',{name:'Продовжити до оплати'}).click();
+  if(step===3)await page.getByRole('button',{name:'Перейти до підтвердження'}).click();
+  await expect(page.getByRole('heading',{name:step===1?'Контактні дані та доставка':step===2?'Оплата':'Підтвердження',exact:true})).toBeVisible();
+  if(step===2){await expect(page.getByLabel('Карткою онлайн')).toBeChecked();await expect(page.getByLabel('Промокод')).toBeVisible();}
+  const widths=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth}));expect(widths.scroll).toBeLessThanOrEqual(widths.width);
+  const axe=await new AxeBuilder({page}).include('.checkout-layout').analyze();expect(axe.violations.filter(v=>['serious','critical'].includes(v.impact??''))).toEqual([]);
+ }
+ await expect(page.locator('.checkout-review').getByText('Укрпошта',{exact:false})).toBeVisible();
+ await expect(page.getByRole('button',{name:/створити замовлення|підтвердити оплату/i})).toHaveCount(0);
 });

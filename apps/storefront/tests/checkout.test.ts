@@ -13,6 +13,7 @@ test('restores only supported checkout choices from storage', () => {
   const parsed = parseCheckoutDraft(JSON.stringify({ contact: { fullName: 'Іван Петренко', phone: '+380501234567' }, delivery: { method: 'other', city: 'Львів', branch: '3' }, paymentMethod: 'unknown', promoCode: 'SAVE' }));
   assert.equal(parsed.delivery.method, 'nova-poshta');
   assert.equal(parsed.paymentMethod, 'card-online');
+  assert.equal(parseCheckoutDraft(JSON.stringify({delivery:{method:'ukrposhta',city:'Київ',branch:'01001'}})).delivery.method,'ukrposhta');
   assert.deepEqual(parseCheckoutDraft('{bad'), EMPTY_CHECKOUT_DRAFT);
 });
 

@@ -1,5 +1,7 @@
 # BAZAR API foundation
 
+Phase F8 adds isolated payment attempt/read/reconcile/cancel and signed-test-webhook routes; ordinary /api/v1/payments remains 503. No provider, real payable amount, card/wallet data or refund is enabled. Ukrposhta joins isolated delivery through official directory contract seams. See [ADR 0008](../../docs/adr/0008-payment-infrastructure-security.md), [ADR 0009](../../docs/adr/0009-ukrposhta-delivery-extension.md) and OpenAPI 1.6.0.
+
 Phase F7 adds isolated delivery directories, checkout selections, immutable expiring test estimates and a final order-transaction guard. Ordinary `/api/v1/delivery/*` returns 503. No live transport/API key/TTN is enabled. See [ADR 0007](../../docs/adr/0007-delivery-shipping-foundation.md) and OpenAPI 1.5.0 for routes, scope and blockers.
 
 Phase F6 update: isolated PostgreSQL checkout/orders foundation uses verified test sessions, three draft stages, revalidated prices/stock and idempotent immutable pending records. Ordinary /api/v1/checkouts and /api/v1/orders routes return 503. No real payment, delivery, SMS or stock reservation is activated; [ADR 0006](../../docs/adr/0006-orders-checkout-foundation.md) defines contracts and blockers.

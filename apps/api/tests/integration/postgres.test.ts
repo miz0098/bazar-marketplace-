@@ -1,3 +1,7 @@
+import { createPaymentService } from '../../src/payments/service.js';
+import { paymentFixture } from '../helpers/payments.js';
+import { createPaymentBusinessClient } from '../../../storefront/lib/payment-business-client.js';
+import { createUkrposhtaTestAdapter } from '../../src/shipping/ukrposhta.js';
 import { createShippingService } from '../../src/shipping/service.js';
 import { shippingFixture } from '../helpers/shipping.js';
 import { createShippingBusinessClient } from '../../../storefront/lib/shipping-business-client.js';
@@ -75,9 +79,9 @@ test('fresh database, previous schema upgrade, rerun and concurrent migrators ar
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(`${migrationDirectory}/0001_core.sql`, `${dir}/0001_core.sql`);
   assert.equal(await migrate(db.config, dir), 1);
-  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 6]);
+  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 8]);
   assert.equal(await migrate(db.config), 0);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 7);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 9);
   assert.ok((await db.pool.query("SELECT indexname FROM pg_indexes WHERE schemaname='bazar' AND indexname='variants_available_idx'")).rowCount);
 });
 
@@ -89,10 +93,10 @@ test('modified/unknown migrations are rejected and failed DDL rolls back without
   writeFileSync(`${dir}/0001_core.sql`, first + '\n-- modified\n');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   writeFileSync(`${dir}/0001_core.sql`, first);
-  writeFileSync(`${dir}/0008_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
+  writeFileSync(`${dir}/0010_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   assert.equal((await db.pool.query("SELECT to_regclass('bazar.must_rollback') AS name")).rows[0].name, null);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 7);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 9);
   await db.pool.query("INSERT INTO bazar_meta.schema_migrations(version,checksum) VALUES ('9999',repeat('0',64))");
   await assert.rejects(migrate(db.config), /Database migration failed/);
 });
@@ -2421,7 +2425,7 @@ test("F7 upgrades F6 without rewriting existing orders; directories cover only e
   }
   await migrate(db.config, dir);
   const s = await seed(db.pool);
-  assert.equal(await migrate(db.config), 1);
+  assert.equal(await migrate(db.config), 3);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -2976,4 +2980,685 @@ test("F7 parcel lockers are searchable/selectable only through an explicitly cap
     idempotencyKey: randomUUID(),
   });
   assert.equal(q.quote.kind, "parcel-locker");
+});
+
+// F8: synthetic payment protocol, never a paid order or provider selection.
+async function paymentCase(t: TestContext) {
+  const a = await checkoutFixture(t),
+    f = paymentFixture();
+  let ready = await checkoutReview(a);
+  ready = await a.service.setPayment(a.s.user, ready.id, {
+    expectedVersion: ready.version,
+    paymentSelection: 'card-online',
+    promoCode: null,
+  });
+  const payments = createPaymentService(a.pool, f.adapter, f.config);
+  const input = {
+    checkoutId: ready.id,
+    expectedVersion: ready.version,
+    method: 'card' as const,
+    idempotencyKey: randomUUID(),
+  };
+  return { ...a, ...f, config: a.config, payments, ready, input };
+}
+test('F8 verified success and concurrent duplicate webhooks update only one test operation with an immutable audit', async (t) => {
+  const a = await paymentCase(t),
+    created = await a.payments.create(a.s.user, a.input);
+  assert.equal(created.attempt.status, 'pending');
+  assert.equal(created.attempt.realPayment, false);
+  assert.equal(created.attempt.orderPaid, false);
+  const event = a.event(created.attempt.id, 'succeeded'),
+    signed = a.signed(event);
+  const results = await Promise.all(
+    [1, 2, 3].map(() => a.payments.webhook(signed.raw, signed.signature)),
+  );
+  assert.equal(results.filter((x) => !x.replayed).length, 1);
+  assert.equal(
+    (await a.payments.get(a.s.user, created.attempt.id)).status,
+    'succeeded',
+  );
+  assert.equal(
+    (
+      await a.pool.query(
+        'SELECT count(*)::int AS n FROM bazar.payment_verified_events',
+      )
+    ).rows[0].n,
+    1,
+  );
+  assert.deepEqual(
+    (
+      await a.pool.query(
+        'SELECT to_status FROM bazar.payment_transition_audit ORDER BY id',
+      )
+    ).rows.map((r) => r.to_status),
+    ['submitting', 'pending', 'succeeded'],
+  );
+  for (const sql of [
+    "UPDATE bazar.payment_operations SET status='pending',version=version+1 WHERE id=$1",
+    'DELETE FROM bazar.payment_operations WHERE id=$1',
+    'DELETE FROM bazar.payment_transition_audit WHERE operation_id=$1',
+  ])
+    await assert.rejects(a.pool.query(sql, [created.attempt.id]), {
+      code: '23514',
+    });
+  assert.equal(
+    (
+      await a.pool.query(
+        'SELECT count(*)::int AS n FROM bazar.orders WHERE foundation_mode IS NOT NULL',
+      )
+    ).rows[0].n,
+    0,
+  );
+  assert.equal(
+    (
+      await a.pool.query(
+        'SELECT count(*)::int AS n FROM bazar.payment_attempts',
+      )
+    ).rows[0].n,
+    0,
+  );
+});
+test('F8 invalid signatures, amount/currency/account/reference mismatches and injected payment credentials never alter state', async (t) => {
+  const a = await paymentCase(t),
+    created = await a.payments.create(a.s.user, a.input),
+    event = a.event(created.attempt.id, 'succeeded'),
+    signed = a.signed(event);
+  await assert.rejects(a.payments.webhook(signed.raw, signed.signature + '0'), {
+    status: 401,
+  });
+  const old = a.signed(event, Date.now() - 600000);
+  await assert.rejects(a.payments.webhook(old.raw, old.signature), {
+    status: 401,
+  });
+  for (const patch of [
+    { amountMinor: event.amountMinor + 1 },
+    { currency: 'USD' },
+    { accountRef: 'different-merchant' },
+    { operationRef: 'another-operation' },
+  ]) {
+    const bad = a.signed({ ...event, ...patch });
+    await assert.rejects(a.payments.webhook(bad.raw, bad.signature));
+  }
+  const privatePayload = a.signed({ ...event, cardNumber: 'never-store-this' });
+  await assert.rejects(
+    a.payments.webhook(privatePayload.raw, privatePayload.signature),
+    { status: 401 },
+  );
+  for (const extra of [
+    { amountMinor: 1 },
+    { currency: 'USD' },
+    { status: 'succeeded' },
+    { cvv: '123' },
+    { cardNumber: 'forbidden' },
+  ])
+    await assert.rejects(
+      a.payments.create(a.s.user, { ...a.input, ...extra }),
+      { status: 400 },
+    );
+  assert.equal(
+    (await a.payments.get(a.s.user, created.attempt.id)).status,
+    'pending',
+  );
+  assert.equal(
+    (
+      await a.pool.query(
+        'SELECT count(*)::int AS n FROM bazar.payment_verified_events',
+      )
+    ).rows[0].n,
+    0,
+  );
+  await assert.rejects(a.payments.get(a.s.other, created.attempt.id), {
+    status: 404,
+  });
+  await assert.rejects(a.payments.cancel(a.s.other, created.attempt.id), {
+    status: 404,
+  });
+});
+test('F8 definitive declines allow a new wallet attempt; unknown or successful operations cannot be retried', async (t) => {
+  const a = await paymentCase(t),
+    first = await a.payments.create(a.s.user, a.input),
+    decline = a.signed(a.event(first.attempt.id, 'declined'));
+  assert.equal(
+    (await a.payments.webhook(decline.raw, decline.signature)).attempt.canRetry,
+    true,
+  );
+  const next = await a.payments.create(a.s.user, {
+    ...a.input,
+    method: 'apple-pay',
+    idempotencyKey: randomUUID(),
+  });
+  assert.notEqual(next.attempt.id, first.attempt.id);
+  a.operations.get(next.attempt.id)!.status = 'succeeded';
+  assert.equal(
+    (await a.payments.reconcile(a.s.user, next.attempt.id)).attempt.status,
+    'succeeded',
+  );
+  await assert.rejects(
+    a.payments.create(a.s.user, {
+      ...a.input,
+      method: 'google-pay',
+      idempotencyKey: randomUUID(),
+    }),
+    { status: 409 },
+  );
+  const late = a.signed(a.event(first.attempt.id, 'succeeded'));
+  await assert.rejects(a.payments.webhook(late.raw, late.signature), {
+    status: 409,
+  });
+  assert.equal(a.state.submissions, 2);
+  assert.equal((await a.payments.create(a.s.user, a.input)).replayed, true);
+  assert.equal(a.state.submissions, 2);
+});
+test('F8 durable preparation prevents concurrent and duplicate submissions even through another checkout draft', async (t) => {
+  const a = await paymentCase(t);
+  const results = await Promise.allSettled(
+    [1, 2].map(() =>
+      a.payments.create(a.s.user, { ...a.input, idempotencyKey: randomUUID() }),
+    ),
+  );
+  assert.equal(results.filter((x) => x.status === 'fulfilled').length, 1);
+  assert.equal(a.state.submissions, 1);
+  const b = await paymentCase(t);
+  const same = await Promise.all(
+    [1, 2].map(() => b.payments.create(b.s.user, b.input)),
+  );
+  assert.equal(same[0].attempt.id, same[1].attempt.id);
+  assert.equal(b.state.submissions, 1);
+  await assert.rejects(
+    b.payments.create(b.s.user, { ...b.input, method: 'google-pay' }),
+    { status: 409 },
+  );
+  const another = await checkoutReview(b);
+  const ready = await b.service.setPayment(b.s.user, another.id, {
+    expectedVersion: another.version,
+    paymentSelection: 'card-online',
+    promoCode: null,
+  });
+  await assert.rejects(
+    b.payments.create(b.s.user, {
+      ...b.input,
+      checkoutId: ready.id,
+      expectedVersion: ready.version,
+      idempotencyKey: randomUUID(),
+    }),
+    { status: 409 },
+  );
+  assert.equal(b.state.submissions, 1);
+});
+test('F8 timeout persists unknown outcome, never resubmits, and needs authenticated reconciliation', async (t) => {
+  const a = await paymentCase(t);
+  a.state.stallSubmit = true;
+  const created = await a.payments.create(a.s.user, a.input);
+  assert.equal(created.attempt.status, 'unknown');
+  assert.equal(created.attempt.canRetry, false);
+  assert.equal((await a.payments.create(a.s.user, a.input)).replayed, true);
+  assert.equal(a.state.submissions, 1);
+  await assert.rejects(
+    a.payments.create(a.s.user, { ...a.input, idempotencyKey: randomUUID() }),
+    { status: 409 },
+  );
+  a.state.failInspect = true;
+  await assert.rejects(a.payments.reconcile(a.s.user, created.attempt.id), {
+    status: 503,
+  });
+  assert.equal(
+    (await a.payments.get(a.s.user, created.attempt.id)).status,
+    'unknown',
+  );
+  a.state.failInspect = false;
+  a.operations.get(created.attempt.id)!.status = 'succeeded';
+  assert.equal(
+    (await a.payments.reconcile(a.s.user, created.attempt.id)).attempt.status,
+    'succeeded',
+  );
+  assert.equal(a.state.submissions, 1);
+});
+test('F8 cancellation remains pending until provider confirmation; only definitive cancellation permits retry', async (t) => {
+  const a = await paymentCase(t),
+    created = await a.payments.create(a.s.user, a.input);
+  a.state.cancelConfirmed = false;
+  assert.equal(
+    (await a.payments.cancel(a.s.user, created.attempt.id)).attempt.status,
+    'pending',
+  );
+  await assert.rejects(
+    a.payments.create(a.s.user, { ...a.input, idempotencyKey: randomUUID() }),
+    { status: 409 },
+  );
+  a.state.cancelConfirmed = true;
+  assert.equal(
+    (await a.payments.cancel(a.s.user, created.attempt.id)).attempt.status,
+    'cancelled',
+  );
+  const retry = await a.payments.create(a.s.user, {
+    ...a.input,
+    method: 'google-pay',
+    idempotencyKey: randomUUID(),
+  });
+  assert.equal(retry.attempt.method, 'google-pay');
+  const sameId = a.event(retry.attempt.id, 'pending');
+  const signed = a.signed(sameId);
+  await a.payments.webhook(signed.raw, signed.signature);
+  const reused = a.signed({ ...sameId, status: 'succeeded' });
+  await assert.rejects(a.payments.webhook(reused.raw, reused.signature), {
+    status: 409,
+  });
+});
+test('F8 amount basis changes fail closed after a decline and no client can supply a payable total', async (t) => {
+  const a = await paymentCase(t),
+    created = await a.payments.create(a.s.user, a.input),
+    decline = a.signed(a.event(created.attempt.id, 'declined'));
+  await a.payments.webhook(decline.raw, decline.signature);
+  a.state.amount++;
+  await assert.rejects(
+    a.payments.create(a.s.user, { ...a.input, idempotencyKey: randomUUID() }),
+    { code: 'PAYMENT_STALE' },
+  );
+  a.state.amount--;
+  await a.pool.query(
+    'UPDATE bazar.variants SET price_minor=price_minor+1 WHERE id=$1',
+    [a.s.variant],
+  );
+  await assert.rejects(
+    a.payments.create(a.s.user, { ...a.input, idempotencyKey: randomUUID() }),
+    { status: 409 },
+  );
+  assert.equal(a.state.submissions, 1);
+});
+test('F8 payment HTTP and typed client require session/CSRF and only signed raw webhook results; logs contain no event body', async (t) => {
+  const a = await checkoutFixture(t),
+    f = paymentFixture(),
+    fixture = authFixture(),
+    auth = createAuthService(a.pool, fixture.config, fixture.sms);
+  const registration = await registered({ ...a, ...fixture, auth }),
+    actor = registration.session.data.user.id;
+  await a.pool.query('UPDATE bazar.carts SET user_id=$1 WHERE id=$2', [
+    actor,
+    a.s.cart,
+  ]);
+  const addressId = (
+    await a.pool.query(
+      "INSERT INTO bazar.addresses(user_id,carrier,city_ref,location_ref) VALUES ($1,'meest','synthetic-city','synthetic-location') RETURNING id",
+      [actor],
+    )
+  ).rows[0].id;
+  let draft = await a.service.start(actor, {
+    cartId: a.s.cart,
+    expectedCartVersion: 1,
+    idempotencyKey: randomUUID(),
+  });
+  draft = await a.service.setDelivery(actor, draft.id, {
+    expectedVersion: draft.version,
+    addressId,
+  });
+  draft = await a.service.setPayment(actor, draft.id, {
+    expectedVersion: draft.version,
+    paymentSelection: 'card-online',
+    promoCode: null,
+  });
+  const payments = createPaymentService(a.pool, f.adapter, f.config),
+    logs: string[] = [];
+  const app = createApiServer(
+    readConfig({ NODE_ENV: 'test' }),
+    createLogger('info', (line) => logs.push(line)),
+    { auth, payments, isReady: async () => true },
+  );
+  app.server.listen(0, '127.0.0.1');
+  await once(app.server, 'listening');
+  t.after(() => app.shutdown());
+  const address = app.server.address();
+  assert.ok(address && typeof address !== 'string');
+  const base = `http://127.0.0.1:${address.port}`,
+    cookie = `__Host-bazar-session=${registration.session.token}; __Host-bazar-flow=${registration.session.flow}`;
+  const transport: typeof fetch = async (path, init) => {
+    const headers = new Headers(init?.headers);
+    headers.set('origin', fixture.config.publicOrigin);
+    headers.set('cookie', cookie);
+    return fetch(base + path, { ...init, headers });
+  };
+  const client = createPaymentBusinessClient(
+    () => registration.session.data.csrfToken,
+    transport,
+  );
+  assert.equal((await client.capabilities()).productionAvailable, false);
+  const created = await client.create({
+    checkoutId: draft.id,
+    expectedVersion: draft.version,
+    method: 'card',
+    idempotencyKey: randomUUID(),
+  });
+  assert.equal((await client.get(created.attempt.id)).status, 'pending');
+  const unsigned = await fetch(base + '/api/v1/payments/webhooks/isolated', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ status: 'succeeded' }),
+  });
+  assert.equal(unsigned.status, 401);
+  const signed = f.signed(f.event(created.attempt.id, 'succeeded'));
+  const webhook = await fetch(base + '/api/v1/payments/webhooks/isolated', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'x-isolated-signature': signed.signature,
+    },
+    body: signed.raw,
+  });
+  assert.equal(webhook.status, 200);
+  assert.equal((await webhook.json()).data.receivedForTest, true);
+  assert.equal((await client.get(created.attempt.id)).orderPaid, false);
+  assert.equal((await client.get(created.attempt.id)).status, 'succeeded');
+  const noCsrf = createPaymentBusinessClient(() => 'a'.repeat(43), transport);
+  await assert.rejects(noCsrf.cancel(created.attempt.id), { status: 403 });
+  assert.equal(
+    (
+      await fetch(base + '/api/v1/payments/attempts/' + created.attempt.id, {
+        headers: { origin: fixture.config.publicOrigin },
+      })
+    ).status,
+    401,
+  );
+  assert.equal(
+    (
+      await fetch(base + '/api/v1/payments/refunds', {
+        headers: { origin: fixture.config.publicOrigin, cookie },
+      })
+    ).status,
+    404,
+  );
+  assert.ok(!logs.join('').includes('synthetic-merchant'));
+  assert.ok(!logs.join('').includes(signed.signature));
+  assert.ok(!logs.join('').includes(created.attempt.id));
+});
+test('F8 Ukrposhta official directory adapter, quotes and checkout/order snapshots use the third carrier without booking', async (t) => {
+  const a = await checkoutFixture(t),
+    f = shippingFixture();
+  let price = 8750;
+  let active = true;
+  const urls: string[] = [];
+  const city = { REGION_ID: '286', CITY_ID: '29713', CITY_UA: 'Тестове місто' };
+  const ukrposhta = createUkrposhtaTestAdapter({
+    scope: 'isolated-test',
+    async directory(url) {
+      urls.push(url);
+      return {
+        Entries: {
+          Entry: url.includes('get_city_')
+            ? [city]
+            : [
+                {
+                  ID: '2700',
+                  CITY_ID: city.CITY_ID,
+                  REGION_ID: city.REGION_ID,
+                  PO_LONG: 'Тестове відділення',
+                  POSTINDEX: '01001',
+                  LOCK_CODE: active ? '0' : '1',
+                  IS_NODISTRICT: '0',
+                },
+              ],
+        },
+      };
+    },
+    async resolveCity(ref) {
+      return ref === '286-29713' ? city : null;
+    },
+    async estimateForTest() {
+      return {
+        amountMinor: price,
+        currency: 'UAH',
+        revision: 'synthetic-up-tariff-1',
+      };
+    },
+  });
+  const shipping = createShippingService(
+      a.pool,
+      [...f.adapters, ukrposhta],
+      f.config,
+    ),
+    checkout = createCheckoutBusinessService(a.pool, shipping);
+  assert.equal((await shipping.carriers()).carriers.length, 3);
+  assert.equal(
+    (await shipping.cities({ carrier: 'ukrposhta', query: 'Тест' })).items[0]
+      .ref,
+    '286-29713',
+  );
+  assert.equal(
+    (
+      await shipping.points({
+        carrier: 'ukrposhta',
+        cityRef: '286-29713',
+        kind: 'branch',
+      })
+    ).items[0].ref,
+    '2700',
+  );
+  await assert.rejects(
+    shipping.points({
+      carrier: 'ukrposhta',
+      cityRef: '286-29713',
+      kind: 'parcel-locker',
+    }),
+    { code: 'DELIVERY_REJECTED' },
+  );
+  const addressId = (
+    await a.pool.query(
+      "INSERT INTO bazar.addresses(user_id,carrier,city_ref,location_ref) VALUES ($1,'ukrposhta','286-29713','2700') RETURNING id",
+      [a.s.user],
+    )
+  ).rows[0].id;
+  let draft = await checkout.start(a.s.user, {
+    cartId: a.s.cart,
+    expectedCartVersion: 1,
+    idempotencyKey: randomUUID(),
+  });
+  await shipping.select(a.s.user, draft.id, {
+    expectedVersion: draft.version,
+    addressId,
+    kind: 'branch',
+  });
+  const q = await shipping.quote(a.s.user, draft.id, {
+    expectedVersion: 2,
+    idempotencyKey: randomUUID(),
+  });
+  assert.equal(q.quote.cost.amountMinor, 8750);
+  price++;
+  await assert.rejects(
+    shipping.check(a.s.user, draft.id, {
+      expectedVersion: 2,
+      quoteId: q.quote.id,
+    }),
+    { code: 'DELIVERY_STALE' },
+  );
+  price--;
+  active = false;
+  await assert.rejects(
+    shipping.check(a.s.user, draft.id, {
+      expectedVersion: 2,
+      quoteId: q.quote.id,
+    }),
+    { code: 'DELIVERY_REJECTED' },
+  );
+  active = true;
+  draft = await checkout.setPayment(a.s.user, draft.id, {
+    expectedVersion: 2,
+    paymentSelection: 'on-receipt',
+    promoCode: null,
+  });
+  const order = await checkout.recordOrderForTest(a.s.user, draft.id, {
+    expectedVersion: draft.version,
+    expectedFingerprint: draft.pricing!.fingerprint,
+    idempotencyKey: randomUUID(),
+  });
+  assert.equal(order.order.delivery.carrier, 'ukrposhta');
+  assert.equal(order.order.delivery.cost, null);
+  assert.ok(
+    urls.every((url) =>
+      url.startsWith('https://www.ukrposhta.ua/address-classifier-ws/'),
+    ),
+  );
+  assert.ok(!urls.join('').includes('token='));
+  assert.equal(
+    (await a.pool.query('SELECT count(*)::int AS n FROM bazar.shipments'))
+      .rows[0].n,
+    0,
+  );
+});
+test('F8 preserves durable exclusion across database failure after remote submission and reconciles without resending', async (t) => {
+  const a = await paymentCase(t);
+  await a.pool.query(
+    "CREATE FUNCTION bazar.test_payment_failure() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'forced'; END $$; CREATE TRIGGER test_payment_failure BEFORE UPDATE ON bazar.payment_operations FOR EACH ROW EXECUTE FUNCTION bazar.test_payment_failure()",
+  );
+  await assert.rejects(a.payments.create(a.s.user, a.input));
+  assert.equal(a.state.submissions, 1);
+  const op = (
+    await a.pool.query('SELECT id,status FROM bazar.payment_operations')
+  ).rows[0];
+  assert.equal(op.status, 'submitting');
+  await a.pool.query(
+    'DROP TRIGGER test_payment_failure ON bazar.payment_operations',
+  );
+  assert.equal((await a.payments.create(a.s.user, a.input)).replayed, true);
+  assert.equal(a.state.submissions, 1);
+  assert.equal(
+    (await a.payments.reconcile(a.s.user, op.id)).attempt.status,
+    'pending',
+  );
+  assert.equal(a.state.submissions, 1);
+  await assert.rejects(
+    a.pool.query(
+      "UPDATE bazar.payment_operations SET status='succeeded',last_source='submission',version=version+1 WHERE id=$1",
+      [op.id],
+    ),
+    { code: '23514' },
+  );
+});
+test('F8 early signed webhook cannot be overwritten by a later submission acknowledgement', async (t) => {
+  const a = await paymentCase(t),
+    submit = a.adapter.submit;
+  a.adapter.submit = async (input, signal) => {
+    const result = await submit(input, signal);
+    const signed = a.signed(a.event(input.operationId, 'succeeded'));
+    await a.payments.webhook(signed.raw, signed.signature);
+    return result;
+  };
+  const created = await a.payments.create(a.s.user, a.input);
+  assert.equal(created.attempt.status, 'succeeded');
+  assert.equal(a.state.submissions, 1);
+  assert.deepEqual(
+    (
+      await a.pool.query(
+        'SELECT to_status FROM bazar.payment_transition_audit ORDER BY id',
+      )
+    ).rows.map((r) => r.to_status),
+    ['submitting', 'succeeded'],
+  );
+});
+test('F8 payment preparation requires an available current F7 quote and a configured shipping guard', async (t) => {
+  const a = await shippingCase(t),
+    f = paymentFixture();
+  const ready = await a.checkout.setPayment(a.s.user, a.draft.id, {
+    expectedVersion: 2,
+    paymentSelection: 'card-online',
+    promoCode: null,
+  });
+  const input = {
+    checkoutId: ready.id,
+    expectedVersion: ready.version,
+    method: 'card',
+    idempotencyKey: randomUUID(),
+  };
+  const blocked = createPaymentService(a.pool, f.adapter, f.config);
+  await assert.rejects(blocked.create(a.s.user, input), { status: 409 });
+  const payments = createPaymentService(
+    a.pool,
+    f.adapter,
+    f.config,
+    a.shipping,
+  );
+  await assert.rejects(payments.create(a.s.user, input), {
+    code: 'DELIVERY_STALE',
+  });
+  const quote = await a.shipping.quote(a.s.user, ready.id, {
+    expectedVersion: ready.version,
+    idempotencyKey: randomUUID(),
+  });
+  assert.ok(quote.quote.id);
+  a.state.amount++;
+  await assert.rejects(payments.create(a.s.user, input), {
+    code: 'DELIVERY_STALE',
+  });
+  a.state.amount--;
+  assert.equal(
+    (await payments.create(a.s.user, input)).attempt.status,
+    'pending',
+  );
+  assert.equal(f.state.submissions, 1);
+});
+test('F8 upgrades the full F7 database without changing previously saved shipping quotes', async (t) => {
+  const db = await database(t),
+    dir = mkdtempSync(`${tmpdir()}/bazar-f8-upgrade-`);
+  t.after(() => rmSync(dir, { recursive: true }));
+  cpSync(migrationDirectory, dir, { recursive: true });
+  rmSync(`${dir}/0008_ukrposhta.sql`);
+  rmSync(`${dir}/0009_payment_security.sql`);
+  assert.equal(await migrate(db.config, dir), 7);
+  const s = await seed(db.pool);
+  await db.pool.query(
+    'INSERT INTO bazar.cart_lines(cart_id,variant_id,quantity) VALUES ($1,$2,2)',
+    [s.cart, s.variant],
+  );
+  const f = shippingFixture(),
+    shipping = createShippingService(db.pool, f.adapters, f.config),
+    checkout = createCheckoutBusinessService(db.pool, shipping);
+  const draft = await checkout.start(s.user, {
+    cartId: s.cart,
+    expectedCartVersion: 1,
+    idempotencyKey: randomUUID(),
+  });
+  await shipping.select(s.user, draft.id, {
+    expectedVersion: 1,
+    addressId: s.address,
+    kind: 'branch',
+  });
+  const saved = await shipping.quote(s.user, draft.id, {
+    expectedVersion: 2,
+    idempotencyKey: randomUUID(),
+  });
+  assert.equal(await migrate(db.config), 2);
+  assert.equal(await migrate(db.config), 0);
+  assert.equal(
+    (
+      await shipping.check(s.user, draft.id, {
+        expectedVersion: 2,
+        quoteId: saved.quote.id,
+      })
+    ).current,
+    true,
+  );
+  assert.equal(
+    (
+      await db.pool.query(
+        'SELECT amount_minor::text FROM bazar.shipping_quotes WHERE id=$1',
+        [saved.quote.id],
+      )
+    ).rows[0].amount_minor,
+    '7350',
+  );
+});
+test('F8 changing cart version cannot bypass an unresolved payment scope',async(t)=>{
+ const a=await paymentCase(t);a.state.failSubmit=true;const first=await a.payments.create(a.s.user,a.input);assert.equal(first.attempt.status,'unknown');
+ const cart=await createCartRepository(a.pool).get(a.s.user,a.s.cart);
+ await createCartRepository(a.pool).mutate(a.s.user,a.s.cart,{operation:'set',variantId:a.s.variant,quantity:1,expectedVersion:cart.version});
+ let draft=await a.service.start(a.s.user,{cartId:a.s.cart,expectedCartVersion:cart.version+1,idempotencyKey:randomUUID()});draft=await a.service.setDelivery(a.s.user,draft.id,{expectedVersion:draft.version,addressId:a.s.address});draft=await a.service.setPayment(a.s.user,draft.id,{expectedVersion:draft.version,paymentSelection:'card-online',promoCode:null});
+ await assert.rejects(a.payments.create(a.s.user,{checkoutId:draft.id,expectedVersion:draft.version,method:'card',idempotencyKey:randomUUID()}),{status:409});assert.equal(a.state.submissions,1);
+});
+test('F8 a different merchant configuration cannot read, reconcile or authenticate events for another merchant operation',async(t)=>{
+ const a=await paymentCase(t),created=await a.payments.create(a.s.user,a.input),other=paymentFixture();
+ other.adapter.accountRef='different-merchant';
+ const payments=createPaymentService(a.pool,other.adapter,other.config);
+ await assert.rejects(payments.get(a.s.user,created.attempt.id),{status:404});await assert.rejects(payments.reconcile(a.s.user,created.attempt.id),{status:404});
+ const bad=other.signed({...a.event(created.attempt.id,'succeeded'),accountRef:other.adapter.accountRef});await assert.rejects(payments.webhook(bad.raw,bad.signature),{status:404});
+ await assert.rejects(payments.create(a.s.user,{...a.input,idempotencyKey:randomUUID()}),{code:'PAYMENT_STALE'});
+ assert.equal((await a.payments.get(a.s.user,created.attempt.id)).status,'pending');assert.equal(other.state.submissions,0);
+ await assert.rejects(a.pool.query("UPDATE bazar.payment_operations SET account_ref='another',version=version+1 WHERE id=$1",[created.attempt.id]),{code:'23514'});
+ const good=a.signed(a.event(created.attempt.id,'succeeded'));assert.equal((await a.payments.webhook(good.raw,good.signature)).attempt.status,'succeeded');
 });

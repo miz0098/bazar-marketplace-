@@ -59,13 +59,13 @@ test('planned private modules remain unavailable and catalog fails closed withou
   assert.equal(plannedModules.length, 13);
   for (const module of plannedModules) {
     const response = await fetch(app.url + module.path);
-    assert.equal(response.status, ['catalog','categories','identity','users','orders','delivery'].includes(module.name) ? 503 : module.name === 'cart' ? 401 : 404, module.name);
+    assert.equal(response.status, ['catalog','categories','identity','users','orders','delivery','payments'].includes(module.name) ? 503 : module.name === 'cart' ? 401 : 404, module.name);
     const body = await response.json();
     assert.equal(body.ok, false);
-    assert.equal(body.error.code, ['catalog','categories','identity','users','orders','delivery'].includes(module.name) ? 'SERVICE_UNAVAILABLE' : module.name === 'cart' ? 'AUTH_REQUIRED' : 'NOT_FOUND');
+    assert.equal(body.error.code, ['catalog','categories','identity','users','orders','delivery','payments'].includes(module.name) ? 'SERVICE_UNAVAILABLE' : module.name === 'cart' ? 'AUTH_REQUIRED' : 'NOT_FOUND');
   }
   for (const path of ['/api/v1/auth/otp/challenges', '/api/v1/payments', '/api/v1/orders']) {
-    assert.equal((await fetch(app.url + path, { method: 'POST' })).status, path.startsWith('/api/v1/auth/') || path==='/api/v1/orders' ? 503 : 404);
+    assert.equal((await fetch(app.url + path, { method: 'POST' })).status, path.startsWith('/api/v1/auth/') || path==='/api/v1/orders' || path==='/api/v1/payments' ? 503 : 404);
   }
 });
 
@@ -73,9 +73,9 @@ test('OpenAPI describes catalog and blocked cart while retaining foundation sche
   const contract = JSON.parse(readFileSync(new URL('../contracts/openapi.json', import.meta.url), 'utf8'));
   const app = await application(t);
   assert.equal(contract.openapi, '3.1.0');
-  assert.deepEqual(Object.keys(contract.paths).sort(), ['/api/v1', '/api/v1/cart', '/api/v1/categories', '/api/v1/products', '/api/v1/products/{handle}', '/health', '/ready', '/api/v1/auth/csrf','/api/v1/auth/otp/challenges','/api/v1/auth/otp/verify','/api/v1/auth/session','/api/v1/users/me','/api/v1/auth/logout','/api/v1/auth/logout-all','/api/v1/pricing/promotions/evaluate','/api/v1/checkouts','/api/v1/checkouts/{id}','/api/v1/checkouts/{id}/contact-delivery','/api/v1/checkouts/{id}/payment','/api/v1/checkouts/{id}/orders','/api/v1/orders','/api/v1/orders/{id}','/api/v1/delivery/carriers','/api/v1/delivery/cities','/api/v1/delivery/points','/api/v1/delivery/checkouts/{id}/selection','/api/v1/delivery/checkouts/{id}/quotes','/api/v1/delivery/checkouts/{id}/check'].sort());
+  assert.deepEqual(Object.keys(contract.paths).sort(), ['/api/v1', '/api/v1/cart', '/api/v1/categories', '/api/v1/products', '/api/v1/products/{handle}', '/health', '/ready', '/api/v1/auth/csrf','/api/v1/auth/otp/challenges','/api/v1/auth/otp/verify','/api/v1/auth/session','/api/v1/users/me','/api/v1/auth/logout','/api/v1/auth/logout-all','/api/v1/pricing/promotions/evaluate','/api/v1/checkouts','/api/v1/checkouts/{id}','/api/v1/checkouts/{id}/contact-delivery','/api/v1/checkouts/{id}/payment','/api/v1/checkouts/{id}/orders','/api/v1/orders','/api/v1/orders/{id}','/api/v1/delivery/carriers','/api/v1/delivery/cities','/api/v1/delivery/points','/api/v1/delivery/checkouts/{id}/selection','/api/v1/delivery/checkouts/{id}/quotes','/api/v1/delivery/checkouts/{id}/check','/api/v1/payments/capabilities','/api/v1/payments/attempts','/api/v1/payments/attempts/{id}','/api/v1/payments/attempts/{id}/reconcile','/api/v1/payments/attempts/{id}/cancel','/api/v1/payments/webhooks/isolated'].sort());
   assert.deepEqual(contract['x-planned-modules'].map((module: { name: string }) => module.name), plannedModules.map((module) => module.name));
-  for (const module of contract['x-planned-modules']) assert.equal(module.status, ['catalog','categories'].includes(module.name) ? 'implemented' : module.name === 'cart' ? 'blocked-current-cart-policy' : ['identity','users'].includes(module.name) ? 'blocked-production-sms' : module.name==='orders' ? 'blocked-production-checkout' : module.name==='delivery' ? 'blocked-production-provider' : 'not-implemented');
+  for (const module of contract['x-planned-modules']) assert.equal(module.status, ['catalog','categories'].includes(module.name) ? 'implemented' : module.name === 'cart' ? 'blocked-current-cart-policy' : ['identity','users'].includes(module.name) ? 'blocked-production-sms' : module.name==='orders' ? 'blocked-production-checkout' : module.name==='delivery' ? 'blocked-production-provider' : module.name==='payments' ? 'blocked-production-payment-provider' : 'not-implemented');
   for (const path of ['/health','/ready','/api/v1']) {
     const response = await fetch(app.url + path);
     const body = await response.json();

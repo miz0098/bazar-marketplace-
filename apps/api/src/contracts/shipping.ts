@@ -1,5 +1,5 @@
 /** BAZAR normalized contracts, not carrier wire payloads. No provider is enabled. */
-export type Carrier = "nova-poshta" | "meest";
+export type Carrier = "nova-poshta" | "meest" | "ukrposhta";
 export type PickupKind = "branch" | "parcel-locker";
 export interface ShippingCity {
   ref: string;

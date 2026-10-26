@@ -20,9 +20,9 @@ test('database configuration is explicit, sanitized and verifies remote TLS', ()
 
 test('migration inventory is ordered and schema validation fails closed on missing, modified or future history', () => {
   const migrations = readMigrations();
-  assert.equal(migrations.length, 7);
+  assert.equal(migrations.length, 9);
   assert.equal(schemaMatches(migrations, migrations), true);
   assert.equal(schemaMatches([], migrations), false);
   assert.equal(schemaMatches([{ ...migrations[0], checksum: 'wrong' }, migrations[1]], migrations), false);
-  assert.equal(schemaMatches([...migrations, { ...migrations[0], version: '0008' }], migrations), false);
+  assert.equal(schemaMatches([...migrations, { ...migrations[0], version: '0010' }], migrations), false);
 });

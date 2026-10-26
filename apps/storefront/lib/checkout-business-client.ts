@@ -53,7 +53,7 @@ function delivery(v: unknown) {
   return (
     object(v) &&
     id(v.addressId) &&
-    (v.carrier === 'nova-poshta' || v.carrier === 'meest') &&
+    (v.carrier === 'nova-poshta' || v.carrier === 'meest' || v.carrier === 'ukrposhta') &&
     text(v.cityRef, 200) &&
     text(v.locationRef, 200) &&
     v.cost === null &&

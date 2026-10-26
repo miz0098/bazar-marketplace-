@@ -30,7 +30,7 @@ export interface OrderDto extends OwnedResource {
 export interface WishlistDto { readonly productIds: readonly Id[] }
 export interface ReviewDto extends OwnedResource { readonly productId: Id; readonly rating: 1 | 2 | 3 | 4 | 5; readonly text: string; readonly verifiedPurchase: boolean; readonly createdAt: IsoTimestamp }
 export interface ReviewInput { readonly orderLineId: Id; readonly rating: 1 | 2 | 3 | 4 | 5; readonly text: string }
-export interface AddressInput { readonly recipientName: string; readonly phone: string; readonly cityId: Id; readonly carrier: 'nova-poshta' | 'meest'; readonly locationId: Id; readonly isDefault: boolean }
+export interface AddressInput { readonly recipientName: string; readonly phone: string; readonly cityId: Id; readonly carrier: 'nova-poshta' | 'meest' | 'ukrposhta'; readonly locationId: Id; readonly isDefault: boolean }
 export interface AddressDto extends AddressInput, OwnedResource {}
 export interface MessageDto {
   readonly id: Id; readonly conversationId: Id; readonly senderId: Id; readonly text: string;
@@ -43,7 +43,7 @@ export interface TicketDto extends OwnedResource { readonly subject: string; rea
 export interface PaymentDto extends OwnedResource { readonly orderId: Id; readonly amount: Money; readonly status: 'pending' | 'authorized' | 'settled' | 'failed' | 'unknown' }
 export interface TokenizedPaymentMethodDto { readonly id: Id; readonly brand: string; readonly last4: string }
 export interface PaymentHandoffDto { readonly url: string; readonly expiresAt: IsoTimestamp }
-export interface DeliveryQuoteDto { readonly id: Id; readonly carrier: 'nova-poshta' | 'meest'; readonly cost: Money | null; readonly expiresAt: IsoTimestamp }
+export interface DeliveryQuoteDto { readonly id: Id; readonly carrier: 'nova-poshta' | 'meest' | 'ukrposhta'; readonly cost: Money | null; readonly expiresAt: IsoTimestamp }
 
 export interface PlannedModules {
   users: { getCurrent(): Promise<UserDto>; updateCurrent(input: Pick<UserDto, 'firstName' | 'lastName'>): Promise<UserDto> };

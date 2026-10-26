@@ -1,3 +1,5 @@
+import { isPaymentPath, handlePayment } from './payments/http.js';
+import type { PaymentService } from './payments/service.js';
 import { isCheckoutPath, handleCheckout } from './checkout/http.js';
 import { isShippingPath, handleShipping } from './shipping/http.js';
 import type { ShippingService } from './shipping/service.js';
@@ -32,11 +34,12 @@ function validateBody(request: IncomingMessage, response: ServerResponse) {
   }
 }
 
-export function createApiServer(config: ApiConfig, logger: Logger, dependencies: { isReady?: () => boolean | Promise<boolean>; catalog?: Catalog; auth?: AuthService; promotions?: PromotionService; checkout?: CheckoutBusinessService; shipping?: ShippingService } = {}) {
+export function createApiServer(config: ApiConfig, logger: Logger, dependencies: { isReady?: () => boolean | Promise<boolean>; catalog?: Catalog; auth?: AuthService; promotions?: PromotionService; checkout?: CheckoutBusinessService; shipping?: ShippingService; payments?: PaymentService } = {}) {
   if (dependencies.auth && config.environment !== 'test') throw new Error('Test authentication cannot be registered outside an isolated test server');
   if (dependencies.promotions && config.environment !== 'test') throw new Error('Promotion integration cannot be registered outside a test server');
   if (dependencies.checkout && config.environment !== 'test') throw new Error('Checkout integration cannot be registered outside a test server');
   if (dependencies.shipping && config.environment !== 'test') throw new Error('Shipping integration cannot be registered outside a test server');
+  if (dependencies.payments && config.environment !== 'test') throw new Error('Payment integration cannot be registered outside a test server');
   let draining = false;
   const server = createServer({ maxHeaderSize: 16384, headersTimeout: 10000, requestTimeout: 15000, keepAliveTimeout: 5000 }, async (request, response) => {
     const requestId = randomUUID();
@@ -50,6 +53,12 @@ export function createApiServer(config: ApiConfig, logger: Logger, dependencies:
       if (!request.url?.startsWith('/') || request.url.startsWith('//')) throw new ApiError(400, 'INVALID_REQUEST', 'Invalid request target.');
       let url: URL;
       try { decodeURIComponent(request.url); url = new URL(request.url, 'http://api.invalid'); } catch { throw new ApiError(400, 'INVALID_REQUEST', 'Invalid request target.'); }
+      if(isPaymentPath(url.pathname)){
+        route='/api/v1/payments';
+        if(draining || (dependencies.payments && (!dependencies.isReady || !await dependencies.isReady())))throw new ApiError(503,'SERVICE_UNAVAILABLE','Payments are unavailable.');
+        const data=await handlePayment(request,response,url,dependencies.auth,dependencies.payments);
+        reply(response,method,200,{ok:true,data,meta:{requestId}});return;
+      }
       if(isShippingPath(url.pathname)){
         route='/api/v1/delivery';
         if(draining || (dependencies.shipping && (!dependencies.isReady || !await dependencies.isReady())))throw new ApiError(503,'SERVICE_UNAVAILABLE','Delivery is unavailable.');

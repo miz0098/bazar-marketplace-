@@ -1,5 +1,7 @@
 # BAZAR API modules — provisional v1 contracts
 
+Phase F8 update: isolated payment protocol/capabilities/reconciliation/cancellation and raw signed-test-event receipt are implemented. Production payment paths return 503; no real order-paid state/refund/handoff exists. Shipping supports ukrposhta with branch-only isolated adapter. See ADRs 0008–0009 and OpenAPI.
+
 Phase F7 update: typed city/point/selection/quote/check routes exist only in isolated verified-session composition. Live delivery remains 503; no shipment/tracking operation is activated. See [ADR 0007](adr/0007-delivery-shipping-foundation.md) and OpenAPI shipping contracts.
 
 Phase F6 update: isolated checkout start/read/contact-delivery/payment/test-record and owned order list/detail routes are documented in OpenAPI. Ordinary runtime returns 503; no real placement/provider/status transition is enabled. See [ADR 0006](adr/0006-orders-checkout-foundation.md).

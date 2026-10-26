@@ -297,6 +297,7 @@ svg { display: block; }
 .cart-summary .button:disabled { background: #cbd5e1; }
 .cart-summary > a { display: block; color: var(--bazar-color-blue); font-size: 13px; font-weight: 800; text-align: center; }
 
+.checkout-page { --bazar-color-muted: #5f6f85; --bazar-color-blue: #106fe8; }
 .checkout-heading { max-width: 780px; }
 .checkout-heading h1 { margin: 0; color: var(--bazar-color-navy); font-size: clamp(34px, 4vw, 56px); letter-spacing: -.03em; }
 .checkout-heading h1:focus { outline: none; }
