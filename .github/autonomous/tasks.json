@@ -82,7 +82,7 @@
     {
       "id": "CART-001",
       "title": "Implement server-backed cart and inventory reconciliation",
-      "status": "in_review",
+      "status": "done",
       "readiness": "integration",
       "depends_on": ["CAT-001"],
       "allowed_paths": ["ARCHITECTURE.md", "MIGRATION_PLAN.md", "apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
@@ -298,6 +298,33 @@
       "acceptance": ["All Definition of Done release gates have recorded evidence", "Desktop/mobile accessibility and approved visual comparisons pass", "Critical journeys and dependency failures pass E2E", "Backup restore and rollback rehearsal pass", "Production deploy and main merge remain separate human-approved actions"],
       "pr": null,
       "blocker": "Requires approved screenshots, credentials, legal/business sign-off and explicit production authorization."
+    },
+    {
+      "id": "GAP-001",
+      "title": "Audit Shopify functional gaps and define demo acceptance gates",
+      "status": "in_progress",
+      "readiness": "demo",
+      "depends_on": [
+        "CART-001"
+      ],
+      "allowed_paths": [
+        "FUNCTIONAL_GAP_AUDIT.md",
+        "DEMO_READINESS_CHECKLIST.md",
+        "DEMO_COMPLETION_PLAN.md",
+        "ARCHITECTURE.md",
+        "MIGRATION_PLAN.md",
+        "docs/SHOPIFY_RESTORATION.md",
+        "apps/storefront/MIGRATION_PROGRESS.md",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Pinned Shopify source is compared with actual Next.js/API/PostgreSQL across all requested areas",
+        "Demo, design approval, isolated integration and production readiness stay distinct",
+        "Critical gaps, executable acceptance scenarios, owners and ordered dependencies are documented without invented business rules",
+        "Available regression, dependency and governance checks pass; audit does not change runtime or design"
+      ],
+      "pr": null,
+      "blocker": "Audit records open product/security/provider/visual gates; completing this audit does not complete BAZAR Demo 100%."
     }
   ]
 }

@@ -1,5 +1,7 @@
 # BAZAR Shopify-to-Next.js Migration Plan
 
+Phase F10 records the current 89a0453 / Shopify 105d10f functional comparison in [FUNCTIONAL_GAP_AUDIT.md](FUNCTIONAL_GAP_AUDIT.md), with [acceptance checklist](DEMO_READINESS_CHECKLIST.md) and [ordered next steps](DEMO_COMPLETION_PLAN.md). Demo 100% and production readiness are not claimed. Original inventory/phase notes below retain their historical dates.
+
 Phase F9: migration 0010 adds active-cart uniqueness, immutable mutation receipts and linked isolated checkout confirmations. PostgreSQL/HTTP typed-client scenarios cover all three carriers. This does not activate production SMS, providers, orders or promo redemption; see [ADR 0010](docs/adr/0010-cart-checkout-integration.md) and [remaining Demo 100% work](docs/F9_DEMO_READINESS.md).
 
 Phase F8: additive migrations 0008 (Ukrposhta carrier constraints) and 0009 (isolated payment protocol/security), typed clients and test adapters are implemented. Provider/merchant and real payable/financial rules remain blockers; see ADRs 0008–0009.
