@@ -1,5 +1,7 @@
 # BAZAR Storefront Architecture
 
+Phase F7 adds isolated carrier directory/selection/estimate contracts, PostgreSQL shipping persistence and final F6 freshness guards. No real provider, tariff guarantee or shipment is activated; see [ADR 0007](docs/adr/0007-delivery-shipping-foundation.md).
+
 Phase F6 adds PostgreSQL three-stage checkout drafts and immutable pending integration-order records. Existing cart/auth/promo transactions are reused; no real order/provider/inventory activation occurs. See [ADR 0006](docs/adr/0006-orders-checkout-foundation.md).
 
 Phase F5 adds isolated PostgreSQL promotion evaluation and usage-limit tests with exact integer pricing. Live checkout/redemption, rounding, stacking and seller allocation remain blocked; see [ADR 0005](docs/adr/0005-promotions-pricing-foundation.md). Storefront mocks/design are unchanged.

@@ -24,7 +24,10 @@ import {
   state,
 } from './state.js';
 
-export function createCheckoutBusinessService(pool: pg.Pool) {
+export interface ShippingOrderGuard {
+  validateForOrder(c: pg.PoolClient, actor: string, row: Record<string, unknown>): Promise<void>;
+}
+export function createCheckoutBusinessService(pool: pg.Pool, shipping?: ShippingOrderGuard) {
   if (process.env.NODE_ENV !== 'test')
     throw new Error('Checkout integration requires an isolated test process');
   async function transaction<T>(
@@ -227,6 +230,11 @@ export function createCheckoutBusinessService(pool: pg.Pool) {
           throw stale();
         if (row.promo_code !== null || !preview.canRecordIntegrationOrder)
           throw policy();
+        const hasShipping = await c.query('SELECT 1 FROM bazar.checkout_shipping WHERE checkout_id=$1 AND user_id=$2', [id, actor]);
+        if (hasShipping.rowCount) {
+          if (!shipping) throw policy();
+          await shipping.validateForOrder(c, actor, row);
+        }
         const snapshot = await cartSnapshot(
           c,
           actor,

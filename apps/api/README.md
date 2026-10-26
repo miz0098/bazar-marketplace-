@@ -1,5 +1,7 @@
 # BAZAR API foundation
 
+Phase F7 adds isolated delivery directories, checkout selections, immutable expiring test estimates and a final order-transaction guard. Ordinary `/api/v1/delivery/*` returns 503. No live transport/API key/TTN is enabled. See [ADR 0007](../../docs/adr/0007-delivery-shipping-foundation.md) and OpenAPI 1.5.0 for routes, scope and blockers.
+
 Phase F6 update: isolated PostgreSQL checkout/orders foundation uses verified test sessions, three draft stages, revalidated prices/stock and idempotent immutable pending records. Ordinary /api/v1/checkouts and /api/v1/orders routes return 503. No real payment, delivery, SMS or stock reservation is activated; [ADR 0006](../../docs/adr/0006-orders-checkout-foundation.md) defines contracts and blockers.
 
 Phase F5 update: isolated PostgreSQL promotion evaluation is available only in test composition; ordinary POST /api/v1/pricing/promotions/evaluate returns 503. Exact integer percentage/fixed arithmetic, validity/minimum/product/usage checks and test-only durable claims are documented in [ADR 0005](../../docs/adr/0005-promotions-pricing-foundation.md). No HTTP redemption or checkout activation is added.

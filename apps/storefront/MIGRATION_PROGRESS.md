@@ -116,3 +116,5 @@ Added a separate typed, validated PromotionPricingService/client for step 2 usin
 ## Phase F6 — server checkout/order boundary, demo preserved
 
 Added an opt-in typed CheckoutBusinessClient/contracts for three server draft stages and immutable pending integration records. It is never selected by the demo checkout/profile providers. Actual client → authenticated HTTP → PostgreSQL start/delivery/payment/test-record/order detail/list/replay is covered. canPlaceRealOrder remains false, payable/delivery amounts null and provider/inventory actions absent. Existing three-step UI/design/persistence, auth, cart, profile and communications are unchanged; see ADR 0006 for live blockers.
+
+Phase F7 adds a separate typed opt-in ShippingBusinessClient for step 1, tested against isolated verified-session HTTP/PostgreSQL. The approved demo carrier selection and tariff copy are unchanged. No live selector, recipient PII, TTN, fee override or production provider fallback is added; see ADR 0007.
