@@ -1,4 +1,4 @@
-/** Versioned transport contracts. F3 activates catalog/categories; F4 adds test-isolated identity/session contracts. Runtime SMS and cart activation remain blocked. */
+/** Versioned transport contracts. F3 activates catalog/categories; F4 adds test-isolated identity/session contracts. F9 current-cart policy is approved; runtime SMS/session activation remains blocked. */
 export type Id = string;
 export type IsoTimestamp = string;
 export type Money = Readonly<{ amountMinor: number; currency: 'UAH' }>;

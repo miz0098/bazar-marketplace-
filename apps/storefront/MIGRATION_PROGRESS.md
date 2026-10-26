@@ -1,5 +1,7 @@
 # Storefront migration progress
 
+Phase F9 adds opt-in typed server-cart and combined checkout integration clients, including fresh-cart checkout start, in-memory CSRF and explicit historical replay handling. Existing demo providers, screens, design and persistence are unchanged. The controller is exercised against actual isolated HTTP/PostgreSQL; it is not wired to real users. See [Demo readiness](../../docs/F9_DEMO_READINESS.md).
+
 Phase F2 adds API PostgreSQL schema/migrations and readiness only. This storefront, demo identity, components, service providers and mock persistence remain unchanged; no DB credential enters the browser.
 
 ## Phase A foundation

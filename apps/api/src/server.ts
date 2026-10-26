@@ -1,3 +1,5 @@
+import { isCartPath, handleCart } from './cart/http.js';
+import type { CurrentCartService } from './cart/service.js';
 import { isPaymentPath, handlePayment } from './payments/http.js';
 import type { PaymentService } from './payments/service.js';
 import { isCheckoutPath, handleCheckout } from './checkout/http.js';
@@ -6,7 +8,7 @@ import type { ShippingService } from './shipping/service.js';
 import type { CheckoutBusinessService } from './checkout/service.js';
 import { promotionPath, handlePromotion } from './promotions/http.js';
 import type { PromotionService } from './promotions/service.js';
-import { authPaths, handleAuth, authorize } from './auth/http.js';
+import { authPaths, handleAuth } from './auth/http.js';
 import { RateLimitError } from './auth/rate-limit.js';
 import type { AuthService } from './auth/service.js';
 import { parseCatalogQuery, type Catalog } from './business/catalog.js';
@@ -34,12 +36,13 @@ function validateBody(request: IncomingMessage, response: ServerResponse) {
   }
 }
 
-export function createApiServer(config: ApiConfig, logger: Logger, dependencies: { isReady?: () => boolean | Promise<boolean>; catalog?: Catalog; auth?: AuthService; promotions?: PromotionService; checkout?: CheckoutBusinessService; shipping?: ShippingService; payments?: PaymentService } = {}) {
+export function createApiServer(config: ApiConfig, logger: Logger, dependencies: { isReady?: () => boolean | Promise<boolean>; catalog?: Catalog; auth?: AuthService; promotions?: PromotionService; checkout?: CheckoutBusinessService; shipping?: ShippingService; payments?: PaymentService; currentCart?: CurrentCartService } = {}) {
   if (dependencies.auth && config.environment !== 'test') throw new Error('Test authentication cannot be registered outside an isolated test server');
   if (dependencies.promotions && config.environment !== 'test') throw new Error('Promotion integration cannot be registered outside a test server');
   if (dependencies.checkout && config.environment !== 'test') throw new Error('Checkout integration cannot be registered outside a test server');
   if (dependencies.shipping && config.environment !== 'test') throw new Error('Shipping integration cannot be registered outside a test server');
   if (dependencies.payments && config.environment !== 'test') throw new Error('Payment integration cannot be registered outside a test server');
+  if (dependencies.currentCart && config.environment !== 'test') throw new Error('Current cart integration cannot be registered outside a test server');
   let draining = false;
   const server = createServer({ maxHeaderSize: 16384, headersTimeout: 10000, requestTimeout: 15000, keepAliveTimeout: 5000 }, async (request, response) => {
     const requestId = randomUUID();
@@ -53,6 +56,12 @@ export function createApiServer(config: ApiConfig, logger: Logger, dependencies:
       if (!request.url?.startsWith('/') || request.url.startsWith('//')) throw new ApiError(400, 'INVALID_REQUEST', 'Invalid request target.');
       let url: URL;
       try { decodeURIComponent(request.url); url = new URL(request.url, 'http://api.invalid'); } catch { throw new ApiError(400, 'INVALID_REQUEST', 'Invalid request target.'); }
+      if(isCartPath(url.pathname)){
+        route='/api/v1/cart';
+        if(draining || (dependencies.currentCart && (!dependencies.isReady || !await dependencies.isReady())))throw new ApiError(503,'SERVICE_UNAVAILABLE','Current cart is unavailable.');
+        const data=await handleCart(request,response,url,dependencies.auth,dependencies.currentCart);
+        reply(response,method,200,{ok:true,data,meta:{requestId}});return;
+      }
       if(isPaymentPath(url.pathname)){
         route='/api/v1/payments';
         if(draining || (dependencies.payments && (!dependencies.isReady || !await dependencies.isReady())))throw new ApiError(503,'SERVICE_UNAVAILABLE','Payments are unavailable.');
@@ -84,8 +93,7 @@ export function createApiServer(config: ApiConfig, logger: Logger, dependencies:
         reply(response,method,200,{ok:true,data,meta:{requestId}});return;
       }
       const catalogRoute = url.pathname === '/api/v1/products' || /^\/api\/v1\/products\/[^/]+$/.test(url.pathname) ? '/api/v1/products' : url.pathname === '/api/v1/categories' ? '/api/v1/categories' : undefined;
-      const cartRoute = url.pathname === '/api/v1/cart' || url.pathname.startsWith('/api/v1/cart/');
-      const matched = routes.find((item) => item === url.pathname) ?? catalogRoute ?? (cartRoute ? '/api/v1/cart' : undefined);
+      const matched = routes.find((item) => item === url.pathname) ?? catalogRoute;
       if (matched) route = matched;
       const origin = request.headers.origin;
       if (origin !== undefined) {
@@ -93,8 +101,7 @@ export function createApiServer(config: ApiConfig, logger: Logger, dependencies:
         response.setHeader('access-control-allow-origin', origin);
         response.setHeader('access-control-expose-headers', 'X-Request-Id');
       }
-      // Sessions can prove ownership, but current-cart creation/selection policy is still unapproved.
-      if (cartRoute) { request.resume(); response.setHeader('connection', 'close'); if(dependencies.auth) { await authorize(request,dependencies.auth,method!=='GET'&&method!=='HEAD'); throw new ApiError(503,'SERVICE_UNAVAILABLE','Current-cart selection is not configured.'); } throw new ApiError(401, 'AUTH_REQUIRED', 'Verified authentication is required; cart API is not enabled.'); }
+
       validateBody(request, response);
       if (!matched) throw new ApiError(404, 'NOT_FOUND', 'Route not found.');
       if (!catalogRoute && url.search) throw new ApiError(400, 'INVALID_REQUEST', 'This endpoint does not accept query parameters.');

@@ -82,13 +82,13 @@
     {
       "id": "CART-001",
       "title": "Implement server-backed cart and inventory reconciliation",
-      "status": "blocked",
+      "status": "in_review",
       "readiness": "integration",
       "depends_on": ["CAT-001"],
-      "allowed_paths": ["apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
-      "acceptance": ["Guest cart identity and authenticated merge are explicit", "Every mutation reconciles price, inventory and totals", "Mutations are idempotent and reject invalid quantities", "Storefront handles stale inventory and API failures without false success"],
-      "pr": 14,
-      "blocker": "F4 isolated sessions/CSRF prove an actor; cart HTTP still has no success handler. Product owner must approve current-cart creation/selection and guest/merge policy; live SMS/session rollout remains blocked."
+      "allowed_paths": ["ARCHITECTURE.md", "MIGRATION_PLAN.md", "apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
+      "acceptance": ["One active owned server cart is created explicitly as needed; guest cart stays local with no automatic merge", "Every mutation reconciles price, inventory and totals", "Mutations are idempotent and reject invalid quantities", "Storefront handles stale inventory and API failures without false success"],
+      "pr": 20,
+      "blocker": "F9 isolated current cart and linked checkout implemented under approved one-active/no-guest-merge policy. Production SMS/session rollout, promo redemption/financial rules and real providers remain blocked."
     },
     {
       "id": "PROMO-001",
@@ -225,7 +225,7 @@
     {
       "id": "PAYMENT-001",
       "title": "Integrate tokenized payment provider and payment methods",
-      "status": "in_review",
+      "status": "done",
       "readiness": "integration",
       "depends_on": ["ORDER-001", "PROFILE-001"],
       "allowed_paths": ["ARCHITECTURE.md", "MIGRATION_PLAN.md", "apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],

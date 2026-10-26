@@ -1,4 +1,6 @@
 import type {
+  IntegratedConfirmationInput,
+  IntegratedConfirmationResult,
   CheckoutSessionDto,
   DeliveryStepInput,
   IntegrationOrderDto,
@@ -53,7 +55,9 @@ function delivery(v: unknown) {
   return (
     object(v) &&
     id(v.addressId) &&
-    (v.carrier === 'nova-poshta' || v.carrier === 'meest' || v.carrier === 'ukrposhta') &&
+    (v.carrier === 'nova-poshta' ||
+      v.carrier === 'meest' ||
+      v.carrier === 'ukrposhta') &&
     text(v.cityRef, 200) &&
     text(v.locationRef, 200) &&
     v.cost === null &&
@@ -259,6 +263,24 @@ export function createCheckoutBusinessClient(
     }
   }
   return {
+    confirmIntegratedForTest(
+      checkoutId: string,
+      input: IntegratedConfirmationInput,
+    ) {
+      return request<IntegratedConfirmationResult>(
+        `/api/v1/checkouts/${pathId(checkoutId)}/confirmation`,
+        'POST',
+        (v: unknown): v is IntegratedConfirmationResult =>
+          object(v) &&
+          object(v.order) &&
+          order(v.order) &&
+          typeof v.replayed === 'boolean' &&
+          v.paymentAttemptId === input.paymentAttemptId &&
+          v.confirmationScope === 'integration-test-only' &&
+          v.orderPaid === false,
+        input,
+      );
+    },
     start(input: StartCheckoutInput) {
       return request('/api/v1/checkouts', 'POST', checkout, input);
     },

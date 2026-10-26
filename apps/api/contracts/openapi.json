@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "BAZAR API",
-    "version": "1.6.0",
-    "description": "PostgreSQL catalog and test-isolated server authentication foundation. Runtime SMS authentication is unavailable (503) pending approved provider, keys, security policy and rollout. Cart activation remains blocked on current-cart policy. F5 adds isolated exact-integer promotion evaluation; no real redemption/checkout activation. F6 adds isolated three-step checkout and immutable pending integration orders; no live placement/provider operation. F7 adds isolated shipping directories, selections, expiring estimates and final transaction freshness guards. Live carrier contracts/transports remain disabled. F8 adds isolated provider-neutral payment protocol/security and Ukrposhta delivery; no real financial/provider activation."
+    "version": "1.7.0",
+    "description": "PostgreSQL catalog and test-isolated server authentication foundation. Runtime SMS authentication is unavailable (503) pending approved provider, keys, security policy and rollout. F9 approves one active cart/user, explicit creation, local guest cart with no merge; live activation remains blocked on production SMS/security rollout. F5 adds isolated exact-integer promotion evaluation; no real redemption/checkout activation. F6 adds isolated three-step checkout and immutable pending integration orders; no live placement/provider operation. F7 adds isolated shipping directories, selections, expiring estimates and final transaction freshness guards. Live carrier contracts/transports remain disabled. F8 adds isolated provider-neutral payment protocol/security and Ukrposhta delivery; no real financial/provider activation. F9 adds verified-session current-cart HTTP and linked isolated checkout confirmation; no production orders or paid-order claims."
   },
   "servers": [
     {
@@ -597,10 +597,86 @@
     },
     "/api/v1/cart": {
       "get": {
-        "description": "No guest or current-cart policy is selected. No session: 401. A verified isolated-test session: 503 pending current-cart creation/selection; no data/mutation success handler.",
+        "operationId": "getCurrentCart",
+        "description": "Isolated verified server session only. Production SMS/session rollout remains blocked. Mutations require exact Origin and CSRF. No guest merge; server prices and stock authoritative. Mutation replays return explicitly historical snapshots, not fresh quotes.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
         "responses": {
+          "200": {
+            "description": "Isolated result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerCartResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
-            "description": "AUTH_REQUIRED",
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Sanitized failure",
             "content": {
               "application/json": {
                 "schema": {
@@ -610,7 +686,7 @@
             }
           },
           "503": {
-            "description": "Current-cart selection is not configured",
+            "description": "Sanitized failure",
             "content": {
               "application/json": {
                 "schema": {
@@ -618,14 +694,98 @@
                 }
               }
             }
+          }
+        }
+      },
+      "head": {
+        "description": "GET headers/status, no body; never creates a cart.",
+        "responses": {
+          "default": {
+            "description": "Same status as GET"
           }
         }
       },
       "post": {
-        "description": "No guest or current-cart policy is selected. No session: 401. A verified isolated-test session: 503 pending current-cart creation/selection; no data/mutation success handler.",
+        "operationId": "ensureCurrentCart",
+        "description": "Isolated verified server session only. Production SMS/session rollout remains blocked. Mutations require exact Origin and CSRF. No guest merge; server prices and stock authoritative. Mutation replays return explicitly historical snapshots, not fresh quotes.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
         "responses": {
+          "200": {
+            "description": "Isolated result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerCartResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
-            "description": "AUTH_REQUIRED",
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Sanitized failure",
             "content": {
               "application/json": {
                 "schema": {
@@ -635,7 +795,7 @@
             }
           },
           "503": {
-            "description": "Current-cart selection is not configured",
+            "description": "Sanitized failure",
             "content": {
               "application/json": {
                 "schema": {
@@ -644,53 +804,23 @@
               }
             }
           }
-        }
-      },
-      "patch": {
-        "description": "No guest or current-cart policy is selected. No session: 401. A verified isolated-test session: 503 pending current-cart creation/selection; no data/mutation success handler.",
-        "responses": {
-          "401": {
-            "description": "AUTH_REQUIRED",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "503": {
-            "description": "Current-cart selection is not configured",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
-        }
-      },
-      "delete": {
-        "description": "No guest or current-cart policy is selected. No session: 401. A verified isolated-test session: 503 pending current-cart creation/selection; no data/mutation success handler.",
-        "responses": {
-          "401": {
-            "description": "AUTH_REQUIRED",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "503": {
-            "description": "Current-cart selection is not configured",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnsureCurrentCartInput"
               }
             }
           }
@@ -3888,6 +4018,523 @@
           }
         }
       }
+    },
+    "/api/v1/cart/lines": {
+      "post": {
+        "operationId": "addCurrentCartLine",
+        "description": "Isolated verified server session only. Production SMS/session rollout remains blocked. Mutations require exact Origin and CSRF. No guest merge; server prices and stock authoritative. Mutation replays return explicitly historical snapshots, not fresh quotes.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Isolated result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerCartMutationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddCurrentCartLineInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cart/lines/{variantId}": {
+      "patch": {
+        "operationId": "setCurrentCartLine",
+        "description": "Isolated verified server session only. Production SMS/session rollout remains blocked. Mutations require exact Origin and CSRF. No guest merge; server prices and stock authoritative. Mutation replays return explicitly historical snapshots, not fresh quotes.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Isolated result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerCartMutationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "variantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetCurrentCartLineInput"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "removeCurrentCartLine",
+        "description": "Isolated verified server session only. Production SMS/session rollout remains blocked. Mutations require exact Origin and CSRF. No guest merge; server prices and stock authoritative. Mutation replays return explicitly historical snapshots, not fresh quotes.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Isolated result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerCartMutationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "variantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RemoveCurrentCartLineInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/checkouts/{id}/confirmation": {
+      "post": {
+        "description": "Runtime 503. Isolated current active cart only: same-owner succeeded synthetic payment proof, current server financial binding and fresh shipping required atomically. Idempotent technical pending order/history link, orderPaid=false; no legal placement, real payment, redemption, stock reservation or cart clearing.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Explicit isolated technical result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegratedConfirmationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntegratedConfirmationInput"
+              }
+            }
+          }
+        },
+        "operationId": "confirmIntegratedCheckout"
+      }
     }
   },
   "components": {
@@ -6555,6 +7202,358 @@
             ]
           }
         }
+      },
+      "ServerCartView": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "mode",
+          "guestMerge",
+          "freshness",
+          "canCheckout",
+          "cart",
+          "inventory"
+        ],
+        "properties": {
+          "mode": {
+            "const": "integration-test"
+          },
+          "guestMerge": {
+            "const": "none"
+          },
+          "freshness": {
+            "enum": [
+              "current",
+              "historical-replay"
+            ]
+          },
+          "canCheckout": {
+            "type": "boolean"
+          },
+          "cart": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "version",
+              "lines",
+              "subtotal"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "lines": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "productId",
+                    "variantId",
+                    "quantity",
+                    "lineTotal"
+                  ],
+                  "properties": {
+                    "productId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "variantId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "quantity": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 2147483647
+                    },
+                    "lineTotal": {
+                      "$ref": "#/components/schemas/Money"
+                    }
+                  }
+                }
+              },
+              "subtotal": {
+                "$ref": "#/components/schemas/Money"
+              }
+            }
+          },
+          "inventory": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "variantId",
+                "stock",
+                "available",
+                "unitPrice"
+              ],
+              "properties": {
+                "variantId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "stock": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 2147483647
+                },
+                "available": {
+                  "type": "boolean"
+                },
+                "unitPrice": {
+                  "$ref": "#/components/schemas/Money"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ServerCartResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ok",
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/ServerCartView"
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "requestId"
+            ]
+          }
+        }
+      },
+      "ServerCartMutationResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ok",
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "view",
+              "replayed"
+            ],
+            "properties": {
+              "view": {
+                "$ref": "#/components/schemas/ServerCartView"
+              },
+              "replayed": {
+                "type": "boolean"
+              }
+            }
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "requestId"
+            ]
+          }
+        }
+      },
+      "EnsureCurrentCartInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [],
+        "properties": {}
+      },
+      "AddCurrentCartLineInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "variantId",
+          "quantity",
+          "expectedVersion",
+          "idempotencyKey"
+        ],
+        "properties": {
+          "variantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "SetCurrentCartLineInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "quantity",
+          "expectedVersion",
+          "idempotencyKey"
+        ],
+        "properties": {
+          "quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "RemoveCurrentCartLineInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expectedVersion",
+          "idempotencyKey"
+        ],
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "IntegratedConfirmationInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expectedVersion",
+          "expectedFingerprint",
+          "idempotencyKey",
+          "paymentAttemptId"
+        ],
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "expectedFingerprint": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "paymentAttemptId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "IntegratedConfirmationResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ok",
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "order",
+              "replayed",
+              "paymentAttemptId",
+              "confirmationScope",
+              "orderPaid"
+            ],
+            "properties": {
+              "order": {
+                "$ref": "#/components/schemas/IntegrationOrder"
+              },
+              "replayed": {
+                "type": "boolean"
+              },
+              "paymentAttemptId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "confirmationScope": {
+                "const": "integration-test-only"
+              },
+              "orderPaid": {
+                "const": false
+              }
+            }
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "requestId"
+            ]
+          }
+        }
       }
     },
     "securitySchemes": {
@@ -6589,7 +7588,7 @@
     },
     {
       "name": "cart",
-      "status": "blocked-current-cart-policy",
+      "status": "blocked-production-sms",
       "contract": "src/contracts/modules.ts"
     },
     {

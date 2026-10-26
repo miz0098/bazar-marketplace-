@@ -7,6 +7,7 @@ import type {
   RecordedOrderResult,
 } from '../contracts/checkout.js';
 import {
+  fields,
   deliveryInput,
   paymentInput,
   recordInput,
@@ -25,9 +26,26 @@ import {
 } from './state.js';
 
 export interface ShippingOrderGuard {
-  validateForOrder(c: pg.PoolClient, actor: string, row: Record<string, unknown>): Promise<void>;
+  validateForOrder(
+    c: pg.PoolClient,
+    actor: string,
+    row: Record<string, unknown>,
+  ): Promise<void>;
 }
-export function createCheckoutBusinessService(pool: pg.Pool, shipping?: ShippingOrderGuard) {
+export interface PaymentCompletionGuard {
+  validateForConfirmation(
+    c: pg.PoolClient,
+    actor: string,
+    row: Record<string, unknown>,
+    fingerprint: string,
+    attemptId: string,
+  ): Promise<void>;
+}
+export function createCheckoutBusinessService(
+  pool: pg.Pool,
+  shipping?: ShippingOrderGuard,
+  paymentCompletion?: PaymentCompletionGuard,
+) {
   if (process.env.NODE_ENV !== 'test')
     throw new Error('Checkout integration requires an isolated test process');
   async function transaction<T>(
@@ -57,6 +75,174 @@ export function createCheckoutBusinessService(pool: pg.Pool, shipping?: Shipping
       c.release();
     }
   }
+  async function recordOrder(
+    actor: string,
+    id: string,
+    value: unknown,
+    paymentAttemptId?: string,
+  ): Promise<RecordedOrderResult> {
+    if (process.env.NODE_ENV !== 'test')
+      throw new Error('Real order placement is not enabled');
+    actor = uuid(actor);
+    id = uuid(id);
+    const input = recordInput(value);
+    return transaction(async (c) => {
+      const keyHash = hash(['checkout-order', actor, input.idempotencyKey]);
+      await c.query('SELECT pg_advisory_xact_lock($1::integer,$2::integer)', [
+        keyHash.readInt32BE(0),
+        keyHash.readInt32BE(4),
+      ]);
+      const digest = hash({
+        id,
+        expectedVersion: input.expectedVersion,
+        expectedFingerprint: input.expectedFingerprint,
+        ...(paymentAttemptId ? { paymentAttemptId } : {}),
+      });
+      const previous = (
+        await c.query(
+          'SELECT order_id,request_digest FROM bazar.checkout_order_requests WHERE user_id=$1 AND key=$2',
+          [actor, input.idempotencyKey],
+        )
+      ).rows[0];
+      if (previous) {
+        if (
+          paymentAttemptId &&
+          !(
+            await c.query(
+              'SELECT 1 FROM bazar.checkout_completion_links WHERE order_id=$1 AND user_id=$2 AND payment_operation_id=$3',
+              [previous.order_id, actor, paymentAttemptId],
+            )
+          ).rowCount
+        )
+          throw new ApiError(
+            409,
+            'CONFLICT',
+            'The completion proof does not match the recorded result.',
+          );
+        if (!previous.request_digest.equals(digest))
+          throw new ApiError(
+            409,
+            'CONFLICT',
+            'The order key was used with different input.',
+          );
+        return {
+          order: await readOrder(c, actor, previous.order_id),
+          replayed: true,
+        };
+      }
+      const row = await lockedSession(c, actor, id);
+      editable(row, input.expectedVersion);
+      if (row.stage !== 'confirmation')
+        throw new ApiError(
+          409,
+          'CHECKOUT_REJECTED',
+          'Checkout confirmation step is required.',
+        );
+      const preview = await state(c, actor, row);
+      if (
+        !preview.pricing ||
+        !preview.pricing.acknowledged ||
+        preview.pricing.fingerprint !== input.expectedFingerprint
+      )
+        throw stale();
+      if (row.promo_code !== null || !preview.canRecordIntegrationOrder)
+        throw policy();
+      const hasShipping = await c.query(
+        'SELECT 1 FROM bazar.checkout_shipping WHERE checkout_id=$1 AND user_id=$2',
+        [id, actor],
+      );
+      if (paymentAttemptId && !hasShipping.rowCount) throw policy();
+      if (hasShipping.rowCount) {
+        if (!shipping) throw policy();
+        await shipping.validateForOrder(c, actor, row);
+      }
+      if (paymentAttemptId) {
+        if (!paymentCompletion) throw policy();
+        if (
+          !(
+            await c.query(
+              "SELECT 1 FROM bazar.carts WHERE id=$1 AND user_id=$2 AND lifecycle='active'",
+              [row.cart_id, actor],
+            )
+          ).rowCount
+        )
+          throw new ApiError(
+            404,
+            'NOT_FOUND',
+            'Current server cart not found.',
+          );
+        await paymentCompletion.validateForConfirmation(
+          c,
+          actor,
+          row,
+          preview.pricing.fingerprint,
+          paymentAttemptId,
+        );
+      }
+      const snapshot = await cartSnapshot(
+        c,
+        actor,
+        row.cart_id,
+        money(row.cart_version),
+      );
+      const address = preview.delivery!;
+      const order = (
+        await c.query(
+          "INSERT INTO bazar.orders(user_id,address_id,total_minor,currency,foundation_mode) VALUES ($1,$2,$3,'UAH','integration-test') RETURNING id",
+          [
+            actor,
+            address.addressId,
+            preview.pricing.merchandiseTotal.amountMinor,
+          ],
+        )
+      ).rows[0];
+      for (const line of snapshot.lines)
+        await c.query(
+          "INSERT INTO bazar.order_lines(order_id,user_id,product_id,variant_id,title_snapshot,quantity,unit_price_minor,line_total_minor,currency) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'UAH')",
+          [
+            order.id,
+            actor,
+            line.productId,
+            line.variantId,
+            line.title,
+            line.quantity,
+            line.unitPrice.amountMinor,
+            line.lineTotal.amountMinor,
+          ],
+        );
+      await c.query(
+        "INSERT INTO bazar.order_checkout_snapshots(order_id,user_id,checkout_id,cart_id,cart_version,subtotal_minor,discount_minor,merchandise_total_minor,currency,carrier,city_ref,location_ref,payment_selection,pricing_fingerprint,mode) VALUES ($1,$2,$3,$4,$5,$6,0,$6,'UAH',$7,$8,$9,$10,$11,'integration-test')",
+        [
+          order.id,
+          actor,
+          id,
+          row.cart_id,
+          money(row.cart_version),
+          snapshot.cart.subtotal.amountMinor,
+          address.carrier,
+          address.cityRef,
+          address.locationRef,
+          preview.paymentSelection,
+          input.expectedFingerprint,
+        ],
+      );
+      await c.query(
+        'INSERT INTO bazar.checkout_order_requests(user_id,key,request_digest,checkout_id,order_id) VALUES ($1,$2,$3,$4,$5)',
+        [actor, input.idempotencyKey, digest, id, order.id],
+      );
+      await c.query(
+        'UPDATE bazar.checkout_sessions SET order_id=$3,version=version+1 WHERE id=$1 AND user_id=$2',
+        [id, actor, order.id],
+      );
+      if (paymentAttemptId)
+        await c.query(
+          "INSERT INTO bazar.checkout_completion_links(order_id,checkout_id,user_id,payment_operation_id,mode) VALUES ($1,$2,$3,$4,'integration-test')",
+          [order.id, id, actor, paymentAttemptId],
+        );
+      return { order: await readOrder(c, actor, order.id), replayed: false };
+    });
+  }
+
   return {
     async start(actor: string, value: unknown): Promise<CheckoutSessionDto> {
       actor = uuid(actor);
@@ -174,124 +360,33 @@ export function createCheckoutBusinessService(pool: pg.Pool, shipping?: Shipping
         return state(c, actor, updated);
       });
     },
-    async recordOrderForTest(
-      actor: string,
-      id: string,
-      value: unknown,
-    ): Promise<RecordedOrderResult> {
-      if (process.env.NODE_ENV !== 'test')
-        throw new Error('Real order placement is not enabled');
-      actor = uuid(actor);
-      id = uuid(id);
-      const input = recordInput(value);
-      return transaction(async (c) => {
-        const keyHash = hash(['checkout-order', actor, input.idempotencyKey]);
-        await c.query('SELECT pg_advisory_xact_lock($1::integer,$2::integer)', [
-          keyHash.readInt32BE(0),
-          keyHash.readInt32BE(4),
-        ]);
-        const digest = hash({
-          id,
-          expectedVersion: input.expectedVersion,
-          expectedFingerprint: input.expectedFingerprint,
-        });
-        const previous = (
-          await c.query(
-            'SELECT order_id,request_digest FROM bazar.checkout_order_requests WHERE user_id=$1 AND key=$2',
-            [actor, input.idempotencyKey],
-          )
-        ).rows[0];
-        if (previous) {
-          if (!previous.request_digest.equals(digest))
-            throw new ApiError(
-              409,
-              'CONFLICT',
-              'The order key was used with different input.',
-            );
-          return {
-            order: await readOrder(c, actor, previous.order_id),
-            replayed: true,
-          };
-        }
-        const row = await lockedSession(c, actor, id);
-        editable(row, input.expectedVersion);
-        if (row.stage !== 'confirmation')
-          throw new ApiError(
-            409,
-            'CHECKOUT_REJECTED',
-            'Checkout confirmation step is required.',
-          );
-        const preview = await state(c, actor, row);
-        if (
-          !preview.pricing ||
-          !preview.pricing.acknowledged ||
-          preview.pricing.fingerprint !== input.expectedFingerprint
-        )
-          throw stale();
-        if (row.promo_code !== null || !preview.canRecordIntegrationOrder)
-          throw policy();
-        const hasShipping = await c.query('SELECT 1 FROM bazar.checkout_shipping WHERE checkout_id=$1 AND user_id=$2', [id, actor]);
-        if (hasShipping.rowCount) {
-          if (!shipping) throw policy();
-          await shipping.validateForOrder(c, actor, row);
-        }
-        const snapshot = await cartSnapshot(
-          c,
-          actor,
-          row.cart_id,
-          money(row.cart_version),
-        );
-        const address = preview.delivery!;
-        const order = (
-          await c.query(
-            "INSERT INTO bazar.orders(user_id,address_id,total_minor,currency,foundation_mode) VALUES ($1,$2,$3,'UAH','integration-test') RETURNING id",
-            [
-              actor,
-              address.addressId,
-              preview.pricing.merchandiseTotal.amountMinor,
-            ],
-          )
-        ).rows[0];
-        for (const line of snapshot.lines)
-          await c.query(
-            "INSERT INTO bazar.order_lines(order_id,user_id,product_id,variant_id,title_snapshot,quantity,unit_price_minor,line_total_minor,currency) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'UAH')",
-            [
-              order.id,
-              actor,
-              line.productId,
-              line.variantId,
-              line.title,
-              line.quantity,
-              line.unitPrice.amountMinor,
-              line.lineTotal.amountMinor,
-            ],
-          );
-        await c.query(
-          "INSERT INTO bazar.order_checkout_snapshots(order_id,user_id,checkout_id,cart_id,cart_version,subtotal_minor,discount_minor,merchandise_total_minor,currency,carrier,city_ref,location_ref,payment_selection,pricing_fingerprint,mode) VALUES ($1,$2,$3,$4,$5,$6,0,$6,'UAH',$7,$8,$9,$10,$11,'integration-test')",
-          [
-            order.id,
-            actor,
-            id,
-            row.cart_id,
-            money(row.cart_version),
-            snapshot.cart.subtotal.amountMinor,
-            address.carrier,
-            address.cityRef,
-            address.locationRef,
-            preview.paymentSelection,
-            input.expectedFingerprint,
-          ],
-        );
-        await c.query(
-          'INSERT INTO bazar.checkout_order_requests(user_id,key,request_digest,checkout_id,order_id) VALUES ($1,$2,$3,$4,$5)',
-          [actor, input.idempotencyKey, digest, id, order.id],
-        );
-        await c.query(
-          'UPDATE bazar.checkout_sessions SET order_id=$3,version=version+1 WHERE id=$1 AND user_id=$2',
-          [id, actor, order.id],
-        );
-        return { order: await readOrder(c, actor, order.id), replayed: false };
-      });
+    recordOrderForTest(actor: string, id: string, value: unknown) {
+      return recordOrder(actor, id, value);
+    },
+    async confirmIntegratedForTest(actor: string, id: string, value: unknown) {
+      const r = fields(value, [
+          'expectedVersion',
+          'expectedFingerprint',
+          'idempotencyKey',
+          'paymentAttemptId',
+        ]),
+        paymentAttemptId = uuid(r.paymentAttemptId);
+      const result = await recordOrder(
+        actor,
+        id,
+        {
+          expectedVersion: r.expectedVersion,
+          expectedFingerprint: r.expectedFingerprint,
+          idempotencyKey: r.idempotencyKey,
+        },
+        paymentAttemptId,
+      );
+      return {
+        ...result,
+        paymentAttemptId,
+        confirmationScope: 'integration-test-only' as const,
+        orderPaid: false as const,
+      };
     },
     async getOrder(actor: string, id: string): Promise<IntegrationOrderDto> {
       actor = uuid(actor);

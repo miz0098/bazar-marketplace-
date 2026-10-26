@@ -1,3 +1,6 @@
+import { createCheckoutIntegrationServices } from '../../src/integration/checkout.js';
+import { createCurrentCartService } from '../../src/cart/service.js';
+import { createServerCheckoutIntegrationClients } from '../../../storefront/lib/server-checkout-integration.js';
 import { createPaymentService } from '../../src/payments/service.js';
 import { paymentFixture } from '../helpers/payments.js';
 import { createPaymentBusinessClient } from '../../../storefront/lib/payment-business-client.js';
@@ -79,9 +82,9 @@ test('fresh database, previous schema upgrade, rerun and concurrent migrators ar
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(`${migrationDirectory}/0001_core.sql`, `${dir}/0001_core.sql`);
   assert.equal(await migrate(db.config, dir), 1);
-  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 8]);
+  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 9]);
   assert.equal(await migrate(db.config), 0);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 9);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 10);
   assert.ok((await db.pool.query("SELECT indexname FROM pg_indexes WHERE schemaname='bazar' AND indexname='variants_available_idx'")).rowCount);
 });
 
@@ -93,10 +96,10 @@ test('modified/unknown migrations are rejected and failed DDL rolls back without
   writeFileSync(`${dir}/0001_core.sql`, first + '\n-- modified\n');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   writeFileSync(`${dir}/0001_core.sql`, first);
-  writeFileSync(`${dir}/0010_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
+  writeFileSync(`${dir}/0011_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   assert.equal((await db.pool.query("SELECT to_regclass('bazar.must_rollback') AS name")).rows[0].name, null);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 9);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 10);
   await db.pool.query("INSERT INTO bazar_meta.schema_migrations(version,checksum) VALUES ('9999',repeat('0',64))");
   await assert.rejects(migrate(db.config), /Database migration failed/);
 });
@@ -2425,7 +2428,7 @@ test("F7 upgrades F6 without rewriting existing orders; directories cover only e
   }
   await migrate(db.config, dir);
   const s = await seed(db.pool);
-  assert.equal(await migrate(db.config), 3);
+  assert.equal(await migrate(db.config), 4);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -3600,6 +3603,7 @@ test('F8 upgrades the full F7 database without changing previously saved shippin
   cpSync(migrationDirectory, dir, { recursive: true });
   rmSync(`${dir}/0008_ukrposhta.sql`);
   rmSync(`${dir}/0009_payment_security.sql`);
+  rmSync(`${dir}/0010_current_cart_checkout.sql`);
   assert.equal(await migrate(db.config, dir), 7);
   const s = await seed(db.pool);
   await db.pool.query(
@@ -3623,7 +3627,7 @@ test('F8 upgrades the full F7 database without changing previously saved shippin
     expectedVersion: 2,
     idempotencyKey: randomUUID(),
   });
-  assert.equal(await migrate(db.config), 2);
+  assert.equal(await migrate(db.config), 3);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -3661,4 +3665,810 @@ test('F8 a different merchant configuration cannot read, reconcile or authentica
  assert.equal((await a.payments.get(a.s.user,created.attempt.id)).status,'pending');assert.equal(other.state.submissions,0);
  await assert.rejects(a.pool.query("UPDATE bazar.payment_operations SET account_ref='another',version=version+1 WHERE id=$1",[created.attempt.id]),{code:'23514'});
  const good=a.signed(a.event(created.attempt.id,'succeeded'));assert.equal((await a.payments.webhook(good.raw,good.signature)).attempt.status,'succeeded');
+});
+
+// F9: approved active-cart policy and the complete isolated HTTP/client composition.
+async function currentCartCase(t: TestContext) {
+  const db = await database(t);
+  await migrate(db.config);
+  const s = await seed(db.pool);
+  return { ...db, s, carts: createCurrentCartService(db.pool) };
+}
+test('F9 concurrent ensure creates exactly one active cart, never selects or merges existing owned legacy carts', async (t) => {
+  const a = await currentCartCase(t);
+  await a.pool.query(
+    'INSERT INTO bazar.cart_lines(cart_id,variant_id,quantity) VALUES ($1,$2,2)',
+    [a.s.cart, a.s.variant],
+  );
+  await assert.rejects(a.carts.get(a.s.user), { status: 404 });
+  const views = await Promise.all(
+    Array.from({ length: 5 }, () => a.carts.ensure(a.s.user, {})),
+  );
+  assert.equal(new Set(views.map((v) => v.cart.id)).size, 1);
+  assert.notEqual(views[0].cart.id, a.s.cart);
+  assert.equal(views[0].cart.lines.length, 0);
+  assert.equal(views[0].canCheckout, false);
+  assert.equal(views[0].guestMerge, 'none');
+  assert.equal(
+    (
+      await a.pool.query(
+        "SELECT count(*)::int AS n FROM bazar.carts WHERE user_id=$1 AND lifecycle='active'",
+        [a.s.user],
+      )
+    ).rows[0].n,
+    1,
+  );
+  assert.equal(
+    (
+      await a.pool.query(
+        'SELECT quantity FROM bazar.cart_lines WHERE cart_id=$1',
+        [a.s.cart],
+      )
+    ).rows[0].quantity,
+    2,
+  );
+  await assert.rejects(
+    a.pool.query(
+      "INSERT INTO bazar.carts(user_id,lifecycle) VALUES ($1,'active')",
+      [a.s.user],
+    ),
+    { code: '23505' },
+  );
+  const other = await a.carts.ensure(a.s.other, {});
+  assert.notEqual(other.cart.id, views[0].cart.id);
+});
+test('F9 cart mutations replay historical receipts once; quantities, prices, stock and versions are server-authoritative', async (t) => {
+  const a = await currentCartCase(t),
+    initial = await a.carts.ensure(a.s.user, {}),
+    input = {
+      variantId: a.s.variant,
+      quantity: 2,
+      expectedVersion: initial.cart.version,
+      idempotencyKey: randomUUID(),
+    };
+  const added = await Promise.all([
+    a.carts.mutate(a.s.user, 'add', input),
+    a.carts.mutate(a.s.user, 'add', input),
+  ]);
+  assert.equal(added.filter((r) => r.replayed).length, 1);
+  assert.equal(added[0].view.cart.lines[0].quantity, 2);
+  await assert.rejects(
+    a.carts.mutate(a.s.user, 'add', { ...input, quantity: 3 }),
+    { status: 409 },
+  );
+  await a.pool.query(
+    'UPDATE bazar.variants SET price_minor=20000,stock=1 WHERE id=$1',
+    [a.s.variant],
+  );
+  const fresh = await a.carts.get(a.s.user);
+  assert.equal(fresh.cart.subtotal.amountMinor, 40000);
+  assert.equal(fresh.canCheckout, false);
+  assert.equal(fresh.inventory[0].stock, 1);
+  const replay = await a.carts.mutate(a.s.user, 'add', input);
+  assert.equal(replay.view.freshness, 'historical-replay');
+  assert.equal(replay.view.cart.subtotal.amountMinor, 24690);
+  assert.equal(replay.view.cart.version, 2);
+  const removed = await a.carts.mutate(
+    a.s.user,
+    'remove',
+    { expectedVersion: 2, idempotencyKey: randomUUID() },
+    a.s.variant,
+  );
+  assert.equal(removed.view.cart.lines.length, 0);
+  for (const extra of [
+    { price: 1 },
+    { userId: a.s.other },
+    { cartId: a.s.cart },
+    { guestLines: [] },
+  ])
+    await assert.rejects(
+      a.carts.mutate(a.s.user, 'add', { ...input, ...extra }),
+      { status: 400 },
+    );
+  for (const quantity of [0, -1, 1.5, 2147483648])
+    await assert.rejects(
+      a.carts.mutate(a.s.user, 'add', { ...input, quantity }),
+      { status: 400 },
+    );
+});
+test('F9 concurrent distinct requests cannot consume the same cart version, and failed receipt persistence rolls back the mutation', async (t) => {
+  const a = await currentCartCase(t);
+  await a.carts.ensure(a.s.user, {});
+  const input = {
+    variantId: a.s.variant,
+    quantity: 1,
+    expectedVersion: 1,
+    idempotencyKey: randomUUID(),
+  };
+  const results = await Promise.allSettled([
+    a.carts.mutate(a.s.user, 'add', input),
+    a.carts.mutate(a.s.user, 'add', { ...input, idempotencyKey: randomUUID() }),
+  ]);
+  assert.equal(results.filter((x) => x.status === 'fulfilled').length, 1);
+  assert.equal((await a.carts.get(a.s.user)).cart.version, 2);
+  await a.pool.query(
+    "CREATE FUNCTION bazar.test_cart_receipt_failure() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'forced'; END $$; CREATE TRIGGER test_cart_receipt_failure BEFORE INSERT ON bazar.cart_mutation_receipts FOR EACH ROW EXECUTE FUNCTION bazar.test_cart_receipt_failure()",
+  );
+  const change = {
+    quantity: 2,
+    expectedVersion: 2,
+    idempotencyKey: randomUUID(),
+  };
+  await assert.rejects(a.carts.mutate(a.s.user, 'set', change, a.s.variant));
+  assert.equal((await a.carts.get(a.s.user)).cart.version, 2);
+  assert.equal((await a.carts.get(a.s.user)).cart.lines[0].quantity, 1);
+  await a.pool.query(
+    'DROP TRIGGER test_cart_receipt_failure ON bazar.cart_mutation_receipts',
+  );
+  assert.equal(
+    (await a.carts.mutate(a.s.user, 'set', change, a.s.variant)).view.cart
+      .lines[0].quantity,
+    2,
+  );
+  await assert.rejects(
+    a.pool.query('DELETE FROM bazar.cart_mutation_receipts WHERE user_id=$1', [
+      a.s.user,
+    ]),
+    { code: '23514' },
+  );
+});
+async function integratedCase(t: TestContext) {
+  const db = await database(t);
+  await migrate(db.config);
+  const s = await seed(db.pool),
+    identity = authFixture(),
+    deliveryFixture = shippingFixture(),
+    payment = paymentFixture();
+  const upCity = {
+    REGION_ID: '286',
+    CITY_ID: '29713',
+    CITY_UA: 'Тестове місто',
+  };
+  const up = createUkrposhtaTestAdapter({
+    scope: 'isolated-test',
+    async directory(url) {
+      return {
+        Entries: {
+          Entry: url.includes('get_city_')
+            ? [upCity]
+            : [
+                {
+                  ID: '2700',
+                  CITY_ID: '29713',
+                  REGION_ID: '286',
+                  PO_LONG: 'Тестове відділення',
+                  POSTINDEX: '01001',
+                  LOCK_CODE: '0',
+                  IS_NODISTRICT: '0',
+                },
+              ],
+        },
+      };
+    },
+    async resolveCity(ref) {
+      return ref === '286-29713' ? upCity : null;
+    },
+    async estimateForTest() {
+      return {
+        amountMinor: deliveryFixture.state.amount,
+        currency: 'UAH',
+        revision: 'synthetic-up-tariff-1',
+      };
+    },
+  });
+  const services = createCheckoutIntegrationServices(db.pool, {
+    auth: identity.config,
+    sms: identity.sms,
+    shipping: [...deliveryFixture.adapters, up],
+    shippingConfig: deliveryFixture.config,
+    payment: payment.adapter,
+    paymentConfig: payment.config,
+    isReady: async () => {
+      await db.pool.query('SELECT 1');
+      return true;
+    },
+  });
+  const logs: string[] = [];
+  const app = createApiServer(
+    readConfig({
+      NODE_ENV: 'test',
+      CORS_ORIGINS: identity.config.publicOrigin,
+    }),
+    createLogger('info', (line) => logs.push(line)),
+    services,
+  );
+  app.server.listen(0, '127.0.0.1');
+  await once(app.server, 'listening');
+  t.after(() => app.shutdown());
+  const address = app.server.address();
+  assert.ok(address && typeof address !== 'string');
+  const base = `http://127.0.0.1:${address.port}`;
+  let jar = '';
+  const transport: typeof fetch = async (path, init) => {
+    const raw = String(path),
+      url = raw.startsWith('http')
+        ? new URL(raw).pathname + new URL(raw).search
+        : raw;
+    const headers = new Headers(init?.headers);
+    headers.set('origin', identity.config.publicOrigin);
+    if (init?.credentials === 'same-origin') headers.set('cookie', jar);
+    const response = await fetch(base + url, { ...init, headers });
+    const cookies = response.headers.getSetCookie();
+    if (cookies.length) jar = cookies.map((c) => c.split(';')[0]).join('; ');
+    return response;
+  };
+  const client = createServerCheckoutIntegrationClients(
+    { baseUrl: base, timeoutMs: 3000 },
+    transport,
+  );
+  return {
+    ...db,
+    s,
+    identity,
+    deliveryFixture,
+    payment,
+    services,
+    client,
+    base,
+    logs,
+    transport,
+    getJar: () => jar,
+  };
+}
+async function integrationLogin(
+  a: Awaited<ReturnType<typeof integratedCase>>,
+  phone = '+380671234567',
+) {
+  await a.client.auth.bootstrap();
+  const challenge = await a.client.auth.start({ phone, intent: 'register' });
+  const session = await a.client.auth.verify({
+    challengeId: challenge.challengeId,
+    code: a.identity.sent.get(challenge.challengeId)!.code,
+    profile: { firstName: 'Синтетичний', lastName: 'Приклад', consent: true },
+  });
+  return session;
+}
+for (const carrier of ['nova-poshta', 'meest', 'ukrposhta'] as const)
+  test(`F9 complete typed HTTP flow: catalog → isolated auth → active cart → ${carrier} → promo policy → test payment → confirmation → history`, async (t) => {
+    const a = await integratedCase(t);
+    // Browsing works anonymously. A local guest item is deliberately never accepted by ensureCurrent.
+    const product = await a.client.catalog.get('synthetic');
+    assert.equal(product.variants[0].id, a.s.variant);
+    assert.equal((await a.client.catalog.categories()).length, 1);
+    await assert.rejects(a.client.cart.get(), { status: 401 });
+    const session = await integrationLogin(a);
+    const current = await a.client.cart.ensureCurrent();
+    assert.equal(current.cart.lines.length, 0);
+    const added = await a.client.cart.add({
+      variantId: product.variants[0].id,
+      quantity: 2,
+      expectedVersion: current.cart.version,
+      idempotencyKey: randomUUID(),
+    });
+    assert.equal(added.view.cart.subtotal.amountMinor, 24690);
+    const cityRef = carrier === 'ukrposhta' ? '286-29713' : 'synthetic-city',
+      pointRef = carrier === 'ukrposhta' ? '2700' : 'synthetic-location';
+    const addressId = (
+      await a.pool.query(
+        'INSERT INTO bazar.addresses(user_id,carrier,city_ref,location_ref) VALUES ($1,$2,$3,$4) RETURNING id',
+        [session.user.id, carrier, cityRef, pointRef],
+      )
+    ).rows[0].id;
+    const directory = await a.client.shipping.cities({
+      carrier,
+      query: 'Тест',
+    });
+    assert.equal(directory.items[0].ref, cityRef);
+    await a.client.shipping.points({ carrier, cityRef, kind: 'branch' });
+    assert.equal(
+      (await a.client.shipping.carriers()).bazarPickup.available,
+      false,
+    );
+    let draft = await a.client.startCurrentCheckout(randomUUID());
+    assert.equal(draft.cartId, current.cart.id);
+    const selected = await a.client.shipping.select(draft.id, {
+      expectedVersion: draft.version,
+      addressId,
+      kind: 'branch',
+    });
+    const shipping = await a.client.shipping.quote(draft.id, {
+      expectedVersion: selected.checkoutVersion,
+      idempotencyKey: randomUUID(),
+    });
+    assert.equal(
+      (
+        await a.client.shipping.check(draft.id, {
+          expectedVersion: selected.checkoutVersion,
+          quoteId: shipping.quote.id,
+        })
+      ).current,
+      true,
+    );
+    const promoId = (
+      await a.pool.query(
+        "INSERT INTO bazar.promotions(code,kind,fixed_minor,currency,min_subtotal_minor,starts_at,ends_at,enabled,max_uses,per_user_limit) VALUES ('F9-TEST','fixed',1000,'UAH',10000,clock_timestamp()-interval '1 hour',clock_timestamp()+interval '1 hour',true,10,10) RETURNING id",
+      )
+    ).rows[0].id;
+    await a.pool.query(
+      'INSERT INTO bazar.promotion_products(promotion_id,product_id) VALUES ($1,$2)',
+      [promoId, a.s.product],
+    );
+    const quote = await a.client.promotions.evaluate({
+      cartId: current.cart.id,
+      expectedCartVersion: added.view.cart.version,
+      code: 'F9-TEST',
+    });
+    assert.equal(quote.discount.amountMinor, 1000);
+    draft = await a.client.checkout.setPayment(draft.id, {
+      expectedVersion: selected.checkoutVersion,
+      paymentSelection: 'card-online',
+      promoCode: 'F9-TEST',
+    });
+    assert.equal(draft.pricing!.merchandiseTotal.amountMinor, 23690);
+    await assert.rejects(
+      a.client.payments.create({
+        checkoutId: draft.id,
+        expectedVersion: draft.version,
+        method: 'card',
+        idempotencyKey: randomUUID(),
+      }),
+      { status: 409 },
+    );
+    // Explicitly clear the preview: no production redemption/funding/allocation policy is fabricated.
+    draft = await a.client.checkout.setPayment(draft.id, {
+      expectedVersion: draft.version,
+      paymentSelection: 'card-online',
+      promoCode: null,
+    });
+    const payment = await a.client.payments.create({
+      checkoutId: draft.id,
+      expectedVersion: draft.version,
+      method: 'card',
+      idempotencyKey: randomUUID(),
+    });
+    const input = {
+      expectedVersion: draft.version,
+      expectedFingerprint: draft.pricing!.fingerprint,
+      paymentAttemptId: payment.attempt.id,
+      idempotencyKey: randomUUID(),
+    };
+    await assert.rejects(
+      a.client.checkout.confirmIntegratedForTest(draft.id, input),
+      { status: 409 },
+    );
+    const signed = a.payment.signed(
+      a.payment.event(payment.attempt.id, 'succeeded'),
+    );
+    const response = await fetch(
+      a.base + '/api/v1/payments/webhooks/isolated',
+      {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-isolated-signature': signed.signature,
+        },
+        body: signed.raw,
+      },
+    );
+    assert.equal(response.status, 200);
+    const result = await a.client.checkout.confirmIntegratedForTest(
+      draft.id,
+      input,
+    );
+    assert.equal(result.confirmationScope, 'integration-test-only');
+    assert.equal(result.orderPaid, false);
+    assert.equal(result.order.delivery.carrier, carrier);
+    assert.equal(result.order.paymentStatus, 'not-initiated');
+    assert.equal(result.order.payableTotal, null);
+    assert.equal(
+      (await a.client.checkout.confirmIntegratedForTest(draft.id, input))
+        .replayed,
+      true,
+    );
+    assert.equal(
+      (await a.client.checkout.listOrders()).items[0].id,
+      result.order.id,
+    );
+    assert.equal(
+      (await a.client.checkout.getOrder(result.order.id)).id,
+      result.order.id,
+    );
+    assert.equal(
+      (
+        await a.pool.query(
+          'SELECT count(*)::int AS n FROM bazar.checkout_completion_links',
+        )
+      ).rows[0].n,
+      1,
+    );
+    assert.equal(
+      (
+        await a.pool.query(
+          'SELECT count(*)::int AS n FROM bazar.promotion_usage_claims',
+        )
+      ).rows[0].n,
+      0,
+    );
+    assert.equal(a.payment.state.submissions, 1);
+    assert.equal(
+      (
+        await a.pool.query(
+          'SELECT (SELECT count(*) FROM bazar.shipments)+(SELECT count(*) FROM bazar.payment_attempts) AS n',
+        )
+      ).rows[0].n,
+      '0',
+    );
+    assert.ok(!a.logs.join('').includes('F9-TEST'));
+    assert.ok(!a.logs.join('').includes(signed.signature));
+    await a.client.auth.logout(true);
+    await assert.rejects(a.client.cart.get(), { status: 401 });
+  });
+async function readyIntegrated(t: TestContext, withShipping = true) {
+  const a = await integratedCase(t),
+    session = await integrationLogin(a),
+    view = await a.client.cart.ensureCurrent();
+  await a.client.cart.add({
+    variantId: a.s.variant,
+    quantity: 1,
+    expectedVersion: view.cart.version,
+    idempotencyKey: randomUUID(),
+  });
+  const addressId = (
+    await a.pool.query(
+      "INSERT INTO bazar.addresses(user_id,carrier,city_ref,location_ref) VALUES ($1,'meest','synthetic-city','synthetic-location') RETURNING id",
+      [session.user.id],
+    )
+  ).rows[0].id;
+  let draft = await a.client.startCurrentCheckout(randomUUID());
+  let shipping = null;
+  if (withShipping) {
+    await a.client.shipping.select(draft.id, {
+      expectedVersion: draft.version,
+      addressId,
+      kind: 'branch',
+    });
+    shipping = await a.client.shipping.quote(draft.id, {
+      expectedVersion: 2,
+      idempotencyKey: randomUUID(),
+    });
+  } else {
+    await a.client.checkout.setDelivery(draft.id, {
+      expectedVersion: draft.version,
+      addressId,
+    });
+  }
+  draft = await a.client.checkout.setPayment(draft.id, {
+    expectedVersion: 2,
+    paymentSelection: 'card-online',
+    promoCode: null,
+  });
+  const payment = await a.client.payments.create({
+    checkoutId: draft.id,
+    expectedVersion: draft.version,
+    method: 'card',
+    idempotencyKey: randomUUID(),
+  });
+  const input = {
+    expectedVersion: draft.version,
+    expectedFingerprint: draft.pricing!.fingerprint,
+    idempotencyKey: randomUUID(),
+    paymentAttemptId: payment.attempt.id,
+  };
+  const settle = async () => {
+    const signed = a.payment.signed(
+      a.payment.event(payment.attempt.id, 'succeeded'),
+    );
+    await a.services.payments.webhook(signed.raw, signed.signature);
+  };
+  return {
+    ...a,
+    session,
+    view,
+    addressId,
+    draft,
+    shipping,
+    paymentAttempt: payment.attempt,
+    input,
+    settle,
+  };
+}
+test('F9 private cart HTTP enforces session, CSRF, same origin, no caller IDs/prices and bounded verbs', async (t) => {
+  const a = await readyIntegrated(t),
+    raw = (
+      path: string,
+      method: string,
+      body: unknown,
+      headers: Record<string, string> = {},
+    ) =>
+      fetch(a.base + path, {
+        method,
+        headers: {
+          origin: a.identity.config.publicOrigin,
+          cookie: a.getJar(),
+          'content-type': 'application/json',
+          'x-csrf-token': a.session.csrfToken,
+          ...headers,
+        },
+        body: body === undefined ? undefined : JSON.stringify(body),
+      });
+  const add = {
+    variantId: a.s.variant,
+    quantity: 1,
+    expectedVersion: 2,
+    idempotencyKey: randomUUID(),
+  };
+  assert.equal(
+    (await raw('/api/v1/cart/lines', 'POST', add, { 'x-csrf-token': '' }))
+      .status,
+    403,
+  );
+  assert.equal(
+    (
+      await raw('/api/v1/cart/lines', 'POST', add, {
+        origin: 'https://evil.test',
+      })
+    ).status,
+    403,
+  );
+  assert.equal(
+    (await raw('/api/v1/cart', 'POST', {}, { cookie: '' })).status,
+    403,
+  );
+  for (const extra of [
+    { cartId: a.s.cart },
+    { userId: a.s.other },
+    { price: 1 },
+    { subtotal: 1 },
+    { guestLines: [{ quantity: 99 }] },
+  ])
+    assert.equal(
+      (await raw('/api/v1/cart/lines', 'POST', { ...add, ...extra })).status,
+      400,
+    );
+  assert.equal(
+    (await raw('/api/v1/cart?userId=' + a.s.other, 'GET', undefined)).status,
+    400,
+  );
+  assert.equal(
+    (await raw('/api/v1/cart/' + a.s.cart, 'GET', undefined)).status,
+    404,
+  );
+  assert.equal((await raw('/api/v1/cart', 'PUT', {})).status, 405);
+  const removed = await a.client.cart.remove(a.s.variant, {
+    expectedVersion: 2,
+    idempotencyKey: randomUUID(),
+  });
+  assert.equal(removed.view.canCheckout, false);
+  assert.equal((await a.client.cart.get()).cart.lines.length, 0);
+});
+test('F9 confirmation rejects foreign checkout/payment/merchant proofs and any forged status or amount', async (t) => {
+  const a = await readyIntegrated(t);
+  await a.settle();
+  const other = await registered(
+    { ...a, ...a.identity, auth: a.services.auth },
+    '+380501234567',
+  );
+  await assert.rejects(
+    a.services.checkout.confirmIntegratedForTest(
+      other.session.data.user.id,
+      a.draft.id,
+      a.input,
+    ),
+    { status: 404 },
+  );
+  await assert.rejects(
+    a.client.checkout.confirmIntegratedForTest(a.draft.id, {
+      ...a.input,
+      paymentAttemptId: randomUUID(),
+    }),
+    { status: 404 },
+  );
+  const foreign = createPaymentService(
+    a.pool,
+    { ...a.payment.adapter, accountRef: 'another-merchant' },
+    a.payment.config,
+    a.services.shipping,
+  );
+  const checkout = createCheckoutBusinessService(
+    a.pool,
+    a.services.shipping,
+    foreign,
+  );
+  await assert.rejects(
+    checkout.confirmIntegratedForTest(a.session.user.id, a.draft.id, a.input),
+    { status: 404 },
+  );
+  const noGuard = createCheckoutBusinessService(a.pool, a.services.shipping);
+  await assert.rejects(
+    noGuard.confirmIntegratedForTest(a.session.user.id, a.draft.id, a.input),
+    { status: 409 },
+  );
+  for (const extra of [
+    { paid: true },
+    { status: 'succeeded' },
+    { amountMinor: 1 },
+    { userId: a.s.other },
+  ]) {
+    const r = await a.transport(
+      `/api/v1/checkouts/${a.draft.id}/confirmation`,
+      {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'content-type': 'application/json',
+          'x-csrf-token': a.session.csrfToken,
+        },
+        body: JSON.stringify({ ...a.input, ...extra }),
+      },
+    );
+    assert.equal(r.status, 400);
+  }
+  assert.equal(
+    (
+      await a.pool.query(
+        'SELECT count(*)::int AS n FROM bazar.checkout_completion_links',
+      )
+    ).rows[0].n,
+    0,
+  );
+});
+test('F9 confirmation checks current tariff and financial binding after verified test payment', async (t) => {
+  const a = await readyIntegrated(t);
+  await a.settle();
+  a.deliveryFixture.state.amount++;
+  await assert.rejects(
+    a.client.checkout.confirmIntegratedForTest(a.draft.id, a.input),
+    { status: 409 },
+  );
+  a.deliveryFixture.state.amount--;
+  a.payment.state.revision = 'changed-test-basis';
+  await assert.rejects(
+    a.client.checkout.confirmIntegratedForTest(a.draft.id, a.input),
+    { status: 409 },
+  );
+  a.payment.state.revision = 'test-plan-1';
+  await a.pool.query(
+    'UPDATE bazar.variants SET price_minor=price_minor+1 WHERE id=$1',
+    [a.s.variant],
+  );
+  await assert.rejects(
+    a.client.checkout.confirmIntegratedForTest(a.draft.id, a.input),
+    { status: 409 },
+  );
+  assert.equal(
+    (
+      await a.pool.query(
+        'SELECT count(*)::int AS n FROM bazar.checkout_completion_links',
+      )
+    ).rows[0].n,
+    0,
+  );
+  assert.equal(
+    (await a.client.payments.get(a.paymentAttempt.id)).status,
+    'succeeded',
+  );
+});
+test('F9 concurrent integrated confirmations are atomic/idempotent; new keys and changed payment proofs cannot duplicate history', async (t) => {
+  const a = await readyIntegrated(t);
+  await a.settle();
+  const results = await Promise.all([
+    a.client.checkout.confirmIntegratedForTest(a.draft.id, a.input),
+    a.client.checkout.confirmIntegratedForTest(a.draft.id, a.input),
+  ]);
+  assert.equal(results[0].order.id, results[1].order.id);
+  assert.equal(results.filter((r) => r.replayed).length, 1);
+  await assert.rejects(
+    a.client.checkout.confirmIntegratedForTest(a.draft.id, {
+      ...a.input,
+      idempotencyKey: randomUUID(),
+    }),
+    { status: 409 },
+  );
+  await assert.rejects(
+    a.client.checkout.confirmIntegratedForTest(a.draft.id, {
+      ...a.input,
+      paymentAttemptId: randomUUID(),
+    }),
+    { status: 409 },
+  );
+  assert.equal((await a.client.checkout.listOrders()).items.length, 1);
+  await assert.rejects(
+    a.pool.query(
+      'DELETE FROM bazar.checkout_completion_links WHERE order_id=$1',
+      [results[0].order.id],
+    ),
+    { code: '23514' },
+  );
+});
+test('F9 failure to link verified test payment rolls back the whole order and key but preserves the provider observation', async (t) => {
+  const a = await readyIntegrated(t);
+  await a.settle();
+  await a.pool.query(
+    "CREATE FUNCTION bazar.test_completion_failure() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'forced'; END $$; CREATE TRIGGER test_completion_failure BEFORE INSERT ON bazar.checkout_completion_links FOR EACH ROW EXECUTE FUNCTION bazar.test_completion_failure()",
+  );
+  await assert.rejects(
+    a.client.checkout.confirmIntegratedForTest(a.draft.id, a.input),
+    { status: 500 },
+  );
+  assert.equal(
+    (
+      await a.pool.query(
+        'SELECT count(*)::int AS n FROM bazar.orders WHERE foundation_mode IS NOT NULL',
+      )
+    ).rows[0].n,
+    0,
+  );
+  assert.equal(
+    (
+      await a.pool.query(
+        'SELECT count(*)::int AS n FROM bazar.checkout_order_requests',
+      )
+    ).rows[0].n,
+    0,
+  );
+  assert.equal(
+    (await a.client.payments.get(a.paymentAttempt.id)).status,
+    'succeeded',
+  );
+  await a.pool.query(
+    'DROP TRIGGER test_completion_failure ON bazar.checkout_completion_links',
+  );
+  assert.equal(
+    (await a.client.checkout.confirmIntegratedForTest(a.draft.id, a.input))
+      .replayed,
+    false,
+  );
+  assert.equal(a.payment.state.submissions, 1);
+});
+test('F9 upgrades F8 without silently selecting legacy carts or changing payment history', async (t) => {
+  const db = await database(t),
+    dir = mkdtempSync(`${tmpdir()}/bazar-f9-upgrade-`);
+  t.after(() => rmSync(dir, { recursive: true }));
+  cpSync(migrationDirectory, dir, { recursive: true });
+  rmSync(`${dir}/0010_current_cart_checkout.sql`);
+  assert.equal(await migrate(db.config, dir), 9);
+  const s = await seed(db.pool);
+  assert.equal(await migrate(db.config), 1);
+  assert.equal(await migrate(db.config), 0);
+  assert.equal(
+    (
+      await db.pool.query('SELECT lifecycle FROM bazar.carts WHERE id=$1', [
+        s.cart,
+      ])
+    ).rows[0].lifecycle,
+    'unselected',
+  );
+  const service = createCurrentCartService(db.pool),
+    current = await service.ensure(s.user, {});
+  assert.notEqual(current.cart.id, s.cart);
+  assert.equal(
+    (
+      await db.pool.query(
+        'SELECT total_minor::text FROM bazar.orders WHERE id=$1',
+        [s.order],
+      )
+    ).rows[0].total_minor,
+    '24690',
+  );
+});
+
+test('F9 integrated confirmation cannot skip a shipping selection and current quote through the legacy F6 address seam', async (t) => {
+  const a = await readyIntegrated(t, false);
+  await a.settle();
+  await assert.rejects(
+    a.client.checkout.confirmIntegratedForTest(a.draft.id, a.input),
+    { status: 409 },
+  );
+  assert.equal(
+    (
+      await a.pool.query(
+        'SELECT count(*)::int AS n FROM bazar.checkout_completion_links',
+      )
+    ).rows[0].n,
+    0,
+  );
+  assert.equal(
+    (await a.client.payments.get(a.paymentAttempt.id)).status,
+    'succeeded',
+  );
 });
