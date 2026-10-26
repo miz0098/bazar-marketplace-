@@ -1,5 +1,7 @@
 # Phase F12 — customer account demo acceptance
 
+Review: [PR #23](https://github.com/miz0098/bazar-marketplace-/pull/23).
+
 Base: PR #22 merged at d89bd6e. Design/layout, header/footer/product structure, auth preview, demo checkout stop and Shopify source are preserved. [ADR 0011](adr/0011-customer-account-foundation.md) separates local persistence, isolated server evidence and production blockers.
 
 | Section | Ready bounded demo / evidence | Server state and remaining gates |
