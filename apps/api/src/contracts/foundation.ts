@@ -3,7 +3,7 @@ export type ErrorCode = typeof errorCodes[number];
 export type ApiSuccess<T> = Readonly<{ ok: true; data: T; meta: { requestId: string } }>;
 export type ApiFailure = Readonly<{ ok: false; error: { code: ErrorCode; message: string }; meta: { requestId: string } }>;
 export type HealthData = Readonly<{ status: 'ok'; scope: 'process'; uptimeSeconds: number }>;
-export type ReadinessData = Readonly<{ status: 'ready'; dependencies: readonly []; businessModulesAvailable: false }>;
+export type ReadinessData = Readonly<{ status: 'ready'; dependencies: readonly [{ name: 'postgresql'; status: 'ready' }]; businessModulesAvailable: false }>;
 export type VersionData = Readonly<{ service: 'bazar-api'; apiVersion: 'v1'; businessModulesAvailable: false }>;
 
 export class ApiError extends Error {

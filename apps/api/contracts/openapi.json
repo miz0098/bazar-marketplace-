@@ -3,7 +3,7 @@
   "info": {
     "title": "BAZAR API Foundation",
     "version": "1.0.0",
-    "description": "Only the paths in this document are implemented. No authentication, database, business operations or provider integrations are available. Provisional business DTOs are defined in src/contracts/modules.ts and docs/API_MODULES.md."
+    "description": "Foundation HTTP routes only. PostgreSQL schema readiness is checked, while authentication, business operations and provider integrations remain unavailable."
   },
   "servers": [
     {
@@ -320,7 +320,24 @@
               },
               "dependencies": {
                 "type": "array",
-                "maxItems": 0
+                "maxItems": 1,
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "name",
+                    "status"
+                  ],
+                  "properties": {
+                    "name": {
+                      "const": "postgresql"
+                    },
+                    "status": {
+                      "const": "ready"
+                    }
+                  }
+                }
               },
               "businessModulesAvailable": {
                 "const": false

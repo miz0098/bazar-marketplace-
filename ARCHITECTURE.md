@@ -1,8 +1,10 @@
 # BAZAR Storefront Architecture
 
+Phase F2 adds controlled PostgreSQL SQL migrations, a bounded API pool and exact-schema /ready probes. Business modules remain unavailable and storefront mocks are unchanged. See [ADR 0002](docs/adr/0002-postgresql-foundation.md) for implemented integrity rules and unresolved policy questions.
+
 ## Purpose and constraints
 
-Phase F1 adds an isolated native Node.js/TypeScript foundation in `apps/api`; see [ADR 0001](docs/adr/0001-api-foundation.md), [module contracts](docs/API_MODULES.md), and [PostgreSQL design](docs/POSTGRES_ARCHITECTURE.md). Only process health/readiness and `/api/v1` discovery are live HTTP routes. Business APIs, database connections and provider integrations remain unimplemented. The Next.js storefront continues to select its existing mock adapters; the new server-only foundation client is opt-in and unused by current screens.
+Historical Phase F1 state (database readiness is superseded by F2 above): F1 adds an isolated native Node.js/TypeScript foundation in `apps/api`; see [ADR 0001](docs/adr/0001-api-foundation.md), [module contracts](docs/API_MODULES.md), and [PostgreSQL design](docs/POSTGRES_ARCHITECTURE.md). Only process health/readiness and `/api/v1` discovery are live HTTP routes. Business APIs, database connections and provider integrations remain unimplemented. The Next.js storefront continues to select its existing mock adapters; the new server-only foundation client is opt-in and unused by current screens.
 
 The target is a standalone Next.js App Router storefront, initially isolated under `apps/storefront`, while the existing Shopify Horizon theme remains untouched and runnable. The visual/interaction source of truth for migration is `bazar-latest-shopify` commit `105d10f`; the migration base and rules remain `vps-migration` at `722a58b`. This document defines boundaries; it does not assert that `api.bazar.ua`, authentication, payments, SMS, server wishlist, or messaging integrations already exist.
 

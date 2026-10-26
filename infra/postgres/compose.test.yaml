@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:17-alpine@sha256:eee6c6e1b0894fa4fe0075eb054af9fd1cf39a35321c2d4110626cfe506411fb
+    environment:
+      POSTGRES_USER: bazar_test_owner
+      POSTGRES_DB: bazar_f2_test
+      POSTGRES_PASSWORD: ${BAZAR_POSTGRES_PASSWORD:?Test runner must generate a temporary password}
+    ports:
+      - "127.0.0.1:0:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 1s
+      timeout: 3s
+      retries: 30

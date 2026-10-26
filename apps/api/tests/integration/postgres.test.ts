@@ -1,0 +1,210 @@
+import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
+import { randomBytes, randomUUID } from 'node:crypto';
+import { once } from 'node:events';
+import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import test, { type TestContext } from 'node:test';
+import pg from 'pg';
+import { readConfig } from '../../src/config.js';
+import { createLogger } from '../../src/logger.js';
+import { createApiServer } from '../../src/server.js';
+import { readDatabaseConfig } from '../../src/database/config.js';
+import { createDatabase } from '../../src/database/connection.js';
+import { migrate, migrationDirectory } from '../../src/database/migrations.js';
+
+const source = process.env.DATABASE_TEST_URL;
+if (process.env.BAZAR_INTEGRATION_TEST !== '1' || !source || new URL(source).hostname !== '127.0.0.1' || new URL(source).pathname !== '/bazar_f2_test') throw new Error('Use the isolated test:integration runner');
+const adminUrl = source;
+
+async function database(t: TestContext) {
+  const admin = new pg.Pool({ connectionString: adminUrl });
+  const name = `bazar_f2_case_${randomBytes(10).toString('hex')}`;
+  await admin.query(`CREATE DATABASE "${name}"`);
+  const url = new URL(adminUrl); url.pathname = `/${name}`;
+  const pool = new pg.Pool({ connectionString: url.toString() });
+  const beforeDrop: (() => Promise<void>)[] = [];
+  t.after(async () => {
+    try {
+      for (const close of beforeDrop) await close();
+      await pool.end();
+      // Pool clients discarded after expected constraint errors may still be completing TCP close.
+      // Wait for real disconnects rather than terminating them with DROP DATABASE ... FORCE.
+      for (let attempt = 0; attempt < 150; attempt++) {
+        const sessions = await admin.query<{ n: number }>('SELECT count(*)::int AS n FROM pg_stat_activity WHERE datname=$1', [name]);
+        if (sessions.rows[0].n === 0) break;
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      }
+      await admin.query(`DROP DATABASE "${name}"`);
+    } finally { await admin.end(); }
+  });
+  const config = readDatabaseConfig({ DATABASE_URL: url.toString(), NODE_ENV: 'test' })!;
+  return { pool, admin, url: url.toString(), config, beforeDrop };
+}
+
+async function seed(pool: pg.Pool) {
+  const user = (await pool.query("INSERT INTO bazar.users(first_name,last_name) VALUES ('Synthetic','Example') RETURNING id")).rows[0].id;
+  const other = (await pool.query("INSERT INTO bazar.users(first_name,last_name) VALUES ('Synthetic','Other') RETURNING id")).rows[0].id;
+  const category = (await pool.query("INSERT INTO bazar.categories(handle,title) VALUES ('synthetic','Synthetic category') RETURNING id")).rows[0].id;
+  const product = (await pool.query("INSERT INTO bazar.products(category_id,handle,title) VALUES ($1,'synthetic','Synthetic product') RETURNING id", [category])).rows[0].id;
+  const variant = (await pool.query("INSERT INTO bazar.variants(product_id,sku,price_minor,stock) VALUES ($1,'SYNTHETIC-1',12345,5) RETURNING id", [product])).rows[0].id;
+  const address = (await pool.query("INSERT INTO bazar.addresses(user_id,carrier,city_ref,location_ref,is_default) VALUES ($1,'meest','synthetic-city','synthetic-location',true) RETURNING id", [user])).rows[0].id;
+  const cart = (await pool.query('INSERT INTO bazar.carts(user_id) VALUES ($1) RETURNING id', [user])).rows[0].id;
+  const order = (await pool.query('INSERT INTO bazar.orders(user_id,address_id,total_minor) VALUES ($1,$2,24690) RETURNING id', [user,address])).rows[0].id;
+  const line = (await pool.query("INSERT INTO bazar.order_lines(order_id,user_id,product_id,variant_id,title_snapshot,quantity,unit_price_minor,line_total_minor) VALUES ($1,$2,$3,$4,'Synthetic snapshot',2,12345,24690) RETURNING id", [order,user,product,variant])).rows[0].id;
+  return { user, other, product, variant, address, cart, order, line };
+}
+
+test('fresh database, previous schema upgrade, rerun and concurrent migrators are safe', async (t) => {
+  const db = await database(t);
+  const dir = mkdtempSync(`${tmpdir()}/bazar-prior-`);
+  t.after(() => rmSync(dir, { recursive: true }));
+  cpSync(`${migrationDirectory}/0001_core.sql`, `${dir}/0001_core.sql`);
+  assert.equal(await migrate(db.config, dir), 1);
+  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 1]);
+  assert.equal(await migrate(db.config), 0);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 2);
+  assert.ok((await db.pool.query("SELECT indexname FROM pg_indexes WHERE schemaname='bazar' AND indexname='variants_available_idx'")).rowCount);
+});
+
+test('modified/unknown migrations are rejected and failed DDL rolls back without recording success', async (t) => {
+  const db = await database(t); await migrate(db.config);
+  const dir = mkdtempSync(`${tmpdir()}/bazar-migrations-`); t.after(() => rmSync(dir, { recursive: true }));
+  cpSync(migrationDirectory, dir, { recursive: true });
+  const first = readFileSync(`${dir}/0001_core.sql`, 'utf8');
+  writeFileSync(`${dir}/0001_core.sql`, first + '\n-- modified\n');
+  await assert.rejects(migrate(db.config, dir), /Database migration failed/);
+  writeFileSync(`${dir}/0001_core.sql`, first);
+  writeFileSync(`${dir}/0003_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
+  await assert.rejects(migrate(db.config, dir), /Database migration failed/);
+  assert.equal((await db.pool.query("SELECT to_regclass('bazar.must_rollback') AS name")).rows[0].name, null);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 2);
+  await db.pool.query("INSERT INTO bazar_meta.schema_migrations(version,checksum) VALUES ('9999',repeat('0',64))");
+  await assert.rejects(migrate(db.config), /Database migration failed/);
+});
+
+test('core reads/writes enforce money, foreign keys, quantity, defaults, wishlist and review ownership', async (t) => {
+  const db = await database(t); await migrate(db.config); const s = await seed(db.pool);
+  await db.pool.query('INSERT INTO bazar.cart_lines(cart_id,variant_id,quantity) VALUES ($1,$2,2)', [s.cart,s.variant]);
+  await db.pool.query('INSERT INTO bazar.wishlist_items(user_id,product_id) VALUES ($1,$2)', [s.user,s.product]);
+  await assert.rejects(db.pool.query('INSERT INTO bazar.wishlist_items(user_id,product_id) VALUES ($1,$2)', [s.user,s.product]), { code: '23505' });
+  await assert.rejects(db.pool.query('UPDATE bazar.cart_lines SET quantity=0'), { code: '23514' });
+  await assert.rejects(db.pool.query('UPDATE bazar.variants SET price_minor=-1'), { code: '23514' });
+  await assert.rejects(db.pool.query('UPDATE bazar.variants SET price_minor=9007199254740992'), { code: '23514' });
+  await assert.rejects(db.pool.query("UPDATE bazar.variants SET currency='USD'"), { code: '23514' });
+  await assert.rejects(db.pool.query('UPDATE bazar.variants SET stock=-1'), { code: '23514' });
+  await assert.rejects(db.pool.query("INSERT INTO bazar.addresses(user_id,carrier,city_ref,location_ref,is_default) VALUES ($1,'meest','x','x',true)", [s.user]), { code: '23505' });
+  await assert.rejects(db.pool.query('INSERT INTO bazar.orders(user_id,address_id,total_minor) VALUES ($1,$2,0)', [s.other,s.address]), { code: '23503' });
+  await assert.rejects(db.pool.query('DELETE FROM bazar.users WHERE id=$1', [s.user]), { code: '23503' });
+  await assert.rejects(db.pool.query("INSERT INTO bazar.reviews(user_id,product_id,order_line_id,rating,body) VALUES ($1,$2,$3,5,'Synthetic')", [s.other,s.product,s.line]), { code: '23503' });
+  await assert.rejects(db.pool.query("INSERT INTO bazar.reviews(user_id,product_id,order_line_id,rating,body) VALUES ($1,$2,$3,6,'Synthetic')", [s.user,s.product,s.line]), { code: '23514' });
+  await db.pool.query("INSERT INTO bazar.reviews(user_id,product_id,order_line_id,rating,body) VALUES ($1,$2,$3,5,'Synthetic')", [s.user,s.product,s.line]);
+  assert.equal((await db.pool.query('SELECT price_minor FROM bazar.variants WHERE id=$1', [s.variant])).rows[0].price_minor, '12345');
+});
+
+test('messages enforce membership, deduplication and same-conversation read cursors', async (t) => {
+  const db = await database(t); await migrate(db.config); const s = await seed(db.pool);
+  const conversation = (await db.pool.query('INSERT INTO bazar.conversations DEFAULT VALUES RETURNING id')).rows[0].id;
+  const second = (await db.pool.query('INSERT INTO bazar.conversations DEFAULT VALUES RETURNING id')).rows[0].id;
+  await db.pool.query('INSERT INTO bazar.conversation_members(conversation_id,user_id) VALUES ($1,$2),($3,$2)', [conversation,s.user,second]);
+  const clientId = randomUUID();
+  const sql = "INSERT INTO bazar.messages(conversation_id,sender_id,client_message_id,body) VALUES ($1,$2,$3,'Synthetic message') RETURNING id";
+  await assert.rejects(db.pool.query(sql, [conversation,s.other,clientId]), { code: '23503' });
+  const message = (await db.pool.query(sql, [conversation,s.user,clientId])).rows[0].id;
+  await assert.rejects(db.pool.query(sql, [conversation,s.user,clientId]), { code: '23505' });
+  await assert.rejects(db.pool.query('UPDATE bazar.conversation_members SET last_read_message_id=$1 WHERE conversation_id=$2', [message,second]), { code: '23503' });
+  await db.pool.query('UPDATE bazar.conversation_members SET last_read_message_id=$1,pinned=true WHERE conversation_id=$2', [message,conversation]);
+});
+
+test('support, payments, delivery and idempotency enforce owner and state invariants', async (t) => {
+  const db = await database(t); await migrate(db.config); const s = await seed(db.pool);
+  const ticket = (await db.pool.query("INSERT INTO bazar.support_tickets(user_id,subject,category) VALUES ($1,'Synthetic question','other') RETURNING id", [s.user])).rows[0].id;
+  await assert.rejects(db.pool.query("INSERT INTO bazar.support_messages(ticket_id,user_id,body) VALUES ($1,$2,'Synthetic')", [ticket,s.other]), { code: '23503' });
+  await db.pool.query("INSERT INTO bazar.support_messages(ticket_id,user_id,body) VALUES ($1,$2,'Synthetic')", [ticket,s.user]);
+  await assert.rejects(db.pool.query("INSERT INTO bazar.payment_attempts(order_id,user_id,provider,amount_minor) VALUES ($1,$2,'synthetic',100)", [s.order,s.other]), { code: '23503' });
+  await db.pool.query("INSERT INTO bazar.payment_attempts(order_id,user_id,provider,amount_minor,status) VALUES ($1,$2,'synthetic',100,'unknown')", [s.order,s.user]);
+  await assert.rejects(db.pool.query("UPDATE bazar.payment_attempts SET status='paid'"), { code: '23514' });
+  await db.pool.query("INSERT INTO bazar.delivery_quotes(user_id,cart_id,address_id,carrier,cost_minor,expires_at) VALUES ($1,$2,$3,'meest',NULL,now()+interval '1 hour')", [s.user,s.cart,s.address]);
+  await db.pool.query("INSERT INTO bazar.shipments(order_id,user_id,carrier) VALUES ($1,$2,'meest')", [s.order,s.user]);
+  const key = randomUUID();
+  const insert = "INSERT INTO bazar.idempotency_records(actor_id,operation,key,request_digest,expires_at) VALUES ($1,'synthetic',$2,$3,now()+interval '1 hour')";
+  await db.pool.query(insert, [s.user,key,Buffer.alloc(32,1)]);
+  await assert.rejects(db.pool.query(insert, [s.user,key,Buffer.alloc(32,1)]), { code: '23505' });
+  await db.pool.query("INSERT INTO bazar.provider_events(provider,event_ref,payload_digest) VALUES ('synthetic','event-1',$1)", [Buffer.alloc(32,1)]);
+  await assert.rejects(db.pool.query("INSERT INTO bazar.provider_events(provider,event_ref,payload_digest) VALUES ('synthetic','event-1',$1)", [Buffer.alloc(32,1)]), { code: '23505' });
+});
+
+test('real PostgreSQL readiness fails closed for missing, stale and unavailable database and uses restricted credentials', async (t) => {
+  const db = await database(t);
+  const runtime = createDatabase(db.config);
+  try {
+    assert.equal(await runtime.check(), false);
+    await migrate(db.config);
+    assert.equal(await runtime.check(), true);
+    await db.pool.query("UPDATE bazar_meta.schema_migrations SET checksum=repeat('0',64) WHERE version='0002'");
+    assert.equal(await runtime.check(), false);
+  } finally { await runtime.close(); }
+  // Restore exact schema before a separate restricted-login probe.
+  await db.pool.query('UPDATE bazar_meta.schema_migrations SET checksum=$1 WHERE version=$2', [(await import('../../src/database/migrations.js')).readMigrations()[1].checksum,'0002']);
+  const role = `bazar_runtime_${randomBytes(8).toString('hex')}`; const password = randomBytes(32).toString('hex');
+  const ddl = (await db.pool.query("SELECT format('CREATE ROLE %I LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE PASSWORD %L', $1::text,$2::text) AS sql", [role,password])).rows[0].sql;
+  await db.pool.query(ddl);
+  await db.pool.query(`GRANT USAGE ON SCHEMA bazar_meta TO "${role}"`);
+  await db.pool.query(`GRANT SELECT ON bazar_meta.schema_migrations TO "${role}"`);
+  const url = new URL(db.url); url.username=role; url.password=password;
+  const config = { ...readDatabaseConfig({ DATABASE_URL: url.toString(), NODE_ENV: 'test' })!, requireRestrictedRole: true };
+  const ownerProbe = createDatabase({ ...db.config, requireRestrictedRole: true });
+  try { assert.equal(await ownerProbe.check(), false); } finally { await ownerProbe.close(); }
+  const limited = createDatabase(config);
+  const app = createApiServer(readConfig({ NODE_ENV:'test' }), createLogger('error', () => {}), { isReady: limited.check });
+  app.server.listen(0,'127.0.0.1'); await once(app.server,'listening');
+  try {
+    assert.equal(await limited.check(), true);
+    const address=app.server.address(); assert.ok(address && typeof address!=='string');
+    const response=await fetch(`http://127.0.0.1:${address.port}/ready`);
+    assert.equal(response.status,200); const body=await response.json();
+    assert.deepEqual(body.data.dependencies,[{name:'postgresql',status:'ready'}]);
+    assert.equal(body.data.businessModulesAvailable,false);
+    const client = new pg.Client({ connectionString:url.toString() }); await client.connect();
+    try { await assert.rejects(client.query('CREATE TABLE bazar.must_not_create(id int)'), {code:'42501'}); } finally { await client.end(); }
+    await db.pool.query(`REVOKE SELECT ON bazar_meta.schema_migrations FROM "${role}"`);
+    assert.equal((await fetch(`http://127.0.0.1:${address.port}/ready`)).status,503);
+    assert.equal((await fetch(`http://127.0.0.1:${address.port}/health`)).status,200);
+  } finally {
+    await app.shutdown(); await limited.close();
+    await db.pool.query(`DROP OWNED BY "${role}"`); await db.pool.query(`DROP ROLE "${role}"`);
+  }
+  const offline = createDatabase({ ...db.config, connectionString:'postgresql://synthetic:synthetic@127.0.0.1:1/missing', timeoutMs:100 });
+  try { assert.equal(await offline.check(),false); } finally { await offline.close(); }
+});
+
+test('compiled API reads environment database config, never auto-migrates and closes its real pool on SIGTERM', { timeout: 8000 }, async (t) => {
+  const db = await database(t);
+  const child = spawn(process.execPath, ['dist/main.js'], { env: { PATH:process.env.PATH, NODE_ENV:'test', PORT:'0', HOST:'127.0.0.1', CORS_ORIGINS:'', DATABASE_URL:db.url, DATABASE_TIMEOUT_MS:'500', SHUTDOWN_TIMEOUT_MS:'1000' }, stdio:['ignore','pipe','pipe'] });
+  db.beforeDrop.push(async () => {
+    if (child.exitCode===null && child.signalCode===null) {
+      const exit=once(child,'exit'); child.kill('SIGKILL'); await exit;
+    }
+  });
+  let output=''; let errors=''; child.stderr.on('data',(data) => { errors+=data; });
+  const port = await new Promise<number>((resolve,reject) => {
+    child.stdout.on('data',(data) => { output+=data; const line=output.split('\n').find((line)=>line.includes('"event":"startup"')); if(line) resolve(JSON.parse(line).port); });
+    child.once('error',reject); child.once('exit',()=>reject(new Error('Compiled API exited before startup')));
+  });
+  const endpoint=`http://127.0.0.1:${port}`;
+  assert.equal((await fetch(endpoint+'/ready')).status,503);
+  assert.equal((await db.pool.query("SELECT to_regclass('bazar.users') AS name")).rows[0].name,null);
+  await migrate(db.config);
+  const ready=await fetch(endpoint+'/ready'); assert.equal(ready.status,200);
+  assert.equal((await ready.json()).data.businessModulesAvailable,false);
+  const exit=once(child,'exit'); child.kill('SIGTERM'); assert.equal((await exit)[0],0);
+  assert.equal(output.includes(new URL(db.url).password),false); assert.equal(errors,'');
+});
+
+test('hashed session/OTP storage rejects invalid lifetimes and exhausted attempts', async (t) => {
+  const db=await database(t); await migrate(db.config); const s=await seed(db.pool);
+  await db.pool.query("INSERT INTO bazar.sessions(user_id,token_digest,expires_at) VALUES ($1,$2,now()+interval '1 hour')",[s.user,Buffer.alloc(32,2)]);
+  await assert.rejects(db.pool.query("INSERT INTO bazar.sessions(user_id,token_digest,expires_at) VALUES ($1,$2,now()-interval '1 hour')",[s.user,Buffer.alloc(32,3)]),{code:'23514'});
+  await db.pool.query("INSERT INTO bazar.otp_challenges(subject_digest,code_digest,max_attempts,expires_at) VALUES ($1,$2,3,now()+interval '5 minutes')",[Buffer.alloc(32,1),Buffer.alloc(32,2)]);
+  await assert.rejects(db.pool.query('UPDATE bazar.otp_challenges SET attempts=4'),{code:'23514'});
+});

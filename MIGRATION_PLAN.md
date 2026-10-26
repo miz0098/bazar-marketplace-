@@ -1,8 +1,10 @@
 # BAZAR Shopify-to-Next.js Migration Plan
 
+Phase F2 implements the PostgreSQL technical foundation: immutable migrations, integration tests and API readiness. Authentication, catalog/commerce endpoints and frontend HTTP switching remain later stages; no real data or provider operation is introduced.
+
 ## Audit basis
 
-Phase F1 implementation update: `apps/api` now supplies technical HTTP/configuration/logging/shutdown foundations without activating any business operation. [API modules](docs/API_MODULES.md) and [PostgreSQL architecture](docs/POSTGRES_ARCHITECTURE.md) distinguish provisional contracts/schema design from implementation. Database migrations and live domain adapters remain future stages; no storefront mock switch or Shopify-source migration is part of F1.
+Historical Phase F1 implementation update (superseded by the F2 database foundation above): `apps/api` now supplies technical HTTP/configuration/logging/shutdown foundations without activating any business operation. [API modules](docs/API_MODULES.md) and [PostgreSQL architecture](docs/POSTGRES_ARCHITECTURE.md) distinguish provisional contracts/schema design from implementation. Database migrations and live domain adapters remain future stages; no storefront mock switch or Shopify-source migration is part of F1.
 
 This plan was re-audited on 2026-10-23 using three explicit references:
 
