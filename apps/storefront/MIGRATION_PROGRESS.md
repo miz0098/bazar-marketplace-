@@ -1,5 +1,7 @@
 # Storefront migration progress
 
+Phase F12 replaces ephemeral wishlist behavior with bounded canonical product-ID-only local persistence and cross-tab sync; corrupt payloads reset safely, unavailable known items remain removable, no personal data is serialized. Existing account preview screens/layout stay intact; Ukrposhta branch is added to addresses. Future customer client is opt-in only. Names/contact/address/review real policy and server-mode rollout remain blocked; see root F12 acceptance docs.
+
 Phase F11 adds demo variants, wishlist add/remove shared with existing account preview/header, variant-aware stock-limited local cart, catalog price/URL/error handling, keyboard suggestions, category index/redirects/404 and truthful footer information/social links. Same-category recommendations and tab-local recent views are explicitly demo. Existing E1 refresh-reset semantics and checkout stop remain; no real API switch. New unit and desktop/mobile axe/keyboard/overflow tests cover these changes. See the F11 delta in the root readiness documents.
 
 Phase F10 is a documentation-only post-F9 functional audit. [Matrix](../../FUNCTIONAL_GAP_AUDIT.md), [checklist](../../DEMO_READINESS_CHECKLIST.md) and [next stages](../../DEMO_COMPLETION_PLAN.md) record mock-only UI selection, missing variant/product/navigation/wishlist features and absent browser server-mode composition. Existing app code, design and Shopify source are preserved. Demo/design/production gates remain separate.

@@ -4,7 +4,7 @@ export type AccountScenario = 'ready' | 'empty' | 'error';
 export type AccountGender = 'unspecified' | 'female' | 'male' | 'other';
 export type AccountOrderStatus = 'expected' | 'shipped' | 'delivered' | 'canceled' | 'returned';
 export type AccountWishlistSort = 'newest' | 'price-asc' | 'price-desc' | 'name';
-export type AccountDeliveryMethod = 'nova-poshta' | 'meest' | 'courier';
+export type AccountDeliveryMethod = 'nova-poshta' | 'meest' | 'ukrposhta' | 'courier';
 
 export const ACCOUNT_ORDER_STATUSES: readonly AccountOrderStatus[] = [
   'expected',
@@ -212,7 +212,7 @@ export function validateAccountAddress(draft: AccountAddressDraft): AccountAddre
   if (recipientName.length < 2) errors.recipientName = 'Вкажіть імʼя отримувача.';
   else if (recipientName.length > 120) errors.recipientName = 'Імʼя отримувача має містити не більше 120 символів.';
 
-  if (!['nova-poshta', 'meest', 'courier'].includes(draft.deliveryMethod)) {
+  if (!['nova-poshta', 'meest', 'ukrposhta', 'courier'].includes(draft.deliveryMethod)) {
     errors.deliveryMethod = 'Оберіть доступний спосіб доставки.';
   }
 

@@ -1,5 +1,7 @@
 # BAZAR Storefront Architecture
 
+Phase F12 adds local ID-only persistent demo wishlist and isolated owned PostgreSQL customer contracts/operations; no server selector or production auth activation. [ADR 0011](docs/adr/0011-customer-account-foundation.md) documents name-only profile, opaque address references and policy-gated private reviews; [account acceptance](docs/F12_CUSTOMER_ACCOUNT_ACCEPTANCE.md) records section readiness. F12 supersedes only the historical F11 wishlist refresh-reset behavior.
+
 Phase F11 completes bounded demo browsing/variant/wishlist/local-cart interactions and footer routing. The shared wishlist remains ephemeral; canonical current demo catalog references validate persisted cart data. No backend adapter is selected, no real stock/order/payment claim is made. See the F11 delta in [functional audit](FUNCTIONAL_GAP_AUDIT.md).
 
 Phase F10 audits the actual post-F9 implementation against pinned Shopify source. [Functional matrix](FUNCTIONAL_GAP_AUDIT.md), [demo checklist](DEMO_READINESS_CHECKLIST.md) and [completion plan](DEMO_COMPLETION_PLAN.md) separate demo, isolated integration, design approval and production readiness. Earlier phase/proposed-target statements below are historical; in particular the current selector still permits mock production builds and no UI server switch is implemented. F10 changes documentation only.

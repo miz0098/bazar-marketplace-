@@ -125,7 +125,7 @@ function normalizeSearch(value = ''): string {
 
 export function createDemoAccountService(
   options: DemoAccountServiceOptions = {},
-): AccountService {
+): AccountService & { restoreDemoWishlist(ids: readonly string[]): void } {
   const scenario = options.scenario ?? 'ready';
   const latencyMs = Math.max(
     0,
@@ -183,6 +183,23 @@ export function createDemoAccountService(
 
   return {
     mode: 'preview-only',
+    restoreDemoWishlist(ids) {
+      wishlist = [...new Set(ids)].flatMap((id, index) => {
+        const product = demoProducts.find((p) => p.id === id);
+        return product
+          ? [
+              {
+                id: 'wishlist-' + id,
+                product: cloneProduct(product),
+                addedAt: new Date(
+                  Date.UTC(2000, 0, 1) - index * 1000,
+                ).toISOString(),
+              },
+            ]
+          : [];
+      });
+      notify();
+    },
 
     getProfile() {
       return run(() => ({ ...profile }));

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useWishlist } from './wishlist-provider';
 import type { ProductSummary } from '@/services/contracts/catalog';
 export function WishlistButton({ product }: { product: ProductSummary }) {
-  const { service, items } = useWishlist();
+  const { service, items, ready, notice } = useWishlist();
   const item = items.find((i) => i.product.id === product.id);
   const [busy, setBusy] = useState(false),
     [error, setError] = useState('');
@@ -12,7 +12,7 @@ export function WishlistButton({ product }: { product: ProductSummary }) {
       <button
         className="wishlist-toggle"
         type="button"
-        disabled={busy}
+        disabled={busy || !ready}
         aria-pressed={Boolean(item)}
         aria-label={`${item ? 'Видалити' : 'Додати'} ${product.title} ${item ? 'з обраного' : 'до обраного'}`}
         onClick={async () => {
@@ -32,7 +32,7 @@ export function WishlistButton({ product }: { product: ProductSummary }) {
           <path d="M20 5.5a5 5 0 0 0-7 0l-1 1-1-1a5 5 0 0 0-7 7l8 8 8-8a5 5 0 0 0 0-7Z" />
         </svg>
       </button>
-      {error && <small role="alert">{error}</small>}
+      {(error || notice) && <small role="alert">{error || notice}</small>}
     </span>
   );
 }

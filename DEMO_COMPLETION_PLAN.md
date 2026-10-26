@@ -1,5 +1,10 @@
 # Phase F10 — Demo Completion Plan
 
+## Виконано у Phase F12
+
+D03 partially advances: persistent local demo wishlist plus isolated owned wishlist/profile/address/review service contracts, additive schema versions/claims and opt-in client. This does not approve real PII storage, confirmed-purchase/publication/edit/delete rules or server UI activation. [Section readiness](docs/F12_CUSTOMER_ACCOUNT_ACCEPTANCE.md). Next: approve privacy/security/eligibility/default UX and real mapping decisions, then review browser server-mode alongside D04 financial/order/inventory policy; D05 full checkout and D06 communication/staff/provider gates remain open.
+
+
 ## Виконано у Phase F11 / оновлена черговість
 
 Частково виконано D02: category index/known redirects і query preservation, footer/info/social destinations, demo product variants/Q&A-empty/related/recently-viewed/safe buy-now, shared ephemeral wishlist і local cart quantity/stock reconciliation. Додано browser/unit/accessibility coverage без server activation. Реальні media/settings, pixel review, overlays та approved public SEO map не закриті.

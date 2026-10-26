@@ -1,5 +1,7 @@
 # BAZAR Shopify-to-Next.js Migration Plan
 
+Phase F12: additive migration 0011, owner-scoped customer/wishlist contracts and typed client, isolated review policy/immutable anti-duplicate claims, and local product-ID wishlist persistence. No real PII/provider/business policy is inferred. See [ADR 0011](docs/adr/0011-customer-account-foundation.md) and [acceptance](docs/F12_CUSTOMER_ACCOUNT_ACCEPTANCE.md).
+
 Phase F11 implements part of the F10 D02 plan: demo variants, shared wishlist, stock-aware local cart, category/query routing, search keyboard behavior and footer/info/social destinations, with new desktop/mobile regression. UI structure/Shopify source and mock/API separation are preserved; full visual, domain and production gates remain open.
 
 Phase F10 records the current 89a0453 / Shopify 105d10f functional comparison in [FUNCTIONAL_GAP_AUDIT.md](FUNCTIONAL_GAP_AUDIT.md), with [acceptance checklist](DEMO_READINESS_CHECKLIST.md) and [ordered next steps](DEMO_COMPLETION_PLAN.md). Demo 100% and production readiness are not claimed. Original inventory/phase notes below retain their historical dates.

@@ -1,6 +1,11 @@
-import type { AccountDeliveryMethod, AccountOrderStatus } from '@/domain/account/account';
+import type {
+  AccountDeliveryMethod,
+  AccountOrderStatus,
+} from '@/domain/account/account';
 
-export const accountOrderStatusLabels: Readonly<Record<AccountOrderStatus, string>> = {
+export const accountOrderStatusLabels: Readonly<
+  Record<AccountOrderStatus, string>
+> = {
   expected: 'Очікується',
   shipped: 'Відправлено',
   delivered: 'Доставлено',
@@ -8,9 +13,12 @@ export const accountOrderStatusLabels: Readonly<Record<AccountOrderStatus, strin
   returned: 'Повернено',
 };
 
-export const accountDeliveryLabels: Readonly<Record<AccountDeliveryMethod, string>> = {
+export const accountDeliveryLabels: Readonly<
+  Record<AccountDeliveryMethod, string>
+> = {
   'nova-poshta': 'Нова пошта',
   meest: 'Meest',
+  ukrposhta: 'Укрпошта',
   courier: 'Курʼєрська адреса',
 };
 

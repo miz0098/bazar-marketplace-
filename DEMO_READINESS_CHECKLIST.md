@@ -1,5 +1,10 @@
 # Phase F10 — Demo Readiness Checklist
 
+## Оновлення Phase F12
+
+Wishlist B05 now requires successful add/remove to survive refresh and cross-page/tab synchronization, rather than the historical F11 reset. Test only product IDs in storage, corrupt/oversized/unknown data, unavailable products, explicit empty state, storage denial, ownership/CSRF/versions, private review policy/duplicates and all account/payment safety regressions. [F12 section acceptance](docs/F12_CUSTOMER_ACCOUNT_ACCEPTANCE.md) and [ADR 0011](docs/adr/0011-customer-account-foundation.md) distinguish local demo from isolated customer API and unapproved production auth/PII/review rules. Existing account layout/keyboard/empty/error/overflow criteria remain; no real account/server switch.
+
+
 ## Оновлення Phase F11
 
 [Детальна acceptance evidence та persistence limits](docs/F11_STOREFRONT_ACCEPTANCE.md).
