@@ -38,9 +38,9 @@ export async function handleCheckout(
   if (
     resource === 'checkouts' &&
     parts.length === 3 &&
-    ['contact-delivery', 'payment', 'orders'].includes(action)
+    ['contact-delivery', 'payment', 'orders', 'confirmation'].includes(action)
   )
-    allowed = [action === 'orders' ? 'POST' : 'PATCH'];
+    allowed = [['orders','confirmation'].includes(action) ? 'POST' : 'PATCH'];
   if (!allowed.length) throw new ApiError(404, 'NOT_FOUND', 'Route not found.');
   if (!allowed.includes(request.method ?? '')) {
     response.setHeader('allow', allowed.join(', '));
@@ -74,5 +74,6 @@ export async function handleCheckout(
     return checkout.setDelivery(principal.userId, id, body);
   if (action === 'payment')
     return checkout.setPayment(principal.userId, id, body);
+  if(action==='confirmation')return checkout.confirmIntegratedForTest(principal.userId,id,body);
   return checkout.recordOrderForTest(principal.userId, id, body);
 }

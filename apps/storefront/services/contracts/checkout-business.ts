@@ -81,3 +81,6 @@ export interface RecordedOrderResult {
   order: IntegrationOrderDto;
   replayed: boolean;
 }
+
+export interface IntegratedConfirmationInput extends RecordOrderInput {paymentAttemptId:string}
+export interface IntegratedConfirmationResult extends RecordedOrderResult {paymentAttemptId:string;confirmationScope:'integration-test-only';orderPaid:false}

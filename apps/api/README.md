@@ -1,5 +1,7 @@
 # BAZAR API foundation
 
+Phase F9 adds isolated current-cart and linked checkout composition. See [ADR 0010](../../docs/adr/0010-cart-checkout-integration.md), [OpenAPI](contracts/openapi.json) and [Demo readiness](../../docs/F9_DEMO_READINESS.md). No new environment activation switch exists: production SMS/session/provider gates stay closed. POST current-cart explicitly ensures an empty cart; GET never creates it. Guest carts remain local with no merge. Confirmation requires server-verified synthetic payment proof and still returns orderPaid=false.
+
 Phase F8 adds isolated payment attempt/read/reconcile/cancel and signed-test-webhook routes; ordinary /api/v1/payments remains 503. No provider, real payable amount, card/wallet data or refund is enabled. Ukrposhta joins isolated delivery through official directory contract seams. See [ADR 0008](../../docs/adr/0008-payment-infrastructure-security.md), [ADR 0009](../../docs/adr/0009-ukrposhta-delivery-extension.md) and OpenAPI 1.6.0.
 
 Phase F7 adds isolated delivery directories, checkout selections, immutable expiring test estimates and a final order-transaction guard. Ordinary `/api/v1/delivery/*` returns 503. No live transport/API key/TTN is enabled. See [ADR 0007](../../docs/adr/0007-delivery-shipping-foundation.md) and OpenAPI 1.5.0 for routes, scope and blockers.

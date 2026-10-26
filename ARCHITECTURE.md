@@ -1,5 +1,7 @@
 # BAZAR Storefront Architecture
 
+Phase F9 adds approved one-active-user-cart creation/selection and idempotent verified-session mutations, plus atomic isolated payment-to-order confirmation. Guest carts stay local without merge; demo UI/providers remain unchanged. Production authentication, discounted completion and real operations remain blocked. See [ADR 0010](docs/adr/0010-cart-checkout-integration.md) and [Demo readiness](docs/F9_DEMO_READINESS.md).
+
 Phase F8 adds isolated provider-neutral payment operations, authenticated event processing, durable retry/exclusion and immutable state audit. Ukrposhta extends F7 delivery and the demo checkout choice. No real charge/wallet/refund/shipment is activated; see [ADR 0008](docs/adr/0008-payment-infrastructure-security.md) and [ADR 0009](docs/adr/0009-ukrposhta-delivery-extension.md).
 
 Phase F7 adds isolated carrier directory/selection/estimate contracts, PostgreSQL shipping persistence and final F6 freshness guards. No real provider, tariff guarantee or shipment is activated; see [ADR 0007](docs/adr/0007-delivery-shipping-foundation.md).

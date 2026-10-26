@@ -47,7 +47,85 @@ export async function readCartInTransaction(
     subtotal: { amountMinor: Number(subtotal), currency: 'UAH' },
   };
 }
-/** Internal persistence only: actor must come from a future verified session, never HTTP caller input. */
+export interface CartMutationInput {
+  operation: 'add' | 'set' | 'remove';
+  variantId: string;
+  quantity?: number;
+  expectedVersion: number;
+}
+/** Shared transaction seam: caller owns BEGIN/COMMIT and supplies a verified actor. */
+export async function mutateCartInTransaction(
+  c: pg.PoolClient,
+  userId: string,
+  cartId: string,
+  input: CartMutationInput,
+): Promise<CartDto> {
+  uuid(userId);
+  uuid(cartId);
+  uuid(input.variantId);
+  integer(input.expectedVersion, 1);
+  if (!['add', 'set', 'remove'].includes(input.operation))
+    throw new ApiError(400, 'INVALID_REQUEST', 'Invalid operation.');
+  if (input.operation !== 'remove') integer(input.quantity, 1, 2147483647);
+  const cart = await c.query(
+    'SELECT version::text FROM bazar.carts WHERE id=$1 AND user_id=$2 FOR UPDATE',
+    [cartId, userId],
+  );
+  if (!cart.rows.length)
+    throw new ApiError(404, 'NOT_FOUND', 'Cart not found.');
+  const version = money(cart.rows[0].version);
+  if (version !== input.expectedVersion || version === Number.MAX_SAFE_INTEGER)
+    conflict('Cart version has changed. Refresh before retrying.');
+  await c.query(
+    'SELECT id FROM bazar.variants WHERE id=$2 OR id IN (SELECT variant_id FROM bazar.cart_lines WHERE cart_id=$1) ORDER BY id FOR SHARE',
+    [cartId, input.variantId],
+  );
+  if (input.operation === 'remove')
+    await c.query(
+      'DELETE FROM bazar.cart_lines WHERE cart_id=$1 AND variant_id=$2',
+      [cartId, input.variantId],
+    );
+  else {
+    const variant = await c.query(
+      'SELECT stock FROM bazar.variants WHERE id=$1 FOR SHARE',
+      [input.variantId],
+    );
+    if (!variant.rows.length)
+      throw new ApiError(404, 'NOT_FOUND', 'Variant not found.');
+    const old = await c.query(
+      'SELECT quantity FROM bazar.cart_lines WHERE cart_id=$1 AND variant_id=$2',
+      [cartId, input.variantId],
+    );
+    if (input.operation === 'set' && !old.rows.length)
+      throw new ApiError(404, 'NOT_FOUND', 'Cart line not found.');
+    const quantity =
+      input.quantity! +
+      (input.operation === 'add' ? (old.rows[0]?.quantity ?? 0) : 0);
+    if (
+      !Number.isSafeInteger(quantity) ||
+      quantity > variant.rows[0].stock ||
+      quantity > 2147483647
+    )
+      conflict('Inventory is insufficient.');
+    await c.query(
+      'INSERT INTO bazar.cart_lines(cart_id,variant_id,quantity) VALUES ($1,$2,$3) ON CONFLICT (cart_id,variant_id) DO UPDATE SET quantity=EXCLUDED.quantity',
+      [cartId, input.variantId, quantity],
+    );
+  }
+  await c.query(
+    'UPDATE bazar.carts SET version=version+1 WHERE id=$1 AND user_id=$2',
+    [cartId, userId],
+  );
+  const result = await readCartInTransaction(
+    c,
+    cartId,
+    userId,
+    input.operation !== 'remove',
+  );
+  return result;
+}
+
+/** Internal persistence only: actor must come from the verified server session, never HTTP caller input. */
 export function createCartRepository(pool: pg.Pool) {
   return {
     async get(userId: string, cartId: string): Promise<CartDto> {
@@ -69,81 +147,12 @@ export function createCartRepository(pool: pg.Pool) {
     async mutate(
       userId: string,
       cartId: string,
-      input: {
-        operation: 'add' | 'set' | 'remove';
-        variantId: string;
-        quantity?: number;
-        expectedVersion: number;
-      },
+      input: CartMutationInput,
     ): Promise<CartDto> {
-      uuid(userId);
-      uuid(cartId);
-      uuid(input.variantId);
-      integer(input.expectedVersion, 1);
-      if (!['add', 'set', 'remove'].includes(input.operation))
-        throw new ApiError(400, 'INVALID_REQUEST', 'Invalid operation.');
-      if (input.operation !== 'remove') integer(input.quantity, 1, 2147483647);
       const c = await pool.connect();
       try {
         await c.query('BEGIN');
-        const cart = await c.query(
-          'SELECT version::text FROM bazar.carts WHERE id=$1 AND user_id=$2 FOR UPDATE',
-          [cartId, userId],
-        );
-        if (!cart.rows.length)
-          throw new ApiError(404, 'NOT_FOUND', 'Cart not found.');
-        const version = money(cart.rows[0].version);
-        if (
-          version !== input.expectedVersion ||
-          version === Number.MAX_SAFE_INTEGER
-        )
-          conflict('Cart version has changed. Refresh before retrying.');
-        await c.query(
-          'SELECT id FROM bazar.variants WHERE id=$2 OR id IN (SELECT variant_id FROM bazar.cart_lines WHERE cart_id=$1) ORDER BY id FOR SHARE',
-          [cartId, input.variantId],
-        );
-        if (input.operation === 'remove')
-          await c.query(
-            'DELETE FROM bazar.cart_lines WHERE cart_id=$1 AND variant_id=$2',
-            [cartId, input.variantId],
-          );
-        else {
-          const variant = await c.query(
-            'SELECT stock FROM bazar.variants WHERE id=$1 FOR SHARE',
-            [input.variantId],
-          );
-          if (!variant.rows.length)
-            throw new ApiError(404, 'NOT_FOUND', 'Variant not found.');
-          const old = await c.query(
-            'SELECT quantity FROM bazar.cart_lines WHERE cart_id=$1 AND variant_id=$2',
-            [cartId, input.variantId],
-          );
-          if (input.operation === 'set' && !old.rows.length)
-            throw new ApiError(404, 'NOT_FOUND', 'Cart line not found.');
-          const quantity =
-            input.quantity! +
-            (input.operation === 'add' ? (old.rows[0]?.quantity ?? 0) : 0);
-          if (
-            !Number.isSafeInteger(quantity) ||
-            quantity > variant.rows[0].stock ||
-            quantity > 2147483647
-          )
-            conflict('Inventory is insufficient.');
-          await c.query(
-            'INSERT INTO bazar.cart_lines(cart_id,variant_id,quantity) VALUES ($1,$2,$3) ON CONFLICT (cart_id,variant_id) DO UPDATE SET quantity=EXCLUDED.quantity',
-            [cartId, input.variantId, quantity],
-          );
-        }
-        await c.query(
-          'UPDATE bazar.carts SET version=version+1 WHERE id=$1 AND user_id=$2',
-          [cartId, userId],
-        );
-        const result = await readCartInTransaction(
-          c,
-          cartId,
-          userId,
-          input.operation !== 'remove',
-        );
+        const result = await mutateCartInTransaction(c, userId, cartId, input);
         await c.query('COMMIT');
         return result;
       } catch (e) {

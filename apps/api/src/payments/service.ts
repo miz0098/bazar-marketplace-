@@ -217,6 +217,38 @@ export function createPaymentService(
       );
     });
   }
+  async function financialBasis(checkoutId: string, fingerprint: string) {
+    let plan: Awaited<ReturnType<PaymentTestConfig['plan']>>;
+    try {
+      plan = await providerCall(config.timeoutMs, () =>
+        config.plan({
+          checkoutId,
+          pricingFingerprint: fingerprint,
+        }),
+      );
+    } catch {
+      throw new ApiError(
+        503,
+        'SERVICE_UNAVAILABLE',
+        'The test financial basis is unavailable.',
+      );
+    }
+    if (
+      plan.currency !== 'UAH' ||
+      !Number.isSafeInteger(plan.amountMinor) ||
+      plan.amountMinor < 1
+    )
+      throw stale();
+    const binding = hash([
+      adapter.name,
+      adapter.accountRef,
+      fingerprint,
+      plan.amountMinor,
+      plan.currency,
+      text(plan.revision, 200),
+    ]).toString('hex');
+    return { plan, binding };
+  }
   return {
     async capabilities() {
       return {
@@ -224,6 +256,33 @@ export function createPaymentService(
         methods: [...adapter.methods],
         productionAvailable: false as const,
       };
+    },
+    async validateForConfirmation(
+      c: pg.PoolClient,
+      actor: string,
+      row: Record<string, unknown>,
+      fingerprint: string,
+      attemptId: string,
+    ) {
+      const r = (
+        await c.query(
+          'SELECT o.status,i.binding,i.amount_minor::text FROM bazar.payment_operations o JOIN bazar.payment_intents i ON i.id=o.intent_id WHERE o.id=$1 AND o.user_id=$2 AND o.provider=$3 AND o.account_ref=$4 AND i.checkout_id=$5 AND i.cart_id=$6 AND i.cart_version=$7 FOR SHARE OF o,i',
+          [
+            uuid(attemptId),
+            uuid(actor),
+            adapter.name,
+            adapter.accountRef,
+            uuid(row.id),
+            uuid(row.cart_id),
+            money(row.cart_version),
+          ],
+        )
+      ).rows[0];
+      if (!r) throw missing();
+      if (r.status !== 'succeeded') throw conflict();
+      const { plan, binding } = await financialBasis(uuid(row.id), fingerprint);
+      if (r.binding !== binding || money(r.amount_minor) !== plan.amountMinor)
+        throw stale();
     },
     get: owned,
     async create(actor: string, value: unknown) {
@@ -272,35 +331,10 @@ export function createPaymentService(
           if (!shipping) throw conflict();
           await shipping.validateForOrder(c, actor, row);
         }
-        let plan: Awaited<ReturnType<PaymentTestConfig['plan']>>;
-        try {
-          plan = await providerCall(config.timeoutMs, () =>
-            config.plan({
-              checkoutId: id,
-              pricingFingerprint: checkout.pricing!.fingerprint,
-            }),
-          );
-        } catch {
-          throw new ApiError(
-            503,
-            'SERVICE_UNAVAILABLE',
-            'The test financial basis is unavailable.',
-          );
-        }
-        if (
-          plan.currency !== 'UAH' ||
-          !Number.isSafeInteger(plan.amountMinor) ||
-          plan.amountMinor < 1
-        )
-          throw stale();
-        const binding = hash([
-          adapter.name,
-          adapter.accountRef,
+        const { plan, binding } = await financialBasis(
+          id,
           checkout.pricing.fingerprint,
-          plan.amountMinor,
-          plan.currency,
-          text(plan.revision, 200),
-        ]).toString('hex');
+        );
         let intent = (
           await c.query(
             'SELECT *,amount_minor::text FROM bazar.payment_intents WHERE checkout_id=$1 AND user_id=$2 FOR UPDATE',
