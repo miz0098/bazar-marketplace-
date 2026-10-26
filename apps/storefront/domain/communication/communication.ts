@@ -49,6 +49,7 @@ export function unreadConversationCount(conversations: readonly Conversation[]):
 
 export function validateMessage(text: string, attachment?: DemoMessage['attachment']): string {
   if (!text.trim() && !attachment) return 'Напишіть повідомлення.';
+  if (/\p{Cc}/u.test(text.replace(/[\n\t]/g, ''))) return 'Повідомлення містить недопустимі символи.';
   if (text.trim().length > 2000) return 'Повідомлення має містити не більше 2000 символів.';
   if (attachment && (!attachment.name.trim() || attachment.name.length > 255 || !Number.isInteger(attachment.size) || attachment.size <= 0 || attachment.size > 5 * 1024 * 1024)) {
     return 'Оберіть непорожній файл до 5 МБ із назвою до 255 символів.';

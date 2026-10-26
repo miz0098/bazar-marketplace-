@@ -1,5 +1,7 @@
 # BAZAR Storefront Architecture
 
+Phase F13 preserves E2 communication preview and adds isolated membership/owner-scoped PostgreSQL chat/support/read/pin/idempotency and notification inbox contracts. No production channels, CRM/staff, upload or UI API switch. [ADR 0012](docs/adr/0012-messages-support-notifications.md) and [acceptance](docs/F13_COMMUNICATION_ACCEPTANCE.md).
+
 Phase F12 adds local ID-only persistent demo wishlist and isolated owned PostgreSQL customer contracts/operations; no server selector or production auth activation. [ADR 0011](docs/adr/0011-customer-account-foundation.md) documents name-only profile, opaque address references and policy-gated private reviews; [account acceptance](docs/F12_CUSTOMER_ACCOUNT_ACCEPTANCE.md) records section readiness. F12 supersedes only the historical F11 wishlist refresh-reset behavior.
 
 Phase F11 completes bounded demo browsing/variant/wishlist/local-cart interactions and footer routing. The shared wishlist remains ephemeral; canonical current demo catalog references validate persisted cart data. No backend adapter is selected, no real stock/order/payment claim is made. See the F11 delta in [functional audit](FUNCTIONAL_GAP_AUDIT.md).

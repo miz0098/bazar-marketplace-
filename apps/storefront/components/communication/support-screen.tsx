@@ -15,20 +15,22 @@ function NewTicketForm({ onCreate, onCancel }: { onCreate: (draft: TicketDraft) 
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  const creatingRef = useRef(false);
   useEffect(() => { formRef.current?.querySelector<HTMLInputElement>('input')?.focus(); }, []);
   useEffect(() => {
     if (Object.values(errors).some(Boolean)) formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
   }, [errors]);
   return <form className="account-panel communication-new-ticket" aria-label="Нове демонстраційне звернення" ref={formRef} noValidate onSubmit={async (event) => {
     event.preventDefault();
-    if (busy) return;
+    if (creatingRef.current) return;
     const validation = validateTicket(draft);
     setErrors(validation); setError('');
     if (Object.values(validation).some(Boolean)) return;
+    creatingRef.current = true;
     setBusy(true);
     try { await onCreate(draft); }
     catch (reason) { setError(reason instanceof Error ? reason.message : 'Не вдалося створити демо-звернення.'); }
-    finally { setBusy(false); }
+    finally { creatingRef.current = false; setBusy(false); }
   }}>
     <h2>Нове демо-звернення</h2>
     <p className="communication-disclaimer">Ця форма не зв’язується з оператором. Вводьте лише вигадані дані; запис зникне після перезавантаження.</p>

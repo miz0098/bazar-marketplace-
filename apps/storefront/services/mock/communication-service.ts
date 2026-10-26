@@ -36,7 +36,7 @@ export function createDemoMessagingService(options: Options = {}): MessagingServ
   };
   return {
     mode: 'preview-only',
-    listConversations: () => run(() => conversations.map(copyConversation).sort((a, b) => Number(b.pinned) - Number(a.pinned) || (Date.parse(b.messages.at(-1)?.createdAt ?? '1970-01-01') - Date.parse(a.messages.at(-1)?.createdAt ?? '1970-01-01')))),
+    listConversations: () => run(() => conversations.map(copyConversation).sort((a, b) => Number(b.pinned) - Number(a.pinned) || (Date.parse(b.messages.at(-1)?.createdAt ?? '1970-01-01') - Date.parse(a.messages.at(-1)?.createdAt ?? '1970-01-01')) || a.id.localeCompare(b.id))),
     getConversation: (id) => run(() => { const found = conversations.find((item) => item.id === id); return found ? copyConversation(found) : null; }),
     markRead: (id) => run(() => {
       const index = indexOf(id);
