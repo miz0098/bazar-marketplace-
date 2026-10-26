@@ -386,7 +386,7 @@
     {
       "id": "COMM-001",
       "title": "Complete demo communication and isolated owned messaging support notification foundation",
-      "status": "in_progress",
+      "status": "in_review",
       "readiness": "integration",
       "depends_on": [
         "CUSTOMER-001"
@@ -409,7 +409,7 @@
         "Notification contracts distinguish test inbox records from blocked production events and channels",
         "All regression security accessibility governance and audit checks pass without production activation"
       ],
-      "pr": null,
+      "pr": 24,
       "blocker": "Production auth/BFF, staff and seller membership/CRM rules, privacy/encryption/retention, channels/consent/outbox and secure upload are unapproved."
     }
   ]

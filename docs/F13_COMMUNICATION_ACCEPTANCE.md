@@ -1,5 +1,7 @@
 # F13 — messages, support and notification acceptance
 
+Review: [PR #24](https://github.com/miz0098/bazar-marketplace-/pull/24).
+
 Base: merged PR #23 (c811c4d). [ADR 0012](adr/0012-messages-support-notifications.md) and [OpenAPI](../apps/api/contracts/openapi.json) define implementation versus blocked production work.
 
 | Area | Demo acceptance scope | Server evidence / remaining gap |
