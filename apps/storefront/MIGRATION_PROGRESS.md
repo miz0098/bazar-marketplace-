@@ -108,3 +108,7 @@ Added a typed, runtime-validated catalog HTTP client and server-only factory, pl
 ## Phase F4 — prepared server-auth transport, preview preserved
 
 Added a separate typed same-origin server-auth client with bounded validated responses, browser-managed cookies and in-memory CSRF. It is not selected by the Phase D IdentityService or any screen and accepts explicit test-only success today. No component/style/persistence/preview completion is changed into a live session. BFF/TLS/provider/policy and registration-state mapping remain activation blockers documented in ADR 0004. Profile, catalog, checkout, messages and support keep their current behavior.
+
+## Phase F5 — future checkout promotion pricing boundary
+
+Added a separate typed, validated PromotionPricingService/client for step 2 using only cart ID/version/code and CSRF. The existing demo validatePromo(code, subtotal), its fixture rounding, UI, three-step flow and persistence are unchanged. No provider selects the new client. PostgreSQL quotes are explicit integration-test merchandise evaluations with checkoutAvailable:false; real redemption/payment/order and multi-line/rounding/compatibility/refund scenarios remain blocked in ADR 0005.

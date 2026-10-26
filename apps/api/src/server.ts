@@ -1,3 +1,5 @@
+import { promotionPath, handlePromotion } from './promotions/http.js';
+import type { PromotionService } from './promotions/service.js';
 import { authPaths, handleAuth, authorize } from './auth/http.js';
 import { RateLimitError } from './auth/rate-limit.js';
 import type { AuthService } from './auth/service.js';
@@ -26,8 +28,9 @@ function validateBody(request: IncomingMessage, response: ServerResponse) {
   }
 }
 
-export function createApiServer(config: ApiConfig, logger: Logger, dependencies: { isReady?: () => boolean | Promise<boolean>; catalog?: Catalog; auth?: AuthService } = {}) {
+export function createApiServer(config: ApiConfig, logger: Logger, dependencies: { isReady?: () => boolean | Promise<boolean>; catalog?: Catalog; auth?: AuthService; promotions?: PromotionService } = {}) {
   if (dependencies.auth && config.environment !== 'test') throw new Error('Test authentication cannot be registered outside an isolated test server');
+  if (dependencies.promotions && config.environment !== 'test') throw new Error('Promotion integration cannot be registered outside a test server');
   let draining = false;
   const server = createServer({ maxHeaderSize: 16384, headersTimeout: 10000, requestTimeout: 15000, keepAliveTimeout: 5000 }, async (request, response) => {
     const requestId = randomUUID();
@@ -41,6 +44,12 @@ export function createApiServer(config: ApiConfig, logger: Logger, dependencies:
       if (!request.url?.startsWith('/') || request.url.startsWith('//')) throw new ApiError(400, 'INVALID_REQUEST', 'Invalid request target.');
       let url: URL;
       try { decodeURIComponent(request.url); url = new URL(request.url, 'http://api.invalid'); } catch { throw new ApiError(400, 'INVALID_REQUEST', 'Invalid request target.'); }
+      if(url.pathname===promotionPath){
+        route='/api/v1/pricing/promotions/evaluate';
+        if(draining || (dependencies.promotions && (!dependencies.isReady || !await dependencies.isReady())))throw new ApiError(503,'SERVICE_UNAVAILABLE','Promotion pricing is unavailable.');
+        const data=await handlePromotion(request,response,url,dependencies.auth,dependencies.promotions);
+        reply(response,method,200,{ok:true,data,meta:{requestId}});return;
+      }
       if (authPaths.some(path=>path===url.pathname)) {
         route='/api/v1/auth';
         if(draining || (dependencies.auth && (!dependencies.isReady || !await dependencies.isReady()))) throw new ApiError(503,'SERVICE_UNAVAILABLE','Authentication is unavailable.');

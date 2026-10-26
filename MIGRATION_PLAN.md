@@ -1,5 +1,7 @@
 # BAZAR Shopify-to-Next.js Migration Plan
 
+Phase F5 implements the discounts/promo pricing foundation with migration 0005 and future step-2 contracts. [ADR 0005](docs/adr/0005-promotions-pricing-foundation.md) distinguishes exact single-line evaluation, test-only usage claims and business-policy blockers. No checkout/provider activation is made.
+
 Phase F4 implements server authentication mechanisms with isolated SMS tests and additive migration 0004. Real SMS, production/BFF activation and current-cart selection remain explicit blockers in [ADR 0004](docs/adr/0004-server-auth-foundation.md). No storefront live switch is made.
 
 Phase F3 implements catalog read APIs and internal PostgreSQL cart transactions, without enabling cart HTTP or changing storefront mocks. [ADR 0003](docs/adr/0003-catalog-cart-boundaries.md) records access blockers; [Shopify restoration](docs/SHOPIFY_RESTORATION.md) lists mandatory commerce work before BAZAR Demo 100%.

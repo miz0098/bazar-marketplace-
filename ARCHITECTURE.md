@@ -1,5 +1,7 @@
 # BAZAR Storefront Architecture
 
+Phase F5 adds isolated PostgreSQL promotion evaluation and usage-limit tests with exact integer pricing. Live checkout/redemption, rounding, stacking and seller allocation remain blocked; see [ADR 0005](docs/adr/0005-promotions-pricing-foundation.md). Storefront mocks/design are unchanged.
+
 Phase F4 adds isolated PostgreSQL OTP/session/CSRF/security composition. Production auth remains 503 without an approved SMS/provider/policy rollout; storefront mocks are unchanged. See [ADR 0004](docs/adr/0004-server-auth-foundation.md).
 
 Phase F3 adds public PostgreSQL catalog/category reads and tested internal cart persistence. Cart HTTP stays blocked with 401 until verified authentication exists; storefront remains on mocks. See [ADR 0003](docs/adr/0003-catalog-cart-boundaries.md).

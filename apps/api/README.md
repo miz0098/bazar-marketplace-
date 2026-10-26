@@ -1,5 +1,7 @@
 # BAZAR API foundation
 
+Phase F5 update: isolated PostgreSQL promotion evaluation is available only in test composition; ordinary POST /api/v1/pricing/promotions/evaluate returns 503. Exact integer percentage/fixed arithmetic, validity/minimum/product/usage checks and test-only durable claims are documented in [ADR 0005](../../docs/adr/0005-promotions-pricing-foundation.md). No HTTP redemption or checkout activation is added.
+
 Phase F4 update: the OTP/session/current-user/logout handlers are integration-tested with PostgreSQL and a test-only SMS adapter. Ordinary startup registers no auth adapter and returns 503 for auth routes. AUTH_MODE values other than absent/disabled are rejected; test senders cannot be enabled through environment configuration. See [ADR 0004](../../docs/adr/0004-server-auth-foundation.md).
 
 Phase F3 update: public PostgreSQL catalog GET/HEAD routes are available at /api/v1/products, /api/v1/products/{handle}, /api/v1/categories. Cart paths return 401 AUTH_REQUIRED, with no caller identity fallback. Internal transactional cart persistence is integration-tested but not exposed. See [ADR 0003](../../docs/adr/0003-catalog-cart-boundaries.md) and OpenAPI. The F1/F2 sections below describe the foundation history.

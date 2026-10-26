@@ -93,13 +93,13 @@
     {
       "id": "PROMO-001",
       "title": "Implement promotions and authoritative discount calculations",
-      "status": "pending",
+      "status": "in_review",
       "readiness": "integration",
       "depends_on": ["CART-001"],
-      "allowed_paths": ["apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
+      "allowed_paths": ["ARCHITECTURE.md", "MIGRATION_PLAN.md", "apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
       "acceptance": ["Promotion validity and amounts are calculated server-side", "Apply/remove/conflict/expiry states are tested", "Promotional surfaces preserve approved BAZAR styling", "No client-only discount can alter authoritative totals"],
-      "pr": null,
-      "blocker": "Promotion rules and ownership require business approval before production readiness."
+      "pr": 16,
+      "blocker": "F5 exact single-line evaluation and integration-only usage claims are implemented. Business owner must approve stacking, seller/unit allocation, rounding, real redemption timing/release/refunds and campaign policy before activation; live auth/current-cart remain blocked."
     },
     {
       "id": "CHECKOUT-001",
@@ -148,7 +148,7 @@
     {
       "id": "AUTH-001",
       "title": "Implement phone OTP identity and secure session boundary",
-      "status": "in_review",
+      "status": "done",
       "readiness": "integration",
       "depends_on": ["BE-001", "DB-001", "UI-001", "AUTHUI-001"],
       "allowed_paths": ["ARCHITECTURE.md", "MIGRATION_PLAN.md", "apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
