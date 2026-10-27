@@ -1,5 +1,9 @@
 # BAZAR Shopify-to-Next.js Migration Plan
 
+## F19 target-policy update — 2026-10-27
+
+[Business Rules V1](BUSINESS_RULES_V1.md), [domain contracts](COMMERCE_DOMAIN_CONTRACTS.md), [decision register](BUSINESS_DECISION_REGISTER.md) and [F20–F29 implementation mapping](F20_F29_IMPLEMENTATION_CONTRACT.md) are the current target-policy authority. F18/F1–F17 implementation observations, counts and historical checks below are retained unchanged; this documentation does not add functional coverage or make them V1-compliant. **НЕ ГОТОВИЙ; no Demo100% / Full Audit Ready claim.** Quantitative inventory/reservations are intentionally out of scope; binary seller availability and persistent disabled saved items are required. Carrier shipping prices are operator-managed, not BAZAR-calculated; use «Вартість доставки згідно з тарифами поштового оператора». Financial rounding/allocations, legal/settlement/privacy and provider gates remain explicit. Technical representations remain proposals.
+
 F18 technical audit: **НЕ ГОТОВИЙ** до повного функціонального аудиту. [18-area/117-row evidence matrix](FULL_MARKETPLACE_READINESS_AUDIT.md), [backlog B01–B28](FUNCTIONAL_COMPLETION_BACKLOG.md), [proposed F19–F29](REMAINING_DEVELOPMENT_ROADMAP.md), [measurable entry gates](FULL_AUDIT_ENTRY_CRITERIA.md). Збережені нижче F10–F17 результати історичні; поточний зріз розділяє L/I/S/production, не змінює дизайн/код і не оголошує Demo100%.
 
 F17 reuses the F13 inbox for an isolated browser notification center in existing session/orders UI (no new menu): owner count/read/bulk-read/pagination, atomic test-order event, explicit status/cancel/message/support simulations and verified F14 test-refund hook. No real channels or production activation. [Acceptance](docs/F17_NOTIFICATION_CENTER_ACCEPTANCE.md), [ADR0016](docs/adr/0016-customer-notification-center.md).

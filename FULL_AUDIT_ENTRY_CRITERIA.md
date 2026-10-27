@@ -1,5 +1,24 @@
 # Full Audit Entry Criteria — Functional Candidate Gate
 
+## F19 target-policy update — 2026-10-27
+
+[Business Rules V1](BUSINESS_RULES_V1.md), [domain contracts](COMMERCE_DOMAIN_CONTRACTS.md), [decision register](BUSINESS_DECISION_REGISTER.md) and [F20–F29 implementation mapping](F20_F29_IMPLEMENTATION_CONTRACT.md) are the current target-policy authority. F18/F1–F17 implementation observations, counts and historical checks below are retained unchanged; this documentation does not add functional coverage or make them V1-compliant. **НЕ ГОТОВИЙ; no Demo100% / Full Audit Ready claim.** Quantitative inventory/reservations are intentionally out of scope; binary seller availability and persistent disabled saved items are required. Carrier shipping prices are operator-managed, not BAZAR-calculated; use «Вартість доставки згідно з тарифами поштового оператора». Financial rounding/allocations, legal/settlement/privacy and provider gates remain explicit. Technical representations remain proposals.
+
+### F19 target-gate amendments (no PASS upgrade from documentation alone)
+
+| Gate | Updated measurable requirement / outstanding gate |
+| --- | --- |
+| E01 | Canonical36 BR IDs + statuses and per-phase/test mapping exist; PD-10 included/deferred scope and legal/finance/privacy decisions still required. No overall PASS |
+| E03/E04 | Binary availability and seller attribution, saved unavailable entries persist/reactivate; no stock counter or warehouse quantity cap. Owner/session/variant/multi-item tests remain |
+| E05 | One BZ+11digit promo, eligible cart/category/product scope, cap, shipping excluded, exact line/unit/seller reconciliation and independent5% seller commission. PD-01/02/03/04 + PL-03 block unapproved financial cases |
+| E06 | Three carriers available-location selection and immutable snapshot; exact operator-tariff text, no BAZAR shipping fee/quoteTTL requirement. Profile saved address optional; order delivery details required. Parent/seller test checkout/history not yet implemented |
+| E07 | No quantitative oversell/reservation gate. Test availability change/revalidation, promo/payment idempotency, failed/unknown cart preservation, successful required-payment purchased-cart clearing without losing newer/unpurchased entries, second purchase |
+| E09 | Approved cancellation table;5calendar-day dispatch escalation+48h response; individual seller returns/refunds. PD-08 calendar/races, PL-01 legal/PL-03 finance and proof gates remain |
+| E10 | Availability-restored event from genuine transition, union cart/wishlist recipients dedup per transition/user, safe product link in existing inbox; real push only after consent/channel verification |
+| E12/E13 | Approved optional personal fields/address behavior, seller/staff role boundaries, sensitive deny/no admin «Клієнти». Detailed grants/retention/recovery still gated |
+
+Below table is the preserved F18 assessment of then-current code. Superseded inventory/tariff assumptions are not active future acceptance criteria. Current verdict remains **НЕ ГОТОВИЙ**; no F19 implementation evidence closes a functional gate.
+
 **Поточний стан: НЕ ГОТОВИЙ.** Ці критерії визначають передачу BAZAR на наш спільний повний аудит після функціональної розробки. Це не фінальний ручний Excel-чекліст, не дизайн sign-off і не дозвіл deployment/реальних фінансових операцій.
 
 Профілі scope: **B** buyer-only integrated test demo; **M** full marketplace functional candidate (включає seller/admin/staff); **P** production candidate. [Визначення/рішення](REMAINING_DEVELOPMENT_ROADMAP.md). P-критерії не можна нав'язувати як вимогу реальних платежів у безпечному B demo; B pass не закриває M/P.
