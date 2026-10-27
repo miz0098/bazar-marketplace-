@@ -56,3 +56,5 @@ Desktop1440×900/mobile390×844 exercise main state progression, carrier transpo
 Only migration0019 is added; migrations0001–0018/source Shopify unchanged. Its indexes cover due preparation jobs, seller event history, return scope and payment refund capacity. Historical source record inspection is limited to repository schema and real disposable PostgreSQL upgrade fixtures; production data inventory remains required before a separate approved rollout.
 
 Review: [PR #35](https://github.com/miz0098/bazar-marketplace-/pull/35), targeting `vps-migration`. Final-head GitHub CI is tracked on PR checks; no merge/deployment.
+
+Final UI follow-up: shipment observations and prepared/pending/unknown/test-confirmed/test-rejected refund states have separate Ukrainian read-only labels, exact amounts and an explicit no-real-funds-returned warning. The existing desktop/mobile return case now verifies prepared → authenticated isolated refund confirmation display; it does not add a real refund operation or increase the case count.
