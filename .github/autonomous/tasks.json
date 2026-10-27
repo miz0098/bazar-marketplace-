@@ -545,7 +545,7 @@
     {
       "id": "CATALOGCOMPLETE-001",
       "title": "Implement versioned owned catalog binary availability media search routing and restored-event foundation",
-      "status": "in_progress",
+      "status": "in_review",
       "readiness": "integration",
       "depends_on": [
         "BUSINESSRULES-001"
@@ -576,7 +576,7 @@
         "Actual data search combined filters sorting paging exact money media fallback and ten Shopify legacy paths are tested desktop/mobile without redesign",
         "Existing API PG unit browser lint types builds audit and governance checks pass; unsupported merchandising live roles/providers and ordinary server cart integration remain explicit"
       ],
-      "pr": null,
+      "pr": 31,
       "blocker": "Differently priced product aggregate merchandising and publication/import/media rights, production auth/seller grants, normal storefront server cart integration and consented push remain gated; F20 is not Demo100 or production readiness."
     }
   ]
