@@ -61,7 +61,7 @@ test('category redirects, filters, sorting, empty/error recovery and search keyb
   );
 });
 
-test('variants, sold-out state and stock limits stay authoritative in the local demo cart', async ({
+test('binary variant availability and stable identity survive quantity changes and refresh', async ({
   page,
 }) => {
   await page.goto('/products/iphone-15');
@@ -69,13 +69,11 @@ test('variants, sold-out state and stock limits stay authoritative in the local 
   await summary.getByLabel('Варіант товару').selectOption('iphone-15-silver');
   await expect(summary.locator('.add-cart-button')).toBeDisabled();
   await summary.getByLabel('Варіант товару').selectOption('iphone-15-black');
-  await expect(summary).toContainText('Демо-залишок: 2');
+  await expect(summary).toContainText('Складські залишки не ведуться');
   await summary.locator('.add-cart-button').click();
   await summary.locator('.add-cart-button').click();
   await summary.locator('.add-cart-button').click();
-  await expect(summary.locator('.cart-feedback')).toContainText(
-    'Доступно лише 2',
-  );
+  await expect(summary.locator('.cart-feedback')).not.toContainText('Доступно лише');
   await summary.getByLabel('Варіант товару').selectOption('iphone-15');
   await summary.locator('.add-cart-button').click();
   await page.locator('a[href="/cart"]:visible').first().click();
@@ -87,8 +85,7 @@ test('variants, sold-out state and stock limits stay authoritative in the local 
     .locator('.cart-line')
     .filter({ hasText: 'Чорний титан, 256 ГБ' });
   await black.getByRole('button', { name: /Збільшити кількість/ }).click();
-  await expect(page.getByRole('status')).toContainText('Доступно лише 2');
-  await expect(black.getByRole('spinbutton')).toHaveValue('2');
+  await expect(black.getByRole('spinbutton')).toHaveValue('4');
   await page.reload();
   await expect(page.locator('.cart-line')).toHaveCount(2);
   await black.getByRole('button', { name: /Видалити/ }).click();

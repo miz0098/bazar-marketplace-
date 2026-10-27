@@ -1,3 +1,4 @@
+import {CatalogImage} from './catalog-image';
 import { WishlistButton } from './wishlist-button';
 import Link from 'next/link';
 import { AddToCartButton } from '@/components/cart/add-to-cart-button';
@@ -13,19 +14,19 @@ export function ProductCard({ product }: { product: ProductSummary }) {
           className={`product-visual product-visual--${product.visual}`}
           aria-hidden="true"
         >
-          <span />
+          {product.media?.[0]?<CatalogImage src={product.media[0].src} alt={product.media[0].alt} width={product.media[0].width} height={product.media[0].height}/>:<span />}
         </span>
         <span className="product-card__body">
           <small>{product.vendor}</small>
           <strong>{product.title}</strong>
-          <span
+          {product.reviewCount>0&&<span
             className="product-card__rating"
             aria-label={`Рейтинг ${product.rating} з 5`}
           >
             ★ {product.rating} <small>({product.reviewCount})</small>
-          </span>
+          </span>}
           <span className="product-card__price">
-            <b>{formatMoney(product.price)}</b>
+            <b>{product.requiresVariantSelection?"Оберіть варіант":formatMoney(product.price)}</b>
             {product.compareAtPrice && (
               <s>{formatMoney(product.compareAtPrice)}</s>
             )}

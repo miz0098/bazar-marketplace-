@@ -521,3 +521,8 @@ html.auth-scroll-lock { overflow: hidden; overscroll-behavior: none; }
 .product-detail .product-tabs__list button[aria-selected="true"]{color:#0d63d5;}
 
 .footer-socials a{display:grid;place-items:center;width:38px;height:38px;border:1px solid var(--bazar-color-border);border-radius:50%;color:var(--bazar-color-navy);background:#fff;}.footer-socials svg{width:20px;height:20px;}
+
+/* F20: minimum AA contrast for existing header controls; no layout/token redesign. */
+.catalog-button{background:#0d6be5;}
+
+.cart-line[data-unavailable="true"] .cart-line__quantity{opacity:.6;}

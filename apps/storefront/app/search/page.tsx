@@ -1,7 +1,7 @@
 import Form from 'next/form';
 import Link from 'next/link';
 import { ProductCard } from '@/components/product/product-card';
-import { parseProductSort } from '@/domain/catalog/query';
+import { parsePositiveInteger, parseProductSort } from '@/domain/catalog/query';
 import { getCatalogService } from '@/services/service-provider.server';
 
 export const metadata = { title: 'Пошук' };
@@ -13,6 +13,10 @@ export default async function SearchPage({
     q?: string | string[];
     sort?: string | string[];
     category?: string | string[];
+    page?: string | string[];
+    limit?: string | string[];
+    available?: string | string[];
+    vendor?:string|string[];
   }>;
 }) {
   const raw = await searchParams;
@@ -25,7 +29,7 @@ export default async function SearchPage({
   const sort = parseProductSort(rawSort);
   const service = getCatalogService();
   const [result, categories] = await Promise.all([
-    service.listProducts({ query, sort, category, limit: 12 }),
+    service.listProducts({ query, sort, category, page:parsePositiveInteger(one(raw.page),1), available:one(raw.available)==="true"?true:one(raw.available)==="false"?false:undefined, vendor:one(raw.vendor),limit:Math.min(24,parsePositiveInteger(one(raw.limit),8)) }),
     service.getCategories(),
   ]);
 
@@ -58,6 +62,7 @@ export default async function SearchPage({
           </p>
           <Form action="/search">
             <input type="hidden" name="q" value={query} />
+            {["limit","available","vendor"].map(k=>one(raw[k as keyof typeof raw])?<input key={k} type="hidden" name={k} value={one(raw[k as keyof typeof raw])}/>:null)}
             <label>
               Категорія{' '}
               <select name="category" defaultValue={category}>
@@ -82,6 +87,7 @@ export default async function SearchPage({
           </Form>
         </div>
       )}
+      {query&&<Link href={`/catalog?${new URLSearchParams({q:query,category:category??"",sort})}`}>Усі фільтри</Link>}
       {!query ? (
         <div className="empty-state empty-state--compact">
           <span aria-hidden="true">⌕</span>
@@ -106,6 +112,7 @@ export default async function SearchPage({
           </Link>
         </div>
       )}
+      {query&&result.pageCount>1&&<nav className="pagination" aria-label="Сторінки результатів">{Array.from({length:result.pageCount},(_,i)=>{const p=new URLSearchParams();for(const [k,v] of Object.entries(raw)){const x=one(v);if(x&&k!=="page")p.set(k,x);}p.set("page",String(i+1));return <Link key={i} href={`/search?${p}`} aria-current={result.page===i+1?"page":undefined}>{i+1}</Link>;})}</nav>}
     </div>
   );
 }

@@ -12,7 +12,7 @@ export function WishlistButton({ product }: { product: ProductSummary }) {
       <button
         className="wishlist-toggle"
         type="button"
-        disabled={busy || !ready}
+        disabled={busy || !ready || product.purchaseEnabled===false}
         aria-pressed={Boolean(item)}
         aria-label={`${item ? 'Видалити' : 'Додати'} ${product.title} ${item ? 'з обраного' : 'до обраного'}`}
         onClick={async () => {

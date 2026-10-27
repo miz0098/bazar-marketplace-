@@ -13,7 +13,7 @@ import { queryProducts } from '../domain/catalog/query';
 import { createDemoAccountService } from '../services/mock/account-service';
 import { MockContentService } from '../services/mock/content-service';
 const phone = demoProducts.find((p) => p.id === 'iphone-15')!;
-test('distinct variants keep their own prices/stock and cannot silently cap a successful add', () => {
+test('distinct binary variants preserve prices and positive requested quantities without warehouse caps', () => {
   const base = selectVariant(phone)!,
     black = selectVariant(phone, 'iphone-15-black')!;
   assert.notEqual(cartKey(base), cartKey(black));
@@ -29,16 +29,9 @@ test('distinct variants keep their own prices/stock and cannot silently cap a su
     cart.subtotal.amountMinor,
     base.price.amountMinor + black.price.amountMinor * 2,
   );
-  assert.match(cartError(cart, black, 1, true), /лише 2/);
-  assert.equal(cartReducer(cart, { type: 'add', product: black }), cart);
-  assert.equal(
-    cartReducer(cart, {
-      type: 'update',
-      productId: cartKey(black),
-      quantity: 3,
-    }),
-    cart,
-  );
+  assert.equal(cartError(cart, black, 1, true), '');
+  assert.equal(cartReducer(cart, { type: 'add', product: black }).lines[1].quantity,3);
+  assert.equal(cartReducer(cart,{type:'update',productId:cartKey(black),quantity:3}).lines[1].quantity,3);
   assert.equal(
     cartReducer(cart, { type: 'remove', productId: cartKey(black) }).lines
       .length,
@@ -71,8 +64,8 @@ test('cart restoration resolves only canonical catalog/variant data and bounds m
     ),
   );
   assert.equal(restored.lines.length, 1);
-  assert.equal(restored.itemCount, 2);
-  assert.equal(restored.subtotal.amountMinor, 4599900 * 2);
+  assert.equal(restored.itemCount, 99);
+  assert.equal(restored.subtotal.amountMinor, 4599900 * 99);
   assert.notEqual(restored.lines[0].product.title, 'forged');
   for (const data of ['{broken', 'null', '{}', '[null,1,{}]'])
     assert.deepEqual(parseStoredCart(data, demoProducts), []);

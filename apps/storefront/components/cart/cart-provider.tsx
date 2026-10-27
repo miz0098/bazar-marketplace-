@@ -40,7 +40,7 @@ export function CartProvider({
         );
       }
       if (stored)
-        setNotice('Кошик відновлено з актуальними demo-цінами та залишками.');
+        setNotice('Кошик відновлено з актуальними demo-цінами та наявністю.');
       const restored = createCart(parseStoredCart(stored, products));
       current.current = restored;
       setCart(restored);

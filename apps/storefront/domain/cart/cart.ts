@@ -3,7 +3,7 @@ import type { ProductSummary } from '@/services/contracts/catalog';
 import { cartKey, selectVariant } from '@/domain/catalog/variants';
 export const MAX_DEMO_QUANTITY = 99;
 export const quantityLimit = (product: ProductSummary) =>
-  Math.min(MAX_DEMO_QUANTITY, product.stock ?? MAX_DEMO_QUANTITY);
+  Number.isSafeInteger(product.price.amountMinor) ? MAX_DEMO_QUANTITY : 0;
 export function normalizeQuantity(value: unknown, fallback = 1) {
   const q = Number(value);
   return Number.isInteger(q) && q > 0
@@ -16,7 +16,7 @@ export function cartError(
   quantity: number,
   add = false,
 ) {
-  if (!product.available) return 'Товару немає в демонстраційній наявності.';
+  if (!product.available || product.requiresVariantSelection) return 'Товару немає в демонстраційній наявності.';
   if (!Number.isInteger(quantity) || quantity < 1)
     return 'Введіть цілу кількість від 1.';
   const total =
@@ -26,14 +26,14 @@ export function cartError(
           ?.quantity ?? 0)
       : 0);
   if (total > quantityLimit(product))
-    return `Доступно лише ${quantityLimit(product)} шт. у демо. Реальний залишок не перевіряється.`;
+    return `Ліміт одного демонстраційного запиту — ${quantityLimit(product)} одиниць. Це не складський залишок.`;
   return '';
 }
 export function createCart(lines: readonly CartLine[]): Cart {
   const merged = new Map<string, CartLine>();
   for (const l of lines) {
     if (
-      !l.product?.available ||
+      !l.product ||
       !Number.isSafeInteger(l.product.price?.amountMinor) ||
       l.product.price.amountMinor < 0 ||
       l.product.price.currency !== 'UAH'

@@ -1,3 +1,6 @@
+import {createCatalogV2Client} from '../../../storefront/lib/catalog-v2-client.js';
+import {createCatalogV2,parseQuery} from '../../src/catalog/service.js';
+import {readCartInTransaction} from '../../src/business/cart.js';
 import {createOrderLifecycleService} from '../../src/lifecycle/service.js';
 import {lifecycleFixture} from '../helpers/lifecycle.js';
 import {createOrderLifecycleClient} from '../../../storefront/lib/order-lifecycle-client.js';
@@ -91,9 +94,9 @@ test('fresh database, previous schema upgrade, rerun and concurrent migrators ar
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(`${migrationDirectory}/0001_core.sql`, `${dir}/0001_core.sql`);
   assert.equal(await migrate(db.config, dir), 1);
-  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 14]);
+  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 15]);
   assert.equal(await migrate(db.config), 0);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 15);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 16);
   assert.ok((await db.pool.query("SELECT indexname FROM pg_indexes WHERE schemaname='bazar' AND indexname='variants_available_idx'")).rowCount);
 });
 
@@ -105,10 +108,10 @@ test('modified/unknown migrations are rejected and failed DDL rolls back without
   writeFileSync(`${dir}/0001_core.sql`, first + '\n-- modified\n');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   writeFileSync(`${dir}/0001_core.sql`, first);
-  writeFileSync(`${dir}/0016_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
+  writeFileSync(`${dir}/0017_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   assert.equal((await db.pool.query("SELECT to_regclass('bazar.must_rollback') AS name")).rows[0].name, null);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 15);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 16);
   await db.pool.query("INSERT INTO bazar_meta.schema_migrations(version,checksum) VALUES ('9999',repeat('0',64))");
   await assert.rejects(migrate(db.config), /Database migration failed/);
 });
@@ -2437,7 +2440,7 @@ test("F7 upgrades F6 without rewriting existing orders; directories cover only e
   }
   await migrate(db.config, dir);
   const s = await seed(db.pool);
-  assert.equal(await migrate(db.config), 9);
+  assert.equal(await migrate(db.config), 10);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -3610,6 +3613,7 @@ test('F8 upgrades the full F7 database without changing previously saved shippin
     dir = mkdtempSync(`${tmpdir()}/bazar-f8-upgrade-`);
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(migrationDirectory, dir, { recursive: true });
+  rmSync(`${dir}/0016_catalog_v2.sql`);
   rmSync(`${dir}/0008_ukrposhta.sql`);
   rmSync(`${dir}/0009_payment_security.sql`);
   rmSync(`${dir}/0010_current_cart_checkout.sql`);
@@ -3641,7 +3645,7 @@ test('F8 upgrades the full F7 database without changing previously saved shippin
     expectedVersion: 2,
     idempotencyKey: randomUUID(),
   });
-  assert.equal(await migrate(db.config), 8);
+  assert.equal(await migrate(db.config), 9);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -4440,6 +4444,7 @@ test('F9 upgrades F8 without silently selecting legacy carts or changing payment
     dir = mkdtempSync(`${tmpdir()}/bazar-f9-upgrade-`);
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(migrationDirectory, dir, { recursive: true });
+  rmSync(`${dir}/0016_catalog_v2.sql`);
   rmSync(`${dir}/0010_current_cart_checkout.sql`);
   rmSync(`${dir}/0011_customer_account.sql`);
   rmSync(`${dir}/0012_communication_foundation.sql`);
@@ -4448,7 +4453,7 @@ test('F9 upgrades F8 without silently selecting legacy carts or changing payment
   rmSync(`${dir}/0013_order_lifecycle.sql`);
   assert.equal(await migrate(db.config, dir), 9);
   const s = await seed(db.pool);
-  assert.equal(await migrate(db.config), 6);
+  assert.equal(await migrate(db.config), 7);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -5030,6 +5035,7 @@ test('F12 upgrade preserves F11 customer data and previous migrations while addi
     dir = mkdtempSync(`${tmpdir()}/bazar-f12-upgrade-`);
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(migrationDirectory, dir, { recursive: true });
+  rmSync(`${dir}/0016_catalog_v2.sql`);
   rmSync(`${dir}/0011_customer_account.sql`);
   rmSync(`${dir}/0012_communication_foundation.sql`);
   rmSync(`${dir}/0015_notification_center.sql`);
@@ -5041,7 +5047,7 @@ test('F12 upgrade preserves F11 customer data and previous migrations while addi
     'INSERT INTO bazar.wishlist_items(user_id,product_id) VALUES ($1,$2)',
     [s.user, s.product],
   );
-  assert.equal(await migrate(db.config), 5);
+  assert.equal(await migrate(db.config), 6);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -5511,6 +5517,7 @@ test("F13 upgrades F12 with legacy messages intact, ordered sequences, valid rea
     dir = mkdtempSync(`${tmpdir()}/bazar-f13-upgrade-`);
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(migrationDirectory, dir, { recursive: true });
+  rmSync(`${dir}/0016_catalog_v2.sql`);
   rmSync(`${dir}/0012_communication_foundation.sql`);
   rmSync(`${dir}/0015_notification_center.sql`);
   rmSync(`${dir}/0014_discounted_test_checkout.sql`);
@@ -5540,7 +5547,7 @@ test("F13 upgrades F12 with legacy messages intact, ordered sequences, valid rea
     "UPDATE bazar.conversation_members SET last_read_message_id=$1",
     [later],
   );
-  assert.equal(await migrate(a.config), 4);
+  assert.equal(await migrate(a.config), 5);
   assert.equal(await migrate(a.config), 0);
   const service = createCommunicationService(a.pool);
   const history = await service.history(s.user, chat, "messages");
@@ -6061,6 +6068,7 @@ test("F14 F13 upgrade backfills immutable initial order history and preserves pr
     dir = mkdtempSync(`${tmpdir()}/bazar-f14-upgrade-`);
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(migrationDirectory, dir, { recursive: true });
+  rmSync(`${dir}/0016_catalog_v2.sql`);
   rmSync(`${dir}/0015_notification_center.sql`);
   rmSync(`${dir}/0014_discounted_test_checkout.sql`);
   rmSync(`${dir}/0013_order_lifecycle.sql`);
@@ -6092,7 +6100,7 @@ test("F14 F13 upgrade backfills immutable initial order history and preserves pr
       idempotencyKey: randomUUID(),
     })
   ).order;
-  assert.equal(await migrate(db.config), 3);
+  assert.equal(await migrate(db.config), 4);
   assert.equal(await migrate(db.config), 0);
   assert.deepEqual(await checkout.getOrder(s.user, original.id), original);
   const f = lifecycleFixture(),
@@ -6311,9 +6319,90 @@ test('F17 shared event identities deduplicate without unread reset and reject co
  await assert.rejects(emit(randomUUID()),{status:409});
 });
 test('F17 additive upgrade preserves F16 inbox cursors and reads and protects later metadata',async t=>{
- const db=await database(t),dir=mkdtempSync(`${tmpdir()}/bazar-f17-upgrade-`);t.after(()=>rmSync(dir,{recursive:true}));cpSync(migrationDirectory,dir,{recursive:true});rmSync(`${dir}/0015_notification_center.sql`);assert.equal(await migrate(db.config,dir),14);const s=await seed(db.pool);
+ const db=await database(t),dir=mkdtempSync(`${tmpdir()}/bazar-f17-upgrade-`);t.after(()=>rmSync(dir,{recursive:true}));cpSync(migrationDirectory,dir,{recursive:true});rmSync(`${dir}/0016_catalog_v2.sql`);rmSync(`${dir}/0015_notification_center.sql`);assert.equal(await migrate(db.config,dir),14);const s=await seed(db.pool);
  await db.pool.query("INSERT INTO bazar.notification_events(user_id,kind,source_id,scope_id,read_at) VALUES($1,'order.created',$2,$2,clock_timestamp())",[s.user,s.order]);
- const before=(await db.pool.query('SELECT * FROM bazar.notification_events')).rows;assert.equal(await migrate(db.config),1);assert.equal(await migrate(db.config),0);assert.deepEqual((await db.pool.query('SELECT * FROM bazar.notification_events')).rows,before);
+ const before=(await db.pool.query('SELECT * FROM bazar.notification_events')).rows;assert.equal(await migrate(db.config), 2);assert.equal(await migrate(db.config),0);assert.deepEqual((await db.pool.query('SELECT * FROM bazar.notification_events')).rows,before);
  const service=createCommunicationService(db.pool);assert.equal((await service.notificationSummary(s.user)).unread,0);
  await db.pool.query("INSERT INTO bazar.notification_events(user_id,kind,source_id,scope_id) VALUES($1,'order.status_changed',$2,$2)",[s.user,s.order]);assert.equal((await service.notificationSummary(s.user)).unread,1);
+});
+
+async function catalogCase(t:TestContext){
+ const db=await database(t);await migrate(db.config);const s=await seed(db.pool);
+ const seller=(await db.pool.query("INSERT INTO bazar.sellers(name) VALUES('Synthetic seller F20') RETURNING id")).rows[0].id;
+ await db.pool.query('INSERT INTO bazar.seller_owners(seller_id,user_id) VALUES($1,$2)',[seller,s.user]);
+ const c=await db.pool.connect();let second:string;
+ try{await c.query('BEGIN');await c.query("INSERT INTO bazar.catalog_products(product_id,seller_id,selectable,available,status,attributes,published_at) VALUES($1,$2,true,false,'published','{\"brand\":\"Синтетичний\",\"color\":\"Чорний\"}',clock_timestamp())",[s.product,seller]);
+ await c.query("INSERT INTO bazar.catalog_variants(variant_id,product_id,title,available,position) VALUES($1,$2,'Чорний 128',false,0)",[s.variant,s.product]);
+ second=(await c.query("INSERT INTO bazar.variants(product_id,sku,price_minor,stock) VALUES($1,'F20-SECOND',12345,0) RETURNING id",[s.product])).rows[0].id;
+ await c.query("INSERT INTO bazar.catalog_variants(variant_id,product_id,title,available,position) VALUES($1,$2,'Чорний 256',false,1)",[second,s.product]);
+ await c.query('COMMIT');}catch(e){await c.query('ROLLBACK');throw e;}finally{c.release();}
+ await db.pool.query("UPDATE bazar.products SET title='Синтетичний телефон' WHERE id=$1",[s.product]);
+ await db.pool.query("UPDATE bazar.variants SET stock=0 WHERE id=$1",[s.variant]);
+ await db.pool.query("UPDATE bazar.carts SET lifecycle='active' WHERE id=$1",[s.cart]);
+ await db.pool.query('INSERT INTO bazar.cart_lines(cart_id,variant_id,quantity) VALUES($1,$2,50)',[s.cart,s.variant]);
+ await db.pool.query('INSERT INTO bazar.wishlist_items(user_id,product_id) VALUES($1,$3),($2,$3)',[s.user,s.other,s.product]);
+ return {...db,s,seller,second,service:createCatalogV2(db.pool)};
+}
+test('F20 binary variant restoration preserves IDs saved carts wishlists and emits one inbox notice per recipient and transition',async t=>{
+ const a=await catalogCase(t);assert.equal((await a.service.get('synthetic')).available,false);
+ const command={expectedVersion:1,idempotencyKey:randomUUID(),variantId:a.s.variant,available:true};
+ const first=await a.service.update(a.s.user,a.s.product,command);assert.equal(first.replayed,false);
+ assert.equal((await a.service.get('synthetic')).variants.find(v=>v.id===a.s.variant)!.available,true);
+ assert.equal((await a.pool.query('SELECT stock FROM bazar.variants WHERE id=$1',[a.s.variant])).rows[0].stock,0);
+ assert.equal((await a.pool.query('SELECT count(*)::int n FROM bazar.notification_events')).rows[0].n,2);
+ await Promise.all([a.service.update(a.s.user,a.s.product,command),a.service.update(a.s.user,a.s.product,command)]);
+ assert.equal((await a.pool.query('SELECT count(*)::int n FROM bazar.notification_events')).rows[0].n,2);
+ const repo=createCartRepository(a.pool);assert.equal((await repo.get(a.s.user,a.s.cart)).lines[0].quantity,50);
+ const client=await a.pool.connect();try{await readCartInTransaction(client,a.s.cart,a.s.user,true);}finally{client.release();}
+ await a.service.update(a.s.user,a.s.product,{expectedVersion:2,idempotencyKey:randomUUID(),variantId:a.s.variant,available:false});
+ await a.service.update(a.s.user,a.s.product,{expectedVersion:3,idempotencyKey:randomUUID(),variantId:a.second,available:true});
+ assert.equal((await a.service.saved(a.s.user)).cart[0].available,false);assert.equal((await a.service.saved(a.s.other)).cart.length,0);
+ assert.equal((await a.service.get('synthetic')).available,true);assert.equal((await repo.get(a.s.user,a.s.cart)).lines[0].quantity,50);
+ const check=await a.pool.connect();try{await assert.rejects(readCartInTransaction(check,a.s.cart,a.s.user,true),{status:409});}finally{check.release();}
+ const before=(await a.pool.query('SELECT count(*)::int n FROM bazar.notification_events WHERE user_id=$1',[a.s.user])).rows[0].n;
+ await a.service.update(a.s.user,a.s.product,{expectedVersion:4,idempotencyKey:randomUUID(),variantId:a.s.variant,available:true});
+ assert.equal((await a.pool.query('SELECT count(*)::int n FROM bazar.notification_events WHERE user_id=$1',[a.s.user])).rows[0].n,before+1);
+ assert.equal((await a.pool.query('SELECT count(*)::int n FROM bazar.wishlist_items WHERE product_id=$1',[a.s.product])).rows[0].n,2);
+ const inbox=createCommunicationService(a.pool);assert.ok((await inbox.list(a.s.user,'notifications')).items.length>=2);
+});
+test('F20 category hierarchy combined Ukrainian attribute filters deterministic paging price precision and media bounds use PostgreSQL facts',async t=>{
+ const a=await catalogCase(t);const root=(await a.pool.query("INSERT INTO bazar.categories(handle,title) VALUES('f20-root','Синтетичний корінь') RETURNING id")).rows[0].id;
+ await a.pool.query('UPDATE bazar.categories SET parent_id=$1 WHERE id=(SELECT category_id FROM bazar.products WHERE id=$2)',[root,a.s.product]);
+ const categories=await a.service.categories();assert.ok(categories.some(c=>c.id===root&&c.directProductCount===0));assert.ok(categories.some(c=>c.parentId===root&&c.directProductCount===1));
+ const q=new URLSearchParams({query:'телефон',categoryId:root,brand:'Синтетичний',attribute:'color',value:'Чорний',available:'false',minPrice:'12345',maxPrice:'12345',sort:'price-asc',limit:'1'});
+ const page=await a.service.list(parseQuery(q));assert.equal(page.total,1);assert.equal(page.items[0].price!.amountMinor,12345);
+ q.set('page','2');assert.equal((await a.service.list(parseQuery(q))).items.length,0);
+ q.set('page','1');q.set('brand','missing');assert.equal((await a.service.list(parseQuery(q))).total,0);
+ await a.pool.query('UPDATE bazar.variants SET price_minor=12346 WHERE id=$1',[a.second]);assert.equal((await a.service.get(a.s.product)).price,null);
+ await assert.rejects(a.service.list(parseQuery(new URLSearchParams({sort:'price-asc'}))),{status:409});
+ await assert.rejects(a.pool.query("INSERT INTO bazar.catalog_media(product_id,path,alt,position,width,height) VALUES($1,'https://evil.invalid/x.svg','unsafe',0,10,10)",[a.s.product]),{code:'23514'});
+ await a.pool.query("INSERT INTO bazar.catalog_media(product_id,variant_id,path,alt,position,width,height) VALUES($1,$2,'/catalog-media/synthetic.png','Synthetic missing image fixture',0,10,10)",[a.s.product,a.second]);
+ assert.equal((await a.service.get(a.s.product)).media[0].variantId,a.second);
+ await assert.rejects(a.pool.query("INSERT INTO bazar.catalog_media(product_id,variant_id,path,alt,position,width,height) VALUES($1,$2,'/catalog-media/synthetic.png','Synthetic',1,10,10)",[a.s.product,randomUUID()]),{code:'23503'});
+ const child=categories.find(c=>c.parentId===root)!.id;await a.pool.query('UPDATE bazar.categories SET parent_id=$1 WHERE id=$2',[child,root]);await assert.rejects(a.service.categories(),{status:503});
+});
+test('F20 seller ownership version conflicts canonical replay immutable audit and concurrent updates cannot cross tenants',async t=>{
+ const a=await catalogCase(t);const input={expectedVersion:1,idempotencyKey:randomUUID(),variantId:a.s.variant,priceMinor:10001,available:true};
+ await assert.rejects(a.service.update(a.s.other,a.s.product,input),{status:404});
+ const out=await a.service.update(a.s.user,a.s.product,input);assert.ok(out.auditId);
+ assert.equal((await a.service.update(a.s.user,a.s.product,input)).replayed,true);
+ await assert.rejects(a.service.update(a.s.user,a.s.product,{...input,priceMinor:1}),{status:409});
+ const results=await Promise.allSettled([a.service.update(a.s.user,a.s.product,{expectedVersion:2,idempotencyKey:randomUUID(),title:'Один'}),a.service.update(a.s.user,a.s.product,{expectedVersion:2,idempotencyKey:randomUUID(),title:'Два'})]);assert.equal(results.filter(r=>r.status==='fulfilled').length,1);
+ await assert.rejects(a.pool.query('DELETE FROM bazar.catalog_audit'),/Immutable/);
+ await a.pool.query('DELETE FROM bazar.seller_owners WHERE seller_id=$1 AND user_id=$2',[a.seller,a.s.user]);await assert.rejects(a.service.update(a.s.user,a.s.product,input),{status:404});
+ assert.equal((await a.pool.query('SELECT count(*)::int n FROM bazar.catalog_audit')).rows[0].n,2);
+});
+test('F20 HTTP catalog reads validate queries CORS and seller mutations retain verified session Origin CSRF and membership guards',async t=>{
+ const a=await authentication(t),identity=await registered(a),s=await seed(a.pool),actor=identity.session.data.user.id;
+ const seller=(await a.pool.query("INSERT INTO bazar.sellers(name) VALUES('Synthetic HTTP seller') RETURNING id")).rows[0].id;
+ await a.pool.query('INSERT INTO bazar.seller_owners(seller_id,user_id) VALUES($1,$2)',[seller,actor]);
+ const c=await a.pool.connect();try{await c.query('BEGIN');await c.query("INSERT INTO bazar.catalog_products(product_id,seller_id,selectable,available,status,published_at) VALUES($1,$2,false,true,'published',now())",[s.product,seller]);await c.query("INSERT INTO bazar.catalog_variants(variant_id,product_id,title,available,position) VALUES($1,$2,'Стандартний',false,0)",[s.variant,s.product]);await c.query('COMMIT');}finally{c.release();}
+ const service=createCatalogV2(a.pool),app=createApiServer(readConfig({NODE_ENV:'test'}),createLogger('error',()=>{}),{auth:a.auth,catalogV2:service,isReady:()=>true});app.server.listen(0,'127.0.0.1');await once(app.server,'listening');a.beforeDrop.push(()=>app.shutdown());const addr=app.server.address();assert.ok(addr&&typeof addr!=='string');const base=`http://127.0.0.1:${addr.port}`;
+ const typed=createCatalogV2Client({baseUrl:base,timeoutMs:3000});assert.equal((await typed.get(s.product)).id,s.product);assert.equal((await typed.list(new URLSearchParams('available=true'))).total,1);assert.ok((await typed.categories()).length>0);
+ assert.equal((await fetch(base+'/api/v1/catalog/products')).status,200);assert.equal((await fetch(base+'/api/v1/catalog/products?sort=rating')).status,400);assert.equal((await fetch(base+'/api/v1/catalog/products?limit=0')).status,400);assert.equal((await fetch(base+'/api/v1/catalog/products',{headers:{origin:'https://evil.invalid'}})).status,403);
+ const path=base+'/api/v1/catalog/seller/products/'+s.product,body=JSON.stringify({expectedVersion:1,idempotencyKey:randomUUID(),available:false});
+ const headers={origin:a.config.publicOrigin,cookie:`__Host-bazar-session=${identity.session.token}; __Host-bazar-flow=${identity.session.flow}`,'content-type':'application/json','x-csrf-token':identity.session.data.csrfToken};
+ for(const h of [{...headers,'x-csrf-token':'forged'},{...headers,origin:'https://evil.invalid'},{origin:headers.origin,'content-type':'application/json'}])assert.ok([401,403].includes((await fetch(path,{method:'PATCH',headers:h,body})).status));
+ assert.equal((await fetch(path,{method:'PATCH',headers,body})).status,200);assert.equal((await service.get(s.product)).available,false);
+ const wish=base+'/api/v1/catalog/wishlist/'+s.product;assert.equal((await fetch(wish,{method:'PUT',headers,body:'{}'})).status,200);assert.equal((await fetch(wish,{method:'PUT',headers,body:'{}'})).status,200);const saved=await (await fetch(base+'/api/v1/catalog/saved',{headers})).json();assert.equal(saved.data.wishlist.length,1);assert.equal(saved.data.wishlist[0].available,false);assert.equal((await fetch(base+'/api/v1/catalog/saved')).status,403);assert.equal((await fetch(base+'/api/v1/catalog/saved',{headers:{origin:a.config.publicOrigin}})).status,401);assert.equal((await fetch(base+'/api/v1/catalog/saved?userId='+s.user,{headers})).status,400);assert.equal((await fetch(wish,{method:'DELETE',headers,body:'{}'})).status,200);
 });

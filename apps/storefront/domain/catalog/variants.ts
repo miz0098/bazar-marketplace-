@@ -19,7 +19,8 @@ export function selectVariant(
     variantLabel: variant.title,
     price: variant.price,
     stock: variant.stock,
-    available: variant.stock > 0,
+    available: variant.available ?? false,
+    requiresVariantSelection:false,
     compareAtPrice:
       variant.id === product.id ? product.compareAtPrice : undefined,
   };

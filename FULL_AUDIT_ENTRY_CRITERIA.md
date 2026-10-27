@@ -1,5 +1,9 @@
 # Full Audit Entry Criteria — Functional Candidate Gate
 
+## F20 implementation update — 2026-10-27
+
+[Catalog acceptance / compatibility / limits](docs/F20_CATALOG_ACCEPTANCE.md) and [ADR0018](docs/adr/0018-catalog-binary-availability.md) describe implemented catalogVersion2, additive migration0016, stable seller/product/variant IDs, binary availability, guarded test seller mutations, immutable audit, restored-event fanout through F13, exact money display, media support, query/paging and ten legacy route repairs. Actual test results belong to the PR report, not historical counts below. Older audit evidence remains unchanged. Catalog-v2 preview is explicit public read-only/non-production; default mock remains and server cart/account integration is F21. Differing-variant aggregate pricing, approved real assets/import/source/legal content and production roles/providers/channels remain gated. **No Demo100% / Full Audit Ready claim.**
+
 ## F19 target-policy update — 2026-10-27
 
 [Business Rules V1](BUSINESS_RULES_V1.md), [domain contracts](COMMERCE_DOMAIN_CONTRACTS.md), [decision register](BUSINESS_DECISION_REGISTER.md) and [F20–F29 implementation mapping](F20_F29_IMPLEMENTATION_CONTRACT.md) are the current target-policy authority. F18/F1–F17 implementation observations, counts and historical checks below are retained unchanged; this documentation does not add functional coverage or make them V1-compliant. **НЕ ГОТОВИЙ; no Demo100% / Full Audit Ready claim.** Quantitative inventory/reservations are intentionally out of scope; binary seller availability and persistent disabled saved items are required. Carrier shipping prices are operator-managed, not BAZAR-calculated; use «Вартість доставки згідно з тарифами поштового оператора». Financial rounding/allocations, legal/settlement/privacy and provider gates remain explicit. Technical representations remain proposals.
