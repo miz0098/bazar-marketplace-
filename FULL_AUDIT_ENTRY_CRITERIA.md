@@ -77,3 +77,7 @@ F22 upgrades E02/E04/E06/E07 only for the documented isolated ordinary checkout 
 ## F22.1 evidence overlay
 
 Fractional percentage/commission checkout must pass approved HALF_UP boundary and multi-seller reconciliation tests plus existing payment-gated completion and history compatibility. [F22.1 evidence](docs/F22_1_FINANCIAL_PRECISION.md) records actual results. This resolves only the fractional arithmetic gate after successful validation; full audit still requires the other buyer/operator/legal/provider/operational criteria. BAZAR remains **НЕ ГОТОВИЙ** for full marketplace audit; no Demo100% declaration.
+
+## F23 lifecycle entry criteria update
+
+Current order-state acceptance uses nine approved values, not transport/completed states. Require main5 transitions, direct/request cancellation cutoff, concurrent negative cases, isolated system escalation, full/partial/multi-seller return aggregation, independent authenticated refund proof, historical snapshot preservation and browser desktop/mobile/filter/accessibility checks. [Actual F23 evidence](docs/F23_ORDER_LIFECYCLE.md) does not prove production deadline/legal/provider/staff readiness. BAZAR remains **НЕ ГОТОВИЙ** for full marketplace audit; no Demo100% claim.

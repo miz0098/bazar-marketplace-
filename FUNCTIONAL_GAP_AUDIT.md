@@ -182,3 +182,7 @@ API: **Public** — handler реєструється в звичайному run
 ## F22 evidence overlay
 
 [Multi-seller exact checkout implementation and bounds](docs/F22_CHECKOUT_ACCEPTANCE.md). Shared ordinary isolated browser flow is connected; default preview remains. Pending rounding/free-order/minimum/legal/provider/lifecycle cases are explicit. Historical evidence is retained; no Demo100% / Production Ready or full audit claim.
+
+## F23 current implementation overlay — historical evidence retained
+
+F23 closes the bounded isolated buyer order-lifecycle slice: nine states, main delivery path, direct/request cancellation, quantity-bound partial/full returns, separate signed-test refund and deadline evidence. Historical projection tests preserve financial snapshots. This is not production carrier/refund/staff readiness. [Evidence and limitations](docs/F23_ORDER_LIFECYCLE.md).

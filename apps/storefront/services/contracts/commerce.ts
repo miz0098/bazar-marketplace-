@@ -1,3 +1,4 @@
+import type {FlowProjection} from './order-flow';
 export interface CommerceContact {firstName:string;lastName:string;phone:string;email:string;comment:string}
 export interface CommerceDelivery {sellerId:string;carrier:'nova-poshta'|'meest'|'ukrposhta';cityRef:string;pointRef:string;kind:'branch'|'parcel-locker';cityName:string;pointName:string;revision:string}
 export interface CommerceLine {lineId:string;sellerId:string;sellerName:string;productId:string;variantId:string;sku:string;title:string;characteristics:Record<string,string>;quantity:number;unitPriceMinor:number;generation:string;variantVersion:number;categoryId:string}
@@ -8,4 +9,4 @@ export interface CommercePromotionTerms {scope:'order'|'category'|'product';rule
 export interface CommerceSnapshot {version:1;mode:'integration-test';contact:CommerceContact;deliveries:CommerceDelivery[];items:CommerceLine[];financial:CommerceFinancial;promoCode:string|null;promotionId:string|null;promotionVersion:number|null;promotionTerms:CommercePromotionTerms|null;shippingPrice:'carrier-managed'}
 export interface CommerceQuote {orderId?:string|null;id:string;cartVersion:number;snapshot:CommerceSnapshot}
 export type CommercePaymentState='initiated'|'pending'|'succeeded'|'declined'|'unknown'|'verification-required';
-export interface CommerceOrder {id:string;number:string;mode:'integration-test';status:'awaiting-payment'|'confirmed'|'verification-required';paymentState:CommercePaymentState;attemptId:string|null;quote:CommerceQuote;sellerOrders:{id:string;sellerId:string;status:string;financial:SellerFinancial;delivery:CommerceDelivery}[];history:{kind:string;createdAt:string}[]}
+export interface CommerceOrder {business?:FlowProjection;id:string;number:string;mode:'integration-test';status:'awaiting-payment'|'confirmed'|'verification-required';paymentState:CommercePaymentState;attemptId:string|null;quote:CommerceQuote;sellerOrders:{id:string;sellerId:string;status:string;financial:SellerFinancial;delivery:CommerceDelivery}[];history:{kind:string;createdAt:string}[]}

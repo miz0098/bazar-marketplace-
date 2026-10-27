@@ -2,17 +2,11 @@ import type { Money, ProductSummary } from '@/services/contracts/catalog';
 
 export type AccountScenario = 'ready' | 'empty' | 'error';
 export type AccountGender = 'unspecified' | 'female' | 'male' | 'other';
-export type AccountOrderStatus = 'expected' | 'shipped' | 'delivered' | 'canceled' | 'returned';
+export type AccountOrderStatus = 'expected' | 'confirmed' | 'preparing' | 'system-cancelled' | 'returning' | 'shipped' | 'delivered' | 'canceled' | 'returned';
 export type AccountWishlistSort = 'newest' | 'price-asc' | 'price-desc' | 'name';
 export type AccountDeliveryMethod = 'nova-poshta' | 'meest' | 'ukrposhta' | 'courier';
 
-export const ACCOUNT_ORDER_STATUSES: readonly AccountOrderStatus[] = [
-  'expected',
-  'shipped',
-  'delivered',
-  'canceled',
-  'returned',
-];
+export const ACCOUNT_ORDER_STATUSES: readonly AccountOrderStatus[] = ['expected','confirmed','preparing','shipped','delivered','canceled','system-cancelled','returning','returned'];
 
 export interface AccountProfile {
   readonly firstName: string;

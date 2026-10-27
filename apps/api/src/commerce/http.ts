@@ -9,11 +9,13 @@ export async function handleCommerce(req:IncomingMessage,res:ServerResponse,url:
  if(url.pathname==='/api/v1/commerce/webhook'){if(req.method!=='POST')throw new ApiError(405,'METHOD_NOT_ALLOWED','Method denied.');if(url.search)throw new ApiError(400,'INVALID_REQUEST','Queries denied.');const sig=req.headers['x-payment-signature'];if(typeof sig!=='string'||sig.length>300)throw new ApiError(403,'PAYMENT_AUTH_FAILED','Signature required.');return service.webhook(await rawBody(req,res),sig);}
  const read=req.method==='GET'||req.method==='HEAD';const actor=(await authorize(req,auth,!read)).userId;
  if(read&&(req.headers['transfer-encoding']||Number(req.headers['content-length']??0)))throw new ApiError(400,'INVALID_REQUEST','Read body denied.');
- const p=url.pathname.slice('/api/v1/commerce'.length);if(p==='/directory'&&read)return service.directory(url.searchParams);if(url.search)throw new ApiError(400,'INVALID_REQUEST','Queries denied.');
+ const p=url.pathname.slice('/api/v1/commerce'.length);if(p==='/directory'&&read)return service.directory(url.searchParams);if(url.search&&!(p==='/orders'&&read))throw new ApiError(400,'INVALID_REQUEST','Queries denied.');
  if(p==='/quotes'&&req.method==='POST')return service.quote(actor,await readJson(req,res));
- if(p==='/orders'&&read)return service.listOrders(actor);
+ if(p==='/orders'&&read)return service.listOrders(actor,url.searchParams);
  let match=p.match(/^\/quotes\/([^/]+)$/);if(match&&read)return service.getQuote(actor,match[1]);
  match=p.match(/^\/quotes\/([^/]+)\/pay$/);if(match&&req.method==='POST')return service.initiate(actor,match[1],await readJson(req,res));
+ match=p.match(/^\/orders\/([^/]+)\/lifecycle$/);if(match&&read)return service.flow.get(actor,match[1]);
+ match=p.match(/^\/seller-orders\/([^/]+)\/(cancel|returns|prepare|approve-cancellation|receive-return|respond-escalation|refunds)$/);if(match&&req.method==='POST'){const b=await readJson(req,res),id=match[1];switch(match[2]){case 'cancel':return service.flow.cancel(actor,id,b);case 'returns':return service.flow.requestReturn(actor,id,b);case 'prepare':return service.flow.prepare(actor,id,b);case 'approve-cancellation':return service.flow.approveCancellation(actor,id,b);case 'receive-return':return service.flow.receiveReturn(actor,id,b);case 'respond-escalation':return service.flow.respondEscalation(actor,id,b);case 'refunds':return service.flow.prepareRefund(actor,id,b);}}
  match=p.match(/^\/orders\/([^/]+)$/);if(match&&read)return service.getOrder(actor,match[1]);
  match=p.match(/^\/orders\/([^/]+)\/reconcile$/);if(match&&req.method==='POST'){const b=await readJson(req,res);if(!b||typeof b!=='object'||Array.isArray(b)||Object.keys(b).length)throw new ApiError(400,'INVALID_REQUEST','Empty object required.');return service.reconcile(actor,match[1]);}
  match=p.match(/^\/seller-orders\/([^/]+)$/);if(match&&read)return service.sellerOrder(actor,match[1]);

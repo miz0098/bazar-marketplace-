@@ -119,7 +119,7 @@ Each shipment gets its own provider tracking identity; no one parent tracking fi
 
 ## Cancellation and lifecycle state contracts
 
-Target seller-order labels/technical codes below express the approved buyer-action policy, not the current limited SQL status enum. Core expected path New→Confirmed→Preparing→Shipped→In transit→Delivered→Completed requires explicit authorized transition evidence (PD-07/EX-02) before implementation; no caller may submit arbitrary status. Terminal cancellation labels are separate from payment/refund axes.
+Target seller-order labels/technical codes below express the approved buyer-action policy, not the current limited SQL status enum. Core expected path New→Confirmed→Preparing→Shipped→Delivered requires explicit authorized transition evidence (PD-07/EX-02) before implementation; no caller may submit arbitrary status. Terminal cancellation labels are separate from payment/refund axes.
 
 | Locked seller-order state | Buyer action approved | Responsible processing | Forbidden inference |
 | --- | --- | --- | --- |
@@ -127,9 +127,7 @@ Target seller-order labels/technical codes below express the approved buyer-acti
 | Confirmed / `confirmed` | Direct cancellation | Same owner/state guard | Seller-start-preparation race cannot bypass cutoff |
 | Готується до відправлення / `preparing` | Cancellation request only | Owning seller processes; staff/legal escalation as required | No direct buyer state update |
 | Shipped / `shipped` | Cancellation request only | Own seller; carrier interception separately verified | Seller approval is not proof parcel stopped or returned |
-| In transit / `in_transit` | Cancellation request only | Own seller; escalation/legal rights preserved | No automatic undo of shipment or money |
 | Delivered / `delivered` | Return procedure | Owned item-level return under PL-01 | No direct cancellation shortcut |
-| Completed / `completed` | Return procedure | Same legal entitlement gate | “Completed” does not waive statutory rights |
 | Cancelled / `cancelled`; Скасовано системою / `system_cancelled` | Replay/history/status, any further remedy per legal policy | Idempotent evidence-preserving workflow | No automatic refund success or sibling cancellation |
 | Повернено / `returned` | Applicable verified uncollected-return resolution | Carrier facts+seller/staff, legal financial resolution | Does not assert merchandise inspection, buyer fault or refund completion |
 
@@ -240,3 +238,11 @@ F22 immutable promotion terms include scope, fixed-minor amount or percentage ba
 New commerce financial snapshots use `commerce-v2-half-up`, `rounding: half-up`, `roundingPolicy: positive-minor-half-up-v1`, and `commissionBasis: seller-net-merchandise-after-promotions-excluding-shipping`. Percentage discount is HALF_UP(eligible minor subtotal × basisPoints / 10000); allocate its capped integer result using the existing largest-remainder immutable-line tie-break. Commission is HALF_UP(seller net minor subtotal × 5 / 100). Parent = sum of line/seller allocations exactly. All stored money remains integer minor units.
 
 Historical `commerce-v1-largest-remainder` snapshots are read unchanged, with their recorded rounding and amounts; no backfill/recalculation. Existing exact-only reviewed quotes can complete using their original policy. JSON snapshot storage already supports the metadata, so no SQL migration or edits to0001–0018. Frozen lines/quantities/eligibility/net/terms and policy remain the future refund basis; unit-level partial attribution and refund legal/provider finality remain F23 gates.
+
+## F23 current lifecycle contract — APPROVED vocabulary
+
+The authoritative operational sidecar uses only BR-L23-01's nine states. Existing F22 `status` is a historical checkout-commit/financial projection, not the customer operational status; it remains backward-compatible and immutable in its existing rules. New `business.parentStatus` / `business.sellerOrders` provide operational state. Homogeneous sellers aggregate to their common state; heterogeneous sellers yield null plus component states, never a fabricated tenth state. Filtering by a state matches any owned seller component before the100-row bound.
+
+Direct cancellation is a locked owner command at new/confirmed; preparing/shipped creates a seller request. Delivered/returning accepts bounded owned return items. Received partial units preserve seller delivered while units remain (or returning while other requests are open); whole seller returned requires all units. Refunds use frozen discounted line net, never commission-subtracted seller proceeds. Full-line refunds need no per-unit rounding; partial quantities are enabled only when exact unit attribution is integral, otherwise policy-required. Verified isolated refund events never claim real funds returned.
+
+Migration0019 adds operational/version/request/return/refund/escalation/audit sidecars, backfills F22 confirmed→confirmed and other financial intents→new, leaves source snapshots/statuses/history untouched. Legacy removed labels may be projected read-only to shipped/delivered only when their source semantics are known; unknown legacy fulfillment labels require reviewed import mapping. Signed test transport updates shipment history without creating an order transport state. Production calendar/legal/grants/providers remain gated; explicit isolated policies test5 calendar days→assigned support case→48h response→affected-seller system cancellation/refund intent without asserting a performed refund.

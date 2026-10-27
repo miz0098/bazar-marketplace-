@@ -135,3 +135,7 @@ Stock/ціни беруться з поточних **demo fixtures**, не prod
 ## F22 evidence overlay
 
 [Multi-seller exact checkout implementation and bounds](docs/F22_CHECKOUT_ACCEPTANCE.md). Shared ordinary isolated browser flow is connected; default preview remains. Pending rounding/free-order/minimum/legal/provider/lifecycle cases are explicit. Historical evidence is retained; no Demo100% / Production Ready or full audit claim.
+
+## F23 current implementation overlay — historical evidence retained
+
+F23 adds desktop/mobile scenarios for nine status choices, no removed labels, main carrier observations, direct cancellation with owner/CSRF/replay negatives, partial returns without whole-parent Returned, history/notifications, keyboard/axe/overflow. Final counts and explicit gates are in F23 evidence; no Demo100% claim. [Evidence and limitations](docs/F23_ORDER_LIFECYCLE.md).

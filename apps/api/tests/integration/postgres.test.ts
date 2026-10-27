@@ -1,3 +1,4 @@
+import {orderFlowFixture} from '../helpers/order-flow.js';
 import {createCommerceService} from '../../src/commerce/service.js';
 import {generatePromoCode} from '../../src/commerce/finance.js';
 import {createOfferService} from '../../src/catalog/offers.js';
@@ -98,9 +99,9 @@ test('fresh database, previous schema upgrade, rerun and concurrent migrators ar
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(`${migrationDirectory}/0001_core.sql`, `${dir}/0001_core.sql`);
   assert.equal(await migrate(db.config, dir), 1);
-  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 17]);
+  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 18]);
   assert.equal(await migrate(db.config), 0);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 18);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 19);
   assert.ok((await db.pool.query("SELECT indexname FROM pg_indexes WHERE schemaname='bazar' AND indexname='variants_available_idx'")).rowCount);
 });
 
@@ -112,10 +113,10 @@ test('modified/unknown migrations are rejected and failed DDL rolls back without
   writeFileSync(`${dir}/0001_core.sql`, first + '\n-- modified\n');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   writeFileSync(`${dir}/0001_core.sql`, first);
-  writeFileSync(`${dir}/0019_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
+  writeFileSync(`${dir}/0020_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   assert.equal((await db.pool.query("SELECT to_regclass('bazar.must_rollback') AS name")).rows[0].name, null);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 18);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 19);
   await db.pool.query("INSERT INTO bazar_meta.schema_migrations(version,checksum) VALUES ('9999',repeat('0',64))");
   await assert.rejects(migrate(db.config), /Database migration failed/);
 });
@@ -2444,7 +2445,7 @@ test("F7 upgrades F6 without rewriting existing orders; directories cover only e
   }
   await migrate(db.config, dir);
   const s = await seed(db.pool);
-  assert.equal(await migrate(db.config), 12);
+  assert.equal(await migrate(db.config), 13);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -3617,7 +3618,7 @@ test('F8 upgrades the full F7 database without changing previously saved shippin
     dir = mkdtempSync(`${tmpdir()}/bazar-f8-upgrade-`);
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(migrationDirectory, dir, { recursive: true });
-  rmSync(`${dir}/0018_commerce_checkout.sql`);rmSync(`${dir}/0017_seller_offers.sql`);rmSync(`${dir}/0016_catalog_v2.sql`);
+  rmSync(`${dir}/0019_seller_order_lifecycle.sql`);rmSync(`${dir}/0018_commerce_checkout.sql`);rmSync(`${dir}/0017_seller_offers.sql`);rmSync(`${dir}/0016_catalog_v2.sql`);
   rmSync(`${dir}/0008_ukrposhta.sql`);
   rmSync(`${dir}/0009_payment_security.sql`);
   rmSync(`${dir}/0010_current_cart_checkout.sql`);
@@ -3649,7 +3650,7 @@ test('F8 upgrades the full F7 database without changing previously saved shippin
     expectedVersion: 2,
     idempotencyKey: randomUUID(),
   });
-  assert.equal(await migrate(db.config), 11);
+  assert.equal(await migrate(db.config), 12);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -4448,7 +4449,7 @@ test('F9 upgrades F8 without silently selecting legacy carts or changing payment
     dir = mkdtempSync(`${tmpdir()}/bazar-f9-upgrade-`);
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(migrationDirectory, dir, { recursive: true });
-  rmSync(`${dir}/0018_commerce_checkout.sql`);rmSync(`${dir}/0017_seller_offers.sql`);rmSync(`${dir}/0016_catalog_v2.sql`);
+  rmSync(`${dir}/0019_seller_order_lifecycle.sql`);rmSync(`${dir}/0018_commerce_checkout.sql`);rmSync(`${dir}/0017_seller_offers.sql`);rmSync(`${dir}/0016_catalog_v2.sql`);
   rmSync(`${dir}/0010_current_cart_checkout.sql`);
   rmSync(`${dir}/0011_customer_account.sql`);
   rmSync(`${dir}/0012_communication_foundation.sql`);
@@ -4457,7 +4458,7 @@ test('F9 upgrades F8 without silently selecting legacy carts or changing payment
   rmSync(`${dir}/0013_order_lifecycle.sql`);
   assert.equal(await migrate(db.config, dir), 9);
   const s = await seed(db.pool);
-  assert.equal(await migrate(db.config), 9);
+  assert.equal(await migrate(db.config), 10);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -5039,7 +5040,7 @@ test('F12 upgrade preserves F11 customer data and previous migrations while addi
     dir = mkdtempSync(`${tmpdir()}/bazar-f12-upgrade-`);
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(migrationDirectory, dir, { recursive: true });
-  rmSync(`${dir}/0018_commerce_checkout.sql`);rmSync(`${dir}/0017_seller_offers.sql`);rmSync(`${dir}/0016_catalog_v2.sql`);
+  rmSync(`${dir}/0019_seller_order_lifecycle.sql`);rmSync(`${dir}/0018_commerce_checkout.sql`);rmSync(`${dir}/0017_seller_offers.sql`);rmSync(`${dir}/0016_catalog_v2.sql`);
   rmSync(`${dir}/0011_customer_account.sql`);
   rmSync(`${dir}/0012_communication_foundation.sql`);
   rmSync(`${dir}/0015_notification_center.sql`);
@@ -5051,7 +5052,7 @@ test('F12 upgrade preserves F11 customer data and previous migrations while addi
     'INSERT INTO bazar.wishlist_items(user_id,product_id) VALUES ($1,$2)',
     [s.user, s.product],
   );
-  assert.equal(await migrate(db.config), 8);
+  assert.equal(await migrate(db.config), 9);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -5521,7 +5522,7 @@ test("F13 upgrades F12 with legacy messages intact, ordered sequences, valid rea
     dir = mkdtempSync(`${tmpdir()}/bazar-f13-upgrade-`);
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(migrationDirectory, dir, { recursive: true });
-  rmSync(`${dir}/0018_commerce_checkout.sql`);rmSync(`${dir}/0017_seller_offers.sql`);rmSync(`${dir}/0016_catalog_v2.sql`);
+  rmSync(`${dir}/0019_seller_order_lifecycle.sql`);rmSync(`${dir}/0018_commerce_checkout.sql`);rmSync(`${dir}/0017_seller_offers.sql`);rmSync(`${dir}/0016_catalog_v2.sql`);
   rmSync(`${dir}/0012_communication_foundation.sql`);
   rmSync(`${dir}/0015_notification_center.sql`);
   rmSync(`${dir}/0014_discounted_test_checkout.sql`);
@@ -5551,7 +5552,7 @@ test("F13 upgrades F12 with legacy messages intact, ordered sequences, valid rea
     "UPDATE bazar.conversation_members SET last_read_message_id=$1",
     [later],
   );
-  assert.equal(await migrate(a.config), 7);
+  assert.equal(await migrate(a.config), 8);
   assert.equal(await migrate(a.config), 0);
   const service = createCommunicationService(a.pool);
   const history = await service.history(s.user, chat, "messages");
@@ -6072,7 +6073,7 @@ test("F14 F13 upgrade backfills immutable initial order history and preserves pr
     dir = mkdtempSync(`${tmpdir()}/bazar-f14-upgrade-`);
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(migrationDirectory, dir, { recursive: true });
-  rmSync(`${dir}/0018_commerce_checkout.sql`);rmSync(`${dir}/0017_seller_offers.sql`);rmSync(`${dir}/0016_catalog_v2.sql`);
+  rmSync(`${dir}/0019_seller_order_lifecycle.sql`);rmSync(`${dir}/0018_commerce_checkout.sql`);rmSync(`${dir}/0017_seller_offers.sql`);rmSync(`${dir}/0016_catalog_v2.sql`);
   rmSync(`${dir}/0015_notification_center.sql`);
   rmSync(`${dir}/0014_discounted_test_checkout.sql`);
   rmSync(`${dir}/0013_order_lifecycle.sql`);
@@ -6104,7 +6105,7 @@ test("F14 F13 upgrade backfills immutable initial order history and preserves pr
       idempotencyKey: randomUUID(),
     })
   ).order;
-  assert.equal(await migrate(db.config), 6);
+  assert.equal(await migrate(db.config), 7);
   assert.equal(await migrate(db.config), 0);
   assert.deepEqual(await checkout.getOrder(s.user, original.id), original);
   const f = lifecycleFixture(),
@@ -6323,9 +6324,9 @@ test('F17 shared event identities deduplicate without unread reset and reject co
  await assert.rejects(emit(randomUUID()),{status:409});
 });
 test('F17 additive upgrade preserves F16 inbox cursors and reads and protects later metadata',async t=>{
- const db=await database(t),dir=mkdtempSync(`${tmpdir()}/bazar-f17-upgrade-`);t.after(()=>rmSync(dir,{recursive:true}));cpSync(migrationDirectory,dir,{recursive:true});rmSync(`${dir}/0018_commerce_checkout.sql`);rmSync(`${dir}/0017_seller_offers.sql`);rmSync(`${dir}/0016_catalog_v2.sql`);rmSync(`${dir}/0015_notification_center.sql`);assert.equal(await migrate(db.config,dir),14);const s=await seed(db.pool);
+ const db=await database(t),dir=mkdtempSync(`${tmpdir()}/bazar-f17-upgrade-`);t.after(()=>rmSync(dir,{recursive:true}));cpSync(migrationDirectory,dir,{recursive:true});rmSync(`${dir}/0019_seller_order_lifecycle.sql`);rmSync(`${dir}/0018_commerce_checkout.sql`);rmSync(`${dir}/0017_seller_offers.sql`);rmSync(`${dir}/0016_catalog_v2.sql`);rmSync(`${dir}/0015_notification_center.sql`);assert.equal(await migrate(db.config,dir),14);const s=await seed(db.pool);
  await db.pool.query("INSERT INTO bazar.notification_events(user_id,kind,source_id,scope_id,read_at) VALUES($1,'order.created',$2,$2,clock_timestamp())",[s.user,s.order]);
- const before=(await db.pool.query('SELECT * FROM bazar.notification_events')).rows;assert.equal(await migrate(db.config), 4);assert.equal(await migrate(db.config),0);assert.deepEqual((await db.pool.query('SELECT * FROM bazar.notification_events')).rows,before);
+ const before=(await db.pool.query('SELECT * FROM bazar.notification_events')).rows;assert.equal(await migrate(db.config), 5);assert.equal(await migrate(db.config),0);assert.deepEqual((await db.pool.query('SELECT * FROM bazar.notification_events')).rows,before);
  const service=createCommunicationService(db.pool);assert.equal((await service.notificationSummary(s.user)).unread,0);
  await db.pool.query("INSERT INTO bazar.notification_events(user_id,kind,source_id,scope_id) VALUES($1,'order.status_changed',$2,$2)",[s.user,s.order]);assert.equal((await service.notificationSummary(s.user)).unread,1);
 });
@@ -6515,4 +6516,55 @@ test('F22.1 historical F22 exact-only quote stays readable and payable without r
  const a=await commerceCase(t),q=await a.service.quote(a.user,a.input);const {calculateCommerce}=await import('../../src/commerce/finance.js');const historical={...q.snapshot,financial:calculateCommerce(q.snapshot.items.map(l=>({...l,eligible:true})),null,'exact-only')};
  const legacy=(await a.pool.query('INSERT INTO bazar.commerce_checkouts(user_id,cart_id,request_key,request_digest,cart_version,snapshot,fingerprint) SELECT user_id,cart_id,$2,request_digest,cart_version,$3,fingerprint FROM bazar.commerce_checkouts WHERE id=$1 RETURNING id',[q.id,randomUUID(),JSON.stringify(historical)])).rows[0].id;
  assert.deepEqual((await a.service.getQuote(a.user,legacy)).snapshot,historical);const o=await a.service.initiate(a.user,legacy,{idempotencyKey:randomUUID(),method:'card'});assert.equal(o.quote.snapshot.financial.version,'commerce-v1-largest-remainder');assert.equal(o.quote.snapshot.financial.rounding,'exact-only');assert.equal(o.quote.snapshot.financial.netMinor,1000000);
+});
+
+async function flowCase(t:TestContext,quantity=1,paid=true,discount?:number){
+ const a=await commerceCase(t),f=orderFlowFixture(a.other);if(quantity!==1)await a.cart.mutate(a.user,'set',{quantity,expectedVersion:3,idempotencyKey:randomUUID()},a.offers[0].id);
+ let code:string|null=null;if(discount!==undefined){const p=await a.promo('fixed','product');await a.pool.query('UPDATE bazar.promotions SET fixed_minor=$2 WHERE id=$1',[p.id,discount]);await a.pool.query('INSERT INTO bazar.promotion_products(promotion_id,product_id) VALUES($1,$2)',[p.id,a.offers[0].productId]);code=p.code;}const service=createCommerceService(a.pool,a.pay.adapter,a.ship.adapters,f.policy),q=await service.quote(a.user,{...a.input,expectedCartVersion:quantity===1?3:4,promoCode:code}),o=await service.initiate(a.user,q.id,{idempotencyKey:randomUUID(),method:'card'});
+ if(paid){const proof=a.pay.signed(a.pay.event(o.attemptId!,'succeeded'));await service.webhook(proof.raw,proof.signature);}
+ const flow=service.flow;
+ const current=async(id:string)=>(await flow.get(a.user,o.id)).sellerOrders.find(s=>s.id===id)!;
+ const first=o.sellerOrders.find(s=>s.sellerId===q.snapshot.items.find(i=>i.variantId===a.offers[0].id)!.sellerId)!,second=o.sellerOrders.find(s=>s.id!==first.id)!;
+ const cmd=async(id:string,extra:Record<string,unknown>={}):Promise<Record<string,unknown>&{idempotencyKey:string;expectedVersion:number}>=>({idempotencyKey:randomUUID(),expectedVersion:(await current(id)).version,...extra});
+ const transport=async(id:string,kind:'shipped'|'transport'|'delivered')=>{const p=f.sign({eventId:randomUUID(),sellerOrderId:id,kind,trackingRef:'SYNTHETIC-'+id});await flow.transport(p.raw,p.signature);return p;};
+ const deliver=async(id=first.id,owner=a.offers[0].owner)=>{await flow.prepare(owner,id,await cmd(id));await transport(id,'shipped');await transport(id,'delivered');};
+ return {...a,service,f,flow,q,o,first,second,current,cmd,transport,deliver};
+}
+test('F23 five main states carrier transport history and owner isolation never expose removed order states',async t=>{
+ const a=await flowCase(t,1,false);assert.equal((await a.current(a.first.id)).status,'new');const proof=a.pay.signed(a.pay.event(a.o.attemptId!,'succeeded'));await a.service.webhook(proof.raw,proof.signature);assert.equal((await a.current(a.first.id)).status,'confirmed');
+ await assert.rejects(a.flow.prepare(a.other,a.first.id,await a.cmd(a.first.id)),{status:404});await assert.rejects(a.flow.get(a.other,a.o.id),{status:404});await a.flow.prepare(a.offers[0].owner,a.first.id,await a.cmd(a.first.id));assert.equal((await a.current(a.first.id)).status,'preparing');
+ const shipped=await a.transport(a.first.id,'shipped');await a.flow.transport(shipped.raw,shipped.signature);assert.equal((await a.current(a.first.id)).status,'shipped');await a.transport(a.first.id,'transport');assert.equal((await a.current(a.first.id)).status,'shipped');await a.transport(a.first.id,'delivered');assert.equal((await a.current(a.first.id)).status,'delivered');await assert.rejects(a.flow.prepare(a.offers[0].owner,a.first.id,await a.cmd(a.first.id)));await assert.rejects(a.pool.query("UPDATE bazar.commerce_order_lifecycle SET status='completed',version=version+1 WHERE seller_order_id=$1",[a.first.id]));await assert.rejects(a.flow.transport(shipped.raw,'forged'));assert.equal((await a.current(a.second.id)).status,'confirmed');
+});
+test('F23 direct buyer cancellation replays once while request cutoff races and seller approval stay isolated',async t=>{
+ const a=await flowCase(t),b=await a.cmd(a.first.id,{reason:'Синтетична причина'});await a.flow.cancel(a.user,a.first.id,b);await a.flow.cancel(a.user,a.first.id,b);await a.flow.cancel(a.user,a.first.id,{reason:b.reason,expectedVersion:b.expectedVersion,idempotencyKey:b.idempotencyKey});assert.equal((await a.current(a.first.id)).status,'cancelled');assert.equal((await a.current(a.second.id)).status,'confirmed');assert.equal((await a.flow.get(a.user,a.o.id)).parentStatus,null);
+ await a.flow.prepare(a.offers[3].owner,a.second.id,await a.cmd(a.second.id));await a.flow.cancel(a.user,a.second.id,await a.cmd(a.second.id,{reason:'Прошу продавця розглянути'}));let v=await a.flow.get(a.user,a.o.id);assert.equal((await a.current(a.second.id)).status,'preparing');const request=v.requests.find(r=>r.sellerOrderId===a.second.id)!;await assert.rejects(a.flow.approveCancellation(a.offers[0].owner,a.second.id,await a.cmd(a.second.id,{requestId:request.id})),{status:404});await a.flow.approveCancellation(a.offers[3].owner,a.second.id,await a.cmd(a.second.id,{requestId:request.id}));v=await a.flow.get(a.user,a.o.id);assert.equal(v.parentStatus,'cancelled');assert.equal(v.fundsReturned,false);assert.equal((await a.service.getOrder(a.user,a.o.id)).paymentState,'succeeded');
+ const race=await flowCase(t);const version=await race.cmd(race.first.id);const outcomes=await Promise.allSettled([race.flow.prepare(race.offers[0].owner,race.first.id,version),race.flow.cancel(race.user,race.first.id,{...version,idempotencyKey:randomUUID(),reason:'Перевірка конкуренції'})]);assert.equal(outcomes.filter(r=>r.status==='fulfilled').length,1);
+});
+test('F23 cancellation during unresolved payment preserves cart and payment proof without pretending refund',async t=>{
+ const a=await flowCase(t,1,false);await a.flow.cancel(a.user,a.first.id,await a.cmd(a.first.id,{reason:'Скасування до підтвердження'}));const p=a.pay.signed(a.pay.event(a.o.attemptId!,'succeeded'));await a.service.webhook(p.raw,p.signature);const o=await a.service.getOrder(a.user,a.o.id);assert.equal(o.paymentState,'succeeded');assert.equal(o.status,'verification-required');assert.equal((await a.cart.get(a.user)).cart.lines.length,2);assert.equal((await a.current(a.second.id)).status,'new');assert.equal((await a.flow.get(a.user,a.o.id)).fundsReturned,false);
+});
+test('F23 partial and full returns keep parent and seller quantities exact with no refund inference',async t=>{
+ const a=await flowCase(t,2);await a.deliver();const line=a.offers[0].id;let v=await a.flow.requestReturn(a.user,a.first.id,await a.cmd(a.first.id,{reason:'Часткове тестове повернення',items:[{lineId:line,quantity:1}]}));let request=v.requests.find((r:{kind:string})=>r.kind==='return')!;assert.equal((await a.current(a.first.id)).status,'returning');await a.flow.receiveReturn(a.offers[0].owner,a.first.id,await a.cmd(a.first.id,{requestId:request.id}));assert.equal((await a.current(a.first.id)).status,'delivered');assert.notEqual((await a.flow.get(a.user,a.o.id)).parentStatus,'returned');
+ await assert.rejects(a.flow.requestReturn(a.user,a.first.id,await a.cmd(a.first.id,{reason:'Надмірна кількість',items:[{lineId:line,quantity:2}]})));await a.flow.requestReturn(a.user,a.first.id,await a.cmd(a.first.id,{reason:'Решта товарів',items:[{lineId:line,quantity:1}]}));v=await a.flow.get(a.user,a.o.id);request=v.requests.find((r:{state:string})=>r.state==='requested')!;await a.flow.receiveReturn(a.offers[0].owner,a.first.id,await a.cmd(a.first.id,{requestId:request.id}));assert.equal((await a.current(a.first.id)).status,'returned');assert.notEqual((await a.flow.get(a.user,a.o.id)).parentStatus,'returned');
+ await a.deliver(a.second.id,a.offers[3].owner);v=await a.flow.requestReturn(a.user,a.second.id,await a.cmd(a.second.id,{reason:'Повне тестове повернення',items:[{lineId:a.offers[3].id,quantity:1}]}));request=v.requests.find((r:{sellerOrderId:string})=>r.sellerOrderId===a.second.id)!;await a.flow.receiveReturn(a.offers[3].owner,a.second.id,await a.cmd(a.second.id,{requestId:request.id}));v=await a.flow.get(a.user,a.o.id);assert.equal(v.parentStatus,'returned');assert.equal(v.fundsReturned,false);assert.equal((await a.service.getOrder(a.user,a.o.id)).quote.snapshot.financial.netMinor,1800000);
+});
+test('F23 refunded net uses verified payment capacity exact partial units and authenticated test finality only',async t=>{
+ const a=await flowCase(t,2);await a.deliver();let v=await a.flow.requestReturn(a.user,a.first.id,await a.cmd(a.first.id,{reason:'Тестове повернення одиниці',items:[{lineId:a.offers[0].id,quantity:1}]}));const req=v.requests[0];await a.flow.receiveReturn(a.offers[0].owner,a.first.id,await a.cmd(a.first.id,{requestId:req.id}));const cmd=await a.cmd(a.first.id,{requestId:req.id});v=await a.flow.prepareRefund(a.user,a.first.id,cmd);await a.flow.prepareRefund(a.user,a.first.id,cmd);const refund=v.refunds[0];assert.equal(refund.amountMinor,800000);assert.equal(refund.fundsReturned,false);const event={eventId:randomUUID(),refundId:refund.id,paymentOperationId:a.o.attemptId!,accountRef:a.f.refund.adapter.accountRef,amountMinor:refund.amountMinor,currency:'UAH',state:'confirmed-for-test'};const signed=a.f.refund.signed(event);await assert.rejects(a.flow.refundEvent(signed.raw,'forged'));const wrong=a.f.refund.signed({...event,amountMinor:refund.amountMinor+1});await assert.rejects(a.flow.refundEvent(wrong.raw,wrong.signature));await a.flow.refundEvent(signed.raw,signed.signature);await a.flow.refundEvent(signed.raw,signed.signature);const repeated=a.f.refund.signed({...event,eventId:randomUUID()});await a.flow.refundEvent(repeated.raw,repeated.signature);v=await a.flow.get(a.user,a.o.id);assert.equal(v.refunds[0].state,'confirmed-for-test');assert.equal(v.fundsReturned,false);assert.equal((await a.pool.query("SELECT count(*)::int n FROM bazar.notification_events WHERE kind='refund.completed' AND scope_id=$1",[a.o.id])).rows[0].n,1);await assert.rejects(a.pool.query('UPDATE bazar.commerce_return_refunds SET amount_minor=1 WHERE id=$1',[refund.id]));
+});
+test('F23 deadline escalation assigns support once, response does not prove shipping, silence cancels only affected seller',async t=>{
+ const a=await flowCase(t);await a.flow.prepare(a.offers[0].owner,a.first.id,await a.cmd(a.first.id));await a.flow.prepare(a.offers[3].owner,a.second.id,await a.cmd(a.second.id));a.f.clock.now=new Date(Date.parse((await a.current(a.second.id)).dispatchDueAt!)+1);await a.flow.deadlines();await a.flow.deadlines();assert.equal((await a.pool.query('SELECT count(*)::int n FROM bazar.commerce_dispatch_escalations')).rows[0].n,2);await a.flow.respondEscalation(a.offers[3].owner,a.second.id,await a.cmd(a.second.id,{message:'Тестова відповідь без підтвердження відправлення'}));a.f.clock.now=new Date(a.f.clock.now.getTime()+48*60*60*1000);await a.flow.deadlines();await a.flow.deadlines();assert.equal((await a.current(a.first.id)).status,'system-cancelled');assert.equal((await a.current(a.second.id)).status,'preparing');assert.equal((await a.pool.query('SELECT count(*)::int n FROM bazar.commerce_refund_intents')).rows[0].n,1);const late=await a.transport(a.first.id,'shipped');await a.flow.transport(late.raw,late.signature);assert.equal((await a.current(a.first.id)).status,'system-cancelled');assert.equal((await a.current(a.first.id)).shipmentState,'shipped');assert.equal((await a.flow.get(a.user,a.o.id)).fundsReturned,false);
+});
+test('F23 immutable audit notifications and foreign return lines survive failed/repeated requests',async t=>{
+ const a=await flowCase(t);await a.deliver();const before=(await a.flow.get(a.user,a.o.id)).history.length;await assert.rejects(a.flow.requestReturn(a.user,a.first.id,await a.cmd(a.first.id,{reason:'Чужий продавець',items:[{lineId:a.offers[3].id,quantity:1}]})));assert.equal((await a.flow.get(a.user,a.o.id)).history.length,before);await assert.rejects(a.pool.query('DELETE FROM bazar.commerce_lifecycle_events WHERE seller_order_id=$1',[a.first.id]));const b=await a.cmd(a.first.id,{reason:'Тестовий запит',items:[{lineId:a.offers[0].id,quantity:1}]});await a.flow.requestReturn(a.user,a.first.id,b);await a.flow.requestReturn(a.user,a.first.id,b);assert.equal((await a.pool.query("SELECT count(*)::int n FROM bazar.notification_events WHERE kind='return.requested' AND scope_id=$1",[a.o.id])).rows[0].n,1);
+});
+
+test('F23 full discounted line refunds preserve its exact net while fractional partial-unit allocation stays policy-gated',async t=>{
+ const a=await flowCase(t,3,true,1);await a.deliver();let v=await a.flow.requestReturn(a.user,a.first.id,await a.cmd(a.first.id,{reason:'Частина з дробовою одиничною знижкою',items:[{lineId:a.offers[0].id,quantity:1}]}));let req=v.requests[0];await a.flow.receiveReturn(a.offers[0].owner,a.first.id,await a.cmd(a.first.id,{requestId:req.id}));await assert.rejects(a.flow.prepareRefund(a.user,a.first.id,await a.cmd(a.first.id,{requestId:req.id})),{code:'CHECKOUT_POLICY_REQUIRED'});
+ const b=await flowCase(t,3,true,1);await b.deliver();v=await b.flow.requestReturn(b.user,b.first.id,await b.cmd(b.first.id,{reason:'Повна позиція зі знижкою',items:[{lineId:b.offers[0].id,quantity:3}]}));req=v.requests[0];await b.flow.receiveReturn(b.offers[0].owner,b.first.id,await b.cmd(b.first.id,{requestId:req.id}));v=await b.flow.prepareRefund(b.user,b.first.id,await b.cmd(b.first.id,{requestId:req.id}));assert.equal(v.refunds[0].amountMinor,2399999);assert.equal(v.refunds[0].fundsReturned,false);
+});
+test('F23 additive upgrade projects historical F22 intents without changing financial snapshots or source status',async t=>{
+ const db=await database(t),dir=mkdtempSync(`${tmpdir()}/bazar-f22-history-`);t.after(()=>rmSync(dir,{recursive:true}));cpSync(migrationDirectory,dir,{recursive:true});rmSync(`${dir}/0019_seller_order_lifecycle.sql`);assert.equal(await migrate(db.config,dir),18);
+ const category=(await db.pool.query("INSERT INTO bazar.categories(handle,title) VALUES('history-test','Synthetic historical category') RETURNING id")).rows[0].id,offers=await seedBrowserOffers(db.pool,category),user=(await db.pool.query("INSERT INTO bazar.users(first_name,last_name) VALUES('Synthetic','History') RETURNING id")).rows[0].id,cart=createCurrentCartService(db.pool);await cart.ensure(user,{});let version=1;for(const i of [0,3])await cart.mutate(user,'add',{variantId:offers[i].id,quantity:1,expectedVersion:version++,idempotencyKey:randomUUID()});const rows=(await db.pool.query('SELECT id,seller_id FROM bazar.seller_offers WHERE id=ANY($1::uuid[])',[[offers[0].id,offers[3].id]])).rows,pay=paymentFixture(),ship=shippingFixture(),service=createCommerceService(db.pool,pay.adapter,ship.adapters);const q=await service.quote(user,{idempotencyKey:randomUUID(),expectedCartVersion:3,selectedOfferIds:[offers[0].id,offers[3].id],contact:{firstName:'Synthetic',lastName:'History',phone:'+380671234567',email:'',comment:''},deliveries:rows.map(r=>({sellerId:r.seller_id,carrier:'nova-poshta',cityRef:'synthetic-city',pointRef:'synthetic-location',kind:'branch'})),promoCode:null});
+ const c=await db.pool.connect();let parent='';try{await c.query('BEGIN');parent=(await c.query("INSERT INTO bazar.commerce_parent_orders(checkout_id,user_id,payment_state,status) VALUES($1,$2,'pending','awaiting-payment') RETURNING id",[q.id,user])).rows[0].id;for(const s of q.snapshot.financial.sellers)await c.query("INSERT INTO bazar.commerce_seller_orders(parent_id,seller_id,financial,delivery,status) VALUES($1,$2,$3,$4,'awaiting-payment')",[parent,s.sellerId,JSON.stringify(s),JSON.stringify(q.snapshot.deliveries.find(d=>d.sellerId===s.sellerId))]);for(const l of q.snapshot.items)await c.query('INSERT INTO bazar.commerce_order_lines(parent_id,seller_id,line_id,product_id,variant_id,snapshot) VALUES($1,$2,$3,$4,$5,$6)',[parent,l.sellerId,l.lineId,l.productId,l.variantId,JSON.stringify({...l,...q.snapshot.financial.lines.find(f=>f.lineId===l.lineId),calculationVersion:q.snapshot.financial.version,promotionId:null})]);await c.query('COMMIT');}catch(e){await c.query('ROLLBACK');throw e;}finally{c.release();}
+ const before=(await db.pool.query('SELECT snapshot::text FROM bazar.commerce_checkouts WHERE id=$1',[q.id])).rows[0].snapshot;assert.equal(await migrate(db.config),1);assert.equal((await db.pool.query('SELECT snapshot::text FROM bazar.commerce_checkouts WHERE id=$1',[q.id])).rows[0].snapshot,before);assert.equal((await db.pool.query('SELECT status FROM bazar.commerce_parent_orders WHERE id=$1',[parent])).rows[0].status,'awaiting-payment');const view=await service.flow.get(user,parent);assert.equal(view.parentStatus,'new');assert.equal(view.history.length,2);assert.ok(view.history.every(h=>h.source==='documented-f22-projection'));
 });

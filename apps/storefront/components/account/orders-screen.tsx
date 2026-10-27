@@ -13,12 +13,8 @@ import { formatMoney } from '@/lib/money';
 type OrderFilter = AccountOrderStatus | 'all';
 
 const filters: readonly { value: OrderFilter; label: string }[] = [
-  { value: 'all', label: 'Усі' },
-  { value: 'expected', label: 'Очікуються' },
-  { value: 'shipped', label: 'Відправлені' },
-  { value: 'delivered', label: 'Доставлені' },
-  { value: 'canceled', label: 'Скасовані' },
-  { value: 'returned', label: 'Повернені' },
+ {value:'all',label:'Усі'},{value:'expected',label:'Нові'},{value:'confirmed',label:'Підтверджені'},{value:'preparing',label:'Готуються до відправлення'},
+ {value:'shipped',label:'Відправлені'},{value:'delivered',label:'Доставлені'},{value:'canceled',label:'Скасовані'},{value:'system-cancelled',label:'Скасовані системою'},{value:'returning',label:'Повернення'},{value:'returned',label:'Повернені'},
 ];
 
 export function OrdersScreen({ scenario }: { scenario: AccountScenario }) {

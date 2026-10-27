@@ -1,3 +1,4 @@
+import type {readOrderFlow} from './order-flow.js';
 import type {DiscountRule} from '../promotions/pricing.js';
 import type {calculateCommerce} from './finance.js';
 export interface Contact {firstName:string;lastName:string;phone:string;email:string;comment:string}
@@ -7,4 +8,4 @@ export interface PromotionTerms {scope:'order'|'category'|'product';rule:Discoun
 export interface Snapshot {version:1;mode:'integration-test';contact:Contact;deliveries:Delivery[];items:CommerceLine[];financial:ReturnType<typeof calculateCommerce>;promoCode:string|null;promotionId:string|null;promotionVersion:number|null;promotionTerms:PromotionTerms|null;shippingPrice:'carrier-managed'}
 export interface Quote {orderId?:string|null;id:string;cartVersion:number;snapshot:Snapshot}
 export type PaymentState='initiated'|'pending'|'succeeded'|'declined'|'unknown'|'verification-required';
-export interface CommerceOrder {id:string;number:string;mode:'integration-test';status:string;paymentState:PaymentState;attemptId:string|null;quote:Quote;sellerOrders:{id:string;sellerId:string;status:string;financial:Snapshot['financial']['sellers'][number];delivery:Delivery}[];history:{kind:string;createdAt:string}[]}
+export interface CommerceOrder {business?:Awaited<ReturnType<typeof readOrderFlow>>;id:string;number:string;mode:'integration-test';status:string;paymentState:PaymentState;attemptId:string|null;quote:Quote;sellerOrders:{id:string;sellerId:string;status:string;financial:Snapshot['financial']['sellers'][number];delivery:Delivery}[];history:{kind:string;createdAt:string}[]}
