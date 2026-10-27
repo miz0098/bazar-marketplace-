@@ -1,6 +1,6 @@
 # BAZAR Business Rules V1 — Phase F19
 
-Version: **1.4**, 2026-10-27 UTC. Business authority: the explicit Phase F19 user instruction in this session; not inferred from earlier code, tests or Shopify. Base: merged PR #29, `2057ecbb0e40b8866cf73a179e6153ecdd8110e9`. Branch: `codex/phase-f19-business-rules`.
+Version: **1.5**, 2026-10-27 UTC. Business authority: the explicit Phase F19 user instruction in this session; not inferred from earlier code, tests or Shopify. Base: merged PR #29, `2057ecbb0e40b8866cf73a179e6153ecdd8110e9`. Branch: `codex/phase-f19-business-rules`.
 
 This is the canonical **target business policy**, not an assertion that it is implemented. Approval is limited to what the user explicitly approved. Stable BR IDs are never reassigned; future edits increment version with supersession/history. “Approved” does not approve a provider, technical proposal, missing rounding rule or legal conclusion. No new functional coverage and no Demo 100% / Full Audit Ready claim.
 
@@ -96,3 +96,11 @@ Authority: explicit F22 instruction. Historical rules remain; these clarify the 
 **BR-F221-01 — Approved** by the explicit F22.1 product instruction: exact non-negative rational minor-unit results use nearest minor unit, HALF_UP (2×remainder >= denominator adds one). Applies to authoritative aggregate percentage discount and independently to each seller's 5% net-merchandise commission, excluding shipping. Never round each line commission then sum. Acceptance: below/tie/above half, multiple sellers/lines/quantities, exact reconciliation and non-negative integer snapshots.
 
 **BR-F221-02 — Approved:** round the eligible parent percentage discount once, cap to eligible merchandise, then allocate by existing largest remainder with immutable-line UUID tie-break. Fixed allocation remains unchanged. New calculations record policy, calculation version and seller commission basis. Historical F22 snapshots never change. Partial-unit refund attribution, free-order finality, minimum-basis ambiguity, fees/retention/payouts and legal/provider decisions are not approved by this extension.
+
+## F23 APPROVED status simplification — version 1.5
+
+**BR-L23-01 — APPROVED:** order statuses are exactly Нове / new; Підтверджено / confirmed; Готується до відправлення / preparing; Відправлено / shipped; Доставлено / delivered; Скасовано / cancelled; Скасовано системою / system-cancelled; Повернення / returning; Повернено / returned. Main path: new→confirmed→preparing→shipped→delivered. Delivered is final successful delivery; no automatic completion transition. Transport observations remain shipment history, not an order state.
+
+**BR-L23-02 — APPROVED:** direct buyer cancellation only new/confirmed; preparing/shipped requires seller cancellation request; delivered uses returns. Preserve dispatch escalation/system cancellation policy. Physical return and financial refund remain independent. Partial returns use owned return-item quantities; seller returned only after all its purchased units are received; parent returned only when all seller components are returned. No statutory refund right is reduced.
+
+Supersedes prior F19 order-state references to in-transit/completed; historical audit source data are not rewritten. Components: lifecycle API, operational sidecars, customer order UI/filtering, future seller/staff contracts. Acceptance: nine-state allowlists, main/invalid transitions, cancellation cutoff/races, complete/partial multi-seller returns, immutable history and separate verified refund outcomes. [F23 evidence](docs/F23_ORDER_LIFECYCLE.md).

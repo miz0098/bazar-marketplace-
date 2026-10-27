@@ -6,7 +6,7 @@ import type {
 export const accountOrderStatusLabels: Readonly<
   Record<AccountOrderStatus, string>
 > = {
-  expected: 'Очікується',
+  expected: 'Нове', confirmed:'Підтверджено',preparing:'Готується до відправлення','system-cancelled':'Скасовано системою',returning:'Повернення',
   shipped: 'Відправлено',
   delivered: 'Доставлено',
   canceled: 'Скасовано',

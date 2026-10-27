@@ -304,3 +304,7 @@ F22 connects the shared ordinary isolated checkout and My Orders to PostgreSQL m
 ## F22.1 financial precision
 
 The existing commerce engine now defaults new quotes to exact BigInt HALF_UP, calculation v2, preserving largest remainder and seller-level 5% calculation. Portable clients discriminate v1/v2 and require v2 policy/basis metadata. Historical reads and reviewed exact-only quotes retain v1 facts. No database migration, provider activation or UI redesign. [Algorithm, compatibility and evidence](docs/F22_1_FINANCIAL_PRECISION.md).
+
+## F23 order lifecycle
+
+[Migration0019](apps/api/migrations/0019_seller_order_lifecycle.sql), existing commerce/session/financial adapters and F13 inbox support the approved nine-state operational projection without mutating F22 money/history or rewriting F14 records. Exact ownership, version/idempotency receipts, parameterized SQL and serialized parent/child transitions protect requests and refund capacity. Existing F14 refund signature contract is reused for a new explicit commerce-payment proof link; no fake legacy paid order is manufactured. Ordinary account pages use the new sidecar; seller/staff applications are not implemented. [Scope, calendar/legal/provider gates and validation](docs/F23_ORDER_LIFECYCLE.md).

@@ -14,7 +14,7 @@ type OrderFilter = AccountOrderStatus | 'all';
 
 const filters: readonly { value: OrderFilter; label: string }[] = [
   { value: 'all', label: 'Усі' },
-  { value: 'expected', label: 'Очікуються' },
+  { value: 'expected', label: 'Нові' },{value:'confirmed',label:'Підтверджені'},{value:'preparing',label:'Готуються до відправлення'},{value:'system-cancelled',label:'Скасовані системою'},{value:'returning',label:'Повернення'},
   { value: 'shipped', label: 'Відправлені' },
   { value: 'delivered', label: 'Доставлені' },
   { value: 'canceled', label: 'Скасовані' },

@@ -94,3 +94,7 @@ F22 closes the isolated ordinary multi-seller exact-finance slice of B07/B09/B10
 ## F22.1 precision overlay
 
 Percentage/commission fractional-kopiyka blocker: **RESOLVED for percentage-total and seller commission**, implementation and all local suites passed; evidence in [F22.1 evidence](docs/F22_1_FINANCIAL_PRECISION.md). Approved HALF_UP supersedes the F22 exact-only gate for new commerce quotes. Remaining: free-order finality, ambiguous promotion minimum/funding, partial-unit refund entitlement, F14 parent/seller bridge, statutory/legal/fees/settlement/payout and production providers. No new production readiness claim.
+
+## F23 lifecycle implementation overlay
+
+Approved nine-state operational lifecycle and isolated buyer/seller request, return/refund/deadline foundation are implemented; final browser/regression validation pending. Historical source data and finance remain intact. Remaining blockers: production calendar/DST/cutoff/dispatch evidence, legal eligibility/fees/retention, non-integral partial-unit attribution, staff grants/queue operational coverage, provider reconciliation and mixed-component aggregate prioritization if a single label is required. No new unapproved order state. [Evidence](docs/F23_ORDER_LIFECYCLE.md).

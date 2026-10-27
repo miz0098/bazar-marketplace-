@@ -83,3 +83,7 @@ F22 implements the BR-F22-01–07 exact financial/multi-seller test slice and BR
 ## F22.1 approved precision delta
 
 PD-01 percentage-total and seller commission rounding mode is now HALF_UP. Implemented in existing commerce finance, not a second pricing engine: parent percentage first, capped integer discount then stable largest remainder; commission once per seller net. New version/policy/basis metadata; unchanged historical v1 and migrations0001–0018. TC03/TC19 gain below/tie/above-half, tiny/quantity/scoped/seller aggregation, historical replay and browser tests. F23 partial-unit/legal refunds and other finance/provider gates remain. [Evidence](docs/F22_1_FINANCIAL_PRECISION.md).
+
+## F23 APPROVED status delta
+
+BR-L23-01/02 supersede the old seven-row cancellation/status targets: main new→confirmed→preparing→shipped→delivered; buyer direct new/confirmed, seller request preparing/shipped, returns after delivered. No in-transit/completed order state. TC10–13 gain operational seller isolation, homogeneous/null parent aggregation, quantity-bound requests, immutable receipt/history and commerce-payment-linked refund protocol. TC11 uses only explicit isolated calendar/clock/staff authority; production PD-08/PL/EX gates remain. [F23 evidence](docs/F23_ORDER_LIFECYCLE.md).

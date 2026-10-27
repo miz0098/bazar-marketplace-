@@ -11393,6 +11393,682 @@
           }
         ]
       }
+    },
+    "/api/v1/commerce/orders/{id}/lifecycle": {
+      "get": {
+        "summary": "Owned parent/seller operational lifecycle with the nine approved order states",
+        "description": "F23 isolated operational lifecycle. Nine approved states only. Separate payment/shipment/return/refund axes; real refund and production operations unavailable. No arbitrary client status/financial mutation.",
+        "responses": {
+          "200": {
+            "description": "Reconcile through authenticated provider adapter, then finalize safely",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ok",
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/CommerceOrder"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [
+                        "requestId"
+                      ],
+                      "properties": {
+                        "requestId": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or forbidden fields"
+          },
+          "401": {
+            "description": "No verified session"
+          },
+          "403": {
+            "description": "Origin/CSRF/provider proof denied"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Stale terms/state or policy approval required"
+          },
+          "503": {
+            "description": "Unavailable, never synthetic success"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/commerce/seller-orders/{id}/cancel": {
+      "post": {
+        "summary": "cancel with verified owner/seller capability, version and idempotency",
+        "description": "F23 isolated operational lifecycle. Nine approved states only. Separate payment/shipment/return/refund axes; real refund and production operations unavailable. No arbitrary client status/financial mutation.",
+        "responses": {
+          "200": {
+            "description": "Reconcile through authenticated provider adapter, then finalize safely",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ok",
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/CommerceOrder"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [
+                        "requestId"
+                      ],
+                      "properties": {
+                        "requestId": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or forbidden fields"
+          },
+          "401": {
+            "description": "No verified session"
+          },
+          "403": {
+            "description": "Origin/CSRF/provider proof denied"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Stale terms/state or policy approval required"
+          },
+          "503": {
+            "description": "Unavailable, never synthetic success"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "maxProperties": 0
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/commerce/seller-orders/{id}/returns": {
+      "post": {
+        "summary": "returns with verified owner/seller capability, version and idempotency",
+        "description": "F23 isolated operational lifecycle. Nine approved states only. Separate payment/shipment/return/refund axes; real refund and production operations unavailable. No arbitrary client status/financial mutation.",
+        "responses": {
+          "200": {
+            "description": "Reconcile through authenticated provider adapter, then finalize safely",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ok",
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/CommerceOrder"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [
+                        "requestId"
+                      ],
+                      "properties": {
+                        "requestId": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or forbidden fields"
+          },
+          "401": {
+            "description": "No verified session"
+          },
+          "403": {
+            "description": "Origin/CSRF/provider proof denied"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Stale terms/state or policy approval required"
+          },
+          "503": {
+            "description": "Unavailable, never synthetic success"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "maxProperties": 0
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/commerce/seller-orders/{id}/prepare": {
+      "post": {
+        "summary": "prepare with verified owner/seller capability, version and idempotency",
+        "description": "F23 isolated operational lifecycle. Nine approved states only. Separate payment/shipment/return/refund axes; real refund and production operations unavailable. No arbitrary client status/financial mutation.",
+        "responses": {
+          "200": {
+            "description": "Reconcile through authenticated provider adapter, then finalize safely",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ok",
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/CommerceOrder"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [
+                        "requestId"
+                      ],
+                      "properties": {
+                        "requestId": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or forbidden fields"
+          },
+          "401": {
+            "description": "No verified session"
+          },
+          "403": {
+            "description": "Origin/CSRF/provider proof denied"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Stale terms/state or policy approval required"
+          },
+          "503": {
+            "description": "Unavailable, never synthetic success"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "maxProperties": 0
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/commerce/seller-orders/{id}/approve-cancellation": {
+      "post": {
+        "summary": "approve-cancellation with verified owner/seller capability, version and idempotency",
+        "description": "F23 isolated operational lifecycle. Nine approved states only. Separate payment/shipment/return/refund axes; real refund and production operations unavailable. No arbitrary client status/financial mutation.",
+        "responses": {
+          "200": {
+            "description": "Reconcile through authenticated provider adapter, then finalize safely",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ok",
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/CommerceOrder"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [
+                        "requestId"
+                      ],
+                      "properties": {
+                        "requestId": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or forbidden fields"
+          },
+          "401": {
+            "description": "No verified session"
+          },
+          "403": {
+            "description": "Origin/CSRF/provider proof denied"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Stale terms/state or policy approval required"
+          },
+          "503": {
+            "description": "Unavailable, never synthetic success"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "maxProperties": 0
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/commerce/seller-orders/{id}/receive-return": {
+      "post": {
+        "summary": "receive-return with verified owner/seller capability, version and idempotency",
+        "description": "F23 isolated operational lifecycle. Nine approved states only. Separate payment/shipment/return/refund axes; real refund and production operations unavailable. No arbitrary client status/financial mutation.",
+        "responses": {
+          "200": {
+            "description": "Reconcile through authenticated provider adapter, then finalize safely",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ok",
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/CommerceOrder"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [
+                        "requestId"
+                      ],
+                      "properties": {
+                        "requestId": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or forbidden fields"
+          },
+          "401": {
+            "description": "No verified session"
+          },
+          "403": {
+            "description": "Origin/CSRF/provider proof denied"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Stale terms/state or policy approval required"
+          },
+          "503": {
+            "description": "Unavailable, never synthetic success"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "maxProperties": 0
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/commerce/seller-orders/{id}/respond-escalation": {
+      "post": {
+        "summary": "respond-escalation with verified owner/seller capability, version and idempotency",
+        "description": "F23 isolated operational lifecycle. Nine approved states only. Separate payment/shipment/return/refund axes; real refund and production operations unavailable. No arbitrary client status/financial mutation.",
+        "responses": {
+          "200": {
+            "description": "Reconcile through authenticated provider adapter, then finalize safely",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ok",
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/CommerceOrder"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [
+                        "requestId"
+                      ],
+                      "properties": {
+                        "requestId": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or forbidden fields"
+          },
+          "401": {
+            "description": "No verified session"
+          },
+          "403": {
+            "description": "Origin/CSRF/provider proof denied"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Stale terms/state or policy approval required"
+          },
+          "503": {
+            "description": "Unavailable, never synthetic success"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "maxProperties": 0
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/commerce/seller-orders/{id}/refunds": {
+      "post": {
+        "summary": "refunds with verified owner/seller capability, version and idempotency",
+        "description": "F23 isolated operational lifecycle. Nine approved states only. Separate payment/shipment/return/refund axes; real refund and production operations unavailable. No arbitrary client status/financial mutation.",
+        "responses": {
+          "200": {
+            "description": "Reconcile through authenticated provider adapter, then finalize safely",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ok",
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/CommerceOrder"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [
+                        "requestId"
+                      ],
+                      "properties": {
+                        "requestId": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or forbidden fields"
+          },
+          "401": {
+            "description": "No verified session"
+          },
+          "403": {
+            "description": "Origin/CSRF/provider proof denied"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Stale terms/state or policy approval required"
+          },
+          "503": {
+            "description": "Unavailable, never synthetic success"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "maxProperties": 0
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -17324,6 +18000,21 @@
             }
           }
         }
+      },
+      "OrderBusinessStatus": {
+        "type": "string",
+        "enum": [
+          "new",
+          "confirmed",
+          "preparing",
+          "shipped",
+          "delivered",
+          "cancelled",
+          "system-cancelled",
+          "returning",
+          "returned"
+        ],
+        "description": "APPROVED F23 order states. Transport observations are shipment history only. Delivered is successful terminal delivery; no completion transition."
       }
     },
     "securitySchemes": {

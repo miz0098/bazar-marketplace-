@@ -1113,7 +1113,7 @@
     {
       "id": "FINANCIALROUNDING-001",
       "title": "Complete approved HALF_UP financial precision with immutable historical snapshot compatibility",
-      "status": "in_review",
+      "status": "done",
       "readiness": "integration",
       "depends_on": [
         "MULTICHECKOUT-001"
@@ -1144,6 +1144,42 @@
       ],
       "pr": 34,
       "blocker": null
+    },
+    {
+      "id": "ORDERLIFECYCLE-002",
+      "title": "Implement approved nine-state seller lifecycle cancellations returns refunds and deadline foundations",
+      "status": "in_progress",
+      "readiness": "integration",
+      "depends_on": [
+        "FINANCIALROUNDING-001"
+      ],
+      "allowed_paths": [
+        "apps/api/",
+        "apps/storefront/",
+        "tests/e2e/",
+        "docs/",
+        "BUSINESS_RULES_V1.md",
+        "COMMERCE_DOMAIN_CONTRACTS.md",
+        "BUSINESS_DECISION_REGISTER.md",
+        "ARCHITECTURE.md",
+        "MIGRATION_PLAN.md",
+        "F20_F29_IMPLEMENTATION_CONTRACT.md",
+        "FUNCTIONAL_COMPLETION_BACKLOG.md",
+        "REMAINING_DEVELOPMENT_ROADMAP.md",
+        "FULL_AUDIT_ENTRY_CRITERIA.md",
+        "FUNCTIONAL_GAP_AUDIT.md",
+        "DEMO_READINESS_CHECKLIST.md",
+        "DEMO_COMPLETION_PLAN.md",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Nine approved order states only, delivered final successful delivery, transport history separate",
+        "Additive lifecycle projection preserves F22 snapshots and legacy audits; multi-seller partial returns cannot imply whole parent returned",
+        "Owner seller isolation idempotency history refund proof and isolated escalation/cancellation boundaries verified",
+        "All regression lint types builds audit governance and browser desktop/mobile checks pass"
+      ],
+      "pr": null,
+      "blocker": "Production calendar/dispatch authority, legal returns, partial-unit allocation, staff grants and provider integration remain gated."
     }
   ]
 }
