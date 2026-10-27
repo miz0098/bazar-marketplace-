@@ -1,5 +1,7 @@
 # BAZAR Shopify-to-Next.js Migration Plan
 
+F18 technical audit: **НЕ ГОТОВИЙ** до повного функціонального аудиту. [18-area/117-row evidence matrix](FULL_MARKETPLACE_READINESS_AUDIT.md), [backlog B01–B28](FUNCTIONAL_COMPLETION_BACKLOG.md), [proposed F19–F29](REMAINING_DEVELOPMENT_ROADMAP.md), [measurable entry gates](FULL_AUDIT_ENTRY_CRITERIA.md). Збережені нижче F10–F17 результати історичні; поточний зріз розділяє L/I/S/production, не змінює дизайн/код і не оголошує Demo100%.
+
 F17 reuses the F13 inbox for an isolated browser notification center in existing session/orders UI (no new menu): owner count/read/bulk-read/pagination, atomic test-order event, explicit status/cancel/message/support simulations and verified F14 test-refund hook. No real channels or production activation. [Acceptance](docs/F17_NOTIFICATION_CENTER_ACCEPTANCE.md), [ADR0016](docs/adr/0016-customer-notification-center.md).
 
 F16 supersedes the F15 discounted-completion blocker for isolated single-line fixed/exact-percentage checkout only: F5 reuse, atomic test usage/order/payment/shipping snapshot, browser refresh/history and cap contention. Multiple discounted lines, fractional rounding/allocation/stacking and all production financial/provider/auth gates remain blocked. [Scope](docs/F16_DISCOUNTED_CHECKOUT_ACCEPTANCE.md), [ADR0015](docs/adr/0015-discounted-browser-checkout.md).
