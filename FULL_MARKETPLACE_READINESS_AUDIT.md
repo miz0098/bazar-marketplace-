@@ -567,3 +567,7 @@ Pinned footer links самі по собі не доводять, що відп�
 [S10]: https://github.com/miz0098/bazar-marketplace-/blob/105d10fb6b8e65c5f163016aa8c69072e85faa0e/assets/bazar-wishlist-store.js
 [S11]: https://github.com/miz0098/bazar-marketplace-/blob/105d10fb6b8e65c5f163016aa8c69072e85faa0e/assets/predictive-search.js
 [S12]: https://github.com/miz0098/bazar-marketplace-/blob/105d10fb6b8e65c5f163016aa8c69072e85faa0e/docs/profile-routing.md
+
+## F21 current implementation overlay (historical evidence retained)
+
+[Ordinary storefront offer/session/cart/wishlist implementation, modes and verification](docs/F21_STOREFRONT_ACCEPTANCE.md). One distinct seller offer now maps to one exact-price card, resolving the former aggregate-card merchandising blocker without choosing an aggregate parent price. PostgreSQL persistence is available through shared ordinary components in the isolated HTTPS entry; default local demo and production activation remain distinct. F22 checkout/multi-seller financial snapshots, fuller profile/communication integration, seller/staff apps, licensed datasets/media, privacy/legal/finance decisions and live providers remain open. No quantitative inventory or automatic guest merge. No Demo100% / Full Audit Ready claim; BAZAR remains **НЕ ГОТОВИЙ** for full audit. New tests only establish their documented bounded workflows, not all entry criteria.

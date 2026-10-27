@@ -13,3 +13,7 @@ config/settings_data.json
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
+
+apps/storefront/storefront-integration/.next/
+tests/e2e/storefront-results/
+tests/e2e/storefront-report/

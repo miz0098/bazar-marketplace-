@@ -1,4 +1,5 @@
 'use client';
+import {useServerCustomer} from '../server/customer-provider';
 
 import { createContext, useContext, useState } from 'react';
 import type { AccountScenario } from '@/domain/account/account';
@@ -24,5 +25,6 @@ export function AccountPreviewProvider({ children }: Readonly<{ children: React.
 export function useAccountService(scenario: AccountScenario = 'ready'): AccountService {
   const services = useContext(AccountPreviewContext);
   if (!services) throw new Error('useAccountService must be used inside AccountPreviewProvider');
-  return services[scenario];
+  const {enabled}=useServerCustomer();
+  return services[enabled?'ready':scenario];
 }

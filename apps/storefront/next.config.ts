@@ -1,3 +1,4 @@
+if(process.env.BAZAR_STOREFRONT_INTEGRATION==='1'||process.env.STOREFRONT_DATA_SOURCE==='storefront-test')throw new Error('Use the isolated storefront entry, never production');
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {

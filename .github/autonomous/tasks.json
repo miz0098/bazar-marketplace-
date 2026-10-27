@@ -8,8 +8,17 @@
       "status": "done",
       "readiness": "integration",
       "depends_on": [],
-      "allowed_paths": [".github/", "docs/", "scripts/autonomy/", "tests/e2e/"],
-      "acceptance": ["CI validates storefront, dependencies, ledger and browser smoke tests", "Codex workflow selects one dependency-ready task and opens a scoped PR", "Operations documentation lists credentials and safety limits"],
+      "allowed_paths": [
+        ".github/",
+        "docs/",
+        "scripts/autonomy/",
+        "tests/e2e/"
+      ],
+      "acceptance": [
+        "CI validates storefront, dependencies, ledger and browser smoke tests",
+        "Codex workflow selects one dependency-ready task and opens a scoped PR",
+        "Operations documentation lists credentials and safety limits"
+      ],
       "pr": null,
       "blocker": null
     },
@@ -18,9 +27,17 @@
       "title": "Catalog, search, product details and persistent demo cart",
       "status": "done",
       "readiness": "demo",
-      "depends_on": ["OPS-001"],
-      "allowed_paths": ["apps/storefront/"],
-      "acceptance": ["PR #6 CI is green", "Review confirms no Shopify runtime and no live-commerce claims", "PR #6 is merged into vps-migration"],
+      "depends_on": [
+        "OPS-001"
+      ],
+      "allowed_paths": [
+        "apps/storefront/"
+      ],
+      "acceptance": [
+        "PR #6 CI is green",
+        "Review confirms no Shopify runtime and no live-commerce claims",
+        "PR #6 is merged into vps-migration"
+      ],
       "pr": 6,
       "blocker": null
     },
@@ -29,9 +46,19 @@
       "title": "Record ADRs and provisional first-party API contracts",
       "status": "pending",
       "readiness": "integration",
-      "depends_on": ["OPS-001"],
-      "allowed_paths": ["docs/", "packages/contracts/", ".github/autonomous/tasks.json"],
-      "acceptance": ["ADRs cover URLs, system of record, sessions, cart identity, checkout ownership, caching and deployment", "Versioned schemas define errors, pagination, money, timestamps and idempotency", "Unapproved business decisions remain explicit blockers rather than invented defaults"],
+      "depends_on": [
+        "OPS-001"
+      ],
+      "allowed_paths": [
+        "docs/",
+        "packages/contracts/",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "ADRs cover URLs, system of record, sessions, cart identity, checkout ownership, caching and deployment",
+        "Versioned schemas define errors, pagination, money, timestamps and idempotency",
+        "Unapproved business decisions remain explicit blockers rather than invented defaults"
+      ],
       "pr": null,
       "blocker": null
     },
@@ -40,9 +67,19 @@
       "title": "Complete approved shared UI fidelity and feedback primitives",
       "status": "pending",
       "readiness": "demo",
-      "depends_on": ["PHB-001"],
-      "allowed_paths": ["apps/storefront/", "tests/e2e/", ".github/autonomous/tasks.json"],
-      "acceptance": ["Header menu focus, Escape, outside click and scroll behavior pass desktop/mobile tests", "Footer exposes only Facebook, Instagram, Threads and Telegram", "Reusable Ukrainian loading, error, empty and toast primitives are covered by accessibility tests"],
+      "depends_on": [
+        "PHB-001"
+      ],
+      "allowed_paths": [
+        "apps/storefront/",
+        "tests/e2e/",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Header menu focus, Escape, outside click and scroll behavior pass desktop/mobile tests",
+        "Footer exposes only Facebook, Instagram, Threads and Telegram",
+        "Reusable Ukrainian loading, error, empty and toast primitives are covered by accessibility tests"
+      ],
       "pr": null,
       "blocker": "Pixel parity remains blocked until approved screenshots and merchant settings are supplied."
     },
@@ -51,9 +88,30 @@
       "title": "Bootstrap first-party API service and health endpoints",
       "status": "done",
       "readiness": "integration",
-      "depends_on": ["CONTRACT-001"],
-      "allowed_paths": ["apps/api/", "apps/storefront/lib/", "apps/storefront/services/http/", "apps/storefront/tests/", "apps/storefront/.env.example", "apps/storefront/README.md", "apps/storefront/MIGRATION_PROGRESS.md", "infra/postgres/", "packages/contracts/", "docs/", "ARCHITECTURE.md", "MIGRATION_PLAN.md", ".github/"],
-      "acceptance": ["Typed API application starts without production credentials", "Liveness and dependency-aware readiness endpoints are tested", "Structured logs redact secrets and personal data", "CI runs API lint, typecheck, tests and build"],
+      "depends_on": [
+        "CONTRACT-001"
+      ],
+      "allowed_paths": [
+        "apps/api/",
+        "apps/storefront/lib/",
+        "apps/storefront/services/http/",
+        "apps/storefront/tests/",
+        "apps/storefront/.env.example",
+        "apps/storefront/README.md",
+        "apps/storefront/MIGRATION_PROGRESS.md",
+        "infra/postgres/",
+        "packages/contracts/",
+        "docs/",
+        "ARCHITECTURE.md",
+        "MIGRATION_PLAN.md",
+        ".github/"
+      ],
+      "acceptance": [
+        "Typed API application starts without production credentials",
+        "Liveness and dependency-aware readiness endpoints are tested",
+        "Structured logs redact secrets and personal data",
+        "CI runs API lint, typecheck, tests and build"
+      ],
       "pr": 12,
       "blocker": null
     },
@@ -62,9 +120,25 @@
       "title": "Add PostgreSQL schema, migrations and isolated integration tests",
       "status": "done",
       "readiness": "integration",
-      "depends_on": ["BE-001"],
-      "allowed_paths": ["apps/api/", "packages/database/", "infra/postgres/", "docs/", "ARCHITECTURE.md", "MIGRATION_PLAN.md", "apps/storefront/MIGRATION_PROGRESS.md", ".github/"],
-      "acceptance": ["Forward-only migrations cover users, catalog, carts, orders, wishlist, reviews, addresses and messages", "Constraints and indexes enforce ownership and idempotency invariants", "Integration tests run against disposable PostgreSQL", "Backup/restore expectations are documented"],
+      "depends_on": [
+        "BE-001"
+      ],
+      "allowed_paths": [
+        "apps/api/",
+        "packages/database/",
+        "infra/postgres/",
+        "docs/",
+        "ARCHITECTURE.md",
+        "MIGRATION_PLAN.md",
+        "apps/storefront/MIGRATION_PROGRESS.md",
+        ".github/"
+      ],
+      "acceptance": [
+        "Forward-only migrations cover users, catalog, carts, orders, wishlist, reviews, addresses and messages",
+        "Constraints and indexes enforce ownership and idempotency invariants",
+        "Integration tests run against disposable PostgreSQL",
+        "Backup/restore expectations are documented"
+      ],
       "pr": 13,
       "blocker": null
     },
@@ -73,9 +147,29 @@
       "title": "Implement catalog and search API adapters",
       "status": "done",
       "readiness": "integration",
-      "depends_on": ["DB-001", "PHB-001"],
-      "allowed_paths": ["apps/api/", "apps/storefront/services/", "apps/storefront/lib/", "apps/storefront/tests/", "apps/storefront/MIGRATION_PROGRESS.md", "ARCHITECTURE.md", "MIGRATION_PLAN.md", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
-      "acceptance": ["Catalog, categories, product details, facets and Ukrainian search satisfy shared contracts", "Price and availability remain server-authoritative", "Mock and HTTP adapters pass the same contract suite", "Timeout, invalid payload and unavailable dependency states are tested"],
+      "depends_on": [
+        "DB-001",
+        "PHB-001"
+      ],
+      "allowed_paths": [
+        "apps/api/",
+        "apps/storefront/services/",
+        "apps/storefront/lib/",
+        "apps/storefront/tests/",
+        "apps/storefront/MIGRATION_PROGRESS.md",
+        "ARCHITECTURE.md",
+        "MIGRATION_PLAN.md",
+        "packages/",
+        "tests/",
+        "docs/",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Catalog, categories, product details, facets and Ukrainian search satisfy shared contracts",
+        "Price and availability remain server-authoritative",
+        "Mock and HTTP adapters pass the same contract suite",
+        "Timeout, invalid payload and unavailable dependency states are tested"
+      ],
       "pr": 14,
       "blocker": "F3 public reads and opt-in transport implemented; catalog source/import and visual-domain mapping remain owner decisions. No live UI switch."
     },
@@ -84,9 +178,25 @@
       "title": "Implement server-backed cart and inventory reconciliation",
       "status": "done",
       "readiness": "integration",
-      "depends_on": ["CAT-001"],
-      "allowed_paths": ["ARCHITECTURE.md", "MIGRATION_PLAN.md", "apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
-      "acceptance": ["One active owned server cart is created explicitly as needed; guest cart stays local with no automatic merge", "Every mutation reconciles price, inventory and totals", "Mutations are idempotent and reject invalid quantities", "Storefront handles stale inventory and API failures without false success"],
+      "depends_on": [
+        "CAT-001"
+      ],
+      "allowed_paths": [
+        "ARCHITECTURE.md",
+        "MIGRATION_PLAN.md",
+        "apps/api/",
+        "apps/storefront/",
+        "packages/",
+        "tests/",
+        "docs/",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "One active owned server cart is created explicitly as needed; guest cart stays local with no automatic merge",
+        "Every mutation reconciles price, inventory and totals",
+        "Mutations are idempotent and reject invalid quantities",
+        "Storefront handles stale inventory and API failures without false success"
+      ],
       "pr": 20,
       "blocker": "F9 isolated current cart and linked checkout implemented under approved one-active/no-guest-merge policy. Production SMS/session rollout, promo redemption/financial rules and real providers remain blocked."
     },
@@ -95,9 +205,25 @@
       "title": "Implement promotions and authoritative discount calculations",
       "status": "done",
       "readiness": "integration",
-      "depends_on": ["CART-001"],
-      "allowed_paths": ["ARCHITECTURE.md", "MIGRATION_PLAN.md", "apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
-      "acceptance": ["Promotion validity and amounts are calculated server-side", "Apply/remove/conflict/expiry states are tested", "Promotional surfaces preserve approved BAZAR styling", "No client-only discount can alter authoritative totals"],
+      "depends_on": [
+        "CART-001"
+      ],
+      "allowed_paths": [
+        "ARCHITECTURE.md",
+        "MIGRATION_PLAN.md",
+        "apps/api/",
+        "apps/storefront/",
+        "packages/",
+        "tests/",
+        "docs/",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Promotion validity and amounts are calculated server-side",
+        "Apply/remove/conflict/expiry states are tested",
+        "Promotional surfaces preserve approved BAZAR styling",
+        "No client-only discount can alter authoritative totals"
+      ],
       "pr": 16,
       "blocker": "F5 exact single-line evaluation and integration-only usage claims are implemented. Business owner must approve stacking, seller/unit allocation, rounding, real redemption timing/release/refunds and campaign policy before activation; live auth/current-cart remain blocked."
     },
@@ -106,9 +232,23 @@
       "title": "Build approved three-step checkout UI and service boundary",
       "status": "done",
       "readiness": "demo",
-      "depends_on": ["CART-001", "PROMO-001"],
-      "allowed_paths": ["apps/storefront/", "packages/contracts/", "tests/e2e/", "docs/", ".github/autonomous/tasks.json"],
-      "acceptance": ["Exactly three approved Ukrainian steps are implemented", "Нова пошта and Meest are represented while BAZAR pickup remains disabled", "Back/forward preserves validated state", "Confirmation cannot claim payment or order creation without a live adapter"],
+      "depends_on": [
+        "CART-001",
+        "PROMO-001"
+      ],
+      "allowed_paths": [
+        "apps/storefront/",
+        "packages/contracts/",
+        "tests/e2e/",
+        "docs/",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Exactly three approved Ukrainian steps are implemented",
+        "\u041d\u043e\u0432\u0430 \u043f\u043e\u0448\u0442\u0430 and Meest are represented while BAZAR pickup remains disabled",
+        "Back/forward preserves validated state",
+        "Confirmation cannot claim payment or order creation without a live adapter"
+      ],
       "pr": 8,
       "blocker": null
     },
@@ -117,9 +257,26 @@
       "title": "Integrate delivery quote and shipment provider boundaries",
       "status": "done",
       "readiness": "integration",
-      "depends_on": ["CHECKOUT-001", "BE-001"],
-      "allowed_paths": ["ARCHITECTURE.md", "MIGRATION_PLAN.md", "apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
-      "acceptance": ["Provider-neutral contract validates cities, branches, quotes and timeouts", "Provider outages and stale quotes have truthful recovery states", "Secrets remain server-only", "Production mode fails closed without configured providers"],
+      "depends_on": [
+        "CHECKOUT-001",
+        "BE-001"
+      ],
+      "allowed_paths": [
+        "ARCHITECTURE.md",
+        "MIGRATION_PLAN.md",
+        "apps/api/",
+        "apps/storefront/",
+        "packages/",
+        "tests/",
+        "docs/",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Provider-neutral contract validates cities, branches, quotes and timeouts",
+        "Provider outages and stale quotes have truthful recovery states",
+        "Secrets remain server-only",
+        "Production mode fails closed without configured providers"
+      ],
       "pr": 18,
       "blocker": "F7 isolated directory/selection/quote/freshness foundation implemented. Live carrier keys/contracts/schema verification, fulfillment/package/declared-value/TTL rules, recipient privacy and TTN/tracking lifecycle require approval."
     },
@@ -128,9 +285,21 @@
       "title": "Build approved phone-only identity UI and typed service boundary",
       "status": "done",
       "readiness": "demo",
-      "depends_on": ["PHB-001"],
-      "allowed_paths": ["apps/storefront/", "tests/e2e/", "docs/", ".github/autonomous/tasks.json"],
-      "acceptance": ["Responsive header modal and login/register routes expose only the approved phone flow", "Ukrainian phone validation and six-position OTP keyboard, paste, focus, resend and overflow behavior pass desktop/mobile tests", "Registration consent plus loading, invalid, expired, rate-limit, resend and network states are accessible", "Preview sends no SMS, creates no session or auth flag, exposes no protected data, and persists or logs no OTP or complete phone number"],
+      "depends_on": [
+        "PHB-001"
+      ],
+      "allowed_paths": [
+        "apps/storefront/",
+        "tests/e2e/",
+        "docs/",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Responsive header modal and login/register routes expose only the approved phone flow",
+        "Ukrainian phone validation and six-position OTP keyboard, paste, focus, resend and overflow behavior pass desktop/mobile tests",
+        "Registration consent plus loading, invalid, expired, rate-limit, resend and network states are accessible",
+        "Preview sends no SMS, creates no session or auth flag, exposes no protected data, and persists or logs no OTP or complete phone number"
+      ],
       "pr": 9,
       "blocker": null
     },
@@ -139,9 +308,23 @@
       "title": "Build approved demo profile and account interface",
       "status": "in_progress",
       "readiness": "demo",
-      "depends_on": ["AUTHUI-001", "PHB-001"],
-      "allowed_paths": ["apps/storefront/", "tests/e2e/", "docs/", ".github/autonomous/tasks.json"],
-      "acceptance": ["The /profile overview and exact nine-entry desktop/mobile navigation contain no Overview item, and drawer focus, Escape, focus return and overflow checks pass", "Orders, wishlist, reviews, personal data, addresses and payment-method screens expose deterministic demo, loading, empty, validation and error states without claiming authenticated persistence or verified commerce facts", "Wishlist add-to-cart uses the existing cart domain, account mutations remain preview-only, and payment UI never collects or persists PAN or CVV", "Messages and support remain explicit Phase E2 shells, while logout truthfully states that no server session exists", "Typed service boundaries, unit tests and desktop/mobile Playwright tests pass while IdentityService remains anonymous"],
+      "depends_on": [
+        "AUTHUI-001",
+        "PHB-001"
+      ],
+      "allowed_paths": [
+        "apps/storefront/",
+        "tests/e2e/",
+        "docs/",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "The /profile overview and exact nine-entry desktop/mobile navigation contain no Overview item, and drawer focus, Escape, focus return and overflow checks pass",
+        "Orders, wishlist, reviews, personal data, addresses and payment-method screens expose deterministic demo, loading, empty, validation and error states without claiming authenticated persistence or verified commerce facts",
+        "Wishlist add-to-cart uses the existing cart domain, account mutations remain preview-only, and payment UI never collects or persists PAN or CVV",
+        "Messages and support remain explicit Phase E2 shells, while logout truthfully states that no server session exists",
+        "Typed service boundaries, unit tests and desktop/mobile Playwright tests pass while IdentityService remains anonymous"
+      ],
       "pr": null,
       "blocker": null
     },
@@ -150,9 +333,29 @@
       "title": "Implement phone OTP identity and secure session boundary",
       "status": "done",
       "readiness": "integration",
-      "depends_on": ["BE-001", "DB-001", "UI-001", "AUTHUI-001"],
-      "allowed_paths": ["ARCHITECTURE.md", "MIGRATION_PLAN.md", "apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
-      "acceptance": ["Only phone OTP authentication is offered", "Challenges expire and enforce replay, attempt and rate limits", "Sessions use secure HttpOnly cookies with CSRF protection", "Demo OTP is visibly isolated and impossible in production mode", "PII and OTP values are redacted from logs"],
+      "depends_on": [
+        "BE-001",
+        "DB-001",
+        "UI-001",
+        "AUTHUI-001"
+      ],
+      "allowed_paths": [
+        "ARCHITECTURE.md",
+        "MIGRATION_PLAN.md",
+        "apps/api/",
+        "apps/storefront/",
+        "packages/",
+        "tests/",
+        "docs/",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Only phone OTP authentication is offered",
+        "Challenges expire and enforce replay, attempt and rate limits",
+        "Sessions use secure HttpOnly cookies with CSRF protection",
+        "Demo OTP is visibly isolated and impossible in production mode",
+        "PII and OTP values are redacted from logs"
+      ],
       "pr": 15,
       "blocker": "F4 mechanisms are test-isolated. Real SMS/provider credentials, production keys/TTL/rate/consent/retention policies and BFF/TLS activation require owner approval; no live UI switch."
     },
@@ -161,9 +364,24 @@
       "title": "Implement authorized profile shell, personal data and logout",
       "status": "pending",
       "readiness": "integration",
-      "depends_on": ["AUTH-001", "PROFILEUI-001"],
-      "allowed_paths": ["apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
-      "acceptance": ["Sidebar order exactly matches approved audit and contains no Overview item", "Unauthorized routes follow the approved OTP flow", "Mobile drawer focus, Escape and overflow pass", "Profile mutation rollback, phone re-verification and server logout are tested"],
+      "depends_on": [
+        "AUTH-001",
+        "PROFILEUI-001"
+      ],
+      "allowed_paths": [
+        "apps/api/",
+        "apps/storefront/",
+        "packages/",
+        "tests/",
+        "docs/",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Sidebar order exactly matches approved audit and contains no Overview item",
+        "Unauthorized routes follow the approved OTP flow",
+        "Mobile drawer focus, Escape and overflow pass",
+        "Profile mutation rollback, phone re-verification and server logout are tested"
+      ],
       "pr": null,
       "blocker": null
     },
@@ -172,9 +390,22 @@
       "title": "Implement customer addresses",
       "status": "pending",
       "readiness": "integration",
-      "depends_on": ["PROFILE-001", "SHIP-001"],
-      "allowed_paths": ["apps/api/", "apps/storefront/", "packages/", "tests/", ".github/autonomous/tasks.json"],
-      "acceptance": ["Create, edit, delete and default-address operations enforce ownership", "Ukrainian validation and delivery-provider fields are tested", "Loading, empty, validation, conflict and unavailable states are accessible"],
+      "depends_on": [
+        "PROFILE-001",
+        "SHIP-001"
+      ],
+      "allowed_paths": [
+        "apps/api/",
+        "apps/storefront/",
+        "packages/",
+        "tests/",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Create, edit, delete and default-address operations enforce ownership",
+        "Ukrainian validation and delivery-provider fields are tested",
+        "Loading, empty, validation, conflict and unavailable states are accessible"
+      ],
       "pr": null,
       "blocker": null
     },
@@ -183,9 +414,24 @@
       "title": "Implement synchronized wishlist and favorites preview",
       "status": "pending",
       "readiness": "integration",
-      "depends_on": ["PROFILE-001", "CAT-001", "CART-001"],
-      "allowed_paths": ["apps/api/", "apps/storefront/", "packages/", "tests/", ".github/autonomous/tasks.json"],
-      "acceptance": ["Wishlist persists per authorized user", "Guest merge and conflicts are deterministic", "Header count, preview, profile list and product controls stay synchronized", "Bulk remove and add-to-cart errors do not claim success"],
+      "depends_on": [
+        "PROFILE-001",
+        "CAT-001",
+        "CART-001"
+      ],
+      "allowed_paths": [
+        "apps/api/",
+        "apps/storefront/",
+        "packages/",
+        "tests/",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Wishlist persists per authorized user",
+        "Guest merge and conflicts are deterministic",
+        "Header count, preview, profile list and product controls stay synchronized",
+        "Bulk remove and add-to-cart errors do not claim success"
+      ],
       "pr": null,
       "blocker": null
     },
@@ -194,9 +440,27 @@
       "title": "Implement order placement transaction and approved checkout confirmation",
       "status": "done",
       "readiness": "integration",
-      "depends_on": ["CHECKOUT-001", "SHIP-001", "AUTH-001"],
-      "allowed_paths": ["ARCHITECTURE.md", "MIGRATION_PLAN.md", "apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
-      "acceptance": ["Order placement is idempotent and transactional", "Server revalidates cart, inventory, delivery and totals", "Failure never renders a success confirmation", "Audit trail contains no sensitive payment or OTP data"],
+      "depends_on": [
+        "CHECKOUT-001",
+        "SHIP-001",
+        "AUTH-001"
+      ],
+      "allowed_paths": [
+        "ARCHITECTURE.md",
+        "MIGRATION_PLAN.md",
+        "apps/api/",
+        "apps/storefront/",
+        "packages/",
+        "tests/",
+        "docs/",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Order placement is idempotent and transactional",
+        "Server revalidates cart, inventory, delivery and totals",
+        "Failure never renders a success confirmation",
+        "Audit trail contains no sensitive payment or OTP data"
+      ],
       "pr": 17,
       "blocker": "F6 isolated drafts/idempotent immutable pending records are implemented. Live order terms/numbering/fiscalization, contact PII, inventory reservation, promo redemption, provider contracts and SMS/BFF activation remain owner decisions. No live checkout switch."
     },
@@ -205,9 +469,23 @@
       "title": "Implement customer order list and verified order details",
       "status": "pending",
       "readiness": "integration",
-      "depends_on": ["ORDER-001", "PROFILE-001"],
-      "allowed_paths": ["apps/api/", "apps/storefront/", "packages/", "tests/", ".github/autonomous/tasks.json"],
-      "acceptance": ["Only current-user orders are accessible", "Pagination, status filters, empty/error/loading and details are tested", "Only authoritative delivery, payment, tracking and timeline fields render", "No legacy fallback facts are presented as real"],
+      "depends_on": [
+        "ORDER-001",
+        "PROFILE-001"
+      ],
+      "allowed_paths": [
+        "apps/api/",
+        "apps/storefront/",
+        "packages/",
+        "tests/",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Only current-user orders are accessible",
+        "Pagination, status filters, empty/error/loading and details are tested",
+        "Only authoritative delivery, payment, tracking and timeline fields render",
+        "No legacy fallback facts are presented as real"
+      ],
       "pr": null,
       "blocker": null
     },
@@ -216,9 +494,23 @@
       "title": "Implement verified-purchase reviews and moderation states",
       "status": "pending",
       "readiness": "integration",
-      "depends_on": ["ORDERS-001"],
-      "allowed_paths": ["apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
-      "acceptance": ["Purchase eligibility and ownership are server-enforced", "Create, edit, delete and moderation states are explicit", "Upload boundary validates type, size and authorization", "Product and profile review views remain consistent"],
+      "depends_on": [
+        "ORDERS-001"
+      ],
+      "allowed_paths": [
+        "apps/api/",
+        "apps/storefront/",
+        "packages/",
+        "tests/",
+        "docs/",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Purchase eligibility and ownership are server-enforced",
+        "Create, edit, delete and moderation states are explicit",
+        "Upload boundary validates type, size and authorization",
+        "Product and profile review views remain consistent"
+      ],
       "pr": null,
       "blocker": "Moderation and media-retention policy require approval."
     },
@@ -227,9 +519,26 @@
       "title": "Integrate tokenized payment provider and payment methods",
       "status": "done",
       "readiness": "integration",
-      "depends_on": ["ORDER-001", "PROFILE-001"],
-      "allowed_paths": ["ARCHITECTURE.md", "MIGRATION_PLAN.md", "apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
-      "acceptance": ["Raw card data never touches BAZAR storage or logs", "Provider tokens and safe display metadata are server-authorized", "Webhook verification and idempotency are tested", "Decline, timeout, retry and uncertain outcome states never claim success"],
+      "depends_on": [
+        "ORDER-001",
+        "PROFILE-001"
+      ],
+      "allowed_paths": [
+        "ARCHITECTURE.md",
+        "MIGRATION_PLAN.md",
+        "apps/api/",
+        "apps/storefront/",
+        "packages/",
+        "tests/",
+        "docs/",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Raw card data never touches BAZAR storage or logs",
+        "Provider tokens and safe display metadata are server-authorized",
+        "Webhook verification and idempotency are tested",
+        "Decline, timeout, retry and uncertain outcome states never claim success"
+      ],
       "pr": 19,
       "blocker": "F8 isolated payment protocol/security plus Ukrposhta extension implemented. Real provider/merchant/PCI/SDK/signature/finality, authoritative payable/financial/refund policy, carrier credentials/terms and production rollout require approval."
     },
@@ -238,9 +547,22 @@
       "title": "Implement authorized support tickets",
       "status": "pending",
       "readiness": "integration",
-      "depends_on": ["PROFILE-001"],
-      "allowed_paths": ["apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
-      "acceptance": ["Ticket creation and status access enforce ownership", "Validation, attachments, delivery failures and empty states are tested", "Retention and PII redaction are documented"],
+      "depends_on": [
+        "PROFILE-001"
+      ],
+      "allowed_paths": [
+        "apps/api/",
+        "apps/storefront/",
+        "packages/",
+        "tests/",
+        "docs/",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Ticket creation and status access enforce ownership",
+        "Validation, attachments, delivery failures and empty states are tested",
+        "Retention and PII redaction are documented"
+      ],
       "pr": null,
       "blocker": "Support ownership, SLA, attachment and retention policies require approval."
     },
@@ -249,9 +571,24 @@
       "title": "Implement authorized marketplace messaging",
       "status": "pending",
       "readiness": "integration",
-      "depends_on": ["PROFILE-001", "ORDERS-001"],
-      "allowed_paths": ["apps/api/", "apps/storefront/", "packages/", "tests/", "docs/", ".github/autonomous/tasks.json"],
-      "acceptance": ["Conversation access, send, read and pin operations enforce membership", "Oldest-to-newest ordering, open-at-bottom, unread-chat count and responsive navigation match approval", "Attachment authorization, retry and failure states are tested", "No local-only action claims a message was delivered"],
+      "depends_on": [
+        "PROFILE-001",
+        "ORDERS-001"
+      ],
+      "allowed_paths": [
+        "apps/api/",
+        "apps/storefront/",
+        "packages/",
+        "tests/",
+        "docs/",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Conversation access, send, read and pin operations enforce membership",
+        "Oldest-to-newest ordering, open-at-bottom, unread-chat count and responsive navigation match approval",
+        "Attachment authorization, retry and failure states are tested",
+        "No local-only action claims a message was delivered"
+      ],
       "pr": null,
       "blocker": "Seller/staff participants, moderation, realtime transport and retention policy require approval."
     },
@@ -260,9 +597,24 @@
       "title": "Define seller and staff system integration boundaries",
       "status": "pending",
       "readiness": "integration",
-      "depends_on": ["BE-001", "MESSAGE-001", "ORDERS-001"],
-      "allowed_paths": ["apps/api/", "packages/contracts/", "tests/", "docs/", ".github/autonomous/tasks.json"],
-      "acceptance": ["Role and permission matrix is explicit", "Seller/staff adapters expose no unapproved customer UI", "Webhook/event authentication, replay protection and audit fields are tested", "Unavailable external systems degrade safely"],
+      "depends_on": [
+        "BE-001",
+        "MESSAGE-001",
+        "ORDERS-001"
+      ],
+      "allowed_paths": [
+        "apps/api/",
+        "packages/contracts/",
+        "tests/",
+        "docs/",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Role and permission matrix is explicit",
+        "Seller/staff adapters expose no unapproved customer UI",
+        "Webhook/event authentication, replay protection and audit fields are tested",
+        "Unavailable external systems degrade safely"
+      ],
       "pr": null,
       "blocker": "Seller and staff source systems, owners and SLAs are not yet selected."
     },
@@ -271,9 +623,26 @@
       "title": "Add security controls, observability and operational alerts",
       "status": "pending",
       "readiness": "production",
-      "depends_on": ["BE-001", "AUTH-001", "ORDER-001"],
-      "allowed_paths": ["apps/", "packages/", "infra/", "docs/", ".github/", "tests/", ".github/autonomous/tasks.json"],
-      "acceptance": ["Threat model covers identity, checkout, messaging and admin boundaries", "Rate limits, CSRF, headers and secret validation are tested", "Metrics, traces and redacted logs have actionable alerts", "Runbooks cover dependency outage and uncertain payment/order state"],
+      "depends_on": [
+        "BE-001",
+        "AUTH-001",
+        "ORDER-001"
+      ],
+      "allowed_paths": [
+        "apps/",
+        "packages/",
+        "infra/",
+        "docs/",
+        ".github/",
+        "tests/",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Threat model covers identity, checkout, messaging and admin boundaries",
+        "Rate limits, CSRF, headers and secret validation are tested",
+        "Metrics, traces and redacted logs have actionable alerts",
+        "Runbooks cover dependency outage and uncertain payment/order state"
+      ],
       "pr": null,
       "blocker": "Production monitoring destinations and incident owners require configuration."
     },
@@ -282,9 +651,26 @@
       "title": "Prepare reproducible VPS deployment, backups and rollback",
       "status": "pending",
       "readiness": "production",
-      "depends_on": ["OBS-001", "STAFF-001", "PAYMENT-001"],
-      "allowed_paths": ["infra/", "docs/", ".github/", "apps/", "packages/", "tests/", ".github/autonomous/tasks.json"],
-      "acceptance": ["Immutable build and least-privilege service definitions are reproducible", "TLS, reverse proxy, secrets injection and health checks are documented", "PostgreSQL backup and restore are rehearsable", "Rollback does not require rewriting history or deleting Shopify source"],
+      "depends_on": [
+        "OBS-001",
+        "STAFF-001",
+        "PAYMENT-001"
+      ],
+      "allowed_paths": [
+        "infra/",
+        "docs/",
+        ".github/",
+        "apps/",
+        "packages/",
+        "tests/",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Immutable build and least-privilege service definitions are reproducible",
+        "TLS, reverse proxy, secrets injection and health checks are documented",
+        "PostgreSQL backup and restore are rehearsable",
+        "Rollback does not require rewriting history or deleting Shopify source"
+      ],
       "pr": null,
       "blocker": "VPS OS, host access, DNS, TLS ownership and backup destination require human authorization."
     },
@@ -293,9 +679,27 @@
       "title": "Complete parity, resilience and release-readiness evidence",
       "status": "pending",
       "readiness": "production",
-      "depends_on": ["VPS-001", "REVIEW-001", "SUPPORT-001"],
-      "allowed_paths": ["apps/", "packages/", "tests/", "docs/", "infra/", ".github/", ".github/autonomous/tasks.json"],
-      "acceptance": ["All Definition of Done release gates have recorded evidence", "Desktop/mobile accessibility and approved visual comparisons pass", "Critical journeys and dependency failures pass E2E", "Backup restore and rollback rehearsal pass", "Production deploy and main merge remain separate human-approved actions"],
+      "depends_on": [
+        "VPS-001",
+        "REVIEW-001",
+        "SUPPORT-001"
+      ],
+      "allowed_paths": [
+        "apps/",
+        "packages/",
+        "tests/",
+        "docs/",
+        "infra/",
+        ".github/",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "All Definition of Done release gates have recorded evidence",
+        "Desktop/mobile accessibility and approved visual comparisons pass",
+        "Critical journeys and dependency failures pass E2E",
+        "Backup restore and rollback rehearsal pass",
+        "Production deploy and main merge remain separate human-approved actions"
+      ],
       "pr": null,
       "blocker": "Requires approved screenshots, credentials, legal/business sign-off and explicit production authorization."
     },
@@ -477,9 +881,26 @@
       "title": "Complete bounded discounted browser checkout with atomic F5 usage and immutable test financial snapshots",
       "status": "done",
       "readiness": "integration",
-      "depends_on": ["BROWSER-001"],
-      "allowed_paths": ["apps/api/", "apps/storefront/", "tests/e2e/", "docs/", "ARCHITECTURE.md", "MIGRATION_PLAN.md", "FUNCTIONAL_GAP_AUDIT.md", "DEMO_READINESS_CHECKLIST.md", "DEMO_COMPLETION_PLAN.md", ".github/autonomous/tasks.json"],
-      "acceptance": ["Existing F5 evaluates fixed and exact percentage single-line discounts without new marketing rounding or allocation rules", "Signed test payment and order plus usage and financial snapshot commit atomically and survive replay refresh and concurrent cap contention", "Browser desktop/mobile carrier promo errors history security and ordinary regression checks pass; production remains blocked"],
+      "depends_on": [
+        "BROWSER-001"
+      ],
+      "allowed_paths": [
+        "apps/api/",
+        "apps/storefront/",
+        "tests/e2e/",
+        "docs/",
+        "ARCHITECTURE.md",
+        "MIGRATION_PLAN.md",
+        "FUNCTIONAL_GAP_AUDIT.md",
+        "DEMO_READINESS_CHECKLIST.md",
+        "DEMO_COMPLETION_PLAN.md",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Existing F5 evaluates fixed and exact percentage single-line discounts without new marketing rounding or allocation rules",
+        "Signed test payment and order plus usage and financial snapshot commit atomically and survive replay refresh and concurrent cap contention",
+        "Browser desktop/mobile carrier promo errors history security and ordinary regression checks pass; production remains blocked"
+      ],
       "pr": 27,
       "blocker": "Multiple discounted lines and variant/seller/unit allocation, fractional rounding, stacking, legal payable/tax/fee policy, capacity restoration/refunds and production providers/auth remain unapproved."
     },
@@ -488,9 +909,26 @@
       "title": "Reuse F13 inbox for secure isolated customer notification center and demo event integration",
       "status": "done",
       "readiness": "integration",
-      "depends_on": ["DISCOUNTBROWSER-001"],
-      "allowed_paths": ["apps/api/", "apps/storefront/", "tests/e2e/", "docs/", "ARCHITECTURE.md", "MIGRATION_PLAN.md", "FUNCTIONAL_GAP_AUDIT.md", "DEMO_READINESS_CHECKLIST.md", "DEMO_COMPLETION_PLAN.md", ".github/autonomous/tasks.json"],
-      "acceptance": ["Existing F13 owner inbox gains counter and monotonic bounded bulk-read without another notification system", "Isolated browser UI event links pagination persistence logout and accessibility work without new account navigation", "Test event provenance dedup concurrency security regression audit governance and CI pass; no real channels or financial claims"],
+      "depends_on": [
+        "DISCOUNTBROWSER-001"
+      ],
+      "allowed_paths": [
+        "apps/api/",
+        "apps/storefront/",
+        "tests/e2e/",
+        "docs/",
+        "ARCHITECTURE.md",
+        "MIGRATION_PLAN.md",
+        "FUNCTIONAL_GAP_AUDIT.md",
+        "DEMO_READINESS_CHECKLIST.md",
+        "DEMO_COMPLETION_PLAN.md",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Existing F13 owner inbox gains counter and monotonic bounded bulk-read without another notification system",
+        "Isolated browser UI event links pagination persistence logout and accessibility work without new account navigation",
+        "Test event provenance dedup concurrency security regression audit governance and CI pass; no real channels or financial claims"
+      ],
       "pr": 28,
       "blocker": "Production auth/BFF/privacy consent templates retention keys outbox and channel providers, actual staff/order/refund authority and normal storefront server-mode remain unapproved; F18 scope is separate."
     },
@@ -499,9 +937,27 @@
       "title": "Audit F1-F17 marketplace readiness against pinned Shopify source and define measurable completion gates",
       "status": "done",
       "readiness": "integration",
-      "depends_on": ["NOTIFICATION-001"],
-      "allowed_paths": ["FULL_MARKETPLACE_READINESS_AUDIT.md", "FUNCTIONAL_COMPLETION_BACKLOG.md", "REMAINING_DEVELOPMENT_ROADMAP.md", "FULL_AUDIT_ENTRY_CRITERIA.md", "ARCHITECTURE.md", "MIGRATION_PLAN.md", "FUNCTIONAL_GAP_AUDIT.md", "DEMO_READINESS_CHECKLIST.md", "DEMO_COMPLETION_PLAN.md", ".github/autonomous/tasks.json"],
-      "acceptance": ["Evidence matrix separates local demo isolated browser server-only missing and production-blocked capabilities without design or code changes", "Pinned Shopify routes and actual UI/API/PostgreSQL/tests verify multi-item money ownership account marketplace and operational gaps", "Backlog roadmap and measurable buyer/full-marketplace entry gates preserve history and do not invent business rules or claim Demo100", "Existing checks and GitHub CI are rerun and actual skips/coverage gaps recorded without modifying tests for green CI"],
+      "depends_on": [
+        "NOTIFICATION-001"
+      ],
+      "allowed_paths": [
+        "FULL_MARKETPLACE_READINESS_AUDIT.md",
+        "FUNCTIONAL_COMPLETION_BACKLOG.md",
+        "REMAINING_DEVELOPMENT_ROADMAP.md",
+        "FULL_AUDIT_ENTRY_CRITERIA.md",
+        "ARCHITECTURE.md",
+        "MIGRATION_PLAN.md",
+        "FUNCTIONAL_GAP_AUDIT.md",
+        "DEMO_READINESS_CHECKLIST.md",
+        "DEMO_COMPLETION_PLAN.md",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Evidence matrix separates local demo isolated browser server-only missing and production-blocked capabilities without design or code changes",
+        "Pinned Shopify routes and actual UI/API/PostgreSQL/tests verify multi-item money ownership account marketplace and operational gaps",
+        "Backlog roadmap and measurable buyer/full-marketplace entry gates preserve history and do not invent business rules or claim Demo100",
+        "Existing checks and GitHub CI are rerun and actual skips/coverage gaps recorded without modifying tests for green CI"
+      ],
       "pr": 29,
       "blocker": "Audit completion does not complete functional gaps: ordinary server UI mapping multi-item financial/cart lifecycle privacy/authority seller/admin/staff providers and operations remain open."
     },
@@ -545,7 +1001,7 @@
     {
       "id": "CATALOGCOMPLETE-001",
       "title": "Implement versioned owned catalog binary availability media search routing and restored-event foundation",
-      "status": "in_review",
+      "status": "done",
       "readiness": "integration",
       "depends_on": [
         "BUSINESSRULES-001"
@@ -578,6 +1034,45 @@
       ],
       "pr": 31,
       "blocker": "Differently priced product aggregate merchandising and publication/import/media rights, production auth/seller grants, normal storefront server cart integration and consented push remain gated; F20 is not Demo100 or production readiness."
+    },
+    {
+      "id": "STOREFRONTINTEGRATION-001",
+      "title": "Integrate owned seller offers and isolated ordinary storefront server persistence",
+      "status": "in_review",
+      "readiness": "integration",
+      "depends_on": [
+        "CATALOGCOMPLETE-001"
+      ],
+      "allowed_paths": [
+        "apps/api/",
+        "apps/storefront/",
+        "tests/e2e/",
+        "docs/",
+        ".gitignore",
+        ".github/workflows/ci.yml",
+        "ARCHITECTURE.md",
+        "MIGRATION_PLAN.md",
+        "BUSINESS_RULES_V1.md",
+        "COMMERCE_DOMAIN_CONTRACTS.md",
+        "BUSINESS_DECISION_REGISTER.md",
+        "F20_F29_IMPLEMENTATION_CONTRACT.md",
+        "FULL_MARKETPLACE_READINESS_AUDIT.md",
+        "FUNCTIONAL_COMPLETION_BACKLOG.md",
+        "REMAINING_DEVELOPMENT_ROADMAP.md",
+        "FULL_AUDIT_ENTRY_CRITERIA.md",
+        "FUNCTIONAL_GAP_AUDIT.md",
+        "DEMO_READINESS_CHECKLIST.md",
+        "DEMO_COMPLETION_PLAN.md",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Distinct seller variant offers retain exact prices identity and selected detail routes without parent aggregation",
+        "Existing verified sessions protect server cart and exact-offer wishlist; no local authenticated authority or guest merge",
+        "Binary unavailable saved offers and deduplicated F13 restoration remain owned and persistent",
+        "Unit PG HTTP browser desktop mobile accessibility regression checks and CI pass with explicit production gates"
+      ],
+      "pr": 32,
+      "blocker": "Production SMS/grants/provider privacy media datasets remain gated; F22 checkout integration remains separate."
     }
   ]
 }

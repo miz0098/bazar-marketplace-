@@ -1,4 +1,6 @@
 'use client';
+import {useServerCustomer} from '../server/customer-provider';
+import {productHref} from '@/domain/catalog/offers';
 
 import { useWishlist } from '@/components/product/wishlist-provider';
 import Link from 'next/link';
@@ -21,6 +23,7 @@ import type {
 import { formatMoney } from '@/lib/money';
 
 export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
+  const {state:serverState,enabled:serverEnabled}=useServerCustomer();
   const { items: sharedItems, notice: persistenceNotice } = useWishlist();
   const service = useAccountService(scenario);
   const cart = useCart();
@@ -119,10 +122,11 @@ export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
 
   return (
     <div className="account-wishlist-screen">
+      {serverEnabled&&serverState.legacyWishlist.length>0&&<p role="status">Збережено {serverState.legacyWishlist.length} попередніх записів товарів. Варіант не обирався автоматично.</p>}
       <AccountPageHeading
         kicker="Збережені товари"
         title="Обране"
-        description="Пошук і дії працюють лише з демонстраційним списком та зберігаються локально без персональних даних і не синхронізуються з акаунтом."
+        description={serverEnabled?"Тестове обране зберігає конкретні пропозиції у вашому серверному акаунті. Оновлення синхронізує дані між пристроями.":"Пошук і дії працюють лише з демонстраційним списком та зберігаються локально без персональних даних і не синхронізуються з акаунтом."}
       />
       <div className="account-wishlist-toolbar account-toolbar">
         <label className="account-search">
@@ -162,7 +166,7 @@ export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
       {cartError && <p role="alert">{cartError}</p>}
       {notice && (
         <DemoMutationNotice>
-          {notice} Демо-обране використовує лише локальне сховище.
+          {notice} {serverEnabled?"Зміни зберігаються у вашому тестовому акаунті.":"Демо-обране використовує лише локальне сховище."}
         </DemoMutationNotice>
       )}
       {error ? (
@@ -268,7 +272,7 @@ export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
                 </button>
                 <Link
                   className="account-wishlist-card__media"
-                  href={`/products/${item.product.handle}`}
+                  href={productHref(item.product)}
                   aria-label={`Відкрити ${item.product.title}`}
                 >
                   <span
@@ -282,7 +286,7 @@ export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
                   <span className="account-wishlist-card__vendor">
                     {item.product.vendor}
                   </span>
-                  <Link href={`/products/${item.product.handle}`}>
+                  <Link href={productHref(item.product)}>
                     <h2>{item.product.title}</h2>
                   </Link>
                   <strong className="account-wishlist-card__price">
@@ -293,8 +297,8 @@ export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
                       className="account-button account-button--primary account-wishlist-card__button"
                       type="button"
                       disabled={!item.product.available}
-                      onClick={() => {
-                        const error = cart.add(item.product);
+                      onClick={async () => {
+                        const error = await cart.add(item.product);
                         setCartError(error);
                         setNotice(
                           error

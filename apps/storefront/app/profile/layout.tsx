@@ -1,3 +1,4 @@
+import {ServerAccountGate} from '@/components/server/customer-provider';
 import type { Metadata } from 'next';
 import { AccountPreviewProvider } from '@/components/account/account-preview-provider';
 import { AccountShell } from '@/components/account/account-shell';
@@ -11,5 +12,5 @@ export const metadata: Metadata = {
 };
 
 export default function ProfileLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <AccountPreviewProvider><CommunicationPreviewProvider><AccountShell>{children}</AccountShell></CommunicationPreviewProvider></AccountPreviewProvider>;
+  return <ServerAccountGate><AccountPreviewProvider><CommunicationPreviewProvider><AccountShell>{children}</AccountShell></CommunicationPreviewProvider></AccountPreviewProvider></ServerAccountGate>;
 }

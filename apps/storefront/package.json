@@ -10,7 +10,9 @@
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test tests/*.test.ts",
     "browser:build": "BAZAR_BROWSER_INTEGRATION=1 next build browser-integration",
-    "typecheck:browser": "tsc --noEmit -p browser-integration/tsconfig.json"
+    "typecheck:browser": "tsc --noEmit -p browser-integration/tsconfig.json",
+    "storefront:build": "BAZAR_BROWSER_INTEGRATION=1 BAZAR_STOREFRONT_INTEGRATION=1 next build storefront-integration",
+    "typecheck:storefront": "tsc --noEmit -p storefront-integration/tsconfig.json"
   },
   "engines": {
     "node": ">=20.9.0"

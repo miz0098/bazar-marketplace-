@@ -7,8 +7,8 @@ test('F20 all ten pinned Shopify footer routes preserve query and land on matchi
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
 });
 test('F20 available filter combines with category and price URL state survives refresh and back',async({page})=>{
- await page.goto('/catalog?category=electronics&available=false&sort=price-asc');await expect(page.locator('.product-card:visible')).toHaveCount(1);await expect(page.locator('.product-card:visible')).toContainText('Немає в наявності');
- await page.reload();await expect(page.locator('.product-card:visible')).toHaveCount(1);await page.goto('/catalog?category=electronics&available=true');await expect(page.locator('.product-card:visible')).toHaveCount(5);await page.goBack();await expect(page.locator('.product-card:visible')).toHaveCount(1);
+ await page.goto('/catalog?category=electronics&available=false&sort=price-asc');await expect(page.locator('.product-card:visible')).toHaveCount(2);await expect(page.locator('.product-card:visible')).toContainText(['Немає в наявності','Немає в наявності']);
+ await page.reload();await expect(page.locator('.product-card:visible')).toHaveCount(2);await page.goto('/catalog?category=electronics&available=true');await expect(page.locator('.product-card:visible')).toHaveCount(6);await page.goBack();await expect(page.locator('.product-card:visible')).toHaveCount(2);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
  const results=await new AxeBuilder({page}).analyze();expect(results.violations.filter(v=>v.impact==='serious'||v.impact==='critical')).toEqual([]);
 });

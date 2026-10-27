@@ -526,3 +526,9 @@ html.auth-scroll-lock { overflow: hidden; overscroll-behavior: none; }
 .catalog-button{background:#0d6be5;}
 
 .cart-line[data-unavailable="true"] .cart-line__quantity{opacity:.6;}
+
+/* F21: readable search controls without changing layout or brand surfaces. */
+.search-page__toolbar { color: #475569; }
+.search-page a { color: #0969da; }
+.search-page__toolbar p, .search-page__toolbar label { color: #475569; }
+.search-page__form > a { color: #0969da; }

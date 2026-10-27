@@ -25,6 +25,7 @@ export class ServerAuthClientError extends Error {
       | 'unavailable'
       | 'timeout',
     readonly status?: number,
+    readonly retryAfterSeconds?: number,
   ) {
     super('Не вдалося виконати серверний запит авторизації.');
     this.name = 'ServerAuthClientError';
@@ -114,7 +115,9 @@ export function createServerAuthClient(
       });
       if (!response.ok) {
         await response.body?.cancel();
-        throw new ServerAuthClientError('http-error', response.status);
+        const wait=response.headers.get('retry-after')??'';
+        const retry=response.status===429&&/^\d+$/.test(wait)&&Number(wait)>=1&&Number(wait)<=3600?Number(wait):undefined;
+        throw new ServerAuthClientError('http-error', response.status,retry);
       }
       if (
         !response.headers

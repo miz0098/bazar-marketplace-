@@ -16,7 +16,8 @@ export interface ServerCartView {
   };
   inventory: readonly {
     variantId: string;
-    stock: number;
+    stock: number | null;
+    availabilityModel?: 'binary';
     available: boolean;
     unitPrice: { amountMinor: number; currency: 'UAH' };
   }[];
@@ -70,10 +71,11 @@ export function isServerCartView(v: unknown): v is ServerCartView {
       !money(l.lineTotal) ||
       !object(stock) ||
       stock.variantId !== l.variantId ||
-      !count(stock.stock) ||
-      stock.stock > 2147483647 ||
+      (stock.availabilityModel === 'binary' ? stock.stock !== null : !count(stock.stock) || stock.stock > 2147483647) ||
+      (stock.availabilityModel !== undefined && stock.availabilityModel !== 'binary') ||
       !money(stock.unitPrice) ||
-      stock.available !== l.quantity <= stock.stock ||
+      typeof stock.available !== 'boolean' ||
+      (stock.availabilityModel !== 'binary' && stock.available !== (l.quantity <= (stock.stock as number))) ||
       BigInt(stock.unitPrice.amountMinor) * BigInt(l.quantity) !==
         BigInt(l.lineTotal.amountMinor)
     )

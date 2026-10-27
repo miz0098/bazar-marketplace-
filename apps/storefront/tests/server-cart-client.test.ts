@@ -117,3 +117,9 @@ test('integration controller captures CSRF in memory and does not copy a local c
   await assert.rejects(client.startCurrentCheckout(id));
   assert.equal(calls.filter((c) => c.path === '/api/v1/checkouts').length, 0);
 });
+
+test('binary offer availability is independent of deprecated stock and rejects mixed representations',async()=>{
+ const binary={...view,canCheckout:true,cart:{...view.cart,lines:[{productId:id,variantId:id,quantity:6,lineTotal:{amountMinor:600,currency:'UAH'}}],subtotal:{amountMinor:600,currency:'UAH'}},inventory:[{variantId:id,availabilityModel:'binary',stock:null,available:true,unitPrice:{amountMinor:100,currency:'UAH'}}]};
+ assert.equal((await createServerCartClient(()=>'a'.repeat(43),async()=>response(binary)).get()).canCheckout,true);
+ for(const patch of [{stock:6},{availabilityModel:'unknown'},{available:'yes'}])await assert.rejects(createServerCartClient(()=>'a'.repeat(43),async()=>response({...binary,inventory:[{...binary.inventory[0],...patch}]})).get(),{code:'invalid-response'});
+});

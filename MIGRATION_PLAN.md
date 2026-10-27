@@ -197,3 +197,7 @@ After Phase 1 is approved and `apps/storefront` exists, its README must contain 
 - Ran `node --check` over every `assets/bazar-*.js` file at `105d10f`; all passed syntax validation.
 - Ran `npm run theme:check` at `105d10f`; it failed with 331 offenses across 159 of 366 inspected files: 8 errors and 323 warnings. Exact error paths are reported in the PR/check summary.
 - Validation results for the new documents and theme checks are recorded in the task/PR report rather than pre-claimed here.
+
+## F21 current implementation overlay (historical evidence retained)
+
+[Ordinary storefront offer/session/cart/wishlist implementation, modes and verification](docs/F21_STOREFRONT_ACCEPTANCE.md). One distinct seller offer now maps to one exact-price card, resolving the former aggregate-card merchandising blocker without choosing an aggregate parent price. PostgreSQL persistence is available through shared ordinary components in the isolated HTTPS entry; default local demo and production activation remain distinct. F22 checkout/multi-seller financial snapshots, fuller profile/communication integration, seller/staff apps, licensed datasets/media, privacy/legal/finance decisions and live providers remain open. No quantitative inventory or automatic guest merge. No Demo100% / Full Audit Ready claim; BAZAR remains **НЕ ГОТОВИЙ** for full audit. New tests only establish their documented bounded workflows, not all entry criteria.

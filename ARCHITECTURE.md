@@ -290,3 +290,7 @@ Emit structured server logs with request/correlation ID, route, service operatio
 ## Decisions to record before implementation
 
 Create short architecture decision records for: system of record during transition; API/auth protocol; URL and locale strategy; cart identity/persistence; checkout ownership; rendering/cache policy; package manager and supported Node release; styling/token approach; image/media delivery; test stack; deployment topology; and observability/privacy policy. Each record should state evidence, alternatives, decision owner, consequences, and revisit trigger.
+
+## Phase F21 — ordinary storefront integration
+
+[ADR0019](docs/adr/0019-seller-offers-storefront-persistence.md) / [acceptance and modes](docs/F21_STOREFRONT_ACCEPTANCE.md). Additive0017 projects normalized seller offers with variant UUID identity and exact price. Catalog cards and page counts are individual offers; V2 parent price DTO remains unchanged. Existing Phase D/E components are shared by an isolated HTTPS ordinary-page Next entry with F4 sessions, F9 cart and owned exact-offer wishlist. Memory-only actor state; PostgreSQL authenticated persistence; separate local guest cart/no merge. Root production build rejects isolated flags; production private auth remains disabled. Other account workflows and checkout are not silently upgraded to production. F13 restoration reused. No new UI sections or providers.

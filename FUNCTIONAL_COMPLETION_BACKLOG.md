@@ -70,3 +70,17 @@ Everything not explicitly superseded remains open. No rule silently restores pro
 ## Historical F18 B11 wording (superseded target, preserved evidence)
 
 | B11 | Inventory commitment і post-order cart lifecycle / second purchase | P0 B/M | B01, B07, B10, DR04/DR05 | Явні reserve/decrement/release/expiry/oversell та retained/closed/replaced cart правила; два послідовних замовлення з одного акаунта через UI; конкурентний last-stock scenario; unknown payment не спричиняє blind retry; guest policy незмінна | F19 рішення, F22–F23 |
+
+## F21 current implementation overlay (historical evidence retained)
+
+[Ordinary storefront offer/session/cart/wishlist implementation, modes and verification](docs/F21_STOREFRONT_ACCEPTANCE.md). One distinct seller offer now maps to one exact-price card, resolving the former aggregate-card merchandising blocker without choosing an aggregate parent price. PostgreSQL persistence is available through shared ordinary components in the isolated HTTPS entry; default local demo and production activation remain distinct. F22 checkout/multi-seller financial snapshots, fuller profile/communication integration, seller/staff apps, licensed datasets/media, privacy/legal/finance decisions and live providers remain open. No quantitative inventory or automatic guest merge. No Demo100% / Full Audit Ready claim; BAZAR remains **НЕ ГОТОВИЙ** for full audit. New tests only establish their documented bounded workflows, not all entry criteria.
+
+### F21 measured scope, not closure of whole F18 rows
+
+| Backlog | F21 result | Still open |
+| --- | --- | --- |
+| B03/B08 | Exact individual seller/variant card price and navigation; former aggregate-card rule resolved by BR-O01 | Approved import/media/legal datasets and production scale, not a parent price aggregation policy |
+| B04/B07 | Ordinary shared UI uses real isolated OTP/session and owned PostgreSQL cart, multi-seller persistence, two independent login contexts, no guest merge | Production SMS/BFF/grants; order-completion clearing and repeat purchase belong to F22 |
+| B12 | Exact-offer server wishlist, unavailable persistence/restoration and owner-scoped set operations; guest is asked to log in | Legacy product-only saved rows need explicit offer selection; remaining account work F24, lawful retention |
+| B11/B09/B10/B13 | Existing checkout engine retained; F21 does not pretend its preview is integrated | Approved multi-seller checkout/contact/financial lifecycle in F22, pending rounding/finance decisions |
+| B20 | Exact-offer wishlist restoration joins the existing F13 inbox recipients without duplicate delivery | Ordinary full inbox/preferences/channel integration F24/F27; no real push |

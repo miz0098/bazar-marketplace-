@@ -255,7 +255,7 @@ export default async function CatalogPage({
           ) : result.items.length && preview !== 'empty' ? (
             <div className="product-grid">
               {result.items.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.offerId??product.id} product={product} />
               ))}
             </div>
           ) : (

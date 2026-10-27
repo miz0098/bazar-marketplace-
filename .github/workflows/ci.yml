@@ -178,6 +178,10 @@ jobs:
         working-directory: tests/e2e
       - run: npm run typecheck:browser
         working-directory: apps/storefront
+      - run: npm run typecheck:storefront
+        working-directory: apps/storefront
+      - run: npm run test:storefront
+        working-directory: apps/api
       - run: npm run test:browser
         working-directory: apps/api
       - name: Upload isolated browser report on failure
@@ -185,5 +189,7 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: isolated-browser-report
-          path: tests/e2e/browser-report
+          path: |
+            tests/e2e/browser-report
+            tests/e2e/storefront-report
           retention-days: 14

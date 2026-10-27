@@ -33,8 +33,10 @@ export interface ProductVariant {
 }
 
 export interface ProductSummary {
+  readonly offerId?:string;
   readonly purchaseEnabled?: boolean;
   readonly sellerId?: string;
+  readonly sellerName?: string;
   readonly availabilityModel?: "binary";
   readonly requiresVariantSelection?: boolean;
   readonly publishedAt?: string;

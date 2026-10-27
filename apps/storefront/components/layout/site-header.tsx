@@ -1,4 +1,6 @@
 'use client';
+import {useServerCustomer} from '../server/customer-provider';
+import {useRouter} from 'next/navigation';
 
 import { useWishlist } from '@/components/product/wishlist-provider';
 import Link from 'next/link';
@@ -20,6 +22,8 @@ export function SiteHeader({
   accountAction?: {label:string;open:()=>void};
   cartCount?:number;
 }) {
+  const {state,enabled}=useServerCustomer(),router=useRouter();
+  const effectiveAccount=accountAction??(enabled&&state.session?{label:state.session.user.firstName,open:()=>router.push('/profile/wishlist')}:undefined);
   const [menuOpen, setMenuOpen] = useState(false);
   const closeTimer = useRef<number | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -93,12 +97,12 @@ export function SiteHeader({
           <button
             className="header-action header-auth-trigger"
             type="button"
-            onClick={() => accountAction ? accountAction.open() : openAuth('login')}
+            onClick={() => effectiveAccount ? effectiveAccount.open() : openAuth('login')}
           >
             <span>
               <UserIcon />
             </span>
-            <small>{accountAction?.label ?? 'Увійти'}</small>
+            <small>{effectiveAccount?.label ?? 'Увійти'}</small>
           </button>
           <Action href="/cart" label="Кошик">
             <CartIcon />
@@ -130,8 +134,8 @@ export function SiteHeader({
           <button
             className="mobile-auth-button"
             type="button"
-            aria-label={accountAction?.label ?? 'Увійти за номером телефону'}
-            onClick={() => accountAction ? accountAction.open() : openAuth('login')}
+            aria-label={effectiveAccount?.label ?? 'Увійти за номером телефону'}
+            onClick={() => effectiveAccount ? effectiveAccount.open() : openAuth('login')}
           >
             <UserIcon />
           </button>

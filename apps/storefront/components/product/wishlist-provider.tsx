@@ -1,4 +1,6 @@
 'use client';
+import {useServerCustomer} from '../server/customer-provider';
+import {createServerAccountFacade} from '../../services/server/account-facade';
 import {
   createContext,
   useContext,
@@ -17,11 +19,13 @@ const Context = createContext<{
   initial: readonly AccountWishlistItem[];
 } | null>(null);
 export function WishlistProvider({ children }: { children: React.ReactNode }) {
+  const {store}=useServerCustomer();
   const [value] = useState(() => {
-    const service = createPersistentDemoAccountService();
+    const service = store?createServerAccountFacade(store):createPersistentDemoAccountService();
     return { service, initial: service.getWishlistSnapshot() };
   });
   useEffect(() => {
+    if(store)return;
     const disconnect = value.service.connectWishlist({
       read: () => localStorage.getItem(DEMO_WISHLIST_KEY),
       write: (data) => localStorage.setItem(DEMO_WISHLIST_KEY, data),
@@ -35,7 +39,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
       disconnect();
       window.removeEventListener('storage', sync);
     };
-  }, [value]);
+  }, [value,store]);
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }
 export function useWishlist() {
