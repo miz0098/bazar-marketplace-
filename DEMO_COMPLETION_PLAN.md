@@ -1,5 +1,7 @@
 # Phase F10 — Demo Completion Plan
 
+F16 supersedes the F15 discounted-completion blocker for isolated single-line fixed/exact-percentage checkout only: F5 reuse, atomic test usage/order/payment/shipping snapshot, browser refresh/history and cap contention. Multiple discounted lines, fractional rounding/allocation/stacking and all production financial/provider/auth gates remain blocked. [Scope](docs/F16_DISCOUNTED_CHECKOUT_ACCEPTANCE.md), [ADR0015](docs/adr/0015-discounted-browser-checkout.md).
+
 F15 partially advances D05 with an isolated HTTPS/BFF browser harness and actual F4–F14 APIs, no-promo/card linked confirmation/history across NP/Meest/Ukrposhta. It does not complete D05/I09: promo redemption/financial/order/inventory policy, full real-contact/catalog mapping, actual wallet SDKs and repeat purchase still require D01/D03/D04 decisions. Production SMS/domain/BFF/provider rollout remains D08/D09. [Evidence](docs/F15_BROWSER_CHECKOUT_ACCEPTANCE.md).
 
 F14 advances D04 technical request/audit/refund-capacity seams and bounded My Orders preview only. Next approve cancellation/return authority and legal windows/exclusions, reverse logistics, discount/shipping/fee/seller/rounding allocation, capacity release and real provider finality; then actual lifecycle and browser server mapping. Closing a request or confirming a synthetic protocol does not settle/cancel an order. [Scope](docs/F14_ORDER_LIFECYCLE_ACCEPTANCE.md).

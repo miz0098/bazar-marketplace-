@@ -2,6 +2,7 @@ import { randomUUID, timingSafeEqual } from "node:crypto";
 import { once } from "node:events";
 import { readFileSync } from "node:fs";
 import pg from "pg";
+import { discountedTestPlan } from "../../src/payments/test-pricing.js";
 import {
   createBrowserGateway,
   requireBrowserTest,
@@ -46,7 +47,7 @@ const admin = new pg.Pool({ connectionString: source.toString() });
 let active: Awaited<ReturnType<typeof reset>> | undefined,
   resets = 0;
 async function reset() {
-  if (++resets > 40) throw new Error("Browser test case limit");
+  if (++resets > 100) throw new Error("Browser test case limit");
   if (active) {
     await active.app.shutdown();
     await active.pool.end();
@@ -85,6 +86,18 @@ async function reset() {
     "INSERT INTO bazar.promotion_products(promotion_id,product_id) VALUES($1,$2)",
     [promotion, product],
   );
+  for(const [code,kind,start,end,minimum,limit,eligible] of [
+    ['PERCENT20','percentage','-1 day','1 day',1,10,true],
+    ['EXPIRED','fixed','-2 days','-1 day',1,10,true],
+    ['FUTURE','fixed','1 day','2 days',1,10,true],
+    ['MINIMUM','fixed','-1 day','1 day',1000000,10,true],
+    ['INELIGIBLE','fixed','-1 day','1 day',1,10,false],
+    ['LIMIT1','fixed','-1 day','1 day',1,1,true],
+    ['FRACTION','percentage','-1 day','1 day',1,10,true],
+  ] as const){
+    const p=(await pool.query("INSERT INTO bazar.promotions(code,kind,fixed_minor,percentage_basis_points,currency,min_subtotal_minor,starts_at,ends_at,enabled,max_uses,per_user_limit) VALUES($1,$2,$3,$4,'UAH',$5,clock_timestamp()+$6::interval,clock_timestamp()+$7::interval,true,$8,$8) RETURNING id",[code,kind,kind==='fixed'?1000:null,kind==='percentage'?(code==='FRACTION'?1000:2000):null,minimum,start,end,limit])).rows[0].id;
+    if(eligible)await pool.query('INSERT INTO bazar.promotion_products(promotion_id,product_id) VALUES($1,$2)',[p,product]);
+  }
   const variant = (
     await pool.query(
       "INSERT INTO bazar.variants(product_id,sku,price_minor,stock) VALUES($1,'BROWSER-TEST',12345,5) RETURNING id",
@@ -111,7 +124,8 @@ async function reset() {
     shipping: [...shipping.adapters, ukr],
     shippingConfig: shipping.config,
     payment: payment.adapter,
-    paymentConfig: payment.config,
+    paymentConfig: {...payment.config,discountedCheckoutForTest:true,plan:async ({pricing,shippingCostMinor})=>discountedTestPlan(pricing!,shippingCostMinor!)},
+    discountedCheckoutForTest:true,
     isReady: async () => {
       await pool.query("SELECT 1");
       return true;
@@ -231,6 +245,7 @@ const gateway = createBrowserGateway({
         "UPDATE bazar.variants SET price_minor=20000 WHERE id=$1",
         [a.variant],
       );
+    else if (action === "expire-promo") await a.pool.query("UPDATE bazar.promotions SET ends_at=clock_timestamp() WHERE code='TEST1000'");
     else if (action === "sold-out")
       await a.pool.query("UPDATE bazar.variants SET stock=0 WHERE id=$1", [
         a.variant,
@@ -251,6 +266,7 @@ const gateway = createBrowserGateway({
             "SELECT count(*)::int n FROM bazar.orders WHERE foundation_mode='integration-test'",
           )
         ).rows[0].n,
+        claims: (await a.pool.query("SELECT count(*)::int n FROM bazar.promotion_usage_claims")).rows[0].n,
         links: (
           await a.pool.query(
             "SELECT count(*)::int n FROM bazar.checkout_completion_links",

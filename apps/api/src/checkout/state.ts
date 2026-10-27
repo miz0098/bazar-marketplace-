@@ -169,6 +169,8 @@ export async function state(
       cartId,
       cartVersion,
       stage: 'confirmation',
+      appliedPromoCode: order.testFinancials?.promoCode ?? null,
+      ...(order.testFinancials ? {testShippingEstimate:order.testFinancials.shipping} : {}),
       delivery: order.delivery,
       paymentSelection: order.paymentSelection,
       pricing: {
@@ -184,6 +186,7 @@ export async function state(
       blockers: ['integration-record-only'],
     };
   }
+  const q=(await c.query('SELECT q.amount_minor::text FROM bazar.checkout_shipping s JOIN bazar.shipping_quotes q ON q.id=s.quote_id AND q.user_id=s.user_id WHERE s.checkout_id=$1 AND s.user_id=$2',[id,actor])).rows[0];
   // Follow F5 lock order: cart -> campaign (when selected) -> variants -> eligibility/address.
   const promo =
     row.promo_code === null
@@ -228,6 +231,8 @@ export async function state(
     cartId,
     cartVersion,
     stage: row.stage as CheckoutSessionDto['stage'],
+    ...(q ? {testShippingEstimate:cash(money(q.amount_minor))} : {}),
+    appliedPromoCode: row.promo_code===null ? null : text(row.promo_code,64),
     delivery: address,
     paymentSelection: selection,
     pricing,
@@ -290,11 +295,16 @@ export async function readOrder(
     throw new Error('Invalid order aggregate');
   if (r.carrier !== 'nova-poshta' && r.carrier !== 'meest' && r.carrier !== 'ukrposhta')
     throw new Error('Invalid order carrier');
+  // Upgrade fixtures can read immutable pre-F16 zero-discount history; runtime readiness still requires the full inventory.
+  const installed=(await c.query("SELECT to_regclass('bazar.order_test_financials') IS NOT NULL AS present")).rows[0].present;
+  if (!installed && money(r.discount_minor)>0) throw new Error('Missing financial evidence');
+  const f=installed ? (await c.query('SELECT *,subtotal_minor::text,discount_minor::text,shipping_minor::text,total_minor::text FROM bazar.order_test_financials WHERE order_id=$1 AND user_id=$2',[id,actor])).rows[0] : undefined;
   return {
     id: uuid(r.id),
     mode: 'integration-test',
     status: 'pending',
     recordState: 'recorded-for-test',
+    ...(f ? {testFinancials:{scope:'isolated-test-plan' as const, subtotal:cash(money(f.subtotal_minor)),discount:cash(money(f.discount_minor)),shipping:cash(money(f.shipping_minor)),total:cash(money(f.total_minor)),promoCode:f.promo_code}} : {}),
     createdAt: timestamp(r.created_at),
     cartId: uuid(r.cart_id),
     cartVersion: money(r.cart_version),

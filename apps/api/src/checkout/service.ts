@@ -1,4 +1,5 @@
 import type pg from 'pg';
+import { evaluatePromotionInTransaction, claimPromotionForCheckout } from '../promotions/service.js';
 import { ApiError } from '../contracts/foundation.js';
 import { money, uuid } from '../business/validation.js';
 import type {
@@ -45,6 +46,7 @@ export function createCheckoutBusinessService(
   pool: pg.Pool,
   shipping?: ShippingOrderGuard,
   paymentCompletion?: PaymentCompletionGuard,
+  discountedCheckoutForTest?: true,
 ) {
   if (process.env.NODE_ENV !== 'test')
     throw new Error('Checkout integration requires an isolated test process');
@@ -138,6 +140,8 @@ export function createCheckoutBusinessService(
           'CHECKOUT_REJECTED',
           'Checkout confirmation step is required.',
         );
+      const promotion = row.promo_code !== null && discountedCheckoutForTest && paymentAttemptId
+        ? await evaluatePromotionInTransaction(c,actor,{cartId:row.cart_id,expectedCartVersion:money(row.cart_version),code:row.promo_code},'UPDATE') : null;
       const preview = await state(c, actor, row);
       if (
         !preview.pricing ||
@@ -145,7 +149,7 @@ export function createCheckoutBusinessService(
         preview.pricing.fingerprint !== input.expectedFingerprint
       )
         throw stale();
-      if (row.promo_code !== null || !preview.canRecordIntegrationOrder)
+      if (!promotion && (row.promo_code !== null || !preview.canRecordIntegrationOrder))
         throw policy();
       const hasShipping = await c.query(
         'SELECT 1 FROM bazar.checkout_shipping WHERE checkout_id=$1 AND user_id=$2',
@@ -211,7 +215,7 @@ export function createCheckoutBusinessService(
           ],
         );
       await c.query(
-        "INSERT INTO bazar.order_checkout_snapshots(order_id,user_id,checkout_id,cart_id,cart_version,subtotal_minor,discount_minor,merchandise_total_minor,currency,carrier,city_ref,location_ref,payment_selection,pricing_fingerprint,mode) VALUES ($1,$2,$3,$4,$5,$6,0,$6,'UAH',$7,$8,$9,$10,$11,'integration-test')",
+        "INSERT INTO bazar.order_checkout_snapshots(order_id,user_id,checkout_id,cart_id,cart_version,subtotal_minor,discount_minor,merchandise_total_minor,currency,carrier,city_ref,location_ref,payment_selection,pricing_fingerprint,mode) VALUES ($1,$2,$3,$4,$5,$6,$12,$13,'UAH',$7,$8,$9,$10,$11,'integration-test')",
         [
           order.id,
           actor,
@@ -224,6 +228,7 @@ export function createCheckoutBusinessService(
           address.locationRef,
           preview.paymentSelection,
           input.expectedFingerprint,
+          preview.pricing.discount.amountMinor, preview.pricing.merchandiseTotal.amountMinor,
         ],
       );
       await c.query(
@@ -239,6 +244,10 @@ export function createCheckoutBusinessService(
           "INSERT INTO bazar.checkout_completion_links(order_id,checkout_id,user_id,payment_operation_id,mode) VALUES ($1,$2,$3,$4,'integration-test')",
           [order.id, id, actor, paymentAttemptId],
         );
+      if (discountedCheckoutForTest && paymentAttemptId) {
+        const claim = promotion ? await claimPromotionForCheckout(c,actor,{cartId:row.cart_id,expectedCartVersion:money(row.cart_version),code:row.promo_code},input.idempotencyKey,promotion.pricingFingerprint) : null;
+        await c.query("INSERT INTO bazar.order_test_financials(order_id,user_id,payment_operation_id,shipping_quote_id,promotion_claim_id,promo_code,subtotal_minor,discount_minor,shipping_minor,total_minor,currency,scope) SELECT $1,$2,p.id,q.id,$4,$5,$6,$7,q.amount_minor,p.amount_minor,'UAH','isolated-test-plan' FROM bazar.payment_operations p JOIN bazar.checkout_shipping s ON s.checkout_id=$3 AND s.user_id=p.user_id JOIN bazar.shipping_quotes q ON q.id=s.quote_id AND q.user_id=s.user_id WHERE p.id=$8 AND p.user_id=$2", [order.id,actor,id,claim,row.promo_code,preview.pricing.subtotal.amountMinor,preview.pricing.discount.amountMinor,paymentAttemptId]);
+      }
       return { order: await readOrder(c, actor, order.id), replayed: false };
     });
   }

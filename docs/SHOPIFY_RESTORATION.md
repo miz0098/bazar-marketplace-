@@ -1,5 +1,7 @@
 # Shopify functionality restoration — mandatory before BAZAR Demo 100%
 
+F16 supersedes the F15 discounted-completion blocker for isolated single-line fixed/exact-percentage checkout only: F5 reuse, atomic test usage/order/payment/shipping snapshot, browser refresh/history and cap contention. Multiple discounted lines, fractional rounding/allocation/stacking and all production financial/provider/auth gates remain blocked. [Scope](F16_DISCOUNTED_CHECKOUT_ACCEPTANCE.md), [ADR0015](adr/0015-discounted-browser-checkout.md).
+
 F15 proves isolated browser no-promo/card confirmation/history with three test carriers. This is not restored production Shopify checkout: discounted completion, actual wallet/provider operations, legal order/inventory lifecycle and real contacts/notifications remain blocked. [Acceptance](F15_BROWSER_CHECKOUT_ACCEPTANCE.md).
 
 F14 advances owned order request/history and isolated return/refund capacity protocols plus ephemeral My Orders return preview. Real order cancellation, return approval/logistics, financial allocations and provider-confirmed real refunds remain mandatory restoration blockers, not completed features. See [ADR0013](adr/0013-order-lifecycle-requests-refunds.md).

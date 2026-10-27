@@ -250,7 +250,7 @@ test("browser price, unavailable stock, delivery and payment errors remain truth
   await expect(page.getByRole("status")).toContainText("pending");
   expect((await control("counts")).orders).toBe(0);
 });
-test("browser changed price cannot produce an order; active promo stays policy-blocked", async ({
+test("browser changed price cannot produce an order after explicit promo removal", async ({
   page,
 }) => {
   await cart(page);
@@ -261,10 +261,6 @@ test("browser changed price cannot produce an order; active promo stays policy-b
     .getByRole("button", { name: "Застосувати промокод на сервері" })
     .click();
   await expect(page.getByText(/Серверна знижка:/)).toContainText("10,00");
-  await page
-    .getByRole("button", { name: "Створити тестову платіжну спробу" })
-    .click();
-  await expect(page.locator("main").getByRole("alert")).toBeVisible();
   await page.getByRole("button", { name: "Прибрати промокод явно" }).click();
   await control("price");
   await page
@@ -430,4 +426,81 @@ test("browser sessions isolate another customer order and OTP challenge", async 
   } finally {
     await other.close();
   }
+});
+async function applyPromo(page:Page,code:string){
+ await page.getByLabel('Промокод',{exact:true}).fill(code);
+ await page.getByRole('button',{name:'Застосувати промокод на сервері'}).press('Enter');
+}
+async function testPaid(page:Page){
+ await page.getByRole('button',{name:'Створити тестову платіжну спробу'}).click();
+ await expect(page.getByRole('status')).toContainText('pending');
+ await page.getByRole('button',{name:'Ізольований успішний результат'}).click();
+ await expect(page.getByRole('status')).toContainText('succeeded');
+ await page.getByRole('button',{name:'Перейти до підтвердження'}).click();
+ await expect(page).toHaveURL(/step=3/);
+}
+for(const [code,carrier,discount,total] of [
+ ['TEST1000','Нова пошта','10,00','186,95'],
+ ['TEST1000','Meest','10,00','186,95'],
+ ['TEST1000','Укрпошта','10,00','186,95'],
+ ['PERCENT20','Нова пошта','24,69','172,26'],
+] as const)test(`F16 ${code} discounted browser checkout via ${carrier} preserves financial history`,async({page})=>{
+ await cart(page);await shipping(page,carrier);await page.getByRole('button',{name:'Продовжити до оплати'}).click();
+ await applyPromo(page,code);
+ await expect(page.getByText('Серверна знижка:',{exact:false})).toContainText(discount);
+ await applyPromo(page,code); // Apply does not redeem or stack.
+ expect((await control('counts')).claims).toBe(0);
+ await page.reload();await expect(page.getByLabel('Промокод',{exact:true})).toHaveValue(code);
+ await testPaid(page);
+ const summary=page.getByRole('definition');await expect(summary.filter({hasText:total})).toHaveCount(1);
+ await page.getByRole('button',{name:'Записати лише тестове замовлення'}).click();
+ await expect(page.getByRole('status')).toContainText('Тестове замовлення записано');
+ await page.getByRole('button',{name:'Повторити підтвердження без дублювання'}).click();
+ expect((await control('counts')).claims).toBe(1);expect((await control('counts')).orders).toBe(1);
+ await control('price');await page.reload();
+ await expect(page.locator('.checkout-summary')).toContainText('123,45');
+ await expect(page.getByRole('definition').filter({hasText:total})).toHaveCount(1);
+ await page.getByRole('link',{name:'Відкрити в «Мої замовлення»'}).click();
+ await expect(page).toHaveURL(/\/profile\/orders\//);
+ await expect(page.getByRole('definition').filter({hasText:total})).toHaveCount(1);
+ await control('price');await page.reload();
+ await expect(page.getByRole('definition').filter({hasText:total})).toHaveCount(1);
+ const axe=await new AxeBuilder({page}).include('main').analyze();expect(axe.violations.filter(x=>['serious','critical'].includes(x.impact??''))).toEqual([]);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
+test('F16 invalid expired future minimum ineligible and fractional codes preserve the valid selection',async({page})=>{
+ await cart(page);await shipping(page);await page.getByRole('button',{name:'Продовжити до оплати'}).click();
+ await applyPromo(page,'TEST1000');
+ for(const code of ['UNKNOWN','EXPIRED','FUTURE','MINIMUM','INELIGIBLE','FRACTION',' TEST1000']){
+  await applyPromo(page,code);await expect(page.locator('main').getByRole('alert')).toBeVisible();
+  await expect(page.getByText('Серверна знижка:',{exact:false})).toContainText('10,00');
+ }
+ await page.getByRole('button',{name:'Прибрати промокод явно'}).click();
+ await expect(page.getByText('Серверна знижка:',{exact:false})).toContainText('0,00');
+ expect((await control('counts')).claims).toBe(0);
+});
+test('F16 expiry at final confirmation consumes neither an order nor promotion capacity',async({page})=>{
+ await cart(page);await shipping(page);await page.getByRole('button',{name:'Продовжити до оплати'}).click();await applyPromo(page,'TEST1000');await testPaid(page);
+ await control('expire-promo');await page.getByRole('button',{name:'Записати лише тестове замовлення'}).click();
+ await expect(page.locator('main').getByRole('alert')).toBeVisible();expect((await control('counts')).claims).toBe(0);expect((await control('counts')).orders).toBe(0);
+});
+test('F16 changing cart after promotion requires a fresh checkout and evaluation',async({page})=>{
+ await cart(page);await shipping(page);await page.getByRole('button',{name:'Продовжити до оплати'}).click();await applyPromo(page,'TEST1000');
+ await page.goto('/cart');await page.getByLabel('Кількість у серверному кошику').fill('2');
+ await expect(page.getByLabel('Кількість у серверному кошику')).toHaveValue('2');await page.getByRole('button',{name:'Перейти до оформлення'}).click();await shipping(page);
+ await page.getByRole('button',{name:'Продовжити до оплати'}).click();await expect(page.getByText('Серверна знижка:',{exact:false})).toContainText('0,00');
+ await applyPromo(page,'PERCENT20');await expect(page.getByText('Серверна знижка:',{exact:false})).toContainText('49,38');
+});
+test('F16 concurrent browsers cannot consume a limited promotion twice',async({page,context})=>{
+ await cart(page);await shipping(page);await page.getByRole('button',{name:'Продовжити до оплати'}).click();await applyPromo(page,'LIMIT1');await testPaid(page);
+ const other=await context.browser()!.newContext({ignoreHTTPSErrors:false,baseURL:new URL(page.url()).origin});
+ try{
+ const second=await other.newPage();await second.goto(new URL('/account/login',page.url()).toString());await login(second,'+380681234567');
+ await second.getByRole('button',{name:'Додати тестовий товар у серверний кошик'}).click();await second.getByRole('button',{name:'Перейти до оформлення'}).click();
+ await shipping(second);await second.getByRole('button',{name:'Продовжити до оплати'}).click();await applyPromo(second,'LIMIT1');await testPaid(second);
+ await Promise.all([page.getByRole('button',{name:'Записати лише тестове замовлення'}).click(),second.getByRole('button',{name:'Записати лише тестове замовлення'}).click()]);
+ await expect.poll(async()=>Number((await control('counts')).orders)).toBe(1);
+ await expect.poll(async()=>Number((await control('counts')).claims)).toBe(1);
+ await expect.poll(async()=>Number(await page.locator('main').getByRole('alert').count())+Number(await second.locator('main').getByRole('alert').count())).toBe(1);
+ }finally{await other.close();}
 });

@@ -158,6 +158,32 @@ export async function evaluatePromotionInTransaction(
     checkoutAvailable: false,
   };
 }
+async function insertClaim(
+  c: pg.PoolClient,
+  actor: string,
+  input: PromotionPricingInput,
+  key: string,
+  requestDigest: Buffer,
+  quote: PromotionQuote,
+): Promise<string> {
+  const row = await c.query(
+    "INSERT INTO bazar.promotion_usage_claims(promotion_id,user_id,cart_id,cart_version,idempotency_key,request_digest,pricing_fingerprint,subtotal_minor,discount_minor,merchandise_total_minor,currency,mode) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'UAH','integration-test') RETURNING id",
+    [quote.promotionId, actor, input.cartId, input.expectedCartVersion, key,
+      requestDigest, quote.pricingFingerprint, quote.subtotal.amountMinor,
+      quote.discount.amountMinor, quote.merchandiseTotal.amountMinor],
+  );
+  return uuid(row.rows[0].id);
+}
+/** Caller holds cart/campaign locks and transaction. Same F5 caps/evaluation; no real redemption. */
+export async function claimPromotionForCheckout(
+  c: pg.PoolClient, actor: string, input: PromotionPricingInput,
+  key: string, expected: string,
+) {
+  if (process.env.NODE_ENV !== 'test') throw new Error('Test claims only');
+  const quote = await evaluatePromotionInTransaction(c, actor, input, 'UPDATE');
+  if (quote.pricingFingerprint !== expected) throw changed();
+  return insertClaim(c, actor, input, key, hash({checkout: input, expected}), quote);
+}
 /** Isolated technical composition, never constructed by main.ts or the existing checkout provider. */
 export function createPromotionService(pool: pg.Pool) {
   if (process.env.NODE_ENV !== 'test')
@@ -245,26 +271,10 @@ export function createPromotionService(pool: pg.Pool) {
         }
         const result = await evaluatePromotionInTransaction(client, actor, input, 'UPDATE');
         if (result.pricingFingerprint !== expectedFingerprint) throw changed();
-        const row = (
-          await client.query(
-            "INSERT INTO bazar.promotion_usage_claims(promotion_id,user_id,cart_id,cart_version,idempotency_key,request_digest,pricing_fingerprint,subtotal_minor,discount_minor,merchandise_total_minor,currency,mode) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'UAH','integration-test') RETURNING id",
-            [
-              result.promotionId,
-              actor,
-              input.cartId,
-              input.expectedCartVersion,
-              key,
-              requestDigest,
-              result.pricingFingerprint,
-              result.subtotal.amountMinor,
-              result.discount.amountMinor,
-              result.merchandiseTotal.amountMinor,
-            ],
-          )
-        ).rows[0];
+        const claimId = await insertClaim(client, actor, input, key, requestDigest, result);
         await client.query('COMMIT');
         return {
-          id: uuid(row.id),
+          id: claimId,
           mode: 'integration-test',
           status: 'recorded-for-test',
           replayed: false,
