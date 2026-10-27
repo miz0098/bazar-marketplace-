@@ -1038,7 +1038,7 @@
     {
       "id": "STOREFRONTINTEGRATION-001",
       "title": "Integrate owned seller offers and isolated ordinary storefront server persistence",
-      "status": "in_progress",
+      "status": "in_review",
       "readiness": "integration",
       "depends_on": [
         "CATALOGCOMPLETE-001"
@@ -1071,7 +1071,7 @@
         "Binary unavailable saved offers and deduplicated F13 restoration remain owned and persistent",
         "Unit PG HTTP browser desktop mobile accessibility regression checks and CI pass with explicit production gates"
       ],
-      "pr": null,
+      "pr": 32,
       "blocker": "Production SMS/grants/provider privacy media datasets remain gated; F22 checkout integration remains separate."
     }
   ]
