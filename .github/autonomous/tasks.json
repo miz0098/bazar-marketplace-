@@ -245,7 +245,7 @@
       ],
       "acceptance": [
         "Exactly three approved Ukrainian steps are implemented",
-        "\u041d\u043e\u0432\u0430 \u043f\u043e\u0448\u0442\u0430 and Meest are represented while BAZAR pickup remains disabled",
+        "Нова пошта and Meest are represented while BAZAR pickup remains disabled",
         "Back/forward preserves validated state",
         "Confirmation cannot claim payment or order creation without a live adapter"
       ],
@@ -1077,7 +1077,7 @@
     {
       "id": "MULTICHECKOUT-001",
       "title": "Integrate isolated multi-seller checkout exact financial snapshots and payment-gated cart completion",
-      "status": "in_progress",
+      "status": "in_review",
       "readiness": "integration",
       "depends_on": [
         "STOREFRONTINTEGRATION-001"
@@ -1107,7 +1107,7 @@
         "Immutable parent seller line and payment history survive retry concurrency decline unknown and later cart additions",
         "Existing and new unit PG HTTP security browser desktop mobile accessibility lint types build audit governance pass; unresolved legal financial and provider gates explicit"
       ],
-      "pr": null,
+      "pr": 33,
       "blocker": "PD-01 rounding mode still pending; exact-only active. Zero-payable proof, minimum-basis ambiguity, legal refund/unit attribution, provider production and payouts remain gated."
     }
   ]
