@@ -1,5 +1,7 @@
 import {
   isCommunicationView,
+  isNotificationSummary,
+  type NotificationSummary,
   type CommunicationView,
   type TicketItem,
 } from "../services/contracts/communication-business";
@@ -249,6 +251,12 @@ export function createCommunicationBusinessClient(
           v.items[0].category === input.category,
       );
     },
+    notificationSummary:()=>request<NotificationSummary>(`${root}/notifications/summary`,"GET",undefined,isNotificationSummary),
+    readAllNotifications:(throughSequence:number)=>{
+      if(!Number.isSafeInteger(throughSequence)||throughSequence<0)throw new CommunicationClientError("invalid-input");
+      return request<NotificationSummary>(`${root}/notifications/read-all`,"PUT",{throughSequence},isNotificationSummary);
+    },
+    notification:(id:string)=>call(`${root}/notifications/${path(id)}`,"GET",undefined,"notifications",null,v=>v.resource==="notifications"&&v.items.length===1&&v.items[0].id===id.toLowerCase()),
     notifications: (before?: number, limit = 50) =>
       call(
         `${root}/notifications${query(before, limit)}`,

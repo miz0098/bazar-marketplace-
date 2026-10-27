@@ -235,3 +235,8 @@ export function isCommunicationView(v: unknown): v is CommunicationView {
     );
   return false;
 }
+
+export type NotificationSummary = { mode: "integration-test"; resource:"notification-summary"; unread:number; throughSequence:number };
+export function isNotificationSummary(v:unknown):v is NotificationSummary {
+ return isRecord(v) && exact(v,["mode","resource","unread","throughSequence"]) && v.mode==="integration-test" && v.resource==="notification-summary" && num(v.unread) && num(v.throughSequence) && (v.throughSequence!==0 || v.unread===0) && v.unread<=v.throughSequence;
+}

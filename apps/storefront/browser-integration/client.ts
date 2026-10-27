@@ -1,3 +1,4 @@
+import { createCommunicationBusinessClient } from "../lib/communication-business-client";
 import { createServerAuthClient } from "../lib/server-auth-client";
 import { createServerCartClient } from "../lib/server-cart-client";
 import { createCheckoutBusinessClient } from "../lib/checkout-business-client";
@@ -79,6 +80,7 @@ export function browserClients() {
     },
     catalog: (origin: string) =>
       createCatalogApiClient({ baseUrl: origin, timeoutMs: 5000 }),
+    communication: createCommunicationBusinessClient(()=>csrf),
     cart: createServerCartClient(() => csrf),
     checkout: createCheckoutBusinessClient(() => csrf),
     shipping: createShippingBusinessClient(() => csrf),

@@ -1,6 +1,7 @@
 import {createOrderLifecycleService} from '../../src/lifecycle/service.js';
 import {lifecycleFixture} from '../helpers/lifecycle.js';
 import {createOrderLifecycleClient} from '../../../storefront/lib/order-lifecycle-client.js';
+import { appendNotificationForTest } from '../../src/communication/notifications.js';
 import {createCommunicationService} from '../../src/communication/service.js';
 import {createCommunicationBusinessClient} from '../../../storefront/lib/communication-business-client.js';
 import {createCustomerService} from '../../src/customer/service.js';
@@ -90,9 +91,9 @@ test('fresh database, previous schema upgrade, rerun and concurrent migrators ar
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(`${migrationDirectory}/0001_core.sql`, `${dir}/0001_core.sql`);
   assert.equal(await migrate(db.config, dir), 1);
-  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 13]);
+  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 14]);
   assert.equal(await migrate(db.config), 0);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 14);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 15);
   assert.ok((await db.pool.query("SELECT indexname FROM pg_indexes WHERE schemaname='bazar' AND indexname='variants_available_idx'")).rowCount);
 });
 
@@ -104,10 +105,10 @@ test('modified/unknown migrations are rejected and failed DDL rolls back without
   writeFileSync(`${dir}/0001_core.sql`, first + '\n-- modified\n');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   writeFileSync(`${dir}/0001_core.sql`, first);
-  writeFileSync(`${dir}/0015_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
+  writeFileSync(`${dir}/0016_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   assert.equal((await db.pool.query("SELECT to_regclass('bazar.must_rollback') AS name")).rows[0].name, null);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 14);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 15);
   await db.pool.query("INSERT INTO bazar_meta.schema_migrations(version,checksum) VALUES ('9999',repeat('0',64))");
   await assert.rejects(migrate(db.config), /Database migration failed/);
 });
@@ -2436,7 +2437,7 @@ test("F7 upgrades F6 without rewriting existing orders; directories cover only e
   }
   await migrate(db.config, dir);
   const s = await seed(db.pool);
-  assert.equal(await migrate(db.config), 8);
+  assert.equal(await migrate(db.config), 9);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -3614,6 +3615,7 @@ test('F8 upgrades the full F7 database without changing previously saved shippin
   rmSync(`${dir}/0010_current_cart_checkout.sql`);
   rmSync(`${dir}/0011_customer_account.sql`);
   rmSync(`${dir}/0012_communication_foundation.sql`);
+  rmSync(`${dir}/0015_notification_center.sql`);
   rmSync(`${dir}/0014_discounted_test_checkout.sql`);
   rmSync(`${dir}/0013_order_lifecycle.sql`);
   assert.equal(await migrate(db.config, dir), 7);
@@ -3639,7 +3641,7 @@ test('F8 upgrades the full F7 database without changing previously saved shippin
     expectedVersion: 2,
     idempotencyKey: randomUUID(),
   });
-  assert.equal(await migrate(db.config), 7);
+  assert.equal(await migrate(db.config), 8);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -4441,11 +4443,12 @@ test('F9 upgrades F8 without silently selecting legacy carts or changing payment
   rmSync(`${dir}/0010_current_cart_checkout.sql`);
   rmSync(`${dir}/0011_customer_account.sql`);
   rmSync(`${dir}/0012_communication_foundation.sql`);
+  rmSync(`${dir}/0015_notification_center.sql`);
   rmSync(`${dir}/0014_discounted_test_checkout.sql`);
   rmSync(`${dir}/0013_order_lifecycle.sql`);
   assert.equal(await migrate(db.config, dir), 9);
   const s = await seed(db.pool);
-  assert.equal(await migrate(db.config), 5);
+  assert.equal(await migrate(db.config), 6);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -5029,6 +5032,7 @@ test('F12 upgrade preserves F11 customer data and previous migrations while addi
   cpSync(migrationDirectory, dir, { recursive: true });
   rmSync(`${dir}/0011_customer_account.sql`);
   rmSync(`${dir}/0012_communication_foundation.sql`);
+  rmSync(`${dir}/0015_notification_center.sql`);
   rmSync(`${dir}/0014_discounted_test_checkout.sql`);
   rmSync(`${dir}/0013_order_lifecycle.sql`);
   assert.equal(await migrate(db.config, dir), 10);
@@ -5037,7 +5041,7 @@ test('F12 upgrade preserves F11 customer data and previous migrations while addi
     'INSERT INTO bazar.wishlist_items(user_id,product_id) VALUES ($1,$2)',
     [s.user, s.product],
   );
-  assert.equal(await migrate(db.config), 4);
+  assert.equal(await migrate(db.config), 5);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -5508,6 +5512,7 @@ test("F13 upgrades F12 with legacy messages intact, ordered sequences, valid rea
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(migrationDirectory, dir, { recursive: true });
   rmSync(`${dir}/0012_communication_foundation.sql`);
+  rmSync(`${dir}/0015_notification_center.sql`);
   rmSync(`${dir}/0014_discounted_test_checkout.sql`);
   rmSync(`${dir}/0013_order_lifecycle.sql`);
   assert.equal(await migrate(a.config, dir), 11);
@@ -5535,7 +5540,7 @@ test("F13 upgrades F12 with legacy messages intact, ordered sequences, valid rea
     "UPDATE bazar.conversation_members SET last_read_message_id=$1",
     [later],
   );
-  assert.equal(await migrate(a.config), 3);
+  assert.equal(await migrate(a.config), 4);
   assert.equal(await migrate(a.config), 0);
   const service = createCommunicationService(a.pool);
   const history = await service.history(s.user, chat, "messages");
@@ -5918,6 +5923,7 @@ test("F14 signed test refund observations bind amount account and payment, dedup
     a.service.observeRefundForTest(signed.raw, signed.signature),
   ]);
   assert.equal(r[0].refunds[0].state, "confirmed-for-test");
+  assert.equal((await a.pool.query("SELECT count(*)::int n FROM bazar.notification_events WHERE kind='refund.completed' AND source_id=$1",[refund.id])).rows[0].n,1);
   assert.equal(r[0].history.length, r[1].history.length);
   const contradictory = a.f.signed({
     ...event,
@@ -6055,6 +6061,7 @@ test("F14 F13 upgrade backfills immutable initial order history and preserves pr
     dir = mkdtempSync(`${tmpdir()}/bazar-f14-upgrade-`);
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(migrationDirectory, dir, { recursive: true });
+  rmSync(`${dir}/0015_notification_center.sql`);
   rmSync(`${dir}/0014_discounted_test_checkout.sql`);
   rmSync(`${dir}/0013_order_lifecycle.sql`);
   assert.equal(await migrate(db.config, dir), 12);
@@ -6085,7 +6092,7 @@ test("F14 F13 upgrade backfills immutable initial order history and preserves pr
       idempotencyKey: randomUUID(),
     })
   ).order;
-  assert.equal(await migrate(db.config), 2);
+  assert.equal(await migrate(db.config), 3);
   assert.equal(await migrate(db.config), 0);
   assert.deepEqual(await checkout.getOrder(s.user, original.id), original);
   const f = lifecycleFixture(),
@@ -6215,6 +6222,7 @@ for(const percent of [false,true])test(`F16 discounted HTTP completion snapshots
  const discount=percent?4938:1000;
  assert.equal(a.attempt.amount.amountMinor,24690-discount+7350);
  const results=await Promise.all([a.client.checkout.confirmIntegratedForTest(a.draft.id,a.input),a.client.checkout.confirmIntegratedForTest(a.draft.id,a.input)]);
+ assert.equal((await a.pool.query("SELECT count(*)::int n FROM bazar.notification_events WHERE kind='order.created'")).rows[0].n,1);
  assert.equal(results[0].order.id,results[1].order.id);assert.equal(results.filter(x=>x.replayed).length,1);
  const order=results[0].order;assert.equal(order.discount.amountMinor,discount);assert.equal(order.testFinancials!.shipping.amountMinor,7350);assert.equal(order.testFinancials!.total.amountMinor,a.attempt.amount.amountMinor);
  assert.equal((await a.pool.query('SELECT count(*)::int n FROM bazar.promotion_usage_claims')).rows[0].n,1);
@@ -6253,4 +6261,59 @@ test('F16 failed financial persistence rolls back usage and confirmation atomica
  for(const table of ['orders','promotion_usage_claims','order_test_financials'])assert.equal((await a.pool.query(`SELECT count(*)::int n FROM bazar.${table}${table==='orders'?" WHERE foundation_mode='integration-test'":""}`)).rows[0].n,0);
  await a.pool.query('DROP TRIGGER fail_f16 ON bazar.order_test_financials');
  assert.equal((await a.client.checkout.confirmIntegratedForTest(a.draft.id,a.input)).replayed,false);
+});
+test('F17 notification summary owner reads bounded read-all replay and future arrivals use the existing inbox',async t=>{
+ const a=await communicationCase(t);
+ for(let i=0;i<5;i++)await a.service.send(a.s.other,a.chat,'messages',{clientMessageId:randomUUID(),body:`Тестове повідомлення ${i}`});
+ const summary=await a.service.notificationSummary(a.s.user);assert.equal(summary.unread,5);
+ const page=await a.service.list(a.s.user,'notifications',Number.MAX_SAFE_INTEGER,2);assert.equal(page.items.length,2);assert.ok(page.nextBefore);
+ assert.ok('sequence' in page.items[0]);assert.equal(page.items[0].sequence,summary.throughSequence);
+ const older=await a.service.list(a.s.user,'notifications',page.nextBefore!,100);assert.equal(page.items.length+older.items.length,5);
+ const id=page.items[0].id;await assert.rejects(a.service.getNotification(a.third,id),{status:404});await assert.rejects(a.service.readNotification(a.third,id,{}),{status:404});
+ const detail=await a.service.getNotification(a.s.user,id);assert.equal(detail.items[0].id,id);
+ await Promise.all([a.service.readNotification(a.s.user,id,{}),a.service.readAllNotifications(a.s.user,{throughSequence:summary.throughSequence}),a.service.readAllNotifications(a.s.user,{throughSequence:summary.throughSequence})]);
+ assert.equal((await a.service.notificationSummary(a.s.user)).unread,0);
+ await a.service.send(a.s.other,a.chat,'messages',{clientMessageId:randomUUID(),body:'Нове після bulk-read'});
+ assert.equal((await a.service.readAllNotifications(a.s.user,{throughSequence:summary.throughSequence})).unread,1);
+ assert.equal((await a.service.notificationSummary(a.s.other)).unread,0);
+ for(const body of [{},{throughSequence:Number.MAX_SAFE_INTEGER},{throughSequence:-1},{throughSequence:'2'},{throughSequence:2,userId:a.third}])await assert.rejects(a.service.readAllNotifications(a.s.user,body),{status:400});
+ await assert.rejects(a.pool.query('UPDATE bazar.notification_events SET read_at=NULL WHERE id=$1',[id]),{code:'23514'});
+ await assert.rejects(a.pool.query("UPDATE bazar.notification_events SET scope_id=$2 WHERE id=$1",[id,randomUUID()]),{code:'23514'});
+});
+test('F17 overlapping producers allocate committed owner cursors after the lock and preserve future unread notifications',async t=>{
+ const a=await communicationCase(t),first=await a.pool.connect(),second=await a.pool.connect();
+ try{
+ await first.query('BEGIN');const one=(await first.query("INSERT INTO bazar.notification_events(user_id,kind,source_id,scope_id) VALUES($1,'message.created',$2,$3) RETURNING sequence::text",[a.s.user,randomUUID(),a.chat])).rows[0];
+ await second.query('BEGIN');const waiting=second.query("INSERT INTO bazar.notification_events(user_id,kind,source_id,scope_id) VALUES($1,'message.created',$2,$3) RETURNING sequence::text",[a.s.user,randomUUID(),a.chat]);
+ await first.query('COMMIT');const two=(await waiting).rows[0];await second.query('COMMIT');assert.ok(Number(two.sequence)>Number(one.sequence));
+ const results=await Promise.all([a.service.readAllNotifications(a.s.user,{throughSequence:Number(one.sequence)}),a.service.notificationSummary(a.s.user)]);assert.ok(results.every(x=>x.unread>=1));
+ assert.equal((await a.service.notificationSummary(a.s.user)).unread,1);
+ }finally{await first.query('ROLLBACK');await second.query('ROLLBACK');first.release();second.release();}
+});
+test('F17 HTTP notifications require verified session Origin and CSRF, and read-all never accepts caller ownership',async t=>{
+ const a=await authentication(t),identity=await registered(a),actor=identity.session.data.user.id,service=createCommunicationService(a.pool);
+ const row=(await a.pool.query("INSERT INTO bazar.notification_events(user_id,kind,source_id,scope_id) VALUES($1,'order.created',$2,$2) RETURNING id",[actor,randomUUID()])).rows[0];
+ const app=createApiServer(readConfig({NODE_ENV:'test'}),createLogger('error'),{auth:a.auth,communication:service,isReady:()=>true});app.server.listen(0,'127.0.0.1');await once(app.server,'listening');a.beforeDrop.push(()=>app.shutdown());const addr=app.server.address();assert.ok(addr&&typeof addr!=='string');const base=`http://127.0.0.1:${addr.port}`;
+ const cookie=`__Host-bazar-session=${identity.session.token}; __Host-bazar-flow=${identity.session.flow}`;
+ const headers={origin:a.config.publicOrigin,cookie,'content-type':'application/json','x-csrf-token':identity.session.data.csrfToken};
+ const transport:typeof fetch=(path,init)=>fetch(base+String(path),{...init,headers:{...Object.fromEntries(new Headers(init?.headers)),origin:headers.origin,cookie}});
+ const client=createCommunicationBusinessClient(()=>identity.session.data.csrfToken,transport);
+ assert.equal((await client.notification(row.id)).items[0].id,row.id);const s=await client.notificationSummary();assert.equal(s.unread,1);assert.equal((await client.readAllNotifications(s.throughSequence)).unread,0);
+ for(const h of [{...headers,'x-csrf-token':'forged'},{...headers,origin:'https://evil.invalid'},{origin:headers.origin,'content-type':'application/json'}])assert.ok([401,403].includes((await fetch(base+'/api/v1/communication/notifications/read-all',{method:'PUT',headers:h,body:JSON.stringify({throughSequence:s.throughSequence})})).status));
+ const response=await fetch(base+'/api/v1/communication/notifications/read-all',{method:'PUT',headers,body:JSON.stringify({throughSequence:s.throughSequence,userId:randomUUID()})});assert.equal(response.status,400);
+});
+
+test('F17 shared event identities deduplicate without unread reset and reject conflicting scope',async t=>{
+ const a=await communicationCase(t),source=randomUUID();
+ const emit=async(scope=a.chat)=>{const c=await a.pool.connect();try{await c.query('BEGIN');await appendNotificationForTest(c,a.s.user,'message.created',source,scope);await c.query('COMMIT');}catch(e){await c.query('ROLLBACK');throw e;}finally{c.release();}};
+ await emit();const page=await a.service.list(a.s.user,'notifications');await a.service.readNotification(a.s.user,page.items[0].id,{});await Promise.all([emit(),emit()]);
+ assert.equal((await a.service.notificationSummary(a.s.user)).unread,0);assert.equal((await a.service.list(a.s.user,'notifications')).items.length,1);
+ await assert.rejects(emit(randomUUID()),{status:409});
+});
+test('F17 additive upgrade preserves F16 inbox cursors and reads and protects later metadata',async t=>{
+ const db=await database(t),dir=mkdtempSync(`${tmpdir()}/bazar-f17-upgrade-`);t.after(()=>rmSync(dir,{recursive:true}));cpSync(migrationDirectory,dir,{recursive:true});rmSync(`${dir}/0015_notification_center.sql`);assert.equal(await migrate(db.config,dir),14);const s=await seed(db.pool);
+ await db.pool.query("INSERT INTO bazar.notification_events(user_id,kind,source_id,scope_id,read_at) VALUES($1,'order.created',$2,$2,clock_timestamp())",[s.user,s.order]);
+ const before=(await db.pool.query('SELECT * FROM bazar.notification_events')).rows;assert.equal(await migrate(db.config),1);assert.equal(await migrate(db.config),0);assert.deepEqual((await db.pool.query('SELECT * FROM bazar.notification_events')).rows,before);
+ const service=createCommunicationService(db.pool);assert.equal((await service.notificationSummary(s.user)).unread,0);
+ await db.pool.query("INSERT INTO bazar.notification_events(user_id,kind,source_id,scope_id) VALUES($1,'order.status_changed',$2,$2)",[s.user,s.order]);assert.equal((await service.notificationSummary(s.user)).unread,1);
 });

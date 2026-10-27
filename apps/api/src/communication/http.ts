@@ -27,7 +27,8 @@ export async function handleCommunication(
     history = route.match(/^\/(conversations|tickets)\/([^/]+)\/messages$/),
     action = route.match(/^\/conversations\/([^/]+)\/(pin|read)$/),
     notice = route.match(/^\/notifications\/([^/]+)\/read$/);
-  const allowed = list
+  const summary = route === "/notifications/summary", all = route === "/notifications/read-all", single=route.match(/^\/notifications\/([^/]+)$/);
+  const allowed = summary ? ["GET","HEAD"] : all ? ["PUT"] : single ? ["GET","HEAD"] : list
     ? list[1] === "tickets"
       ? ["GET", "HEAD", "POST"]
       : ["GET", "HEAD"]
@@ -53,6 +54,8 @@ export async function handleCommunication(
       Number(request.headers["content-length"] ?? 0) !== 0
     )
       invalid();
+    if(summary)return service.notificationSummary(actor);
+    if(single)return service.getNotification(actor,single[1]);
     if (history)
       return service.history(
         actor,
@@ -69,6 +72,7 @@ export async function handleCommunication(
     );
   }
   const body = await readJson(request, response);
+  if(all)return service.readAllNotifications(actor,body);
   if (history)
     return service.send(
       actor,

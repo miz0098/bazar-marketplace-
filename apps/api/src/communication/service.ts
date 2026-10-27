@@ -185,7 +185,7 @@ export function createCommunicationService(pool: pg.Pool) {
   ): Promise<CommunicationView> {
     const rows = (
       await c.query(
-        "SELECT id,sequence::text,kind,source_id,scope_id,read_at,created_at FROM bazar.notification_events WHERE user_id=$1 AND sequence<$2 ORDER BY sequence DESC LIMIT $3",
+        "SELECT id,sequence::text,kind,source_id,scope_id,read_at,created_at FROM bazar.notification_events n WHERE user_id=$1 AND n.sequence<$2 ORDER BY n.sequence DESC LIMIT $3",
         [actor, before, limit + 1],
       )
     ).rows;
@@ -219,7 +219,32 @@ export function createCommunicationService(pool: pg.Pool) {
     )
       invalid();
   };
+  async function summary(c:pg.PoolClient,actor:string) {
+    const r=(await c.query('SELECT count(*) FILTER(WHERE read_at IS NULL)::text AS unread,coalesce(max(sequence),0)::text AS through FROM bazar.notification_events WHERE user_id=$1',[actor])).rows[0];
+    return {mode:'integration-test' as const,resource:'notification-summary' as const,unread:money(r.unread),throughSequence:money(r.through)};
+  }
+  async function summaryTx(actor:string,through?:number) {
+    actor=uuid(actor);const c=await pool.connect();
+    try{
+      await c.query('BEGIN');await c.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',['notification-owner:'+actor]);
+      const current=await summary(c,actor);
+      if(through!==undefined){
+        if(!Number.isSafeInteger(through)||through<0||through>current.throughSequence)invalid();
+        await c.query('UPDATE bazar.notification_events SET read_at=coalesce(read_at,clock_timestamp()) WHERE user_id=$1 AND sequence<=$2 AND read_at IS NULL',[actor,through]);
+      }
+      const result=await summary(c,actor);await c.query('COMMIT');return result;
+    }catch(e){await c.query('ROLLBACK');throw e;}finally{c.release();}
+  }
   return {
+    notificationSummary:(actor:string)=>summaryTx(actor),
+    async readAllNotifications(actor:string,value:unknown){const r=fields(value,['throughSequence']);if(typeof r.throughSequence!=='number'||!Number.isSafeInteger(r.throughSequence)||r.throughSequence<0)invalid();return summaryTx(actor,r.throughSequence);},
+    async getNotification(actor:string,id:string){
+      actor=uuid(actor);id=uuid(id);
+      return tx(actor,async c=>{
+        const row=(await c.query('SELECT sequence::text FROM bazar.notification_events WHERE id=$1 AND user_id=$2',[id,actor])).rows[0];
+        if(!row)throw missing();return inbox(c,actor,money(row.sequence)+1,1);
+      });
+    },
     async list(
       actor: string,
       resource: "conversations" | "tickets" | "notifications",
@@ -289,7 +314,7 @@ export function createCommunicationService(pool: pg.Pool) {
           ).rows[0];
           if (kind === "messages")
             await c.query(
-              `INSERT INTO bazar.notification_events(user_id,kind,source_id,scope_id) SELECT user_id,'message.created',$1,$2 FROM bazar.conversation_members WHERE conversation_id=$2 AND user_id<>$3 ON CONFLICT(user_id,kind,source_id) DO NOTHING`,
+              `INSERT INTO bazar.notification_events(user_id,kind,source_id,scope_id) SELECT user_id,'message.created',$1,$2 FROM bazar.conversation_members WHERE conversation_id=$2 AND user_id<>$3 ORDER BY user_id ON CONFLICT(user_id,kind,source_id) DO NOTHING`,
               [row.id, id, actor],
             );
         }

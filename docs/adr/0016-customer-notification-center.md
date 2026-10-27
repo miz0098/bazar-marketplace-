@@ -1,0 +1,33 @@
+# ADR 0016 — Customer notification center and isolated event integration
+
+Status: bounded isolated browser integration. Base: merged PR #27 at74062c6b3103014452b67050502848f9de4078b4. [Acceptance](../F17_NOTIFICATION_CENTER_ACCEPTANCE.md).
+
+## Reuse F13
+
+Reuse notification_events, existing event kinds (including F14 return.requested/return.status_changed), owner reads, single-record read flag, the exact communication codec and same-origin typed client. No second local inbox/provider, free-form customer event ingestion, dispatcher, notification sidebar item or regular-storefront API switch is introduced. The approved header/footer and account navigation remain unchanged. The shared UI is mounted only in the existing isolated server-session screen and My Orders block; its disclosure opens the center without adding a menu destination.
+
+New endpoints under /api/v1/communication/notifications: GET/HEAD /summary, GET/HEAD /{id}, PUT /read-all with only throughSequence. Existing list and /{id}/read remain. Missing/foreign IDs return the same404; the authenticated F4 session supplies owner. Mutations retain exact Origin/CSRF, cookie and Fetch Metadata protections through the F15 HTTPS BFF. Summary contains only global-own unread count and an observed sequence boundary; it is separate from chat unread count. No query/mutation may select another user or provide read timestamps, URLs, channel data or event status.
+
+## Cursor and concurrency guarantees
+
+Additive migration0015 indexes unread owner rows and protects notification metadata plus monotonic read_at. Every writer, including existing F13/F14 SQL writers, takes a dedicated per-recipient transaction advisory lock in a BEFORE INSERT trigger. The effective identity cursor is allocated after that lock; the otherwise unused default identity value becomes a harmless gap. This prevents a later committed event from appearing below a previously observed owner boundary. Created time is server-generated, non-decreasing per owner; sequence descending breaks ties. Previously committed F13/F16 history/cursors/read times remain unchanged.
+
+The dedicated notification advisory namespace avoids adding user-row lock upgrades or coupling read flags to profile/order locks. Existing foreign keys and module lock/error policies remain intact. Multi-recipient message insertion orders recipients by user ID. Bulk read uses the same recipient lock and updates only visible own rows through the supplied observed sequence. A forged future boundary is rejected; replay leaves newer arrivals unread. Reads never reset, notification reading never advances chat watermarks, and GET has no mutation side effect. SQL orders by the qualified numeric sequence column, avoiding the previous cast-to-text output alias ordering (10 after 8). Regression checks span multiple digit lengths and complete pagination. Pagination is an exclusive immutable sequence cursor, default50/bounded100; the widget requests small pages and deduplicates older-page IDs. No live subscription or cross-request snapshot is promised; refresh reads current authoritative state.
+
+## Event provenance and truthful demo
+
+The existing F15/F16 guarded checkout composition atomically appends order.created after owned signed-test confirmation, in the order/usage/financial transaction. Its stable source is the test order ID; confirmation replay does not append or reset a notification. The shared internal append helper rejects mismatched scopes for repeated identities. Default foundation composition and production main still do not emit legal-order or paid-order events.
+
+The Node-only F15 capability controller can seed explicit order.status_changed/order.cancelled simulations plus message.created/support.replied records tied to an owned test order/chat/ticket. These demonstrate UI integration only: order remains pending, no actual cancellation occurs, and simulated support text is not a staff/CRM response. Source IDs are stable on replay. The long synthetic chat body is fetched only via separately owner-checked history; inbox metadata contains no message/contact payload. No browser endpoint accepts arbitrary events or fake provider success.
+
+Refund events are narrower: an additive trigger appends refund.completed only when F14 reaches confirmed-for-test from a verified-test-event, after its existing authenticated payment/refund capacity and signed observation checks. It remains an isolated protocol notification, not evidence of funds returned. There is no arbitrary refund simulation button/controller action. Browser refund flow remains blocked on the existing financial/legal/provider policies; the verified-event hook is covered in real PostgreSQL tests. F14 return event names/history remain intact.
+
+## UI and links
+
+All titles explicitly identify test/simulated events. Confirmation/cancellation/refund labels do not claim real payment, delivery or returned funds. Dates use Ukrainian formatting with a labeled Kyiv timezone. Existing card/button styles, wrapping, native keyboard buttons and live unread status are reused; empty/loading/error/retry and incremental pages are explicit. Internal hrefs are derived only from recognized kinds plus canonical UUID scope: /profile/orders/{id}, /profile/messages?id={id}, /profile/support/{id}. Each destination rechecks owner/membership. No server-supplied external URL, redirect or HTML is rendered.
+
+Read state survives refresh in PostgreSQL; the widget stores no inbox, token, notification body or identity in local/session storage. Logging out removes the verified session, unmounts the widget and clears its in-memory state. A different actor receives a new owner-scoped instance. Calls have bounded bodies/timeouts, no cache/redirect/automatic retry or local success fallback. Counts are snapshots updated by explicit refresh and successful mutations, not a claim of realtime delivery.
+
+## Future channels and blockers
+
+F13 FutureNotificationChannel remains design-only. FuturePushTarget distinguishes web subscriptions from Flutter FCM installation references without keys, token registration, dispatchers or real messages. Email/SMS/web push/FCM require consent/opt-out, approved templates, recipient privacy/encryption/retention/deletion, protected keys, provider/account authenticity, outbox/retry/delivery reconciliation and abuse limits. Staff/seller grants, CRM authority, actual order status/cancellation/refund semantics and production auth/domain/BFF remain unapproved. The ordinary storefront still uses its existing preview. Demo100% and production readiness are not claimed; Phase F18 scope must be specified separately.

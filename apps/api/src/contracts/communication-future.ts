@@ -37,3 +37,6 @@ export interface FutureAttachmentPolicy {
     size: number;
   }>;
 }
+
+/** Design-only push targets; no registration, FCM credentials, delivery or consent bypass. */
+export type FuturePushTarget = { platform: "web"; subscriptionRef: string } | { platform:"flutter-fcm"; installationRef:string };

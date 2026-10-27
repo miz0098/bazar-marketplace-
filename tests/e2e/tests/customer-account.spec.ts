@@ -25,13 +25,14 @@ test('wishlist persists product IDs across reload and synchronizes header, produ
   await expect(item).toBeVisible();
   const second = await context.newPage();
   await second.goto('/catalog?category=home');
+  const catalogToggle = second.getByRole('button', { name: /Садовий світильник Solar.*обраного/ }).and(second.locator('button:enabled'));
   await expect(
-    second.locator('.product-card .wishlist-toggle'),
+    catalogToggle,
   ).toHaveAttribute('aria-pressed', 'true');
   await item.getByRole('button', { name: /Видалити.*з обраного/ }).click();
   await expect(item).toHaveCount(0);
   await expect(
-    second.locator('.product-card .wishlist-toggle'),
+    catalogToggle,
   ).toHaveAttribute('aria-pressed', 'false');
   await second.close();
   await page.reload();

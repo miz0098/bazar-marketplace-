@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { NotificationCenter } from "../components/notifications/notification-center";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SiteHeader } from "../components/layout/site-header";
@@ -568,9 +569,12 @@ function Screen() {
                   </>
                 )}
               </>
+            ) : path.startsWith("/profile/messages") || path.startsWith("/profile/support/") ? (
+              !data.session ? <Link href="/account/login">Потрібна серверна сесія</Link> : <RelatedHistory key={path+params.toString()} client={clients.communication} id={path.startsWith("/profile/messages") ? params.get("id")??"" : path.split("/")[3]} support={path.startsWith("/profile/support/")} />
             ) : path.startsWith("/profile/orders") ? (
               <>
                 <h1>Мої замовлення · ізольовані дані</h1>
+                {data.session && <NotificationCenter key={data.session.user.id} client={clients.communication} />}
                 {!data.session ? (
                   <Link href="/account/login">Потрібна серверна сесія</Link>
                 ) : data.order ? (
@@ -714,6 +718,7 @@ function Login({
       <h1>Серверна тестова авторизація</h1>
       {session ? (
         <>
+          <NotificationCenter key={session.user.id} client={clients.communication} />
           <p>
             Сесію перевірено сервером: {session.user.firstName} ·{" "}
             {session.user.maskedPhone}
@@ -1292,4 +1297,10 @@ function Payment({
 
 function FinancialSummary({subtotal,discount,shipping,total}:{subtotal:{amountMinor:number;currency:"UAH"};discount:{amountMinor:number;currency:"UAH"};shipping?:{amountMinor:number;currency:"UAH"};total?:{amountMinor:number;currency:"UAH"}}) {
  return <dl aria-label="Серверні тестові суми"><dt>Початкова сума</dt><dd>{formatMoney(subtotal)}</dd><dt>Знижка</dt><dd>{formatMoney(discount)}</dd><dt>Доставка</dt><dd>{shipping ? formatMoney(shipping) : "Перевіряється сервером"}</dd><dt>Тестовий підсумок</dt><dd>{total ? formatMoney(total) : "Буде визначений сервером до тестового результату оплати"}</dd></dl>;
+}
+
+function RelatedHistory({client,id,support}:{client:Clients['communication'];id:string;support:boolean}){
+ const [view,setView]=useState<Awaited<ReturnType<typeof client.history>>|null>(null),[error,setError]=useState(false);
+ useEffect(()=>{let active=true;client.history(id,undefined,50,support).then(v=>{if(active)setView(v);}).catch(()=>{if(active)setError(true);});return()=>{active=false;};},[client,id,support]);
+ return <section className="checkout-card"><h1>{support?'Історія тестового звернення':'Історія тестового чату'}</h1><p>Ізольовані записи; реальний оператор, CRM і доставка повідомлень не підключені.</p>{error?<p role="alert">Запис недоступний або не належить поточному користувачу.</p>:!view?<p role="status">Завантаження історії…</p>:<ol aria-label="Історія пов’язаної сутності">{view.resource==='messages'||view.resource==='replies'?view.items.map(i=><li key={i.id} style={{overflowWrap:'anywhere'}}><p>{i.body}</p><time dateTime={i.createdAt}>{i.createdAt}</time></li>):null}</ol>}<Link href="/profile/orders">До замовлень і сповіщень</Link></section>;
 }

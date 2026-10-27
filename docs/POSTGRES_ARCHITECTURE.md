@@ -1,5 +1,7 @@
 # PostgreSQL architecture — Phase F2 foundation
 
+F17 reuses the F13 inbox for an isolated browser notification center in existing session/orders UI (no new menu): owner count/read/bulk-read/pagination, atomic test-order event, explicit status/cancel/message/support simulations and verified F14 test-refund hook. No real channels or production activation. [Acceptance](F17_NOTIFICATION_CENTER_ACCEPTANCE.md), [ADR0016](adr/0016-customer-notification-center.md).
+
 F16 supersedes the F15 discounted-completion blocker for isolated single-line fixed/exact-percentage checkout only: F5 reuse, atomic test usage/order/payment/shipping snapshot, browser refresh/history and cap contention. Multiple discounted lines, fractional rounding/allocation/stacking and all production financial/provider/auth gates remain blocked. [Scope](F16_DISCOUNTED_CHECKOUT_ACCEPTANCE.md), [ADR0015](adr/0015-discounted-browser-checkout.md).
 
 F15 uses the unchanged0013 inventory in a separate loopback Docker PostgreSQL project. Every browser case gets a new synthetic database; no real history is reset or relabelled. No new migration, runtime grant or production data. [Browser boundary](adr/0014-isolated-browser-checkout.md).
