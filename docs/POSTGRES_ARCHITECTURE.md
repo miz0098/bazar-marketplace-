@@ -1,5 +1,7 @@
 # PostgreSQL architecture — Phase F2 foundation
 
+F15 uses the unchanged0013 inventory in a separate loopback Docker PostgreSQL project. Every browser case gets a new synthetic database; no real history is reset or relabelled. No new migration, runtime grant or production data. [Browser boundary](adr/0014-isolated-browser-checkout.md).
+
 F14 additive0013 adds order lifecycle requests, owned return-line claims, isolated refund attempts/evidence and immutable trigger audit with initial-order backfill. F6/F9 history/financial restrictions remain intact. No production data/grants/provider release. [ADR0013](adr/0013-order-lifecycle-requests-refunds.md).
 
 F13 migration 0012 reuses conversation/support core tables, adds chronological sequence backfill/cursor indexes, support idempotency keys/digest and isolated notification_events owner/dedup/page constraints. Previous migrations are unchanged. No staff grants, contact data, real event seeds or delivery worker. [ADR 0012](adr/0012-messages-support-notifications.md).

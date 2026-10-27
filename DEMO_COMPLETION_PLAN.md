@@ -1,5 +1,7 @@
 # Phase F10 — Demo Completion Plan
 
+F15 partially advances D05 with an isolated HTTPS/BFF browser harness and actual F4–F14 APIs, no-promo/card linked confirmation/history across NP/Meest/Ukrposhta. It does not complete D05/I09: promo redemption/financial/order/inventory policy, full real-contact/catalog mapping, actual wallet SDKs and repeat purchase still require D01/D03/D04 decisions. Production SMS/domain/BFF/provider rollout remains D08/D09. [Evidence](docs/F15_BROWSER_CHECKOUT_ACCEPTANCE.md).
+
 F14 advances D04 technical request/audit/refund-capacity seams and bounded My Orders preview only. Next approve cancellation/return authority and legal windows/exclusions, reverse logistics, discount/shipping/fee/seller/rounding allocation, capacity release and real provider finality; then actual lifecycle and browser server mapping. Closing a request or confirming a synthetic protocol does not settle/cancel an order. [Scope](docs/F14_ORDER_LIFECYCLE_ACCEPTANCE.md).
 
 F13 advances D06 with bounded communication preview completion and isolated owned chat/support/pagination/read/idempotency plus notification contracts/inbox. Next: approve staff/seller membership/CRM transitions and privacy/retention/abuse rules, channel consent/templates/outbox policy and notification design, then isolated browser mapping; authoritative order/refund emitters depend on D04. No new account section or production activation. [Acceptance](docs/F13_COMMUNICATION_ACCEPTANCE.md).

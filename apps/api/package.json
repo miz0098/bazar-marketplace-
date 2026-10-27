@@ -15,7 +15,8 @@
     "test:production": "node --import tsx --test tests/production.test.mjs",
     "build": "tsc -p tsconfig.build.json",
     "db:migrate": "node --env-file-if-exists=.env.local --import tsx src/database/migrate-cli.ts",
-    "test:integration": "node scripts/test-postgres.mjs"
+    "test:integration": "node scripts/test-postgres.mjs",
+    "test:browser": "node scripts/test-browser.mjs"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",

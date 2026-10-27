@@ -1,5 +1,7 @@
 # Storefront migration progress
 
+F15 adds a separate browser-integration Next build root and optional header action/count presentation props with unchanged defaults. Normal app routes/providers/design remain preview-only. Isolated UI uses verified APIs/cookies, current checkout styles and exact minor-unit display; no local auth flag, auto guest merge or production test helper route.
+
 F14 preserves orders list/detail and account layout; adds separate-status/history/cancellation availability and ephemeral selected-quantity/reason return preview. Future typed lifecycle client remains unselected; no real cancel/refund/approval or PII persistence.
 
 F13 preserves communication layout and preview reset semantics; adds immediate submit guards, stable sort ties, selected read snapshot and white search-empty. Separate typed communication/CRM/channel/attachment contracts and bounded future client do not replace demo providers. See root F13 acceptance documents.

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-26",
+  "updated_at": "2026-10-27",
   "tasks": [
     {
       "id": "OPS-001",
@@ -416,7 +416,7 @@
     {
       "id": "LIFECYCLE-001",
       "title": "Add isolated owned order lifecycle return/refund protocols and bounded customer preview",
-      "status": "in_review",
+      "status": "done",
       "readiness": "integration",
       "depends_on": [
         "COMM-001"
@@ -441,6 +441,36 @@
       ],
       "pr": 25,
       "blocker": "Real order/cancellation/return/refund authority legal windows/logistics financial allocation and release policies providers PII production auth/BFF and browser API mapping remain unapproved."
+    },
+    {
+      "id": "BROWSER-001",
+      "title": "Prove isolated HTTPS PostgreSQL checkout through a real Next browser UI",
+      "status": "in_review",
+      "readiness": "integration",
+      "depends_on": [
+        "LIFECYCLE-001"
+      ],
+      "allowed_paths": [
+        "apps/api/",
+        "apps/storefront/",
+        "tests/e2e/",
+        "docs/",
+        "ARCHITECTURE.md",
+        "MIGRATION_PLAN.md",
+        "FUNCTIONAL_GAP_AUDIT.md",
+        "DEMO_READINESS_CHECKLIST.md",
+        "DEMO_COMPLETION_PLAN.md",
+        ".github/autonomous/tasks.json",
+        ".github/workflows/ci.yml"
+      ],
+      "acceptance": [
+        "Separate test artifact/BFF preserves production guards Secure HttpOnly cookies Origin CSRF and owner checks",
+        "Browser catalog guest/no-merge auth server-cart all test carriers signed card confirmation and owned history work on desktop/mobile",
+        "Replay refresh foreign ownership price stock tariff auth/payment errors and inaccessible production helpers are verified",
+        "Normal preview regression audit governance and CI pass without real external effects or invented financial rules"
+      ],
+      "pr": 26,
+      "blocker": "Production SMS/domain/BFF/keys/privacy/providers, discounted completion and authoritative financial/order/cart lifecycle, actual wallet SDK/device and normal storefront server mapping remain unapproved."
     }
   ]
 }

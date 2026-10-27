@@ -12,15 +12,20 @@ import type { Category, ProductSummary } from '@/services/contracts/catalog';
 export function SiteHeader({
   categories,
   products,
+  accountAction,
+  cartCount,
 }: {
   categories: readonly Category[];
   products: readonly ProductSummary[];
+  accountAction?: {label:string;open:()=>void};
+  cartCount?:number;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const closeTimer = useRef<number | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const { items: wishlist } = useWishlist();
-  const { itemCount } = useCart();
+  const { itemCount: localCount } = useCart();
+  const itemCount = cartCount ?? localCount;
   const { openAuth } = useAuthModal();
 
   const cancelClose = () => {
@@ -88,12 +93,12 @@ export function SiteHeader({
           <button
             className="header-action header-auth-trigger"
             type="button"
-            onClick={() => openAuth('login')}
+            onClick={() => accountAction ? accountAction.open() : openAuth('login')}
           >
             <span>
               <UserIcon />
             </span>
-            <small>Увійти</small>
+            <small>{accountAction?.label ?? 'Увійти'}</small>
           </button>
           <Action href="/cart" label="Кошик">
             <CartIcon />
@@ -125,8 +130,8 @@ export function SiteHeader({
           <button
             className="mobile-auth-button"
             type="button"
-            aria-label="Увійти за номером телефону"
-            onClick={() => openAuth('login')}
+            aria-label={accountAction?.label ?? 'Увійти за номером телефону'}
+            onClick={() => accountAction ? accountAction.open() : openAuth('login')}
           >
             <UserIcon />
           </button>
