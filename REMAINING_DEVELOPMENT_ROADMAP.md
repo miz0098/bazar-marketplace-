@@ -1,5 +1,23 @@
 # Remaining Development Roadmap — proposed F19+
 
+## F19 target-policy update — 2026-10-27
+
+[Business Rules V1](BUSINESS_RULES_V1.md), [domain contracts](COMMERCE_DOMAIN_CONTRACTS.md), [decision register](BUSINESS_DECISION_REGISTER.md) and [F20–F29 implementation mapping](F20_F29_IMPLEMENTATION_CONTRACT.md) are the current target-policy authority. F18/F1–F17 implementation observations, counts and historical checks below are retained unchanged; this documentation does not add functional coverage or make them V1-compliant. **НЕ ГОТОВИЙ; no Demo100% / Full Audit Ready claim.** Quantitative inventory/reservations are intentionally out of scope; binary seller availability and persistent disabled saved items are required. Carrier shipping prices are operator-managed, not BAZAR-calculated; use «Вартість доставки згідно з тарифами поштового оператора». Financial rounding/allocations, legal/settlement/privacy and provider gates remain explicit. Technical representations remain proposals.
+
+### Current F19 plan and decision precedence
+
+The detailed current phase/API/DB/UI/security/test exits are in [F20–F29 contract](F20_F29_IMPLEMENTATION_CONTRACT.md). F19 records user-approved policy, not completion of the below applications. DR01–DR12 below are historical; the [F19 decision register](BUSINESS_DECISION_REGISTER.md#decision-governance) maps what was resolved and what remains open. In particular DR04 stock reservation is rejected scope, not an unresolved implementation requirement; DR09 BAZAR tariffs/quoteTTL are removed from target checkout, not a provider dependency.
+
+- F20: catalog/SKU/media/search/routing, exact presentation, seller ownership/binary availability and carrier-managed shipping contract plan. PD-02 variant semantics before affected implementation; do not choose financial rounding.
+- F21: ordinary server-session buyer UI, persisted cart/wishlist, checkout contacts without required saved profile address; retain unavailable entries and local guest/no merge.
+- F22: parent/seller multi-item checkout, single promo/cap/approved allocations,5% seller commission snapshot, server card test proof, safe purchased-cart clearing/second purchase; no inventory decrement or BAZAR shipping price.
+- F23: approved cancellation actions, return/refund protocol and per-seller5calendar-day/48h deadline model under legal/calendar gates.
+- F24: remaining account/comms and F13 in-app restored-availability event fanout; no real push claim.
+- F25/F26: tenant-scoped seller/admin and assigned staff CRM workflows; no admin «Клієнти», no unapproved employee/sensitive finance grants.
+- F27/F28/F29: approved external conformance, operational/privacy recovery and exact-candidate audit-entry recheck. No live activation/deployment implied.
+
+#### Preserved F18 proposal below
+
 **Це пропозиція послідовності, не погодження нових бізнес-правил і не автоматичний запуск фаз.** Поточний вердикт: **НЕ ГОТОВИЙ**. [Аудит](FULL_MARKETPLACE_READINESS_AUDIT.md), [backlog B01–B28](FUNCTIONAL_COMPLETION_BACKLOG.md), [entry criteria](FULL_AUDIT_ENTRY_CRITERIA.md).
 
 ## Два різні продукти приймання

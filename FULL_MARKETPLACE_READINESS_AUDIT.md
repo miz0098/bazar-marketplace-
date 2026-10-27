@@ -1,5 +1,9 @@
 # Full Marketplace Functional Readiness Audit — Phase F18
 
+## F19 target-policy update — 2026-10-27
+
+[Business Rules V1](BUSINESS_RULES_V1.md), [domain contracts](COMMERCE_DOMAIN_CONTRACTS.md), [decision register](BUSINESS_DECISION_REGISTER.md) and [F20–F29 implementation mapping](F20_F29_IMPLEMENTATION_CONTRACT.md) are the current target-policy authority. F18/F1–F17 implementation observations, counts and historical checks below are retained unchanged; this documentation does not add functional coverage or make them V1-compliant. **НЕ ГОТОВИЙ; no Demo100% / Full Audit Ready claim.** Quantitative inventory/reservations are intentionally out of scope; binary seller availability and persistent disabled saved items are required. Carrier shipping prices are operator-managed, not BAZAR-calculated; use «Вартість доставки згідно з тарифами поштового оператора». Financial rounding/allocations, legal/settlement/privacy and provider gates remain explicit. Technical representations remain proposals.
+
 **Вердикт: НЕ ГОТОВИЙ до спільного повного функціонального аудиту. Demo 100% не оголошено.** Це technical/documentation-first зріз, не фінальне приймання дизайну й не production penetration/операційна сертифікація.
 
 Дата:2026-10-27 UTC. База: `vps-migration` at `a2daa5c5a8d36cd81fbfc76f9bada59a83d9fe6c`, перевірено merged PR #28. Робоча гілка: `codex/phase-f18-functional-readiness-audit`. F18 не змінює код, тести, дизайн, міграції чи runtime configuration.

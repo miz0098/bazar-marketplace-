@@ -1,5 +1,9 @@
 # Shopify functionality restoration — mandatory before BAZAR Demo 100%
 
+## F19 policy precedence — target only, not implementation
+
+See [Business Rules V1](../BUSINESS_RULES_V1.md), [domain contracts/conflicts](../COMMERCE_DOMAIN_CONTRACTS.md) and [implementation contract](../F20_F29_IMPLEMENTATION_CONTRACT.md). Binary seller availability replaces future quantitative stock/reservation requirements; carrier-managed shipping replaces future BAZAR tariff/quote calculations. Single capped eligible-merchandise promo,5% per-seller net commission, parent/seller components, approved cancellation/deadline rules and optional profile addresses are target requirements. Rounding/allocations, legal, privacy/roles/providers remain separately gated. Existing F1–F18 schema/API/test descriptions below are historical evidence, not V1 activation or readiness. Old migrations and Shopify source remain unchanged.
+
 F17 reuses the F13 inbox for an isolated browser notification center in existing session/orders UI (no new menu): owner count/read/bulk-read/pagination, atomic test-order event, explicit status/cancel/message/support simulations and verified F14 test-refund hook. No real channels or production activation. [Acceptance](F17_NOTIFICATION_CENTER_ACCEPTANCE.md), [ADR0016](adr/0016-customer-notification-center.md).
 
 F16 supersedes the F15 discounted-completion blocker for isolated single-line fixed/exact-percentage checkout only: F5 reuse, atomic test usage/order/payment/shipping snapshot, browser refresh/history and cap contention. Multiple discounted lines, fractional rounding/allocation/stacking and all production financial/provider/auth gates remain blocked. [Scope](F16_DISCOUNTED_CHECKOUT_ACCEPTANCE.md), [ADR0015](adr/0015-discounted-browser-checkout.md).
