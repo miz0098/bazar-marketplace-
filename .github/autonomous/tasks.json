@@ -475,12 +475,12 @@
     {
       "id": "DISCOUNTBROWSER-001",
       "title": "Complete bounded discounted browser checkout with atomic F5 usage and immutable test financial snapshots",
-      "status": "in_progress",
+      "status": "in_review",
       "readiness": "integration",
       "depends_on": ["BROWSER-001"],
       "allowed_paths": ["apps/api/", "apps/storefront/", "tests/e2e/", "docs/", "ARCHITECTURE.md", "MIGRATION_PLAN.md", "FUNCTIONAL_GAP_AUDIT.md", "DEMO_READINESS_CHECKLIST.md", "DEMO_COMPLETION_PLAN.md", ".github/autonomous/tasks.json"],
       "acceptance": ["Existing F5 evaluates fixed and exact percentage single-line discounts without new marketing rounding or allocation rules", "Signed test payment and order plus usage and financial snapshot commit atomically and survive replay refresh and concurrent cap contention", "Browser desktop/mobile carrier promo errors history security and ordinary regression checks pass; production remains blocked"],
-      "pr": null,
+      "pr": 27,
       "blocker": "Multiple discounted lines and variant/seller/unit allocation, fractional rounding, stacking, legal payable/tax/fee policy, capacity restoration/refunds and production providers/auth remain unapproved."
     }
   ]
