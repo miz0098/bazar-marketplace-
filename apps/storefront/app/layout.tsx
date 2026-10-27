@@ -22,7 +22,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           <AuthProvider>
             <a className="skip-link" href="#main-content">Перейти до вмісту</a>
             <SiteHeader categories={categories} products={products.items} />
-            <main id="main-content">{children}</main>
+            <main id="main-content">{process.env.STOREFRONT_DATA_SOURCE==="catalog-v2-preview"&&<p className="demo-disclaimer" role="status">Catalog v2 — тестовий перегляд API. Купівля та серверне обране ще не підключені.</p>}{children}</main>
             <SiteFooter />
           </AuthProvider>
         </CartProvider></WishlistProvider>

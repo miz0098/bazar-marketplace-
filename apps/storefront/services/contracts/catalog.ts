@@ -10,26 +10,35 @@ export type ProductVisual =
   | 'console'
   | 'sport'
   | 'fashion';
-export type ProductSort = 'featured' | 'price-asc' | 'price-desc' | 'name';
+export type ProductSort = 'featured' | 'price-asc' | 'price-desc' | 'name' | 'newest';
 
 export interface Category {
   readonly id: string;
+  readonly parentId?:string|null;
+  readonly handle?:string;
   readonly title: string;
   readonly icon: string;
   readonly subcategories: readonly string[];
 }
 
 export interface ProductVariant {
+  readonly available?: boolean;
   readonly productTitle?: string;
   readonly id: string;
   readonly title: string;
   readonly sku: string;
   readonly price: Money;
-  readonly stock: number;
+  readonly stock?: number;
   readonly mediaIndex: number;
 }
 
 export interface ProductSummary {
+  readonly purchaseEnabled?: boolean;
+  readonly sellerId?: string;
+  readonly availabilityModel?: "binary";
+  readonly requiresVariantSelection?: boolean;
+  readonly publishedAt?: string;
+  readonly media?: readonly {src:string;alt:string;width:number;height:number;variantId?:string|null}[];
   readonly variants?: readonly ProductVariant[];
   readonly variantId?: string;
   readonly variantLabel?: string;
@@ -51,7 +60,7 @@ export interface ProductSummary {
 export interface Product extends ProductSummary {
   readonly sku: string;
   readonly description: string;
-  readonly gallery: readonly { id: string; label: string; tone: string }[];
+  readonly gallery: readonly { id: string; label: string; tone: string; src?:string; width?:number; height?:number }[];
   readonly specifications: readonly { label: string; value: string }[];
   readonly reviews: readonly {
     id: string;
@@ -63,6 +72,9 @@ export interface Product extends ProductSummary {
 }
 
 export interface ProductQuery {
+  readonly available?: boolean;
+  readonly attribute?: string;
+  readonly value?: string;
   readonly query?: string;
   readonly category?: string;
   readonly subcategory?: string;

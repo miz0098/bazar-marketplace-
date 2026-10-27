@@ -214,3 +214,11 @@ Evidence inspected at base, **not modified in F19**:
 | [PG tests](apps/api/tests/integration/postgres.test.ts), [browser checkout](tests/e2e/browser-tests/checkout.spec.ts), [notices](tests/e2e/browser-tests/notifications.spec.ts) | Existing tests prove old bounded stock/quote/single-line synthetic protocol | Keep historical evidence; later additive/new-version tests verify new rules and explicit retired-contract behavior. F19 does not change tests to make rules appear implemented |
 
 ADR0001–0016 remain historical implemented technical boundaries. [ADR0017](docs/adr/0017-business-rules-commerce-target.md) records target supersession only. Runtime main stays fail-closed for private commerce; no new routes/config/migrations are activated in F19.
+
+## F20 implemented contract delta
+
+[ADR0018](docs/adr/0018-catalog-binary-availability.md) and [acceptance](docs/F20_CATALOG_ACCEPTANCE.md) supersede product-vs-variant availability proposals only. `catalog_products.selectable` chooses per-variant aggregate vs own product boolean, and `catalog_variants` references unchanged legacy variant/product IDs. Published simple products have one canonical purchasable variant, selectable products at least one. No stock value is imported as binary truth.
+
+New `/api/v1/catalog/products`, `/products/{reference}`, `/categories` and protected test-only `PATCH /api/v1/catalog/seller/products/{id}` are implemented with contractVersion2 reads, strict typed client and optional non-production read-only preview. New migration0016 changes no existing SQL file. Identity/price/availability/media/query/event details and bounds are documented in acceptance/OpenAPI. No fake seller assignment of legacy rows. Catalog V2 public projections omit real ratings/vendor metadata unless attributes provide it; price selection is explicit for differently-priced variants, aggregate sorting policy is still pending.
+
+Canonical product/variant updates commit guarded audit/command receipts and F13 notifications. Media is supported, not a claim approved licensed assets were supplied. Full ordinary server cart/account UI, provider activation and production-scale query/index/role review remain separate. Historical F19 diagrams and future financial/cancellation/state proposals do not become implemented by this delta.

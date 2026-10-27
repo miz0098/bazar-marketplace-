@@ -1,5 +1,6 @@
 /** Private, isolated-test protocol. No delivery or production authentication claim. */
 export const notificationKinds = [
+  "product.availability_restored",
   "order.created",
   "order.status_changed",
   "message.created",

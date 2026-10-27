@@ -1,3 +1,4 @@
+import {catalogAvailability} from '../catalog/availability.js';
 import type pg from 'pg';
 import { ApiError } from '../contracts/foundation.js';
 import type { CartDto } from '../contracts/modules.js';
@@ -21,11 +22,12 @@ export async function readCartInTransaction(
     'SELECT v.product_id,v.id,v.price_minor::text,v.currency,v.stock,l.quantity FROM bazar.cart_lines l JOIN bazar.variants v ON v.id=l.variant_id WHERE l.cart_id=$1 ORDER BY v.id',
     [cartId],
   );
+  const binary=await catalogAvailability(c,rows.rows.map(r=>r.id),checkStock);
   let subtotal = 0n;
   const lines = rows.rows.map((r) => {
     const quantity = integer(r.quantity, 1, 2147483647);
     if (r.currency !== 'UAH') throw new Error('Invalid database currency');
-    if (checkStock && quantity > integer(r.stock, 0, 2147483647))
+    if (checkStock && (binary.has(r.id)?!binary.get(r.id):quantity > integer(r.stock, 0, 2147483647)))
       conflict('Inventory is insufficient.');
     const total = BigInt(money(r.price_minor)) * BigInt(quantity);
     if (total > BigInt(Number.MAX_SAFE_INTEGER))
@@ -92,6 +94,7 @@ export async function mutateCartInTransaction(
     );
     if (!variant.rows.length)
       throw new ApiError(404, 'NOT_FOUND', 'Variant not found.');
+    const binary=await catalogAvailability(c,[input.variantId],true);
     const old = await c.query(
       'SELECT quantity FROM bazar.cart_lines WHERE cart_id=$1 AND variant_id=$2',
       [cartId, input.variantId],
@@ -103,7 +106,7 @@ export async function mutateCartInTransaction(
       (input.operation === 'add' ? (old.rows[0]?.quantity ?? 0) : 0);
     if (
       !Number.isSafeInteger(quantity) ||
-      quantity > variant.rows[0].stock ||
+      (binary.has(input.variantId)?!binary.get(input.variantId):quantity > variant.rows[0].stock) ||
       quantity > 2147483647
     )
       conflict('Inventory is insufficient.');

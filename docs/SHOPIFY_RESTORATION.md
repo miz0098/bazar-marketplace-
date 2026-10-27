@@ -1,5 +1,9 @@
 # Shopify functionality restoration — mandatory before BAZAR Demo 100%
 
+## F20 current implementation
+
+See [catalog acceptance](F20_CATALOG_ACCEPTANCE.md) and [ADR0018](adr/0018-catalog-binary-availability.md). New additive0016 catalog sidecars expose public contractVersion2 product/category/search/filter/page/media reads and test-only owned seller PATCH. Variant binary availability, no stock inference, F13 restoration events and exact money/legacy-route repairs are implemented. Existing F3 contracts/test namespaces remain legacy; no old migration rewrite/backfill/ID swap. Actual source/media/legal content, aggregate merchandising, ordinary server cart/account UI, live grants/channels/providers and full production-scale operations remain unverified/gated.
+
 ## F19 policy precedence — target only, not implementation
 
 See [Business Rules V1](../BUSINESS_RULES_V1.md), [domain contracts/conflicts](../COMMERCE_DOMAIN_CONTRACTS.md) and [implementation contract](../F20_F29_IMPLEMENTATION_CONTRACT.md). Binary seller availability replaces future quantitative stock/reservation requirements; carrier-managed shipping replaces future BAZAR tariff/quote calculations. Single capped eligible-merchandise promo,5% per-seller net commission, parent/seller components, approved cancellation/deadline rules and optional profile addresses are target requirements. Rounding/allocations, legal, privacy/roles/providers remain separately gated. Existing F1–F18 schema/API/test descriptions below are historical evidence, not V1 activation or readiness. Old migrations and Shopify source remain unchanged.

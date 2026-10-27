@@ -1,5 +1,6 @@
 'use client';
 
+import {CatalogImage} from './catalog-image';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/components/cart/cart-provider';
 import { WishlistButton } from './wishlist-button';
@@ -29,8 +30,8 @@ export function ProductDetail({
   const router = useRouter(),
     cart = useCart();
   const [purchaseError, setPurchaseError] = useState('');
-  const [variantId, setVariantId] = useState(initialVariant ?? product.id);
-  const selected = selectVariant(product, variantId) ?? product;
+  const [variantId, setVariantId] = useState(initialVariant ?? (product.requiresVariantSelection?"":(product.variants?.[0]?.id??product.id)));
+  const selected = (variantId?selectVariant(product, variantId):undefined) ?? product;
   const [mediaIndex, setMediaIndex] = useState(
     product.variants?.find((v) => v.id === variantId)?.mediaIndex ?? 0,
   );
@@ -53,9 +54,9 @@ export function ProductDetail({
             className={`product-gallery__main product-visual product-visual--${product.visual}`}
             style={{ backgroundColor: media?.tone }}
             role="img"
-            aria-label={media?.label}
+            aria-label={media?.label??`${product.title}: зображення недоступне`}
           >
-            <span />
+            {media?.src?<CatalogImage key={media.src} src={media.src} alt={media.label} width={media.width} height={media.height}/>:<span />}
           </div>
           <div className="product-gallery__thumbs">
             {product.gallery.map((item, index) => (
@@ -76,10 +77,10 @@ export function ProductDetail({
           <h1>{selected.title}</h1>
           <WishlistButton product={product} />
           <div className="product-summary__meta">
-            <span aria-label={`Рейтинг ${product.rating} з 5`}>
+            {product.reviewCount>0&&<span aria-label={`Рейтинг ${product.rating} з 5`}>
               ★★★★★ <strong>{product.rating}</strong> · {product.reviewCount}{' '}
               відгуків
-            </span>
+            </span>}
             <span>
               Артикул:{' '}
               {product.variants?.find((v) => v.id === variantId)?.sku ??
@@ -87,7 +88,7 @@ export function ProductDetail({
             </span>
           </div>
           <div className="product-summary__price">
-            <strong>{formatMoney(selected.price)}</strong>
+            <strong>{selected.requiresVariantSelection?"Оберіть варіант для перегляду ціни":formatMoney(selected.price)}</strong>
             {selected.compareAtPrice && (
               <s>{formatMoney(selected.compareAtPrice)}</s>
             )}
@@ -119,17 +120,18 @@ export function ProductDetail({
                   window.history.replaceState(null, '', url);
                 }}
               >
+                {product.requiresVariantSelection&&<option value="">Оберіть варіант</option>}
                 {product.variants.map((v) => (
                   <option value={v.id} key={v.id}>
                     {v.title}
-                    {v.stock === 0 ? ' — немає в наявності' : ''}
+                    {v.available === false ? ' — немає в наявності' : ''}
                   </option>
                 ))}
               </select>
             </label>
           )}
           <p className="demo-stock">
-            Демо-залишок: {quantityLimit(selected)} шт. Не є реальним залишком.
+            {selected.availabilityModel === "binary" ? "Наявність визначається для обраного варіанта. Складські залишки не ведуться." : `Демо-залишок: ${quantityLimit(selected)} шт. Не є реальним залишком.`}
           </p>
           <div className="product-purchase">
             <label>
@@ -182,7 +184,7 @@ export function ProductDetail({
             <button
               className="button button--secondary buy-now-button"
               type="button"
-              disabled={!selected.available || !cart.hydrated}
+              disabled={!selected.available || selected.requiresVariantSelection || product.purchaseEnabled===false || !cart.hydrated}
               onClick={() => {
                 const error = cart.add(selected, quantity);
                 setPurchaseError(error);

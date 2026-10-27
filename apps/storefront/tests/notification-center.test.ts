@@ -6,7 +6,7 @@ const id='12345678-1234-1234-1234-123456789abc';
 test('F17 all existing notification kinds map only to bounded local owner-checked routes and honest test titles',()=>{
  for(const kind of notificationKinds){
   const p=notificationPresentation({id,sequence:1,kind,scopeId:id,sourceId:id,read:false,createdAt:'2026-10-27T00:00:00.000Z'});
-  assert.match(p.href,/^\/profile\/(orders\/|messages\?id=|support\/)[a-f0-9-]+$/);assert.match(p.title,/тест|Тест|Симуляція|Ізольована/);
+  if(kind==='product.availability_restored')assert.equal(p.href,`/products/catalog/${id}`);else assert.match(p.href,/^\/profile\/(orders\/|messages\?id=|support\/)[a-f0-9-]+$/);assert.match(p.title,/тест|Тест|Симуляція|Ізольована/);
  }
  assert.throws(()=>notificationPresentation({scopeId:'//evil.example',kind:'order.created'} as never));
  assert.throws(()=>notificationPresentation({scopeId:id,kind:'payment.success'} as never));

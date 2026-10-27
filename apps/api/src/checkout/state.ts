@@ -1,3 +1,4 @@
+import {catalogAvailability} from '../catalog/availability.js';
 import { createHash } from 'node:crypto';
 import type pg from 'pg';
 import { ApiError } from '../contracts/foundation.js';
@@ -54,6 +55,7 @@ export async function cartSnapshot(
       [cartId],
     )
   ).rows;
+  const binary=await catalogAvailability(c,rows.map(r=>r.id));
   const cart = await readCartInTransaction(c, cartId, actor, true);
   if (cart.version !== expected) throw stale();
   if (!rows.length)
@@ -81,7 +83,7 @@ export async function cartSnapshot(
       version: cart.version,
       lines,
       inventory: rows.map((r) => ({
-        stock: integer(r.stock, 0, 2147483647),
+        ...(binary.has(r.id)?{available:binary.get(r.id)}:{stock:integer(r.stock, 0, 2147483647)}),
         version: money(r.version),
       })),
     }).toString('hex'),

@@ -1,7 +1,7 @@
 import type { Product, ProductPage, ProductQuery, ProductSort, ProductSummary } from '@/services/contracts/catalog';
 
 export const DEFAULT_PAGE_SIZE = 8;
-const sorts: readonly ProductSort[] = ['featured', 'price-asc', 'price-desc', 'name'];
+const sorts: readonly ProductSort[] = ['featured', 'price-asc', 'price-desc', 'name', 'newest'];
 
 export function normalizeSearch(value = '') {
   return value.trim().toLocaleLowerCase('uk-UA');
@@ -23,8 +23,10 @@ export function queryProducts(products: readonly Product[], input: ProductQuery 
   const pageSize = Math.max(1, Math.min(input.limit ?? DEFAULT_PAGE_SIZE, 24));
 
   const filtered = products.filter((product) => {
-    const haystack = normalizeSearch(`${product.title} ${product.vendor} ${product.subcategory}`);
-    return (!query || haystack.includes(query))
+    const haystack = normalizeSearch(`${product.title} ${product.vendor} ${product.subcategory} ${product.specifications.map(s=>s.value).join(" ")}`);
+    return (input.available===undefined||product.available===input.available)
+      && (!input.attribute||product.specifications.some(s=>s.label===input.attribute&&s.value===input.value))
+      && (!query || haystack.includes(query))
       && (!input.category || product.category === input.category)
       && (!input.subcategory || normalizeSearch(product.subcategory) === normalizeSearch(input.subcategory))
       && (!input.vendor || normalizeSearch(product.vendor) === normalizeSearch(input.vendor))
@@ -37,6 +39,7 @@ export function queryProducts(products: readonly Product[], input: ProductQuery 
   if (input.sort === 'price-desc') items.sort((a, b) => b.price.amountMinor - a.price.amountMinor);
   if (input.sort === 'name') items.sort((a, b) => a.title.localeCompare(b.title, 'uk'));
 
+  if(input.sort==='newest')items.sort((a,b)=>(b.publishedAt??'').localeCompare(a.publishedAt??'')||a.id.localeCompare(b.id));
   const pageCount = Math.max(1, Math.ceil(items.length / pageSize));
   const page = Math.min(parsePositiveInteger(input.page, 1), pageCount);
   const start = (page - 1) * pageSize;

@@ -47,7 +47,7 @@ export function CartPage() {
             </button>
           </div>
           {cart.lines.map((line) => (
-            <article className="cart-line" key={cartKey(line.product)}>
+            <article className="cart-line" data-unavailable={!line.product.available} key={cartKey(line.product)}>
               <Link
                 className={`cart-line__visual product-visual product-visual--${line.product.visual}`}
                 href={`/products/${line.product.handle}${line.product.variantId ? `?variant=${encodeURIComponent(line.product.variantId)}` : ''}`}
@@ -63,13 +63,15 @@ export function CartPage() {
                   {line.product.title}
                 </Link>
                 <small>{line.product.variantLabel}</small>
+                {!line.product.available&&<p className="stock stock--unavailable">Немає в наявності</p>}
                 <strong>{formatMoney(line.product.price)}</strong>
               </div>
-              <label className="cart-line__quantity">
+              <label className="cart-line__quantity" aria-disabled={!line.product.available}>
                 Кількість
                 <span className="quantity-control">
                   <button
                     type="button"
+                    disabled={!line.product.available}
                     aria-label={`Зменшити кількість ${line.product.title}`}
                     onClick={() =>
                       line.quantity === 1
@@ -86,6 +88,7 @@ export function CartPage() {
                   </button>
                   <input
                     aria-label={`Кількість ${line.product.title}`}
+                    disabled={!line.product.available}
                     type="number"
                     min="1"
                     max={quantityLimit(line.product)}
@@ -97,6 +100,7 @@ export function CartPage() {
                   />
                   <button
                     type="button"
+                    disabled={!line.product.available}
                     aria-label={`Збільшити кількість ${line.product.title}`}
                     onClick={() =>
                       setError(
@@ -136,9 +140,9 @@ export function CartPage() {
             <strong>{formatMoney(cart.subtotal)}</strong>
           </div>
           <p>Доставка: вартість за тарифами перевізника.</p>
-          <Link className="button" href="/checkout">
+          {cart.lines.some(l=>!l.product.available)?<p role="alert">Недоступні варіанти залишаються у кошику. Оформлення недоступне.</p>:<Link className="button" href="/checkout">
             Перейти до оформлення
-          </Link>
+          </Link>}
           <Link href="/catalog">Продовжити покупки</Link>
           <div className="demo-disclaimer">
             Це локальний демонстраційний кошик. Оформлення не створює замовлення

@@ -1,3 +1,5 @@
+import {handleCatalogV2} from './catalog/http.js';
+import type {CatalogV2} from './catalog/service.js';
 import {isLifecyclePath,handleLifecycle} from './lifecycle/http.js';
 import type {OrderLifecycleService} from './lifecycle/service.js';
 import {isCommunicationPath,handleCommunication} from './communication/http.js';
@@ -42,7 +44,7 @@ function validateBody(request: IncomingMessage, response: ServerResponse) {
   }
 }
 
-export function createApiServer(config: ApiConfig, logger: Logger, dependencies: { isReady?: () => boolean | Promise<boolean>; catalog?: Catalog; auth?: AuthService; promotions?: PromotionService; checkout?: CheckoutBusinessService; shipping?: ShippingService; payments?: PaymentService; currentCart?: CurrentCartService; customer?:CustomerService; communication?:CommunicationService; lifecycle?:OrderLifecycleService } = {}) {
+export function createApiServer(config: ApiConfig, logger: Logger, dependencies: { isReady?: () => boolean | Promise<boolean>; catalogV2?:CatalogV2; catalog?: Catalog; auth?: AuthService; promotions?: PromotionService; checkout?: CheckoutBusinessService; shipping?: ShippingService; payments?: PaymentService; currentCart?: CurrentCartService; customer?:CustomerService; communication?:CommunicationService; lifecycle?:OrderLifecycleService } = {}) {
   if (dependencies.auth && config.environment !== 'test') throw new Error('Test authentication cannot be registered outside an isolated test server');
   if (dependencies.promotions && config.environment !== 'test') throw new Error('Promotion integration cannot be registered outside a test server');
   if (dependencies.checkout && config.environment !== 'test') throw new Error('Checkout integration cannot be registered outside a test server');
@@ -65,6 +67,11 @@ export function createApiServer(config: ApiConfig, logger: Logger, dependencies:
       if (!request.url?.startsWith('/') || request.url.startsWith('//')) throw new ApiError(400, 'INVALID_REQUEST', 'Invalid request target.');
       let url: URL;
       try { decodeURIComponent(request.url); url = new URL(request.url, 'http://api.invalid'); } catch { throw new ApiError(400, 'INVALID_REQUEST', 'Invalid request target.'); }
+      if(url.pathname.startsWith('/api/v1/catalog/')){
+        route='/api/v1/products';
+        if(draining||!dependencies.isReady||!await dependencies.isReady())throw new ApiError(503,'SERVICE_UNAVAILABLE','Catalog v2 is unavailable.');
+        const data=await handleCatalogV2(request,response,url,dependencies.catalogV2,config.corsOrigins,dependencies.auth);reply(response,method,200,{ok:true,data,meta:{requestId}});return;
+      }
       if(isLifecyclePath(url.pathname)){
         route='/api/v1/order-lifecycle';
         if(draining||(dependencies.lifecycle&&(!dependencies.isReady||!await dependencies.isReady())))throw new ApiError(503,'SERVICE_UNAVAILABLE','Order lifecycle is unavailable.');

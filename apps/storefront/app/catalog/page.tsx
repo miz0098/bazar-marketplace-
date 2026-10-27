@@ -53,6 +53,8 @@ export default async function CatalogPage({
       vendor,
       minPrice: priceError ? undefined : minPrice,
       maxPrice: priceError ? undefined : maxPrice,
+      available:one(params.available)==="true"?true:one(params.available)==="false"?false:undefined,
+      attribute:one(params.attribute),value:one(params.value),
       sort,
       page,
       limit: 8,
@@ -66,6 +68,7 @@ export default async function CatalogPage({
   );
   const base = new URLSearchParams();
   if (query) base.set('q', query);
+  for(const k of ['available','attribute','value'])if(one(params[k]))base.set(k,one(params[k])!);
   if (category) base.set('category', category);
   if (subcategory) base.set('subcategory', subcategory);
   if (vendor) base.set('vendor', vendor);
@@ -101,6 +104,8 @@ export default async function CatalogPage({
         <aside className="catalog-filters" aria-label="Фільтри каталогу">
           <Form key={'filters' + base.toString()} action="/catalog">
             {query && <input type="hidden" name="q" value={query} />}
+            <fieldset><legend>Наявність</legend><label><select aria-label="Наявність товару" name="available" defaultValue={one(params.available)??""}><option value="">Усі товари</option><option value="true">Є в наявності</option><option value="false">Немає в наявності</option></select></label></fieldset>
+            <fieldset><legend>Характеристика</legend><label>Назва<select name="attribute" defaultValue={one(params.attribute)??""}><option value="">Без фільтра</option>{[...new Set(all.items.flatMap(p=>('specifications' in p?(p.specifications as readonly {label:string}[]).map(s=>s.label):[])))].map(label=><option key={label}>{label}</option>)}</select></label><label>Значення<input name="value" defaultValue={one(params.value)??""}/></label></fieldset>
             <fieldset>
               <legend>Категорія</legend>
               <label>
@@ -209,9 +214,11 @@ export default async function CatalogPage({
               <input type="hidden" name="minPrice" value={minRaw} />
             )}{' '}
             {maxRaw && <input type="hidden" name="maxPrice" value={maxRaw} />}
+            {["available","attribute","value"].map(k=>one(params[k])?<input key={k} type="hidden" name={k} value={one(params[k])}/>:null)}
             <label htmlFor="catalog-sort">Сортування</label>
             <select id="catalog-sort" name="sort" defaultValue={sort}>
               <option value="featured">Рекомендовані</option>
+              {all.items.length>0&&all.items.every(p=>p.publishedAt)&&<option value="newest">Найновіші</option>}
               <option value="price-asc">Від дешевих</option>
               <option value="price-desc">Від дорогих</option>
               <option value="name">За назвою</option>
