@@ -44,7 +44,7 @@ Additional reliability checks: acknowledged cart mutations retain the same durab
 | Check | Actual result |
 | --- | --- |
 | API unit |46 passed |
-| Storefront unit, including failed-refresh receipt retry |88 passed |
+| Storefront unit, including failed-refresh receipt retry |89 passed |
 | Compiled API production smoke |3 passed |
 | Real disposable PostgreSQL / HTTP / security |113 passed |
 | Shared ordinary storefront HTTPS E2E |12 passed: desktop1440×900/mobile390×844, independent sessions, guest no-merge, unavailable preservation/restoration, explicit API outage/retry, full-page axe/keyboard/overflow |
@@ -52,8 +52,10 @@ Additional reliability checks: acknowledged cart mutations retain the same durab
 | Existing ordinary storefront Playwright |100 passed,8 unchanged viewport-specific exclusions |
 | Governance unit |5 passed |
 
-**411 passing cases** across these suites; repeated debug runs are not added to the total. The8 viewport exclusions are not positive coverage. API/storefront lint, API/storefront/two isolated-entry typechecks, compiled API/Next builds, ledger/path scope, local Markdown targets/OpenAPI references and `git diff --check` passed. Three dependency audits (API/storefront/E2E) reported0 vulnerabilities. Migrations0001–0016 and Shopify source remain unchanged. GitHub CI evidence is recorded on the PR's final head; local results are not a claim of live-provider, real-device, manual screen-reader or production readiness.
+**412 passing cases** across these suites; repeated debug runs are not added to the total. The8 viewport exclusions are not positive coverage. API/storefront lint, API/storefront/two isolated-entry typechecks, compiled API/Next builds, ledger/path scope, local Markdown targets/OpenAPI references and `git diff --check` passed. Three dependency audits (API/storefront/E2E) reported0 vulnerabilities. Migrations0001–0016 and Shopify source remain unchanged. GitHub CI evidence is recorded on the PR's final head; local results are not a claim of live-provider, real-device, manual screen-reader or production readiness.
 
 The new API response discriminator is consumed by the updated portable clients together with the opt-in isolated composition. Legacy rows retain their old numeric DTO; old clients must not be enabled for enrolled binary-offer rows without the updated validator. No production migration/activation is performed by this PR.
 
 Review: [PR32](https://github.com/miz0098/bazar-marketplace-/pull/32), targeting vps-migration. Final-head CI is tracked on the PR checks; no automatic merge or deployment.
+
+CI recovery: the first final-head run exposed a legitimate OTP429 on immediate post-logout re-login across devices. Server limits were preserved. The auth client now propagates bounded Retry-After, the ordinary phone form disables resubmission for that interval, and E2E waits for the actual UI eligibility before one explicit retry. A unit case verifies the typed rate-limit mapping and absence of authenticated success. No test timeout, security check or OTP budget was relaxed.

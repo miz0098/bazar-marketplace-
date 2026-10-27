@@ -1,3 +1,5 @@
+import {createServerCustomerStore} from '../services/server/customer-store';
+import {IdentityServiceError} from '../services/contracts/identity';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createServerAuthClient } from '../lib/server-auth-client';
@@ -51,4 +53,12 @@ test('server auth transport rejects false live success, malformed envelopes and 
       error instanceof Error && !error.message.includes('provider-secret'),
   );
   assert.equal(count, 1);
+});
+
+test('OTP throttling exposes only bounded Retry-After, not provider error bodies',async()=>{
+ const client=createServerAuthClient(async()=>new Response('private-provider-error',{status:429,headers:{'retry-after':'2'}}));
+ await assert.rejects(client.start({phone:'+380671234567',intent:'login'}),e=>e instanceof Error&&'status'in e&&e.status===429&&'retryAfterSeconds'in e&&e.retryAfterSeconds===2&&!e.message.includes('provider'));
+ const store=createServerCustomerStore(async path=>String(path).endsWith('/csrf')?response({csrfToken:token,mode:'test-only'}):new Response('private-provider-error',{status:429,headers:{'retry-after':'2'}}));
+ await assert.rejects(store.identity.startChallenge({phone:'+380671234567',intent:'login'}),e=>e instanceof IdentityServiceError&&e.code==='rate-limited'&&e.retryAfterSeconds===2);
+ assert.notEqual(store.getSnapshot().status,'authenticated');
 });

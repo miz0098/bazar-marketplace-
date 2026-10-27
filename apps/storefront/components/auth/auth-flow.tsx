@@ -83,7 +83,7 @@ function AuthFlowImplementation({ idPrefix, initialIntent, onClose, service = de
     return () => window.cancelAnimationFrame(focusFrame);
   }, [step, intent]);
 
-  const resendCountdownActive = step === 'code' && countdown > 0;
+  const resendCountdownActive = (step === 'code'||step === 'phone') && countdown > 0;
   const verificationCountdownActive = step === 'code' && verificationCountdown > 0;
 
   useEffect(() => {
@@ -143,6 +143,7 @@ function AuthFlowImplementation({ idPrefix, initialIntent, onClose, service = de
     } catch (error) {
       if (requestRevision !== requestRevisionRef.current) return;
       setPhoneError(errorMessage(error,server));
+      if(error instanceof IdentityServiceError&&error.code==='rate-limited')setCountdown(error.retryAfterSeconds??60);
     } finally {
       if (requestRevision === requestRevisionRef.current) setLoadingMessage('');
     }
@@ -277,7 +278,7 @@ function AuthFlowImplementation({ idPrefix, initialIntent, onClose, service = de
               </div>
               <p className="auth-error" id={phoneErrorId} aria-live="polite">{phoneError}</p>
             </div>
-            <button className="auth-primary" type="submit" disabled={busy}>{busy ? 'Зачекайте…' : 'Продовжити'}</button>
+            <button className="auth-primary" type="submit" disabled={busy||countdown>0}>{busy ? 'Зачекайте…' : countdown>0?`Повторити через ${countdown} с`:'Продовжити'}</button>
             {loadingMessage && <p className="auth-status" role="status">{loadingMessage}</p>}
             {demoNote}
           </form>
