@@ -207,3 +207,7 @@ After Phase 1 is approved and `apps/storefront` exists, its README must contain 
 F22 adds0018 and guarded ordinary multi-seller test checkout without editing old SQL or Shopify source. Legacy APIs remain; new enrolled promotions fail closed through old incompatible pricing paths. Exact financial algorithms and real session/owner tests do not approve live providers, financial/legal pending decisions or payouts. See F22 acceptance/ADR0020.
 
 [Current evidence and remaining gates](docs/F22_CHECKOUT_ACCEPTANCE.md).
+
+## F23 current implementation overlay — historical evidence retained
+
+F23 adds migration0019 and approved operational states, owned cancellation/return/refund/deadline sidecars and shared customer order UI. Source F22 financial history and old migrations remain unchanged. No production provider, legal calendar or operator grant is enabled. [Evidence and limitations](docs/F23_ORDER_LIFECYCLE.md).

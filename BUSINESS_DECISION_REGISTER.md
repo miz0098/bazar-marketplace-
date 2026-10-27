@@ -10,7 +10,7 @@ Version1.0 / 2026-10-27. Canonical approval source: [Business Rules V1](BUSINESS
 | AD-02 | Promo BZ +11 random server digits, unique and protected; immutable allocation; BR-P05–BR-P06 | Not order number; allocation algorithm pending |
 | AD-03 | Binary seller availability, persistence/reactivation, no quantitative inventory; restored events/dedup/in-app; BR-A01–BR-A03 | Variant granularity and lawful recipient/retention/channel policy not inferred |
 | AD-04 | Owned persisted cart/wishlist, multi-seller components, unique buyer ID, payment-gated purchased-cart clearing, safe retries; BR-C01–BR-C04 | Order display format, mixed-cart scope and remote transaction gaps pending |
-| AD-05 | Direct cancellation New/Confirmed; request from Preparing through In transit; Delivered/Completed returns; BR-X01–BR-X02 | Seller refusal cannot remove statutory rights; side effects/legal gates remain |
+| AD-05 | Direct cancellation New/Confirmed; request from Preparing/Shipped; Delivered returns (F23 supersession); BR-X01–BR-X02 | Seller refusal cannot remove statutory rights; side effects/legal gates remain |
 | AD-06 |5 calendar days from exact Preparing transition; staff escalation;48h response; system-cancel affected component after silence; BR-D01–BR-D03 | Calendar convention, race classification and provider evidence pending |
 | AD-07 | Full/partial item returns, evidence/communication/support/history, discounted-value refund and verified finality; BR-R01–BR-R03 | No invented legal window, exclusion, dispute SLA or shipping liability |
 | AD-08 | Buyer/seller/optional employee/support/moderator/admin boundaries, tenant isolation/sensitive-deny/no «Клієнти»; BR-Z01–BR-Z02 | Detailed grants, staff assignment and employee scope require review |

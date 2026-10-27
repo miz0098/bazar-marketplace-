@@ -84,3 +84,7 @@ F18 лише створює технічну основу планування. 
 F22 implemented exact multi-seller test checkout and immutable financial evidence; pending PD-01 rounding/PD-04/free/minimum/funding cases remain fail-closed. Next F23: parent/seller lifecycle and legal cancellation/return/refund bridge, per-unit discounted entitlements, verified provider proof and signed finality, no automatic commission retention. F24 account/communications and F25/26 seller/staff remain; F27 live provider approval and F28 privacy/grants/recovery/production operations remain independent. No automatic merge/deploy or Demo100% declaration.
 
 [Current evidence and remaining gates](docs/F22_CHECKOUT_ACCEPTANCE.md).
+
+## F23 current implementation overlay — historical evidence retained
+
+F23 now has the approved nine-state operational/return/refund/escalation test slice. Production calendar/dispatch/response policy, legal entitlement and unit penny attribution remain gates. F24 buyer account/communication integration follows; F25 seller and F26 staff tooling must reuse the nine-state contract and least-privilege owner/case scope. F27 live providers and F28/F29 operational/full-audit criteria remain open. [Evidence and limitations](docs/F23_ORDER_LIFECYCLE.md).

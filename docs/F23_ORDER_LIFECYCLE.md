@@ -1,6 +1,6 @@
 # Phase F23 — Approved order lifecycle simplification
 
-Base: merged PR34, `be61c3d227d929a275089f712a911298cac300c0`. Branch: `codex/phase-f23-order-lifecycle`. Decision APPROVED by explicit product instruction. Work in progress; not final acceptance.
+Base: merged PR34, `be61c3d227d929a275089f712a911298cac300c0`. Branch: `codex/phase-f23-order-lifecycle`. Decision APPROVED by explicit product instruction. Implemented and locally validated in the explicit isolated scope; not final marketplace/design or production acceptance.
 
 ## Operational model
 
@@ -31,3 +31,26 @@ Checkpoint follow-up:133/133 PostgreSQL/HTTP/security now pass, including a real
 API and client response contracts now explicitly expose canonical operational projections and seller-owned requests; legacy checkout-commit status is deprecated for operational display. Canonical request hashing preserves key-order idempotency; pending browser requests retain their original command/key until acknowledgement. Provider event IDs remain exact opaque values, terminal refund confirmations do not duplicate notifications, and a matching succeeded payment observation is required. Requests, quantities, receipts, financial refund basis and event history are immutable at the database boundary.
 
 Browser debugging found an actual navigation wait race and insufficient secondary-button contrast. The test now waits for the actual order screen before reload, and the UI reuses existing account form/button styles. No timeout/retry/security/accessibility assertion is weakened. Final browser and full regression counts remain pending.
+
+[ADR0022](adr/0022-approved-order-lifecycle.md) records the exact state/authority graph, parent projection and financial/deadline boundaries. Customer order list/detail and checkout confirmation use the canonical operational projection; original payment/financial status remains separate.
+
+Historical projection events are labelled as projections in the UI, not presented as newly observed delivery/payment transitions. Local preview fixture keys `expected`/`canceled` remain compatibility aliases for the approved new/cancelled labels; server and future operator contracts use the canonical nine-state enum. No production history inventory is claimed.
+
+## Final local verification — 2026-10-27
+
+| Suite | Passed |
+| --- | ---: |
+| API unit |60 |
+| Storefront unit |93 |
+| Compiled API smoke |3 |
+| PostgreSQL / HTTP / security |133 |
+| Shared ordinary-page HTTPS browser |36 |
+| Existing isolated checkout/notifications |44 |
+| Ordinary desktop/mobile Playwright |100 |
+| Governance unit |5 |
+
+**474 passed,0 final failures;8 unchanged viewport exclusions.** Eighteen new cases compared with merged F22.1:4 API state cases,1 portable guard case,9 PostgreSQL lifecycle/migration cases,4 viewport browser cases. Debug/reruns and inner matrix assertions are not added to totals. No tests, retries, budgets or security/a11y assertions weakened.
+
+Desktop1440×900/mobile390×844 exercise main state progression, carrier transport remaining shipped, direct cancellation/request isolation, full/partial seller returns, parent not incorrectly returned, filters, refresh/history, axe, keyboard and no page overflow. All existing regression suites, lint, API/storefront/two isolated-entry typechecks, production builds, ledger/path checks, OpenAPI references and git diff --check passed. Dependency audits API/storefront/E2E each report0 vulnerabilities; no dependency or lockfile changes. Final-head GitHub CI is tracked on the PR.
+
+Only migration0019 is added; migrations0001–0018/source Shopify unchanged. Its indexes cover due preparation jobs, seller event history, return scope and payment refund capacity. Historical source record inspection is limited to repository schema and real disposable PostgreSQL upgrade fixtures; production data inventory remains required before a separate approved rollout.

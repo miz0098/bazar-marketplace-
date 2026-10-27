@@ -104,3 +104,7 @@ END $$;
 CREATE TRIGGER commerce_cancellation_immutable BEFORE UPDATE OR DELETE ON bazar.commerce_cancellation_requests FOR EACH ROW EXECUTE FUNCTION bazar.commerce_request_immutable();
 CREATE TRIGGER commerce_return_request_immutable BEFORE UPDATE OR DELETE ON bazar.commerce_return_requests FOR EACH ROW EXECUTE FUNCTION bazar.commerce_request_immutable();
 CREATE TRIGGER commerce_refund_delete_immutable BEFORE DELETE ON bazar.commerce_return_refunds FOR EACH ROW EXECUTE FUNCTION bazar.commerce_immutable();
+CREATE INDEX commerce_flow_dispatch_due_idx ON bazar.commerce_order_lifecycle(dispatch_due_at,seller_order_id) WHERE status='preparing' AND dispatch_due_at IS NOT NULL;
+CREATE INDEX commerce_flow_history_scope_idx ON bazar.commerce_lifecycle_events(seller_order_id,sequence);
+CREATE INDEX commerce_flow_return_scope_idx ON bazar.commerce_return_requests(seller_order_id,state,id);
+CREATE INDEX commerce_flow_refund_capacity_idx ON bazar.commerce_return_refunds(attempt_id);
