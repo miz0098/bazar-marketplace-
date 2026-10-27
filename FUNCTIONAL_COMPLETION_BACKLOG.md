@@ -90,3 +90,7 @@ Everything not explicitly superseded remains open. No rule silently restores pro
 F22 closes the isolated ordinary multi-seller exact-finance slice of B07/B09/B10/B11: current reviewed server amounts, one parent/seller components, independent pickup selections, successful proof-only clearing of frozen units, later/new cart rows preserved, declines/unknown/duplicate attempts and persisted My Orders. B08/B10 remain partial for fractional rounding mode/zero finality/ambiguous campaign rules. B16/F23 lifecycle linkage to new snapshots remains; old F14 continues without reinterpretation. Production integration, privacy, provider, seller/staff and operational gates remain. No Demo100% or full audit closure.
 
 [Current evidence and remaining gates](docs/F22_CHECKOUT_ACCEPTANCE.md).
+
+## F22.1 precision overlay
+
+Percentage/commission fractional-kopiyka blocker: **RESOLVED for percentage-total and seller commission**, implementation and all local suites passed; evidence in [F22.1 evidence](docs/F22_1_FINANCIAL_PRECISION.md). Approved HALF_UP supersedes the F22 exact-only gate for new commerce quotes. Remaining: free-order finality, ambiguous promotion minimum/funding, partial-unit refund entitlement, F14 parent/seller bridge, statutory/legal/fees/settlement/payout and production providers. No new production readiness claim.

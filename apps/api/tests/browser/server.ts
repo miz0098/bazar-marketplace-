@@ -142,9 +142,9 @@ async function reset() {
     },
   });
   const communication=createCommunicationService(pool), notices={fail:false,delay:0};
-  const commerce=offerSeed.length?createCommerceService(pool,payment.adapter,[...shipping.adapters,ukr],'exact-only'):undefined;
+  const commerce=offerSeed.length?createCommerceService(pool,payment.adapter,[...shipping.adapters,ukr]):undefined;
   const commercePromos:Record<string,string>={};
-  if(commerce){for(const [label,kind,scope] of [['fixed','fixed','order'],['percent','percentage','order'],['category','fixed','category'],['product','fixed','product']] as const){let promoId='';commercePromos[label]=await insertUniquePromo(async code=>{const r=await pool.query("INSERT INTO bazar.promotions(code,kind,fixed_minor,percentage_basis_points,currency,min_subtotal_minor,starts_at,ends_at,enabled,max_uses,per_user_limit) VALUES($1,$2,$3,$4,'UAH',1,clock_timestamp()-interval '1 day',clock_timestamp()+interval '1 day',true,10,10) ON CONFLICT(code) DO NOTHING RETURNING id",[code,kind,kind==='fixed'?100000:null,kind==='percentage'?1000:null]);if(!r.rows.length)return false;promoId=r.rows[0].id;return true;});await pool.query('INSERT INTO bazar.commerce_promotions(promotion_id,scope,code) VALUES($1,$2,$3)',[promoId,scope,commercePromos[label]]);if(scope==='category')await pool.query('INSERT INTO bazar.commerce_promotion_categories(promotion_id,category_id) VALUES($1,$2)',[promoId,category]);if(scope==='product')await pool.query('INSERT INTO bazar.promotion_products(promotion_id,product_id) VALUES($1,$2)',[promoId,offerSeed[0].productId]);}}
+  if(commerce){for(const [label,kind,scope] of [['fixed','fixed','order'],['percent','percentage','order'],['category','fixed','category'],['product','fixed','product'],['fractional','percentage','product']] as const){let promoId='';commercePromos[label]=await insertUniquePromo(async code=>{const r=await pool.query("INSERT INTO bazar.promotions(code,kind,fixed_minor,percentage_basis_points,currency,min_subtotal_minor,starts_at,ends_at,enabled,max_uses,per_user_limit) VALUES($1,$2,$3,$4,'UAH',1,clock_timestamp()-interval '1 day',clock_timestamp()+interval '1 day',true,10,10) ON CONFLICT(code) DO NOTHING RETURNING id",[code,kind,kind==='fixed'?100000:null,kind==='percentage'?1000:null]);if(!r.rows.length)return false;promoId=r.rows[0].id;return true;});await pool.query('INSERT INTO bazar.commerce_promotions(promotion_id,scope,code) VALUES($1,$2,$3)',[promoId,scope,commercePromos[label]]);if(scope==='category')await pool.query('INSERT INTO bazar.commerce_promotion_categories(promotion_id,category_id) VALUES($1,$2)',[promoId,category]);if(scope==='product')await pool.query('INSERT INTO bazar.promotion_products(promotion_id,product_id) VALUES($1,$2)',[promoId,offerSeed[0].productId]);}}
   const app = createApiServer(
     readConfig({ NODE_ENV: "test", CORS_ORIGINS: info.origin }),
     createLogger("error"),
@@ -263,6 +263,7 @@ const gateway = createBrowserGateway({
     }
     const a = active!;
     if(action==='f22-fixture'){if(!a.offerSeed.length)throw new Error('Offer fixtures required');await a.pool.query('UPDATE bazar.variants SET price_minor=800000 WHERE id=$1',[a.offerSeed[0].id]);await a.pool.query('UPDATE bazar.variants SET price_minor=200000 WHERE id=$1',[a.offerSeed[3].id]);await a.pool.query('UPDATE bazar.variants SET price_minor=400000 WHERE id=$1',[a.offerSeed[2].id]);reply(res,{offers:a.offerSeed,promos:a.commercePromos});return;}
+    else if(action==='f221-fractional'){await a.pool.query('UPDATE bazar.variants SET price_minor=3333 WHERE id=$1',[a.offerSeed[0].id]);await a.pool.query('UPDATE bazar.variants SET price_minor=10 WHERE id=$1',[a.offerSeed[3].id]);}
     else if(action==='f22-price')await a.pool.query('UPDATE bazar.variants SET price_minor=900000 WHERE id=$1',[a.offerSeed[0].id]);
     else if(action==='f22-unknown')a.payment.state.failSubmit=true;
     else if(action==='f22-pay-ok')a.payment.state.failSubmit=false;

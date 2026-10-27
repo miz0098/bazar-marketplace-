@@ -14,3 +14,7 @@ test('F22 client uses owned same-origin CSRF requests with no client financial b
  let sent:RequestInit|undefined;const client=createCommerceClient(()=>'a'.repeat(43),async(_url,init)=>{sent=init;return response(order);});assert.equal((await client.pay(id,other)).id,id);assert.deepEqual(JSON.parse(String(sent?.body)),{idempotencyKey:other,method:'card'});assert.equal(sent?.credentials,'same-origin');assert.equal(new Headers(sent?.headers).get('x-csrf-token'),'a'.repeat(43));assert.equal(sent?.cache,'no-store');
  await assert.rejects(createCommerceClient(()=>'',async()=>response({...order,id:other,number:other})).order(id));await assert.rejects(createCommerceClient(()=>'',async()=>new Response('private-provider-error',{status:503,headers:{'content-type':'text/plain'}})).orders(),e=>e instanceof Error&&!e.message.includes('provider'));
 });
+
+test('F22.1 portable contracts read unchanged historical v1 and require explicit v2 HALF_UP basis metadata',()=>{
+ assert.ok(isCommerceQuote(quote));const v2={...quote,snapshot:{...quote.snapshot,financial:{...financial,version:'commerce-v2-half-up',rounding:'half-up',roundingPolicy:'positive-minor-half-up-v1',commissionBasis:'seller-net-merchandise-after-promotions-excluding-shipping'}}};assert.ok(isCommerceQuote(v2));assert.equal(isCommerceQuote({...v2,snapshot:{...v2.snapshot,financial:{...v2.snapshot.financial,roundingPolicy:undefined}}}),false);assert.equal(isCommerceQuote({...v2,snapshot:{...v2.snapshot,financial:{...v2.snapshot.financial,rounding:'exact-only'}}}),false);assert.ok(isCommerceOrder(order));
+});

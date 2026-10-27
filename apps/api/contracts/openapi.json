@@ -16992,7 +16992,10 @@
         ],
         "properties": {
           "version": {
-            "const": "commerce-v1-largest-remainder"
+            "enum": [
+              "commerce-v1-largest-remainder",
+              "commerce-v2-half-up"
+            ]
           },
           "allocation": {
             "const": "largest-remainder-immutable-line-id"
@@ -17003,7 +17006,7 @@
               "half-up",
               "half-even"
             ],
-            "description": "Only exact-only is currently activated; other modes require explicit PD-01 approval."
+            "description": "New v2 calculations use approved HALF_UP. Historical v1 snapshots retain their recorded policy and amounts."
           },
           "currency": {
             "const": "UAH"
@@ -17048,8 +17051,36 @@
               "type": "object",
               "description": "Own seller gross/discount/net/500bp commission/proceeds/currency, exactly reconciled."
             }
+          },
+          "roundingPolicy": {
+            "const": "positive-minor-half-up-v1"
+          },
+          "commissionBasis": {
+            "const": "seller-net-merchandise-after-promotions-excluding-shipping"
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "version": {
+                  "const": "commerce-v2-half-up"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "roundingPolicy",
+                "commissionBasis"
+              ],
+              "properties": {
+                "rounding": {
+                  "const": "half-up"
+                }
+              }
+            }
+          }
+        ]
       },
       "CommerceQuote": {
         "type": "object",

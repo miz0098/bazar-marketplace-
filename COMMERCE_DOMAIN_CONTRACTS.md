@@ -234,3 +234,9 @@ F22 adds versioned `/api/v1/commerce` quotes, parent orders, seller orders and p
 [Current evidence and remaining gates](docs/F22_CHECKOUT_ACCEPTANCE.md).
 
 F22 immutable promotion terms include scope, fixed-minor amount or percentage basis points, minimum basis and validity window in addition to code/ID/version and per-line eligibility. Changing the live campaign never changes order history.
+
+## F22.1 current financial contract
+
+New commerce financial snapshots use `commerce-v2-half-up`, `rounding: half-up`, `roundingPolicy: positive-minor-half-up-v1`, and `commissionBasis: seller-net-merchandise-after-promotions-excluding-shipping`. Percentage discount is HALF_UP(eligible minor subtotal × basisPoints / 10000); allocate its capped integer result using the existing largest-remainder immutable-line tie-break. Commission is HALF_UP(seller net minor subtotal × 5 / 100). Parent = sum of line/seller allocations exactly. All stored money remains integer minor units.
+
+Historical `commerce-v1-largest-remainder` snapshots are read unchanged, with their recorded rounding and amounts; no backfill/recalculation. Existing exact-only reviewed quotes can complete using their original policy. JSON snapshot storage already supports the metadata, so no SQL migration or edits to0001–0018. Frozen lines/quantities/eligibility/net/terms and policy remain the future refund basis; unit-level partial attribution and refund legal/provider finality remain F23 gates.
