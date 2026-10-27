@@ -47,7 +47,7 @@ export function NotificationCenter({client}:{client:Client}){
       <h3>{p.title}</h3><time dateTime={item.createdAt}>{date(item.createdAt)} · Київ</time>
       <p>{item.read?'Прочитано':'Непрочитано'} · тестова подія</p>
       <Link href={p.href}>Відкрити пов’язаний {item.kind==='message.created'?'чат':item.kind==='support.replied'?'запит':'запис замовлення'}</Link>
-      <button type="button" disabled={busy||item.read} onClick={()=>void mutate(async()=>{
+      <button type="button" disabled={busy||loading||item.read} onClick={()=>void mutate(async()=>{
        await client.readNotification(item.id);const next=await client.notificationSummary();
        if(!mounted.current)return;setItems(rows=>rows.map(i=>i.id===item.id?{...i,read:true}:i));setSummary(next);
       })}>Позначити прочитаним</button>
