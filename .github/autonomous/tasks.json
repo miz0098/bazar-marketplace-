@@ -1148,7 +1148,7 @@
     {
       "id": "ORDERLIFECYCLE-002",
       "title": "Implement approved nine-state seller lifecycle cancellations returns refunds and deadline foundations",
-      "status": "in_progress",
+      "status": "in_review",
       "readiness": "integration",
       "depends_on": [
         "FINANCIALROUNDING-001"
@@ -1178,7 +1178,7 @@
         "Owner seller isolation idempotency history refund proof and isolated escalation/cancellation boundaries verified",
         "All regression lint types builds audit governance and browser desktop/mobile checks pass"
       ],
-      "pr": null,
+      "pr": 35,
       "blocker": "Production calendar/dispatch authority, legal returns, partial-unit allocation, staff grants and provider integration remain gated."
     }
   ]
