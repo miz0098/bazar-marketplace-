@@ -232,3 +232,5 @@ SellerOffer.id = existing variantId UUID; productId and sellerId remain normaliz
 F22 adds versioned `/api/v1/commerce` quotes, parent orders, seller orders and payment attempts using additive0018. Immutable variant UUID is the selected line identity; cart generation UUID distinguishes remove/re-add from extra quantities. Financial snapshot records exact gross/eligibility/allocated discount/net, independent5% commission/proceeds, currency and method/version. Successful proof consumes promo and subtracts only the original same-generation purchased quantity; declines/unknown preserve cart. Existing F14 remains distinct and must not accept synthetic F22 records as legacy real payment proof. See ADR0020 for state/transaction/ownership and F23 bridge requirements.
 
 [Current evidence and remaining gates](docs/F22_CHECKOUT_ACCEPTANCE.md).
+
+F22 immutable promotion terms include scope, fixed-minor amount or percentage basis points, minimum basis and validity window in addition to code/ID/version and per-line eligibility. Changing the live campaign never changes order history.

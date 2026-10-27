@@ -17084,7 +17084,10 @@
               "items",
               "financial",
               "promoCode",
-              "shippingPrice"
+              "shippingPrice",
+              "promotionId",
+              "promotionVersion",
+              "promotionTerms"
             ],
             "properties": {
               "version": {
@@ -17136,6 +17139,78 @@
               },
               "shippingPrice": {
                 "const": "carrier-managed"
+              },
+              "promotionTerms": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "description": "Immutable campaign scope, discount rule, minimum and validity window used for this calculation. Never reread live campaign terms for history.",
+                "required": [
+                  "scope",
+                  "rule",
+                  "minSubtotalMinor",
+                  "startsAt",
+                  "endsAt"
+                ],
+                "properties": {
+                  "scope": {
+                    "enum": [
+                      "order",
+                      "category",
+                      "product"
+                    ]
+                  },
+                  "rule": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "required": [
+                          "kind",
+                          "amountMinor"
+                        ],
+                        "properties": {
+                          "kind": {
+                            "const": "fixed"
+                          },
+                          "amountMinor": {
+                            "type": "integer",
+                            "minimum": 1
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "required": [
+                          "kind",
+                          "basisPoints"
+                        ],
+                        "properties": {
+                          "kind": {
+                            "const": "percentage"
+                          },
+                          "basisPoints": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 10000
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "minSubtotalMinor": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "startsAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "endsAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
               }
             }
           }
