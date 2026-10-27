@@ -508,7 +508,7 @@
     {
       "id": "BUSINESSRULES-001",
       "title": "Record approved F19 commerce rules and gated implementation contracts without functional changes",
-      "status": "in_progress",
+      "status": "in_review",
       "readiness": "integration",
       "depends_on": [
         "READINESSAUDIT-001"
@@ -539,7 +539,7 @@
         "F18 historical evidence preserved with explicit binary availability no quantitative inventory and carrier-managed shipping overrides",
         "Documentation links traceability scoped diff governance and ordinary GitHub CI pass without changes to code design tests migrations or live providers"
       ],
-      "pr": null,
+      "pr": 30,
       "blocker": "Financial rounding allocation promo lifecycle zero-payable cart concurrency calendar proof legal returns commission retention privacy detailed grants scope and provider decisions remain pending; documentation is not functional readiness."
     }
   ]
