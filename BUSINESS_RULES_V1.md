@@ -1,6 +1,6 @@
 # BAZAR Business Rules V1 — Phase F19
 
-Version: **1.2**, 2026-10-27 UTC. Business authority: the explicit Phase F19 user instruction in this session; not inferred from earlier code, tests or Shopify. Base: merged PR #29, `2057ecbb0e40b8866cf73a179e6153ecdd8110e9`. Branch: `codex/phase-f19-business-rules`.
+Version: **1.3**, 2026-10-27 UTC. Business authority: the explicit Phase F19 user instruction in this session; not inferred from earlier code, tests or Shopify. Base: merged PR #29, `2057ecbb0e40b8866cf73a179e6153ecdd8110e9`. Branch: `codex/phase-f19-business-rules`.
 
 This is the canonical **target business policy**, not an assertion that it is implemented. Approval is limited to what the user explicitly approved. Stable BR IDs are never reassigned; future edits increment version with supersession/history. “Approved” does not approve a provider, technical proposal, missing rounding rule or legal conclusion. No new functional coverage and no Demo 100% / Full Audit Ready claim.
 
@@ -74,3 +74,19 @@ Authority: explicit Phase F21 user instruction; historical v1.1 rules/evidence r
 | BR-O02 | Exact saved offer | Approved | Cart/wishlist/session | Authenticated saved data belongs to server owner, survives logout/login and refresh on another device; unavailable IDs remain and reactivate; guest never auto-merges. |
 
 This resolves the catalog-card merchandising ambiguity. It does not select an aggregate parent price or financial rounding policy. Legacy parent DTO remains unchanged. [Implementation boundaries and evidence](docs/F21_STOREFRONT_ACCEPTANCE.md); no production activation.
+
+## F22 approved financial extension — version1.3
+
+Authority: explicit F22 instruction. Historical rules remain; these clarify the multi-seller target, not production activation.
+
+| Stable ID | Approved rule | Status / components | Acceptance |
+| --- | --- | --- | --- |
+| BR-F22-01 | One promo, eligible order/category/product merchandise only; no shipping discount | Approved; pricing/checkout | Ineligible/invalid code never changes stored reviewed totals; no stacking |
+| BR-F22-02 | Fixed discount proportional and capped to eligible merchandise | Approved; allocation | Discount<=eligible subtotal, no negative line, exact sum |
+| BR-F22-03 | Exact integer minor units/rational money | Approved; API/DB/payment | No authoritative binary floats; unsafe totals fail closed |
+| BR-F22-04 | Stable largest remainder | Approved; immutable snapshots | Descending exact remainder, immutable line UUID tie-break; permutations reconcile identically |
+| BR-F22-05 | Exact percentage calculation and consistent documented rounding | Approved invariant; PD-01 mode pending | Parent discount equals line allocations; fractional percentage total is blocked until mode approved |
+| BR-F22-06 |5% independently per seller net merchandise excluding shipping | Approved rate/basis; fractional mode PD-01 pending | Net=commission+seller amount; no payout/retention behavior inferred |
+| BR-F22-07 | Immutable versioned financial facts and reconciliation | Approved; parent/seller/line/payment | Freeze identities/prices/eligibility/discount/net/commission/method/version, history never repriced |
+
+[ADR0020](docs/adr/0020-multi-seller-checkout.md) and [actual implementation/evidence](docs/F22_CHECKOUT_ACCEPTANCE.md). Exact-only remains active where rounding is unresolved; no commission-retention approval or Demo100% claim.

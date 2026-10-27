@@ -59,6 +59,7 @@ export async function evaluatePromotionInTransaction(
     )
   ).rows[0];
   if (!campaign) throw rejected();
+  if((await client.query("SELECT to_regclass('bazar.commerce_promotions') IS NOT NULL AS yes")).rows[0].yes&&(await client.query('SELECT 1 FROM bazar.commerce_promotions WHERE promotion_id=$1',[campaign.id])).rowCount)throw new PricingPolicyError();
   const now = instant(
       (await client.query('SELECT clock_timestamp() AS now')).rows[0].now,
     ),

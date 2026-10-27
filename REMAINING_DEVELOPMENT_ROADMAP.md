@@ -78,3 +78,9 @@ F18 лише створює технічну основу планування. 
 ## F21 current implementation overlay (historical evidence retained)
 
 [Ordinary storefront offer/session/cart/wishlist implementation, modes and verification](docs/F21_STOREFRONT_ACCEPTANCE.md). One distinct seller offer now maps to one exact-price card, resolving the former aggregate-card merchandising blocker without choosing an aggregate parent price. PostgreSQL persistence is available through shared ordinary components in the isolated HTTPS entry; default local demo and production activation remain distinct. F22 checkout/multi-seller financial snapshots, fuller profile/communication integration, seller/staff apps, licensed datasets/media, privacy/legal/finance decisions and live providers remain open. No quantitative inventory or automatic guest merge. No Demo100% / Full Audit Ready claim; BAZAR remains **НЕ ГОТОВИЙ** for full audit. New tests only establish their documented bounded workflows, not all entry criteria.
+
+## F22 implementation overlay — historical evidence retained
+
+F22 implemented exact multi-seller test checkout and immutable financial evidence; pending PD-01 rounding/PD-04/free/minimum/funding cases remain fail-closed. Next F23: parent/seller lifecycle and legal cancellation/return/refund bridge, per-unit discounted entitlements, verified provider proof and signed finality, no automatic commission retention. F24 account/communications and F25/26 seller/staff remain; F27 live provider approval and F28 privacy/grants/recovery/production operations remain independent. No automatic merge/deploy or Demo100% declaration.
+
+[Current evidence and remaining gates](docs/F22_CHECKOUT_ACCEPTANCE.md).

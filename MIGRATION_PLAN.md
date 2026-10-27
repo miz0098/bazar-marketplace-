@@ -201,3 +201,9 @@ After Phase 1 is approved and `apps/storefront` exists, its README must contain 
 ## F21 current implementation overlay (historical evidence retained)
 
 [Ordinary storefront offer/session/cart/wishlist implementation, modes and verification](docs/F21_STOREFRONT_ACCEPTANCE.md). One distinct seller offer now maps to one exact-price card, resolving the former aggregate-card merchandising blocker without choosing an aggregate parent price. PostgreSQL persistence is available through shared ordinary components in the isolated HTTPS entry; default local demo and production activation remain distinct. F22 checkout/multi-seller financial snapshots, fuller profile/communication integration, seller/staff apps, licensed datasets/media, privacy/legal/finance decisions and live providers remain open. No quantitative inventory or automatic guest merge. No Demo100% / Full Audit Ready claim; BAZAR remains **НЕ ГОТОВИЙ** for full audit. New tests only establish their documented bounded workflows, not all entry criteria.
+
+## F22 implementation overlay — historical evidence retained
+
+F22 adds0018 and guarded ordinary multi-seller test checkout without editing old SQL or Shopify source. Legacy APIs remain; new enrolled promotions fail closed through old incompatible pricing paths. Exact financial algorithms and real session/owner tests do not approve live providers, financial/legal pending decisions or payouts. See F22 acceptance/ADR0020.
+
+[Current evidence and remaining gates](docs/F22_CHECKOUT_ACCEPTANCE.md).

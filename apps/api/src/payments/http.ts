@@ -6,7 +6,7 @@ import { uuid } from '../business/validation.js';
 import type { PaymentService } from './service.js';
 export const isPaymentPath = (path: string) =>
   path === '/api/v1/payments' || path.startsWith('/api/v1/payments/');
-async function rawBody(
+export async function rawBody(
   request: IncomingMessage,
   response: ServerResponse,
 ): Promise<Uint8Array> {

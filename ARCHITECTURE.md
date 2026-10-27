@@ -294,3 +294,9 @@ Create short architecture decision records for: system of record during transiti
 ## Phase F21 — ordinary storefront integration
 
 [ADR0019](docs/adr/0019-seller-offers-storefront-persistence.md) / [acceptance and modes](docs/F21_STOREFRONT_ACCEPTANCE.md). Additive0017 projects normalized seller offers with variant UUID identity and exact price. Catalog cards and page counts are individual offers; V2 parent price DTO remains unchanged. Existing Phase D/E components are shared by an isolated HTTPS ordinary-page Next entry with F4 sessions, F9 cart and owned exact-offer wishlist. Memory-only actor state; PostgreSQL authenticated persistence; separate local guest cart/no merge. Root production build rejects isolated flags; production private auth remains disabled. Other account workflows and checkout are not silently upgraded to production. F13 restoration reused. No new UI sections or providers.
+
+## F22 implementation overlay — historical evidence retained
+
+F22 connects the shared ordinary isolated checkout and My Orders to PostgreSQL multi-seller commerce. Existing sessions, seller offers/cart, campaign data, carrier directories, PaymentAdapter and F13 inbox are reused. Migration0018 adds immutable quotes/lines, parent/seller components, generation identities, payment/proof/history and exclusion/usage claims. Server financial calculations use BigInt and approved largest remainder; exact-only gates unresolved rounding. Legacy F6/F8/F14 contracts remain; new providers, payout, real PII and production auth are not activated. See ADR0020 and F22 acceptance.
+
+[Current evidence and remaining gates](docs/F22_CHECKOUT_ACCEPTANCE.md).

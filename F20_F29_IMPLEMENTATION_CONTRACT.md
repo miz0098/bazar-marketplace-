@@ -73,3 +73,9 @@ F20 API/DTO/media/search/route/money delivery and limits are in [acceptance](doc
 ## F21 implementation overlay
 
 BR-O01/BR-O02 approved in RulesV1.2: offer projection/migration0017, exact seller/variant cards and URL selection, shared ordinary UI through isolated HTTPS session/cart/wishlist boundary. TC07 gains browser persistence/owner/refresh coverage; it does not close checkout, full account or production gates. [Actual commands, source, modes and results](docs/F21_STOREFRONT_ACCEPTANCE.md). F22 must reuse these contracts for approved multi-seller checkout without guest merging, inventory or carrier-priced BAZAR shipping. Rounding/financial policy remains pending; no declaration of readiness from documents alone.
+
+## F22 implementation overlay — historical evidence retained
+
+F22 implements the BR-F22-01–07 exact financial/multi-seller test slice and BR-C02–04 owned payment-gated cart/order flow. TC01–09 gain scoped immutable financial, rollback, current-price/availability, provider-finality and browser proofs. It does not close all financial or production gates: PD-01 rounding mode, PD-04 free-order proof, ambiguous minimum basis/funding, partial-unit/legal refunds and production providers remain. F23 must bridge immutable F22 parent/seller/line/net-payment evidence to lifecycle without rewriting old F14 records or assuming commission retention.
+
+[Current evidence and remaining gates](docs/F22_CHECKOUT_ACCEPTANCE.md).

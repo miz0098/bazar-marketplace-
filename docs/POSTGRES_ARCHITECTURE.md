@@ -140,3 +140,9 @@ Isolated auth tests need schema USAGE plus SELECT/INSERT on users and auth_phone
 ## F21 additive migration0017
 
 `catalog_variants.attributes` stores verified per-variant attributes. `seller_offers` view projects active/published normalized relationships, exact integer price, binary availability and variant-specific ordered media. `offer_wishlist_items` is unique per(user,variant), has users FK and composite variant/product FK, recipient lookup index. No quantity inventory, product cloning, destructive wishlist conversion or old migration edits. Existing product-level wishlist is retained; no arbitrary variant assignment. F20 restoration recipients union exact offer saves into F13 source/user dedup. Production grants must be reviewed before activation; migration success is not provider readiness.
+
+## F22 implementation overlay — historical evidence retained
+
+Migration0018 adds cart-line generation identities (not inventory), enrolled canonical BZ+11-digit campaigns/category scope, immutable checkout snapshots, unique parent-per-quote, scoped seller orders/lines, durable card attempts/provider events, cart exclusion/promo usage claims and append-only history. Composite FKs, immutable triggers, unresolved-attempt uniqueness and deferred financial reconciliation protect atomicity. Old migrations/data unchanged; production grants/privacy/restore still gated. No real settlement or refund execution.
+
+[Current evidence and remaining gates](F22_CHECKOUT_ACCEPTANCE.md).

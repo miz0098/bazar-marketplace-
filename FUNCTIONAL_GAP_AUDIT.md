@@ -178,3 +178,7 @@ API: **Public** — handler реєструється в звичайному run
 ## F21 current implementation overlay (historical evidence retained)
 
 [Ordinary storefront offer/session/cart/wishlist implementation, modes and verification](docs/F21_STOREFRONT_ACCEPTANCE.md). One distinct seller offer now maps to one exact-price card, resolving the former aggregate-card merchandising blocker without choosing an aggregate parent price. PostgreSQL persistence is available through shared ordinary components in the isolated HTTPS entry; default local demo and production activation remain distinct. F22 checkout/multi-seller financial snapshots, fuller profile/communication integration, seller/staff apps, licensed datasets/media, privacy/legal/finance decisions and live providers remain open. No quantitative inventory or automatic guest merge. No Demo100% / Full Audit Ready claim; BAZAR remains **НЕ ГОТОВИЙ** for full audit. New tests only establish their documented bounded workflows, not all entry criteria.
+
+## F22 evidence overlay
+
+[Multi-seller exact checkout implementation and bounds](docs/F22_CHECKOUT_ACCEPTANCE.md). Shared ordinary isolated browser flow is connected; default preview remains. Pending rounding/free-order/minimum/legal/provider/lifecycle cases are explicit. Historical evidence is retained; no Demo100% / Production Ready or full audit claim.

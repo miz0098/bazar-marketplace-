@@ -71,3 +71,9 @@ There is no global `http` switch, live auth session, payment operation, persiste
 ## F21 offer endpoints
 
 GET `/api/v1/catalog/offers` and `/{id}` expose exact normalized seller offers (contractVersion1 independent from V2 parent DTO). Filters use existing strict catalog query contract. Private GET `/api/v1/catalog/customer-state`, PUT/DELETE `/api/v1/catalog/wishlist/offers/{id}` require verified session, owner scope and write Origin/CSRF; `{}` body only. Private composition test-only; production fails503. No caller user/seller override. Existing cart mutations and receipts reused. See [OpenAPI](../apps/api/contracts/openapi.json) and [F21 evidence](F21_STOREFRONT_ACCEPTANCE.md).
+
+## F22 implementation overlay — historical evidence retained
+
+F22 `/api/v1/commerce/*` is isolated-test only: directory, immutable quotes, pay/reconcile, buyer parent/order history and owner seller component reads; raw signed webhook uses provider authenticity rather than client success/CSRF. Buyer writes require existing verified session/Origin/CSRF and strict fields; no caller price/amount/status/owner. Legacy contracts remain. See `apps/api/contracts/openapi.json`, `apps/api/src/commerce/model.ts` and F22 acceptance.
+
+[Current evidence and remaining gates](F22_CHECKOUT_ACCEPTANCE.md).
