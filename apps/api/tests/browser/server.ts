@@ -1,3 +1,5 @@
+import {createCommerceService} from '../../src/commerce/service.js';
+import {insertUniquePromo} from '../../src/commerce/finance.js';
 import {createCatalogV2} from '../../src/catalog/service.js';
 import {createOfferService} from '../../src/catalog/offers.js';
 import {seedBrowserOffers} from './offer-fixture.js';
@@ -140,11 +142,14 @@ async function reset() {
     },
   });
   const communication=createCommunicationService(pool), notices={fail:false,delay:0};
+  const commerce=offerSeed.length?createCommerceService(pool,payment.adapter,[...shipping.adapters,ukr],'exact-only'):undefined;
+  const commercePromos:Record<string,string>={};
+  if(commerce){for(const [label,kind,scope] of [['fixed','fixed','order'],['percent','percentage','order'],['category','fixed','category'],['product','fixed','product']] as const){let promoId='';commercePromos[label]=await insertUniquePromo(async code=>{const r=await pool.query("INSERT INTO bazar.promotions(code,kind,fixed_minor,percentage_basis_points,currency,min_subtotal_minor,starts_at,ends_at,enabled,max_uses,per_user_limit) VALUES($1,$2,$3,$4,'UAH',1,clock_timestamp()-interval '1 day',clock_timestamp()+interval '1 day',true,10,10) ON CONFLICT(code) DO NOTHING RETURNING id",[code,kind,kind==='fixed'?100000:null,kind==='percentage'?1000:null]);if(!r.rows.length)return false;promoId=r.rows[0].id;return true;});await pool.query('INSERT INTO bazar.commerce_promotions(promotion_id,scope,code) VALUES($1,$2,$3)',[promoId,scope,commercePromos[label]]);if(scope==='category')await pool.query('INSERT INTO bazar.commerce_promotion_categories(promotion_id,category_id) VALUES($1,$2)',[promoId,category]);if(scope==='product')await pool.query('INSERT INTO bazar.promotion_products(promotion_id,product_id) VALUES($1,$2)',[promoId,offerSeed[0].productId]);}}
   const app = createApiServer(
     readConfig({ NODE_ENV: "test", CORS_ORIGINS: info.origin }),
     createLogger("error"),
     {
-      ...graph,
+      ...graph,commerce,
       catalogV2:createCatalogV2(pool),offers:{...offerService,list:async q=>{if(offerFailure.public)throw new ApiError(503,'SERVICE_UNAVAILABLE','Test public failure');return offerService.list(q);},state:async actor=>{if(offerFailure.fail)throw new ApiError(503,'SERVICE_UNAVAILABLE','Test customer failure');return offerService.state(actor);}},
       communication:{...communication,notificationSummary:async(actor:string)=>{if(notices.delay)await new Promise(r=>setTimeout(r,notices.delay));if(notices.fail)throw new ApiError(503,"SERVICE_UNAVAILABLE","Test notifications unavailable.");return communication.notificationSummary(actor);}},
       customer: createCustomerService(pool),
@@ -162,7 +167,7 @@ async function reset() {
     payment,
     graph,
     app,
-    communication,notices,offerSeed,offerFailure,
+    communication,notices,offerSeed,offerFailure,commerce,commercePromos,
     port: address.port,
     product,
     variant,
@@ -204,6 +209,11 @@ const gateway = createBrowserGateway({
       if (!row || !sent) throw new Error("own challenge required");
       reply(res, { code: sent.code });
       return;
+    }
+    if(req.url==='/__browser/commerce-payment'){
+      const actor=(await authorize(req,a.graph.auth,true)).userId,r=fields(body,['operationId','result']),id=uuid(r.operationId);
+      if(!a.commerce||!['succeeded','declined'].includes(String(r.result))||!(await a.pool.query('SELECT id FROM bazar.commerce_payment_attempts WHERE id=$1 AND user_id=$2',[id,actor])).rowCount)throw new Error('Owner/result denied');
+      const proof=a.payment.signed(a.payment.event(id,r.result as 'succeeded'|'declined'));await a.commerce.webhook(proof.raw,proof.signature);reply(res,{recordedForTest:true});return;
     }
     if (req.url === "/__browser/payment") {
       const actor = (await authorize(req, a.graph.auth, true)).userId,
@@ -252,7 +262,11 @@ const gateway = createBrowserGateway({
       return;
     }
     const a = active!;
-    if(action==='catalog-error')a.offerFailure.public=true;
+    if(action==='f22-fixture'){if(!a.offerSeed.length)throw new Error('Offer fixtures required');await a.pool.query('UPDATE bazar.variants SET price_minor=800000 WHERE id=$1',[a.offerSeed[0].id]);await a.pool.query('UPDATE bazar.variants SET price_minor=200000 WHERE id=$1',[a.offerSeed[3].id]);await a.pool.query('UPDATE bazar.variants SET price_minor=400000 WHERE id=$1',[a.offerSeed[2].id]);reply(res,{offers:a.offerSeed,promos:a.commercePromos});return;}
+    else if(action==='f22-price')await a.pool.query('UPDATE bazar.variants SET price_minor=900000 WHERE id=$1',[a.offerSeed[0].id]);
+    else if(action==='f22-unknown')a.payment.state.failSubmit=true;
+    else if(action==='f22-pay-ok')a.payment.state.failSubmit=false;
+    else if(action==='catalog-error')a.offerFailure.public=true;
     else if(action==='catalog-ok')a.offerFailure.public=false;
     else if(action==='offers-error')a.offerFailure.fail=true;
     else if(action==='offers-ok')a.offerFailure.fail=false;

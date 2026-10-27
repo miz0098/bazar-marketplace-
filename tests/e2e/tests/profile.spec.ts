@@ -117,7 +117,7 @@ test('wishlist search, sorting, selection, removal and cart integration stay exp
   await shoes.getByRole('checkbox', { name: 'Обрати Кросівки для бігу Air Flex' }).check();
   await expect(page.getByText('Обрано: 1')).toBeVisible();
   await page.getByRole('button', { name: 'Видалити обрані' }).click();
-  await expect(page.getByRole('status')).toContainText('Демо-обране використовує лише локальне сховище');
+  await expect(page.getByRole('status').filter({ hasText: 'Обрані товари прибрано з демо-списку.' })).toContainText('Демо-обране використовує лише локальне сховище');
   await expect(page.getByRole('article', { name: 'Кросівки для бігу Air Flex' })).toHaveCount(0);
 
   await page.reload();

@@ -10667,6 +10667,732 @@
           }
         }
       }
+    },
+    "/api/v1/commerce/directory": {
+      "get": {
+        "summary": "Actual isolated carrier directories, no tariff calculation",
+        "description": "Isolated test composition only. Verified owner session; write requests require exact Origin/CSRF. No client-authoritative amounts. Production unavailable.",
+        "responses": {
+          "200": {
+            "description": "Actual isolated carrier directories, no tariff calculation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ok",
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    },
+                    "data": {
+                      "type": "object"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [
+                        "requestId"
+                      ],
+                      "properties": {
+                        "requestId": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or forbidden fields"
+          },
+          "401": {
+            "description": "No verified session"
+          },
+          "403": {
+            "description": "Origin/CSRF/provider proof denied"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Stale terms/state or policy approval required"
+          },
+          "503": {
+            "description": "Unavailable, never synthetic success"
+          }
+        }
+      }
+    },
+    "/api/v1/commerce/quotes": {
+      "post": {
+        "summary": "Immutable reviewed server checkout quote",
+        "description": "Isolated test composition only. Verified owner session; write requests require exact Origin/CSRF. No client-authoritative amounts. Production unavailable.",
+        "responses": {
+          "200": {
+            "description": "Immutable reviewed server checkout quote",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ok",
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/CommerceQuote"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [
+                        "requestId"
+                      ],
+                      "properties": {
+                        "requestId": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or forbidden fields"
+          },
+          "401": {
+            "description": "No verified session"
+          },
+          "403": {
+            "description": "Origin/CSRF/provider proof denied"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Stale terms/state or policy approval required"
+          },
+          "503": {
+            "description": "Unavailable, never synthetic success"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "idempotencyKey",
+                  "expectedCartVersion",
+                  "selectedOfferIds",
+                  "contact",
+                  "deliveries"
+                ],
+                "properties": {
+                  "idempotencyKey": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "expectedCartVersion": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "selectedOfferIds": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 1000,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  },
+                  "contact": {
+                    "$ref": "#/components/schemas/CommerceContact"
+                  },
+                  "deliveries": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 1000,
+                    "items": {
+                      "$ref": "#/components/schemas/CommerceDelivery"
+                    }
+                  },
+                  "promoCode": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^BZ[0-9]{11}$"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/commerce/quotes/{id}": {
+      "get": {
+        "summary": "Read own quote and recover parent reference",
+        "description": "Isolated test composition only. Verified owner session; write requests require exact Origin/CSRF. No client-authoritative amounts. Production unavailable.",
+        "responses": {
+          "200": {
+            "description": "Read own quote and recover parent reference",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ok",
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/CommerceQuote"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [
+                        "requestId"
+                      ],
+                      "properties": {
+                        "requestId": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or forbidden fields"
+          },
+          "401": {
+            "description": "No verified session"
+          },
+          "403": {
+            "description": "Origin/CSRF/provider proof denied"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Stale terms/state or policy approval required"
+          },
+          "503": {
+            "description": "Unavailable, never synthetic success"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/commerce/quotes/{id}/pay": {
+      "post": {
+        "summary": "Idempotent isolated card attempt, no blind unresolved retry",
+        "description": "Isolated test composition only. Verified owner session; write requests require exact Origin/CSRF. No client-authoritative amounts. Production unavailable.",
+        "responses": {
+          "200": {
+            "description": "Idempotent isolated card attempt, no blind unresolved retry",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ok",
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/CommerceOrder"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [
+                        "requestId"
+                      ],
+                      "properties": {
+                        "requestId": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or forbidden fields"
+          },
+          "401": {
+            "description": "No verified session"
+          },
+          "403": {
+            "description": "Origin/CSRF/provider proof denied"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Stale terms/state or policy approval required"
+          },
+          "503": {
+            "description": "Unavailable, never synthetic success"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "idempotencyKey",
+                  "method"
+                ],
+                "properties": {
+                  "idempotencyKey": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "method": {
+                    "const": "card"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/commerce/orders": {
+      "get": {
+        "summary": "Latest100 own parent orders",
+        "description": "Isolated test composition only. Verified owner session; write requests require exact Origin/CSRF. No client-authoritative amounts. Production unavailable.",
+        "responses": {
+          "200": {
+            "description": "Latest100 own parent orders",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ok",
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    },
+                    "data": {
+                      "type": "object"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [
+                        "requestId"
+                      ],
+                      "properties": {
+                        "requestId": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or forbidden fields"
+          },
+          "401": {
+            "description": "No verified session"
+          },
+          "403": {
+            "description": "Origin/CSRF/provider proof denied"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Stale terms/state or policy approval required"
+          },
+          "503": {
+            "description": "Unavailable, never synthetic success"
+          }
+        }
+      }
+    },
+    "/api/v1/commerce/orders/{id}": {
+      "get": {
+        "summary": "Read own parent and seller components",
+        "description": "Isolated test composition only. Verified owner session; write requests require exact Origin/CSRF. No client-authoritative amounts. Production unavailable.",
+        "responses": {
+          "200": {
+            "description": "Read own parent and seller components",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ok",
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/CommerceOrder"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [
+                        "requestId"
+                      ],
+                      "properties": {
+                        "requestId": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or forbidden fields"
+          },
+          "401": {
+            "description": "No verified session"
+          },
+          "403": {
+            "description": "Origin/CSRF/provider proof denied"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Stale terms/state or policy approval required"
+          },
+          "503": {
+            "description": "Unavailable, never synthetic success"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/commerce/orders/{id}/reconcile": {
+      "post": {
+        "summary": "Reconcile through authenticated provider adapter, then finalize safely",
+        "description": "Isolated test composition only. Verified owner session; write requests require exact Origin/CSRF. No client-authoritative amounts. Production unavailable.",
+        "responses": {
+          "200": {
+            "description": "Reconcile through authenticated provider adapter, then finalize safely",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ok",
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/CommerceOrder"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [
+                        "requestId"
+                      ],
+                      "properties": {
+                        "requestId": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or forbidden fields"
+          },
+          "401": {
+            "description": "No verified session"
+          },
+          "403": {
+            "description": "Origin/CSRF/provider proof denied"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Stale terms/state or policy approval required"
+          },
+          "503": {
+            "description": "Unavailable, never synthetic success"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "maxProperties": 0
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/commerce/seller-orders/{id}": {
+      "get": {
+        "summary": "Read only the authenticated active seller owner component",
+        "description": "Isolated test composition only. Verified owner session; write requests require exact Origin/CSRF. No client-authoritative amounts. Production unavailable.",
+        "responses": {
+          "200": {
+            "description": "Read only the authenticated active seller owner component",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ok",
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    },
+                    "data": {
+                      "type": "object"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [
+                        "requestId"
+                      ],
+                      "properties": {
+                        "requestId": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or forbidden fields"
+          },
+          "401": {
+            "description": "No verified session"
+          },
+          "403": {
+            "description": "Origin/CSRF/provider proof denied"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Stale terms/state or policy approval required"
+          },
+          "503": {
+            "description": "Unavailable, never synthetic success"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/commerce/webhook": {
+      "post": {
+        "summary": "Verify raw signed isolated provider observation; no browser success claim",
+        "description": "Isolated adapter-only raw-body webhook. Requires authenticated provider signature, not a browser session. Verifies operation, provider/account, amount/currency and deduplicated event identity. Unavailable in production until an approved provider contract is integrated.",
+        "responses": {
+          "200": {
+            "description": "Verify raw signed isolated provider observation; no browser success claim",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ok",
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    },
+                    "data": {
+                      "type": "object"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [
+                        "requestId"
+                      ],
+                      "properties": {
+                        "requestId": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or forbidden fields"
+          },
+          "401": {
+            "description": "No verified session"
+          },
+          "403": {
+            "description": "Origin/CSRF/provider proof denied"
+          },
+          "404": {
+            "description": "Owned resource not found"
+          },
+          "409": {
+            "description": "Stale terms/state or policy approval required"
+          },
+          "503": {
+            "description": "Unavailable, never synthetic success"
+          }
+        },
+        "parameters": [
+          {
+            "name": "x-payment-signature",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 300
+            }
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -16163,6 +16889,405 @@
                 "productId": {
                   "type": "string",
                   "format": "uuid"
+                }
+              }
+            }
+          }
+        }
+      },
+      "CommerceContact": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "firstName",
+          "lastName",
+          "phone"
+        ],
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "lastName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "phone": {
+            "type": "string",
+            "pattern": "^\\+380[0-9]{9}$"
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 254
+          },
+          "comment": {
+            "type": "string",
+            "maxLength": 1000
+          }
+        }
+      },
+      "CommerceDelivery": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sellerId",
+          "carrier",
+          "cityRef",
+          "pointRef",
+          "kind"
+        ],
+        "properties": {
+          "sellerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "carrier": {
+            "enum": [
+              "nova-poshta",
+              "meest",
+              "ukrposhta"
+            ]
+          },
+          "cityRef": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "pointRef": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "kind": {
+            "enum": [
+              "branch",
+              "parcel-locker"
+            ]
+          },
+          "cityName": {
+            "type": "string"
+          },
+          "pointName": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "string"
+          }
+        }
+      },
+      "CommerceFinancial": {
+        "type": "object",
+        "required": [
+          "version",
+          "allocation",
+          "rounding",
+          "currency",
+          "grossMinor",
+          "discountMinor",
+          "netMinor",
+          "commissionMinor",
+          "sellerMinor",
+          "lines",
+          "sellers"
+        ],
+        "properties": {
+          "version": {
+            "const": "commerce-v1-largest-remainder"
+          },
+          "allocation": {
+            "const": "largest-remainder-immutable-line-id"
+          },
+          "rounding": {
+            "enum": [
+              "exact-only",
+              "half-up",
+              "half-even"
+            ],
+            "description": "Only exact-only is currently activated; other modes require explicit PD-01 approval."
+          },
+          "currency": {
+            "const": "UAH"
+          },
+          "grossMinor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "discountMinor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "netMinor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "commissionMinor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "sellerMinor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "lines": {
+            "type": "array",
+            "maxItems": 1000,
+            "items": {
+              "type": "object",
+              "description": "Immutable line identity/quantity/unit price/eligibility/gross/discount/net; integer minor units."
+            }
+          },
+          "sellers": {
+            "type": "array",
+            "maxItems": 1000,
+            "items": {
+              "type": "object",
+              "description": "Own seller gross/discount/net/500bp commission/proceeds/currency, exactly reconciled."
+            }
+          }
+        }
+      },
+      "CommerceQuote": {
+        "type": "object",
+        "required": [
+          "id",
+          "cartVersion",
+          "snapshot"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "cartVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "orderId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "snapshot": {
+            "type": "object",
+            "required": [
+              "version",
+              "mode",
+              "contact",
+              "deliveries",
+              "items",
+              "financial",
+              "promoCode",
+              "shippingPrice",
+              "promotionId",
+              "promotionVersion",
+              "promotionTerms"
+            ],
+            "properties": {
+              "version": {
+                "const": 1
+              },
+              "mode": {
+                "const": "integration-test"
+              },
+              "contact": {
+                "$ref": "#/components/schemas/CommerceContact"
+              },
+              "deliveries": {
+                "type": "array",
+                "maxItems": 1000,
+                "items": {
+                  "$ref": "#/components/schemas/CommerceDelivery"
+                }
+              },
+              "items": {
+                "type": "array",
+                "maxItems": 1000,
+                "items": {
+                  "type": "object",
+                  "description": "Frozen exact seller/product/variant/SKU, characteristics, price, quantity, cart generation and revision."
+                }
+              },
+              "financial": {
+                "$ref": "#/components/schemas/CommerceFinancial"
+              },
+              "promoCode": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^BZ[0-9]{11}$"
+              },
+              "promotionId": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uuid"
+              },
+              "promotionVersion": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "shippingPrice": {
+                "const": "carrier-managed"
+              },
+              "promotionTerms": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "description": "Immutable campaign scope, discount rule, minimum and validity window used for this calculation. Never reread live campaign terms for history.",
+                "required": [
+                  "scope",
+                  "rule",
+                  "minSubtotalMinor",
+                  "startsAt",
+                  "endsAt"
+                ],
+                "properties": {
+                  "scope": {
+                    "enum": [
+                      "order",
+                      "category",
+                      "product"
+                    ]
+                  },
+                  "rule": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "required": [
+                          "kind",
+                          "amountMinor"
+                        ],
+                        "properties": {
+                          "kind": {
+                            "const": "fixed"
+                          },
+                          "amountMinor": {
+                            "type": "integer",
+                            "minimum": 1
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "required": [
+                          "kind",
+                          "basisPoints"
+                        ],
+                        "properties": {
+                          "kind": {
+                            "const": "percentage"
+                          },
+                          "basisPoints": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 10000
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "minSubtotalMinor": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "startsAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "endsAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "CommerceOrder": {
+        "type": "object",
+        "required": [
+          "id",
+          "number",
+          "mode",
+          "status",
+          "paymentState",
+          "attemptId",
+          "quote",
+          "sellerOrders",
+          "history"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "mode": {
+            "const": "integration-test"
+          },
+          "status": {
+            "enum": [
+              "awaiting-payment",
+              "confirmed",
+              "verification-required"
+            ]
+          },
+          "paymentState": {
+            "enum": [
+              "initiated",
+              "pending",
+              "succeeded",
+              "declined",
+              "unknown",
+              "verification-required"
+            ]
+          },
+          "attemptId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "quote": {
+            "$ref": "#/components/schemas/CommerceQuote"
+          },
+          "sellerOrders": {
+            "type": "array",
+            "maxItems": 1000,
+            "items": {
+              "type": "object",
+              "description": "Seller-scoped immutable financial/delivery snapshot and independent fulfillment status."
+            }
+          },
+          "history": {
+            "type": "array",
+            "maxItems": 1000,
+            "items": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
                 }
               }
             }

@@ -84,3 +84,9 @@ Everything not explicitly superseded remains open. No rule silently restores pro
 | B12 | Exact-offer server wishlist, unavailable persistence/restoration and owner-scoped set operations; guest is asked to log in | Legacy product-only saved rows need explicit offer selection; remaining account work F24, lawful retention |
 | B11/B09/B10/B13 | Existing checkout engine retained; F21 does not pretend its preview is integrated | Approved multi-seller checkout/contact/financial lifecycle in F22, pending rounding/finance decisions |
 | B20 | Exact-offer wishlist restoration joins the existing F13 inbox recipients without duplicate delivery | Ordinary full inbox/preferences/channel integration F24/F27; no real push |
+
+## F22 implementation overlay — historical evidence retained
+
+F22 closes the isolated ordinary multi-seller exact-finance slice of B07/B09/B10/B11: current reviewed server amounts, one parent/seller components, independent pickup selections, successful proof-only clearing of frozen units, later/new cart rows preserved, declines/unknown/duplicate attempts and persisted My Orders. B08/B10 remain partial for fractional rounding mode/zero finality/ambiguous campaign rules. B16/F23 lifecycle linkage to new snapshots remains; old F14 continues without reinterpretation. Production integration, privacy, provider, seller/staff and operational gates remain. No Demo100% or full audit closure.
+
+[Current evidence and remaining gates](docs/F22_CHECKOUT_ACCEPTANCE.md).

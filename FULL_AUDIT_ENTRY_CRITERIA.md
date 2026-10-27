@@ -67,3 +67,9 @@ Below table is the preserved F18 assessment of then-current code. Superseded inv
 ### F21 gate reassessment
 
 E02 gains ordinary shared browse/product/auth/cart/wishlist proof in the isolated HTTPS entry, but **remains PARTIAL** because ordinary three-step server checkout is not connected. E04's owned persisted cart/session slice is tested on desktop/mobile and independent contexts; post-order lifecycle is still E07/F22. E03 exact-offer display rule is now approved/implemented, while approved datasets/content/media remain incomplete. E08 gains server exact-offer wishlist only, not all account sections. E05/E06/E09/E12–E15 are not upgraded by these changes. E11's automated evidence is bounded Chromium/axe/keyboard/reflow; no physical-device or manual screen-reader sign-off. Overall verdict remains **НЕ ГОТОВИЙ**.
+
+## F22 implementation overlay — historical evidence retained
+
+F22 upgrades E02/E04/E06/E07 only for the documented isolated ordinary checkout scope: multi-seller selected offers, synthetic validated contacts, three carrier directories, card test proof, immutable sums/history and generation-aware cart clearing. E05 remains PARTIAL until approved fractional/zero/minimum/funding policies; E09 new-order lifecycle/refund bridge and legal gates remain. Production E12–15 and full marketplace scope are not closed. Overall **НЕ ГОТОВИЙ** for full audit; automated Chromium proof is not final design/physical-device/manual screen-reader acceptance.
+
+[Current evidence and remaining gates](docs/F22_CHECKOUT_ACCEPTANCE.md).

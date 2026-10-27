@@ -1,0 +1,44 @@
+import {expect,test,type Page} from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
+import {control} from '../browser-tests/controller';
+import {authenticate} from './auth';
+type Fixture={offers:{id:string;productId:string;owner:string}[];promos:Record<string,string>};
+let fixture:Fixture;
+test.beforeEach(async()=>{await control('reset');fixture=await control('f22-fixture') as unknown as Fixture;});
+async function add(page:Page,indices=[0,3]){await page.goto('/search?q=iPhone');for(const i of indices){const card=page.locator(`[data-offer-id="${fixture.offers[i].id}"]`);await card.getByRole('button',{name:/кошик/}).click();await expect(card.getByRole('button',{name:'Додано ✓',exact:true})).toBeVisible();}}
+async function delivery(page:Page,carrier='Нова пошта'){
+ await page.goto('/checkout');await expect(page.getByRole('heading',{name:'Контактні дані та доставка',exact:true})).toBeVisible();
+ await page.getByLabel('Ім’я',{exact:true}).fill('Синтетичний');await page.getByLabel('Прізвище',{exact:true}).fill('Покупець');await page.getByLabel(/^Телефон/).fill('671234567');
+ const groups=page.locator('[data-seller-delivery]');await expect(groups).toHaveCount(2);
+ for(let i=0;i<2;i++){const group=groups.nth(i);await group.getByRole('radio',{name:carrier,exact:true}).check();await group.getByLabel('Пошук міста',{exact:true}).fill('Тест');await group.getByRole('button',{name:'Знайти міста',exact:true}).click();await group.getByRole('combobox',{name:'Місто',exact:true}).selectOption({label:'Тестове місто'});await group.getByRole('button',{name:'Знайти відділення',exact:true}).click();await group.getByRole('combobox',{name:'Відділення або поштомат',exact:true}).selectOption({label:'Тестовий пункт'});}
+ await page.getByRole('button',{name:'Перейти до оплати',exact:true}).click();await expect(page.getByRole('heading',{name:'Оплата',exact:true})).toBeVisible();await expect(page.locator('main')).toContainText('Вартість доставки згідно з тарифами поштового оператора');
+}
+async function pay(page:Page){await page.getByRole('button',{name:'Сплатити',exact:true}).click();await expect(page.getByRole('button',{name:'Сплатити',exact:true})).toBeDisabled();await expect(page.getByText('Очікуємо підтвердження тестової оплати',{exact:true})).toBeVisible();const q=await page.evaluate(()=>{const key=Object.keys(sessionStorage).find(k=>k.startsWith('bazar-commerce-'));return JSON.parse(sessionStorage.getItem(key!)!);});const order=await page.evaluate(async(ref)=> (await(await fetch('/api/v1/commerce/orders/'+ref)).json()).data,q.parentId);expect(order.paymentState).toBe('pending');return order;}
+async function proof(page:Page,attempt:string,result='succeeded'){expect(await page.evaluate(async({attempt,result})=>{const session=(await(await fetch('/api/v1/auth/session')).json()).data;const r=await fetch('/__browser/commerce-payment',{method:'POST',headers:{'content-type':'application/json','x-csrf-token':session.csrfToken},body:JSON.stringify({operationId:attempt,result})});return r.status;},{attempt,result})).toBe(200);}
+for(const carrier of ['Нова пошта','Meest','Укрпошта'])test(`F22 multi-seller checkout via ${carrier} preserves new cart lines and server snapshots`,async({page,context})=>{
+ await authenticate(page);await add(page,[0,2,3]);await page.goto('/cart');const quantity=page.locator(`.cart-line:has(a[href*="${fixture.offers[2].id}"])`).getByRole('spinbutton');await quantity.fill('2');await expect(quantity).toHaveValue('2');await delivery(page,carrier);
+ const o=await pay(page);expect(o.sellerOrders).toHaveLength(2);expect(o.quote.snapshot.items).toHaveLength(3);expect(o.quote.snapshot.financial.grossMinor).toBe(1800000);expect(o.quote.snapshot.financial.commissionMinor).toBe(90000);
+ const extra=await context.newPage();await add(extra,[4]);await extra.close();
+ await proof(page,o.attemptId);await page.getByRole('button',{name:'Перевірити стан оплати',exact:true}).click();await expect(page.getByRole('heading',{name:'Дякуємо за замовлення',exact:true})).toBeVisible();
+ const state=await page.evaluate(async()=> (await(await fetch('/api/v1/catalog/customer-state')).json()).data);expect(state.lines).toHaveLength(1);expect(state.lines[0].offer.id).toBe(fixture.offers[4].id);
+ await page.reload();await expect(page.getByRole('heading',{name:'Дякуємо за замовлення',exact:true})).toBeVisible();await page.locator('main').getByRole('link',{name:'Мої замовлення',exact:true}).click();await expect(page.locator('[data-commerce-order]')).toHaveAttribute('data-commerce-order',o.id);await expect(page.locator('main')).toContainText(/18\s*000/);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.goto('/checkout');await expect(page.getByRole('heading',{name:'Контактні дані та доставка',exact:true})).toBeVisible();
+});
+for(const kind of ['fixed','percent','category','product'])test(`F22 ${kind} promotion is server-allocated and historical order totals survive refresh`,async({page})=>{
+ await authenticate(page);await add(page);await delivery(page);await page.getByLabel('Промокод',{exact:true}).fill(fixture.promos[kind]);await page.getByRole('button',{name:'Застосувати',exact:true}).click();await expect(page.getByText('Промокод застосовано: '+fixture.promos[kind],{exact:true})).toBeVisible();await expect(page.locator('[data-commerce-total]')).toHaveText(/9\s*000/);
+ const invalid=Array.from({length:10},(_,i)=>'BZ'+String(i).padStart(11,'0')).find(c=>!Object.values(fixture.promos).includes(c))!;await page.getByLabel('Промокод',{exact:true}).fill(invalid);await page.getByRole('button',{name:'Застосувати',exact:true}).click();await expect(page.locator('main').getByRole('alert')).toBeVisible();await expect(page.locator('[data-commerce-total]')).toHaveText(/9\s*000/);
+ await page.getByLabel('Промокод',{exact:true}).fill(fixture.promos[kind]);const o=await pay(page);expect(o.quote.snapshot.financial.discountMinor).toBe(100000);expect(o.quote.snapshot.financial.sellers.map((s:{commissionMinor:number})=>s.commissionMinor).sort((a:number,b:number)=>a-b)).toEqual(kind==='product'?[10000,35000]:[9000,36000]);
+ await proof(page,o.attemptId);await page.getByRole('button',{name:'Перевірити стан оплати',exact:true}).click();await expect(page.getByRole('heading',{name:'Дякуємо за замовлення',exact:true})).toBeVisible();await page.reload();await expect(page.locator('[data-commerce-total]')).toHaveText(/9\s*000/);
+});
+test('F22 decline and unknown state cannot clear carts or allow unresolved second payment',async({page})=>{
+ await authenticate(page);await add(page);await delivery(page);const first=await pay(page);await proof(page,first.attemptId,'declined');await page.getByRole('button',{name:'Перевірити стан оплати',exact:true}).click();await expect(page.getByRole('button',{name:'Сплатити',exact:true})).toBeEnabled();
+ await control('f22-unknown');await page.getByRole('button',{name:'Сплатити',exact:true}).click();await expect(page.getByText('Оплата перевіряється',{exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'Сплатити',exact:true})).toBeDisabled();const cart=await page.evaluate(async()=> (await(await fetch('/api/v1/catalog/customer-state')).json()).data);expect(cart.lines).toHaveLength(2);
+ await page.reload();await expect(page.getByText('Оплата перевіряється',{exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'Сплатити',exact:true})).toBeDisabled();
+});
+test('F22 price changes require review, ownership/CSRF and accessible checkout stay enforced',async({page,browser})=>{
+ await authenticate(page);await add(page);await delivery(page);await control('f22-price');await page.getByRole('button',{name:'Сплатити',exact:true}).click();await expect(page.locator('main').getByRole('alert')).toContainText('змінилися');await expect(page.getByRole('heading',{name:'Дякуємо за замовлення',exact:true})).toHaveCount(0);
+ await page.getByRole('button',{name:'Назад',exact:true}).click();await page.getByRole('button',{name:'Перейти до оплати',exact:true}).click();await expect(page.locator('[data-commerce-total]')).toHaveText(/11\s*000/);
+ const o=await pay(page);expect(await page.evaluate(async(ref)=>(await fetch('/api/v1/commerce/orders/'+ref+'/reconcile',{method:'POST',headers:{'content-type':'application/json'},body:'{}'})).status,o.id)).toBe(403);
+ const other=await browser.newContext({baseURL:new URL(page.url()).origin});const p=await other.newPage();await authenticate(p,true,'931234567');expect(await p.evaluate(async(ref)=>(await fetch('/api/v1/commerce/orders/'+ref)).status,o.id)).toBe(404);await other.close();
+ const axe=await new AxeBuilder({page}).analyze();expect(axe.violations).toEqual([]);await page.keyboard.press('Tab');expect(await page.evaluate(()=>document.activeElement!==document.body)).toBe(true);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});

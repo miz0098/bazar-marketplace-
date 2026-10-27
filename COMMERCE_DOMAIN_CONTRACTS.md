@@ -226,3 +226,11 @@ Canonical product/variant updates commit guarded audit/command receipts and F13 
 ## F21 additive offer contract
 
 SellerOffer.id = existing variantId UUID; productId and sellerId remain normalized and immutable relationships, SKU identifies the same purchasable selection across cart/wishlist/order seams. Exact integer price and binary availability are per offer. Public listing filters/sorts/pages offers, not parent products; selected product handle+variant query preserves identity. No clones per card. Owned offer_wishlist_items unique(user,variant) uses composite variant/product FK. Old product wishlist is preserved separately; selecting an offer requires an explicit customer choice. Private snapshot is owner-derived and test-gated. Existing cart receipt/version semantics remain. F13 restoration includes exact offer recipients without duplicating events. See [ADR0019](docs/adr/0019-seller-offers-storefront-persistence.md).
+
+## F22 implementation overlay — historical evidence retained
+
+F22 adds versioned `/api/v1/commerce` quotes, parent orders, seller orders and payment attempts using additive0018. Immutable variant UUID is the selected line identity; cart generation UUID distinguishes remove/re-add from extra quantities. Financial snapshot records exact gross/eligibility/allocated discount/net, independent5% commission/proceeds, currency and method/version. Successful proof consumes promo and subtracts only the original same-generation purchased quantity; declines/unknown preserve cart. Existing F14 remains distinct and must not accept synthetic F22 records as legacy real payment proof. See ADR0020 for state/transaction/ownership and F23 bridge requirements.
+
+[Current evidence and remaining gates](docs/F22_CHECKOUT_ACCEPTANCE.md).
+
+F22 immutable promotion terms include scope, fixed-minor amount or percentage basis points, minimum basis and validity window in addition to code/ID/version and per-line eligibility. Changing the live campaign never changes order history.

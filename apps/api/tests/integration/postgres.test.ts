@@ -1,3 +1,5 @@
+import {createCommerceService} from '../../src/commerce/service.js';
+import {generatePromoCode} from '../../src/commerce/finance.js';
 import {createOfferService} from '../../src/catalog/offers.js';
 import {seedBrowserOffers} from '../browser/offer-fixture.js';
 import {createCatalogV2Client} from '../../../storefront/lib/catalog-v2-client.js';
@@ -96,9 +98,9 @@ test('fresh database, previous schema upgrade, rerun and concurrent migrators ar
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(`${migrationDirectory}/0001_core.sql`, `${dir}/0001_core.sql`);
   assert.equal(await migrate(db.config, dir), 1);
-  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 16]);
+  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 17]);
   assert.equal(await migrate(db.config), 0);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 17);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 18);
   assert.ok((await db.pool.query("SELECT indexname FROM pg_indexes WHERE schemaname='bazar' AND indexname='variants_available_idx'")).rowCount);
 });
 
@@ -110,10 +112,10 @@ test('modified/unknown migrations are rejected and failed DDL rolls back without
   writeFileSync(`${dir}/0001_core.sql`, first + '\n-- modified\n');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   writeFileSync(`${dir}/0001_core.sql`, first);
-  writeFileSync(`${dir}/0018_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
+  writeFileSync(`${dir}/0019_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   assert.equal((await db.pool.query("SELECT to_regclass('bazar.must_rollback') AS name")).rows[0].name, null);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 17);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 18);
   await db.pool.query("INSERT INTO bazar_meta.schema_migrations(version,checksum) VALUES ('9999',repeat('0',64))");
   await assert.rejects(migrate(db.config), /Database migration failed/);
 });
@@ -2442,7 +2444,7 @@ test("F7 upgrades F6 without rewriting existing orders; directories cover only e
   }
   await migrate(db.config, dir);
   const s = await seed(db.pool);
-  assert.equal(await migrate(db.config), 11);
+  assert.equal(await migrate(db.config), 12);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -3615,7 +3617,7 @@ test('F8 upgrades the full F7 database without changing previously saved shippin
     dir = mkdtempSync(`${tmpdir()}/bazar-f8-upgrade-`);
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(migrationDirectory, dir, { recursive: true });
-  rmSync(`${dir}/0017_seller_offers.sql`);rmSync(`${dir}/0016_catalog_v2.sql`);
+  rmSync(`${dir}/0018_commerce_checkout.sql`);rmSync(`${dir}/0017_seller_offers.sql`);rmSync(`${dir}/0016_catalog_v2.sql`);
   rmSync(`${dir}/0008_ukrposhta.sql`);
   rmSync(`${dir}/0009_payment_security.sql`);
   rmSync(`${dir}/0010_current_cart_checkout.sql`);
@@ -3647,7 +3649,7 @@ test('F8 upgrades the full F7 database without changing previously saved shippin
     expectedVersion: 2,
     idempotencyKey: randomUUID(),
   });
-  assert.equal(await migrate(db.config), 10);
+  assert.equal(await migrate(db.config), 11);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -4446,7 +4448,7 @@ test('F9 upgrades F8 without silently selecting legacy carts or changing payment
     dir = mkdtempSync(`${tmpdir()}/bazar-f9-upgrade-`);
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(migrationDirectory, dir, { recursive: true });
-  rmSync(`${dir}/0017_seller_offers.sql`);rmSync(`${dir}/0016_catalog_v2.sql`);
+  rmSync(`${dir}/0018_commerce_checkout.sql`);rmSync(`${dir}/0017_seller_offers.sql`);rmSync(`${dir}/0016_catalog_v2.sql`);
   rmSync(`${dir}/0010_current_cart_checkout.sql`);
   rmSync(`${dir}/0011_customer_account.sql`);
   rmSync(`${dir}/0012_communication_foundation.sql`);
@@ -4455,7 +4457,7 @@ test('F9 upgrades F8 without silently selecting legacy carts or changing payment
   rmSync(`${dir}/0013_order_lifecycle.sql`);
   assert.equal(await migrate(db.config, dir), 9);
   const s = await seed(db.pool);
-  assert.equal(await migrate(db.config), 8);
+  assert.equal(await migrate(db.config), 9);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -5037,7 +5039,7 @@ test('F12 upgrade preserves F11 customer data and previous migrations while addi
     dir = mkdtempSync(`${tmpdir()}/bazar-f12-upgrade-`);
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(migrationDirectory, dir, { recursive: true });
-  rmSync(`${dir}/0017_seller_offers.sql`);rmSync(`${dir}/0016_catalog_v2.sql`);
+  rmSync(`${dir}/0018_commerce_checkout.sql`);rmSync(`${dir}/0017_seller_offers.sql`);rmSync(`${dir}/0016_catalog_v2.sql`);
   rmSync(`${dir}/0011_customer_account.sql`);
   rmSync(`${dir}/0012_communication_foundation.sql`);
   rmSync(`${dir}/0015_notification_center.sql`);
@@ -5049,7 +5051,7 @@ test('F12 upgrade preserves F11 customer data and previous migrations while addi
     'INSERT INTO bazar.wishlist_items(user_id,product_id) VALUES ($1,$2)',
     [s.user, s.product],
   );
-  assert.equal(await migrate(db.config), 7);
+  assert.equal(await migrate(db.config), 8);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -5519,7 +5521,7 @@ test("F13 upgrades F12 with legacy messages intact, ordered sequences, valid rea
     dir = mkdtempSync(`${tmpdir()}/bazar-f13-upgrade-`);
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(migrationDirectory, dir, { recursive: true });
-  rmSync(`${dir}/0017_seller_offers.sql`);rmSync(`${dir}/0016_catalog_v2.sql`);
+  rmSync(`${dir}/0018_commerce_checkout.sql`);rmSync(`${dir}/0017_seller_offers.sql`);rmSync(`${dir}/0016_catalog_v2.sql`);
   rmSync(`${dir}/0012_communication_foundation.sql`);
   rmSync(`${dir}/0015_notification_center.sql`);
   rmSync(`${dir}/0014_discounted_test_checkout.sql`);
@@ -5549,7 +5551,7 @@ test("F13 upgrades F12 with legacy messages intact, ordered sequences, valid rea
     "UPDATE bazar.conversation_members SET last_read_message_id=$1",
     [later],
   );
-  assert.equal(await migrate(a.config), 6);
+  assert.equal(await migrate(a.config), 7);
   assert.equal(await migrate(a.config), 0);
   const service = createCommunicationService(a.pool);
   const history = await service.history(s.user, chat, "messages");
@@ -6070,7 +6072,7 @@ test("F14 F13 upgrade backfills immutable initial order history and preserves pr
     dir = mkdtempSync(`${tmpdir()}/bazar-f14-upgrade-`);
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(migrationDirectory, dir, { recursive: true });
-  rmSync(`${dir}/0017_seller_offers.sql`);rmSync(`${dir}/0016_catalog_v2.sql`);
+  rmSync(`${dir}/0018_commerce_checkout.sql`);rmSync(`${dir}/0017_seller_offers.sql`);rmSync(`${dir}/0016_catalog_v2.sql`);
   rmSync(`${dir}/0015_notification_center.sql`);
   rmSync(`${dir}/0014_discounted_test_checkout.sql`);
   rmSync(`${dir}/0013_order_lifecycle.sql`);
@@ -6102,7 +6104,7 @@ test("F14 F13 upgrade backfills immutable initial order history and preserves pr
       idempotencyKey: randomUUID(),
     })
   ).order;
-  assert.equal(await migrate(db.config), 5);
+  assert.equal(await migrate(db.config), 6);
   assert.equal(await migrate(db.config), 0);
   assert.deepEqual(await checkout.getOrder(s.user, original.id), original);
   const f = lifecycleFixture(),
@@ -6321,9 +6323,9 @@ test('F17 shared event identities deduplicate without unread reset and reject co
  await assert.rejects(emit(randomUUID()),{status:409});
 });
 test('F17 additive upgrade preserves F16 inbox cursors and reads and protects later metadata',async t=>{
- const db=await database(t),dir=mkdtempSync(`${tmpdir()}/bazar-f17-upgrade-`);t.after(()=>rmSync(dir,{recursive:true}));cpSync(migrationDirectory,dir,{recursive:true});rmSync(`${dir}/0017_seller_offers.sql`);rmSync(`${dir}/0016_catalog_v2.sql`);rmSync(`${dir}/0015_notification_center.sql`);assert.equal(await migrate(db.config,dir),14);const s=await seed(db.pool);
+ const db=await database(t),dir=mkdtempSync(`${tmpdir()}/bazar-f17-upgrade-`);t.after(()=>rmSync(dir,{recursive:true}));cpSync(migrationDirectory,dir,{recursive:true});rmSync(`${dir}/0018_commerce_checkout.sql`);rmSync(`${dir}/0017_seller_offers.sql`);rmSync(`${dir}/0016_catalog_v2.sql`);rmSync(`${dir}/0015_notification_center.sql`);assert.equal(await migrate(db.config,dir),14);const s=await seed(db.pool);
  await db.pool.query("INSERT INTO bazar.notification_events(user_id,kind,source_id,scope_id,read_at) VALUES($1,'order.created',$2,$2,clock_timestamp())",[s.user,s.order]);
- const before=(await db.pool.query('SELECT * FROM bazar.notification_events')).rows;assert.equal(await migrate(db.config), 3);assert.equal(await migrate(db.config),0);assert.deepEqual((await db.pool.query('SELECT * FROM bazar.notification_events')).rows,before);
+ const before=(await db.pool.query('SELECT * FROM bazar.notification_events')).rows;assert.equal(await migrate(db.config), 4);assert.equal(await migrate(db.config),0);assert.deepEqual((await db.pool.query('SELECT * FROM bazar.notification_events')).rows,before);
  const service=createCommunicationService(db.pool);assert.equal((await service.notificationSummary(s.user)).unread,0);
  await db.pool.query("INSERT INTO bazar.notification_events(user_id,kind,source_id,scope_id) VALUES($1,'order.status_changed',$2,$2)",[s.user,s.order]);assert.equal((await service.notificationSummary(s.user)).unread,1);
 });
@@ -6436,4 +6438,68 @@ test('F21 offers preserve seller/variant prices, pagination, ownership and saved
  assert.equal((await db.pool.query("SELECT count(*)::int AS n FROM bazar.notification_events WHERE user_id=$1 AND kind='product.availability_restored'",[buyer])).rows[0].n,1);
  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar.offer_wishlist_items WHERE user_id=$1',[buyer])).rows[0].n,1);
  await svc.wishlist(buyer,ids[1].id,false);assert.equal((await svc.state(buyer)).wishlist.length,0);
+});
+
+async function commerceCase(t:TestContext){
+ const db=await database(t);await migrate(db.config);
+ const category=(await db.pool.query("INSERT INTO bazar.categories(handle,title) VALUES('f22-synthetic','Synthetic F22 category') RETURNING id")).rows[0].id;
+ const offers=await seedBrowserOffers(db.pool,category);
+ await db.pool.query('UPDATE bazar.variants SET price_minor=800000 WHERE id=$1',[offers[0].id]);await db.pool.query('UPDATE bazar.variants SET price_minor=200000 WHERE id=$1',[offers[3].id]);
+ const user=(await db.pool.query("INSERT INTO bazar.users(first_name,last_name) VALUES('Synthetic','Buyer') RETURNING id")).rows[0].id;
+ const other=(await db.pool.query("INSERT INTO bazar.users(first_name,last_name) VALUES('Synthetic','Other') RETURNING id")).rows[0].id;
+ const cart=createCurrentCartService(db.pool);await cart.ensure(user,{});let version=1;for(const i of [0,3])await cart.mutate(user,'add',{variantId:offers[i].id,quantity:1,expectedVersion:version++,idempotencyKey:randomUUID()});
+ const pay=paymentFixture(),ship=shippingFixture(),service=createCommerceService(db.pool,pay.adapter,ship.adapters,'exact-only');
+ const sellers=(await db.pool.query('SELECT id,seller_id FROM bazar.seller_offers WHERE id=ANY($1::uuid[])',[offers.map(o=>o.id)])).rows;
+ const input={idempotencyKey:randomUUID(),expectedCartVersion:3,selectedOfferIds:[offers[0].id,offers[3].id],contact:{firstName:'Синтетичний',lastName:'Приклад',phone:'+380671234567',email:'',comment:''},deliveries:[0,3].map(i=>({sellerId:sellers.find(s=>s.id===offers[i].id)!.seller_id,carrier:'nova-poshta',cityRef:'synthetic-city',pointRef:'synthetic-location',kind:'branch'})),promoCode:null as string|null};
+ async function promo(kind:'fixed'|'percentage'='fixed',scope='order',max=10){const code=generatePromoCode();const p=(await db.pool.query("INSERT INTO bazar.promotions(code,kind,fixed_minor,percentage_basis_points,currency,min_subtotal_minor,starts_at,ends_at,enabled,max_uses,per_user_limit) VALUES($1,$2,$3,$4,'UAH',1,clock_timestamp()-interval '1 day',clock_timestamp()+interval '1 day',true,$5,$5) RETURNING id",[code,kind,kind==='fixed'?100000:null,kind==='percentage'?1000:null,max])).rows[0].id;await db.pool.query('INSERT INTO bazar.commerce_promotions(promotion_id,scope,code) VALUES($1,$2,$3)',[p,scope,code]);return {id:p,code};}
+ return {...db,offers,user,other,cart,pay,ship,service,input,promo};
+}
+test('F22 multi-seller fixed allocation, signed success, immutable snapshots, clearing and owner isolation',async t=>{
+ const a=await commerceCase(t),p=await a.promo();const q=await a.service.quote(a.user,{...a.input,promoCode:p.code});assert.equal(q.snapshot.financial.netMinor,900000);assert.equal(q.snapshot.financial.commissionMinor,45000);
+ const key=randomUUID(),pending=await a.service.initiate(a.user,q.id,{idempotencyKey:key,method:'card'});assert.equal(pending.sellerOrders.length,2);assert.equal(pending.paymentState,'pending');assert.equal((await a.cart.get(a.user)).cart.lines.length,2);
+ await a.service.initiate(a.user,q.id,{idempotencyKey:key,method:'card'});assert.equal(a.pay.state.submissions,1);
+ const ownSeller=q.snapshot.items.find(i=>i.variantId===a.offers[0].id)!.sellerId;const ownPart=await a.service.sellerOrder(a.offers[0].owner,pending.sellerOrders.find(s=>s.sellerId===ownSeller)!.id);assert.equal(ownPart.lines.length,1);assert.ok(ownPart.lines.every(l=>l.sellerId===ownSeller));assert.equal('quote' in ownPart,false);await assert.rejects(a.service.getOrder(a.other,pending.id));await assert.rejects(a.service.sellerOrder(a.offers[0].owner,pending.sellerOrders.find(s=>s.sellerId!==q.snapshot.items.find(i=>i.variantId===a.offers[0].id)!.sellerId)!.id));
+ const proof=a.pay.signed(a.pay.event(pending.attemptId!,'succeeded'));await a.service.webhook(proof.raw,proof.signature);await a.service.webhook(proof.raw,proof.signature);
+ const done=await a.service.getOrder(a.user,pending.id);assert.equal(done.status,'confirmed');assert.equal(done.paymentState,'succeeded');assert.equal((await a.cart.get(a.user)).cart.lines.length,0);assert.equal((await a.cart.get(a.user)).cart.version,4);assert.equal((await a.service.listOrders(a.user)).items.length,1);
+ await a.pool.query('UPDATE bazar.variants SET price_minor=900000 WHERE id=$1',[a.offers[0].id]);await a.pool.query('UPDATE bazar.promotions SET fixed_minor=200000 WHERE id=$1',[p.id]);const historical=(await a.service.getOrder(a.user,pending.id)).quote.snapshot;assert.equal(historical.financial.netMinor,900000);assert.deepEqual(historical.promotionTerms?.rule,{kind:'fixed',amountMinor:100000});assert.equal(historical.promotionTerms?.scope,'order');
+ await assert.rejects(a.pool.query("UPDATE bazar.commerce_checkouts SET snapshot='{}' WHERE id=$1",[q.id]));await assert.rejects(a.pool.query('DELETE FROM bazar.commerce_order_lines WHERE parent_id=$1',[done.id]));
+ assert.equal((await a.pool.query("SELECT count(*)::int n FROM bazar.notification_events WHERE kind='order.created' AND user_id=$1",[a.user])).rows[0].n,1);
+});
+test('F22 decline and unknown preserve cart and never submit a second unresolved charge',async t=>{
+ const a=await commerceCase(t),q=await a.service.quote(a.user,a.input);a.pay.state.failSubmit=true;const o=await a.service.initiate(a.user,q.id,{idempotencyKey:randomUUID(),method:'card'});assert.equal(o.paymentState,'unknown');assert.equal((await a.cart.get(a.user)).cart.lines.length,2);await assert.rejects(a.service.initiate(a.user,q.id,{idempotencyKey:randomUUID(),method:'card'}));assert.equal(a.pay.state.submissions,1);
+ a.pay.state.failInspect=true;assert.equal((await a.service.reconcile(a.user,o.id)).paymentState,'verification-required');a.pay.state.failInspect=false;const decline=a.pay.signed(a.pay.event(o.attemptId!,'declined'));await a.service.webhook(decline.raw,decline.signature);a.pay.state.failSubmit=false;const retry=await a.service.initiate(a.user,q.id,{idempotencyKey:randomUUID(),method:'card'});assert.equal(retry.id,o.id);assert.notEqual(retry.attemptId,o.attemptId);assert.equal(a.pay.state.submissions,2);
+ const wrong=a.pay.signed({...a.pay.event(retry.attemptId!,'succeeded'),amountMinor:1});await assert.rejects(a.service.webhook(wrong.raw,wrong.signature));await assert.rejects(a.service.webhook(wrong.raw,'forged'));const fractional=a.pay.signed({...a.pay.event(retry.attemptId!,'succeeded'),amountMinor:0.5});await assert.rejects(a.service.webhook(fractional.raw,fractional.signature),{status:403});assert.equal((await a.cart.get(a.user)).cart.lines.length,2);
+});
+test('F22 changes before payment require review, selected generations preserve later cart additions',async t=>{
+ const a=await commerceCase(t),q=await a.service.quote(a.user,a.input);await a.pool.query('UPDATE bazar.variants SET price_minor=900000 WHERE id=$1',[a.offers[0].id]);await assert.rejects(a.service.initiate(a.user,q.id,{idempotencyKey:randomUUID(),method:'card'}));assert.equal(a.pay.state.submissions,0);
+ await a.pool.query('UPDATE bazar.variants SET price_minor=800000 WHERE id=$1',[a.offers[0].id]);const reviewed=await a.service.quote(a.user,{...a.input,idempotencyKey:randomUUID()});const o=await a.service.initiate(a.user,reviewed.id,{idempotencyKey:randomUUID(),method:'card'});
+ await a.cart.mutate(a.user,'add',{variantId:a.offers[0].id,quantity:2,expectedVersion:3,idempotencyKey:randomUUID()});await a.cart.mutate(a.user,'remove',{expectedVersion:4,idempotencyKey:randomUUID()},a.offers[3].id);await a.cart.mutate(a.user,'add',{variantId:a.offers[3].id,quantity:1,expectedVersion:5,idempotencyKey:randomUUID()});
+ const e=a.pay.signed(a.pay.event(o.attemptId!,'succeeded'));await a.service.webhook(e.raw,e.signature);const saved=(await a.cart.get(a.user)).cart.lines;assert.equal(saved.find(l=>l.variantId===a.offers[0].id)!.quantity,2);assert.equal(saved.find(l=>l.variantId===a.offers[3].id)!.quantity,1);
+});
+test('F22 eligible category/product scope and concurrent promotion capacity never over-consume',async t=>{
+ const a=await commerceCase(t),p=await a.promo('percentage','product',1);await a.pool.query('INSERT INTO bazar.promotion_products(promotion_id,product_id) VALUES($1,$2)',[p.id,a.offers[0].productId]);const q=await a.service.quote(a.user,{...a.input,promoCode:p.code});assert.equal(q.snapshot.financial.discountMinor,80000);assert.equal(q.snapshot.financial.lines.filter(l=>l.eligible).length,1);
+ const outcomes=await Promise.allSettled([a.service.initiate(a.user,q.id,{idempotencyKey:randomUUID(),method:'card'}),a.service.initiate(a.user,q.id,{idempotencyKey:randomUUID(),method:'card'})]);assert.equal(outcomes.filter(o=>o.status==='fulfilled').length,1);assert.equal(a.pay.state.submissions,1);
+ const cap=await a.promo();await a.pool.query('UPDATE bazar.promotions SET fixed_minor=2000000 WHERE id=$1',[cap.id]);const zero=await a.service.quote(a.user,{...a.input,idempotencyKey:randomUUID(),promoCode:cap.code});assert.equal(zero.snapshot.financial.netMinor,0);await assert.rejects(a.service.initiate(a.user,zero.id,{idempotencyKey:randomUUID(),method:'card'}));
+});
+
+test('F22 unavailable offers stay saved; explicit single-seller multi-offer selection clears only purchased quantities',async t=>{
+ const a=await commerceCase(t),q=await a.service.quote(a.user,a.input),catalog=createCatalogV2(a.pool);
+ await catalog.update(a.offers[0].owner,a.offers[0].productId,{expectedVersion:1,idempotencyKey:randomUUID(),variantId:a.offers[0].id,available:false});await assert.rejects(a.service.initiate(a.user,q.id,{idempotencyKey:randomUUID(),method:'card'}));assert.equal(a.pay.state.submissions,0);assert.equal((await a.cart.get(a.user)).cart.lines.length,2);
+ await catalog.update(a.offers[0].owner,a.offers[0].productId,{expectedVersion:2,idempotencyKey:randomUUID(),variantId:a.offers[0].id,available:true});await a.cart.mutate(a.user,'add',{variantId:a.offers[2].id,quantity:2,expectedVersion:3,idempotencyKey:randomUUID()});
+ const seller=q.snapshot.items.find(i=>i.variantId===a.offers[0].id)!.sellerId;const only=await a.service.quote(a.user,{...a.input,idempotencyKey:randomUUID(),expectedCartVersion:4,selectedOfferIds:[a.offers[0].id,a.offers[2].id],deliveries:a.input.deliveries.filter(d=>d.sellerId===seller)});const o=await a.service.initiate(a.user,only.id,{idempotencyKey:randomUUID(),method:'card'});assert.equal(o.sellerOrders.length,1);assert.equal(o.quote.snapshot.items[1].quantity>0,true);const proof=a.pay.signed(a.pay.event(o.attemptId!,'succeeded'));await a.service.webhook(proof.raw,proof.signature);const left=(await a.cart.get(a.user)).cart.lines;assert.equal(left.length,1);assert.equal(left[0].variantId,a.offers[3].id);assert.equal(a.ship.state.calls,0);
+});
+test('F22 failure during seller-line persistence rolls back parent children claims and payment before any provider call',async t=>{
+ const a=await commerceCase(t);await assert.rejects(a.service.quote(a.user,{...a.input,contact:{...a.input.contact,email:123}}),{code:'INVALID_REQUEST'});const q=await a.service.quote(a.user,a.input),key=randomUUID();await a.pool.query("CREATE FUNCTION bazar.fail_f22() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'synthetic failure';END $$; CREATE TRIGGER fail_f22 BEFORE INSERT ON bazar.commerce_order_lines FOR EACH ROW EXECUTE FUNCTION bazar.fail_f22()");await assert.rejects(a.service.initiate(a.user,q.id,{idempotencyKey:key,method:'card'}));for(const table of ['commerce_parent_orders','commerce_seller_orders','commerce_cart_claims','commerce_payment_attempts'])assert.equal((await a.pool.query('SELECT count(*)::int n FROM bazar.'+table)).rows[0].n,0);assert.equal(a.pay.state.submissions,0);await a.pool.query('DROP TRIGGER fail_f22 ON bazar.commerce_order_lines');const pending=await a.service.initiate(a.user,q.id,{idempotencyKey:key,method:'card'});assert.equal(pending.sellerOrders.length,2);assert.equal(a.pay.state.submissions,1);
+ await a.pool.query('CREATE TRIGGER fail_f22_clear BEFORE DELETE ON bazar.cart_lines FOR EACH ROW EXECUTE FUNCTION bazar.fail_f22()');const proof=a.pay.signed(a.pay.event(pending.attemptId!,'succeeded'));await assert.rejects(a.service.webhook(proof.raw,proof.signature));const retained=await a.service.getOrder(a.user,pending.id);assert.equal(retained.paymentState,'succeeded');assert.equal(retained.status,'awaiting-payment');assert.equal((await a.cart.get(a.user)).cart.lines.length,2);await a.pool.query('DROP TRIGGER fail_f22_clear ON bazar.cart_lines');assert.equal((await a.service.reconcile(a.user,pending.id)).status,'confirmed');assert.equal(a.pay.state.submissions,1);assert.equal((await a.cart.get(a.user)).cart.lines.length,0);
+});
+test('F22 category eligibility is explicit, expiry/limits fail closed and zero-payable rules are not fabricated',async t=>{
+ const a=await commerceCase(t),p=await a.promo('fixed','category');const category=(await a.pool.query('SELECT category_id FROM bazar.products WHERE id=$1',[a.offers[0].productId])).rows[0].category_id;const other=(await a.pool.query("INSERT INTO bazar.categories(parent_id,handle,title) VALUES($1,'f22-other','Synthetic separate category') RETURNING id",[category])).rows[0].id;await a.pool.query('UPDATE bazar.products SET category_id=$2 WHERE id=$1',[a.offers[3].productId,other]);await a.pool.query('INSERT INTO bazar.commerce_promotion_categories(promotion_id,category_id) VALUES($1,$2)',[p.id,category]);const q=await a.service.quote(a.user,{...a.input,promoCode:p.code});assert.equal(q.snapshot.financial.lines.filter(l=>l.eligible).length,1);assert.equal(q.snapshot.financial.discountMinor,100000);
+ await a.pool.query('UPDATE bazar.promotions SET min_subtotal_minor=900000 WHERE id=$1',[p.id]);await assert.rejects(a.service.quote(a.user,{...a.input,idempotencyKey:randomUUID(),promoCode:p.code}),{code:'PROMOTION_POLICY_REQUIRED'});
+ await a.pool.query("UPDATE bazar.promotions SET ends_at=clock_timestamp()-interval '1 millisecond' WHERE id=$1",[p.id]);await assert.rejects(a.service.initiate(a.user,q.id,{idempotencyKey:randomUUID(),method:'card'}));assert.equal(a.pay.state.submissions,0);
+});
+
+test('F22 concurrent different buyers share the last promotion use without overspending capacity',async t=>{
+ const a=await commerceCase(t),p=await a.promo('fixed','order',1);await a.cart.ensure(a.other,{});let version=1;for(const i of [0,3])await a.cart.mutate(a.other,'add',{variantId:a.offers[i].id,quantity:1,expectedVersion:version++,idempotencyKey:randomUUID()});
+ const q1=await a.service.quote(a.user,{...a.input,promoCode:p.code}),q2=await a.service.quote(a.other,{...a.input,idempotencyKey:randomUUID(),promoCode:p.code});
+ const result=await Promise.allSettled([a.service.initiate(a.user,q1.id,{idempotencyKey:randomUUID(),method:'card'}),a.service.initiate(a.other,q2.id,{idempotencyKey:randomUUID(),method:'card'})]);assert.equal(result.filter(r=>r.status==='fulfilled').length,1);assert.equal(a.pay.state.submissions,1);assert.equal((await a.pool.query("SELECT count(*)::int n FROM bazar.commerce_promo_claims WHERE promotion_id=$1 AND state<>'released'",[p.id])).rows[0].n,1);assert.equal((await a.pool.query('SELECT count(*)::int n FROM bazar.commerce_parent_orders')).rows[0].n,1);
 });

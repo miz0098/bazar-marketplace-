@@ -532,3 +532,9 @@ html.auth-scroll-lock { overflow: hidden; overscroll-behavior: none; }
 .search-page a { color: #0969da; }
 .search-page__toolbar p, .search-page__toolbar label { color: #475569; }
 .search-page__form > a { color: #0969da; }
+/* F22 uses the existing checkout grid and controls. */
+.checkout-fields select { width:100%; min-width:0; min-height:46px; padding:10px; border:1px solid var(--bazar-color-border-strong); border-radius:10px; background:#fff; }
+.checkout-selection { display:flex; gap:10px; margin-block:12px; overflow-wrap:anywhere; }
+[data-commerce-seller-order], [data-commerce-order] { overflow-wrap:anywhere; }
+.checkout-page .button:not(.button--secondary) { background:#0d63d5; color:#fff; }
+.checkout-page .button--secondary { color:#095abf; }

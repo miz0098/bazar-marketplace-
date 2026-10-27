@@ -80,3 +80,9 @@ F18 DR01–DR12 remain historical: DR02 now has BR-F01 rate/basis but PD-01 roun
 ## F21 decision update
 
 **Approved AD-F21-01:** one seller's distinct purchasable offer is one card, with exact variant price/attributes/availability, stable seller/product/SKU identity and offer-based search/filter/sort/paging. No «Від» or average. Supersedes the catalog-card aggregate merchandising blocker; parent aggregate price is not chosen or used for these cards. **Approved AD-F21-02:** exact server-owned saved offers, no automatic guest merge, isolated test auth only. **Technical implementation:** existing variant UUID is offer key; additive wishlist sidecar preserves legacy product-level rows without arbitrary assignment. Production providers/grants/media rights/privacy remain pending. Financial rounding, allocations, settlement and legal gates are unchanged. [Evidence/bounds](docs/F21_STOREFRONT_ACCEPTANCE.md).
+
+## F22 implementation overlay — historical evidence retained
+
+Approved AD-F22-01: fixed proportional allocations, caps, integer/rational money, stable largest remainder and immutable-line tie-break; independent5% seller net commission, immutable parent/seller snapshots, server payment finality and payment-gated selected-cart clearing. PD-01 allocation is resolved, but half-up/half-even aggregate percentage and commission rounding mode remains explicitly pending. Active exact-only is a safety gate, not an invented rounding choice. PD-04 free-order finality, ambiguous minimum basis/funding, legal refund/unit attribution/fees/settlement and providers remain gated. Technical choices: additive namespace, UUID order numbers, canonical hashes, generation-aware subtraction, reserved/consumed/released promo claims and durable provider attempts; detailed boundaries/evidence in ADR0020 and F22 acceptance.
+
+[Current evidence and remaining gates](docs/F22_CHECKOUT_ACCEPTANCE.md).
