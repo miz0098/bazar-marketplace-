@@ -469,6 +469,7 @@ function Screen() {
                         ) : (
                           <>
                             <h2>Перевірте тестові дані</h2>
+                            <FinancialSummary subtotal={data.draft.pricing!.subtotal} discount={data.draft.pricing!.discount} shipping={data.draft?.testShippingEstimate} total={data.attempt?.amount} />
                             <p>
                               {data.session.user.firstName}{" "}
                               {data.session.user.lastName} ·{" "}
@@ -551,13 +552,12 @@ function Screen() {
                         <div>
                           <span>Товари · сервер</span>
                           <strong>
-                            {data.cart && formatMoney(data.cart.cart.subtotal)}
+                            {data.draft?.pricing ? formatMoney(data.draft.pricing.subtotal) : data.cart && formatMoney(data.cart.cart.subtotal)}
                           </strong>
                         </div>
                         <p>
                           Доставка — лише тестова пропозиція перевізника.
-                          Податки, знижки й остаточна сума списання не
-                          затверджені.
+                          Синтетична сума визначається сервером під час підготовки платежу. Реальна сума списання не затверджена.
                         </p>
                         <p>
                           Промокод та підсумок перевіряються на другому кроці.
@@ -583,6 +583,7 @@ function Screen() {
                     <p>
                       Підтвердження тестового протоколу не є реальною оплатою.
                     </p>
+                    {data.order.testFinancials && <FinancialSummary {...data.order.testFinancials} />}
                     <ol aria-label="Історія серверних статусів">
                       {data.history?.history.map((h) => (
                         <li key={h.id}>
@@ -1133,7 +1134,7 @@ function Payment({
   save: (r: BrowserResume) => void;
   next: () => void;
 }) {
-  const [promo, setPromo] = useState("");
+  const [promo, setPromo] = useState(data.draft?.appliedPromoCode ?? "");
   return (
     <>
       <h2>Спосіб оплати</h2>
@@ -1176,7 +1177,7 @@ function Payment({
             await clients.checkout.setPayment(d.id, {
               expectedVersion: d.version,
               paymentSelection: "card-online",
-              promoCode: promo.trim() || null,
+              promoCode: promo || null,
             });
           });
         }}
@@ -1212,8 +1213,10 @@ function Payment({
       </form>
       <p>
         Серверна знижка: {formatMoney(data.draft!.pricing!.discount)}.
-        Завершення зі знижкою заблоковане до погодження фінансових правил.
+        {data.draft?.appliedPromoCode ? ` Застосовано: ${data.draft.appliedPromoCode}.` : " Промокод не застосовано."}
+        Розрахунок лише для ізольованого тесту.
       </p>
+      <FinancialSummary subtotal={data.draft!.pricing!.subtotal} discount={data.draft!.pricing!.discount} shipping={data.draft?.testShippingEstimate} total={data.attempt?.amount} />
       {!data.attempt ||
       ["declined", "cancelled"].includes(data.attempt.status) ? (
         <button
@@ -1285,4 +1288,8 @@ function Payment({
       </div>
     </>
   );
+}
+
+function FinancialSummary({subtotal,discount,shipping,total}:{subtotal:{amountMinor:number;currency:"UAH"};discount:{amountMinor:number;currency:"UAH"};shipping?:{amountMinor:number;currency:"UAH"};total?:{amountMinor:number;currency:"UAH"}}) {
+ return <dl aria-label="Серверні тестові суми"><dt>Початкова сума</dt><dd>{formatMoney(subtotal)}</dd><dt>Знижка</dt><dd>{formatMoney(discount)}</dd><dt>Доставка</dt><dd>{shipping ? formatMoney(shipping) : "Перевіряється сервером"}</dd><dt>Тестовий підсумок</dt><dd>{total ? formatMoney(total) : "Буде визначений сервером до тестового результату оплати"}</dd></dl>;
 }

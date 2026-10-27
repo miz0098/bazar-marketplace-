@@ -76,3 +76,10 @@ test('checkout client rejects manufactured real confirmation/provider success an
     { code: 'invalid-response' },
   );
 });
+test('F16 order decoder accepts only consistent historical discounted test snapshots',async()=>{
+ const money=(amountMinor:number)=>({amountMinor,currency:'UAH'});
+ const order={id,mode:'integration-test',status:'pending',recordState:'recorded-for-test',createdAt:'2026-10-27T00:00:00.000Z',cartId:id,cartVersion:2,lines:[{productId:id,variantId:id,title:'Тест',quantity:2,unitPrice:money(10000),lineTotal:money(20000)}],subtotal:money(20000),discount:money(1000),merchandiseTotal:money(19000),payableTotal:null,delivery:{addressId:id,carrier:'meest',cityRef:'city',locationRef:'point',cost:null,status:'not-requested'},paymentSelection:'card-online',paymentStatus:'not-initiated',inventoryStatus:'not-reserved',testFinancials:{scope:'isolated-test-plan',subtotal:money(20000),discount:money(1000),shipping:money(7350),total:money(26350),promoCode:'TEST'}};
+ const get=(v:unknown)=>createCheckoutBusinessClient(()=>token,async()=>response(v)).getOrder(id);
+ assert.equal((await get(order)).testFinancials!.total.amountMinor,26350);
+ for(const f of [undefined,{...order.testFinancials,total:money(1)},{...order.testFinancials,currency:'USD',shipping:{amountMinor:7350,currency:'USD'}},{...order.testFinancials,scope:'production'}])await assert.rejects(get({...order,testFinancials:f}),{code:'invalid-response'});
+});

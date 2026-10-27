@@ -26,6 +26,7 @@ export function createCheckoutIntegrationServices(
     shippingConfig: ShippingTestConfig;
     payment: PaymentAdapter;
     paymentConfig: PaymentTestConfig;
+    discountedCheckoutForTest?: true;
     isReady: () => boolean | Promise<boolean>;
   },
 ) {
@@ -52,7 +53,7 @@ export function createCheckoutIntegrationServices(
     currentCart: createCurrentCartService(pool),
     catalog: createCatalog(pool),
     promotions: createPromotionService(pool),
-    checkout: createCheckoutBusinessService(pool, shipping, payments),
+    checkout: createCheckoutBusinessService(pool, shipping, payments, input.discountedCheckoutForTest),
     isReady: input.isReady,
   };
 }

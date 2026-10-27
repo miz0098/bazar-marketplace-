@@ -19,11 +19,14 @@ import { integer, money, text, uuid } from '../business/validation.js';
 import { providerCall } from '../shipping/adapter.js';
 
 export interface PaymentTestConfig {
+  discountedCheckoutForTest?: true;
   timeoutMs: number;
   /** No production payable amount exists. Explicit synthetic financial plan, never client data or a guessed total. */
   plan(input: {
     checkoutId: string;
     pricingFingerprint: string;
+    pricing?: import("../contracts/checkout.js").CheckoutPricing;
+    shippingCostMinor?: number;
   }): Promise<{ amountMinor: number; currency: 'UAH'; revision: string }>;
 }
 const conflict = () =>
@@ -217,13 +220,15 @@ export function createPaymentService(
       );
     });
   }
-  async function financialBasis(checkoutId: string, fingerprint: string) {
+  async function financialBasis(checkoutId: string, fingerprint: string, c: pg.PoolClient, actor: string, pricing: import("../contracts/checkout.js").CheckoutPricing) {
+    const quote = (await c.query('SELECT q.amount_minor::text FROM bazar.checkout_shipping s JOIN bazar.shipping_quotes q ON q.id=s.quote_id AND q.user_id=s.user_id WHERE s.checkout_id=$1 AND s.user_id=$2', [checkoutId,actor])).rows[0];
     let plan: Awaited<ReturnType<PaymentTestConfig['plan']>>;
     try {
       plan = await providerCall(config.timeoutMs, () =>
         config.plan({
           checkoutId,
           pricingFingerprint: fingerprint,
+          pricing, shippingCostMinor: quote ? money(quote.amount_minor) : undefined,
         }),
       );
     } catch {
@@ -280,7 +285,7 @@ export function createPaymentService(
       ).rows[0];
       if (!r) throw missing();
       if (r.status !== 'succeeded') throw conflict();
-      const { plan, binding } = await financialBasis(uuid(row.id), fingerprint);
+      const { plan, binding } = await financialBasis(uuid(row.id), fingerprint, c, actor, (await state(c,actor,row)).pricing!);
       if (r.binding !== binding || money(r.amount_minor) !== plan.amountMinor)
         throw stale();
     },
@@ -320,7 +325,7 @@ export function createPaymentService(
           checkout.stage !== 'confirmation' ||
           !checkout.pricing?.acknowledged ||
           checkout.paymentSelection !== 'card-online' ||
-          row.promo_code !== null
+          (row.promo_code !== null && !config.discountedCheckoutForTest)
         )
           throw conflict();
         const hasShipping = await c.query(
@@ -333,7 +338,7 @@ export function createPaymentService(
         }
         const { plan, binding } = await financialBasis(
           id,
-          checkout.pricing.fingerprint,
+          checkout.pricing.fingerprint, c, actor, checkout.pricing,
         );
         let intent = (
           await c.query(

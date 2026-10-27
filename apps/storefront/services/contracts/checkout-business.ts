@@ -18,6 +18,8 @@ export interface CheckoutPricing {
   acknowledged: boolean;
 }
 export interface CheckoutSessionDto {
+  appliedPromoCode?: string | null;
+  testShippingEstimate?: Money;
   id: string;
   mode: 'integration-test';
   version: number;
@@ -40,7 +42,16 @@ export interface IntegrationOrderLine {
   unitPrice: Money;
   lineTotal: Money;
 }
+export interface TestFinancialSnapshot {
+  scope: 'isolated-test-plan';
+  subtotal: Money;
+  discount: Money;
+  shipping: Money;
+  total: Money;
+  promoCode: string | null;
+}
 export interface IntegrationOrderDto {
+  testFinancials?: TestFinancialSnapshot;
   id: string;
   mode: 'integration-test';
   status: 'pending';

@@ -39,6 +39,7 @@ import { createLogger } from '../../src/logger.js';
 import { createApiServer } from '../../src/server.js';
 import { readDatabaseConfig } from '../../src/database/config.js';
 import { createDatabase } from '../../src/database/connection.js';
+import { discountedTestPlan } from '../../src/payments/test-pricing.js';
 import { migrate, migrationDirectory } from '../../src/database/migrations.js';
 
 const source = process.env.DATABASE_TEST_URL;
@@ -89,9 +90,9 @@ test('fresh database, previous schema upgrade, rerun and concurrent migrators ar
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(`${migrationDirectory}/0001_core.sql`, `${dir}/0001_core.sql`);
   assert.equal(await migrate(db.config, dir), 1);
-  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 12]);
+  assert.deepEqual((await Promise.all([migrate(db.config), migrate(db.config)])).sort(), [0, 13]);
   assert.equal(await migrate(db.config), 0);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 13);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 14);
   assert.ok((await db.pool.query("SELECT indexname FROM pg_indexes WHERE schemaname='bazar' AND indexname='variants_available_idx'")).rowCount);
 });
 
@@ -103,10 +104,10 @@ test('modified/unknown migrations are rejected and failed DDL rolls back without
   writeFileSync(`${dir}/0001_core.sql`, first + '\n-- modified\n');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   writeFileSync(`${dir}/0001_core.sql`, first);
-  writeFileSync(`${dir}/0014_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
+  writeFileSync(`${dir}/0015_failure.sql`, 'CREATE TABLE bazar.must_rollback(id integer); SELECT definitely_missing_column;');
   await assert.rejects(migrate(db.config, dir), /Database migration failed/);
   assert.equal((await db.pool.query("SELECT to_regclass('bazar.must_rollback') AS name")).rows[0].name, null);
-  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 13);
+  assert.equal((await db.pool.query('SELECT count(*)::int AS n FROM bazar_meta.schema_migrations')).rows[0].n, 14);
   await db.pool.query("INSERT INTO bazar_meta.schema_migrations(version,checksum) VALUES ('9999',repeat('0',64))");
   await assert.rejects(migrate(db.config), /Database migration failed/);
 });
@@ -2435,7 +2436,7 @@ test("F7 upgrades F6 without rewriting existing orders; directories cover only e
   }
   await migrate(db.config, dir);
   const s = await seed(db.pool);
-  assert.equal(await migrate(db.config), 7);
+  assert.equal(await migrate(db.config), 8);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -3613,6 +3614,7 @@ test('F8 upgrades the full F7 database without changing previously saved shippin
   rmSync(`${dir}/0010_current_cart_checkout.sql`);
   rmSync(`${dir}/0011_customer_account.sql`);
   rmSync(`${dir}/0012_communication_foundation.sql`);
+  rmSync(`${dir}/0014_discounted_test_checkout.sql`);
   rmSync(`${dir}/0013_order_lifecycle.sql`);
   assert.equal(await migrate(db.config, dir), 7);
   const s = await seed(db.pool);
@@ -3637,7 +3639,7 @@ test('F8 upgrades the full F7 database without changing previously saved shippin
     expectedVersion: 2,
     idempotencyKey: randomUUID(),
   });
-  assert.equal(await migrate(db.config), 6);
+  assert.equal(await migrate(db.config), 7);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -3822,7 +3824,7 @@ test('F9 concurrent distinct requests cannot consume the same cart version, and 
     { code: '23514' },
   );
 });
-async function integratedCase(t: TestContext) {
+async function integratedCase(t: TestContext, discounted = false) {
   const db = await database(t);
   await migrate(db.config);
   const s = await seed(db.pool),
@@ -3872,7 +3874,8 @@ async function integratedCase(t: TestContext) {
     shipping: [...deliveryFixture.adapters, up],
     shippingConfig: deliveryFixture.config,
     payment: payment.adapter,
-    paymentConfig: payment.config,
+    paymentConfig: discounted ? {...payment.config,discountedCheckoutForTest:true,plan:async ({pricing,shippingCostMinor})=>discountedTestPlan(pricing!,shippingCostMinor!)} : payment.config,
+    ...(discounted ? {discountedCheckoutForTest:true as const} : {}),
     isReady: async () => {
       await db.pool.query('SELECT 1');
       return true;
@@ -4438,10 +4441,11 @@ test('F9 upgrades F8 without silently selecting legacy carts or changing payment
   rmSync(`${dir}/0010_current_cart_checkout.sql`);
   rmSync(`${dir}/0011_customer_account.sql`);
   rmSync(`${dir}/0012_communication_foundation.sql`);
+  rmSync(`${dir}/0014_discounted_test_checkout.sql`);
   rmSync(`${dir}/0013_order_lifecycle.sql`);
   assert.equal(await migrate(db.config, dir), 9);
   const s = await seed(db.pool);
-  assert.equal(await migrate(db.config), 4);
+  assert.equal(await migrate(db.config), 5);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -5025,6 +5029,7 @@ test('F12 upgrade preserves F11 customer data and previous migrations while addi
   cpSync(migrationDirectory, dir, { recursive: true });
   rmSync(`${dir}/0011_customer_account.sql`);
   rmSync(`${dir}/0012_communication_foundation.sql`);
+  rmSync(`${dir}/0014_discounted_test_checkout.sql`);
   rmSync(`${dir}/0013_order_lifecycle.sql`);
   assert.equal(await migrate(db.config, dir), 10);
   const s = await seed(db.pool);
@@ -5032,7 +5037,7 @@ test('F12 upgrade preserves F11 customer data and previous migrations while addi
     'INSERT INTO bazar.wishlist_items(user_id,product_id) VALUES ($1,$2)',
     [s.user, s.product],
   );
-  assert.equal(await migrate(db.config), 3);
+  assert.equal(await migrate(db.config), 4);
   assert.equal(await migrate(db.config), 0);
   assert.equal(
     (
@@ -5503,6 +5508,7 @@ test("F13 upgrades F12 with legacy messages intact, ordered sequences, valid rea
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(migrationDirectory, dir, { recursive: true });
   rmSync(`${dir}/0012_communication_foundation.sql`);
+  rmSync(`${dir}/0014_discounted_test_checkout.sql`);
   rmSync(`${dir}/0013_order_lifecycle.sql`);
   assert.equal(await migrate(a.config, dir), 11);
   const s = await seed(a.pool);
@@ -5529,7 +5535,7 @@ test("F13 upgrades F12 with legacy messages intact, ordered sequences, valid rea
     "UPDATE bazar.conversation_members SET last_read_message_id=$1",
     [later],
   );
-  assert.equal(await migrate(a.config), 2);
+  assert.equal(await migrate(a.config), 3);
   assert.equal(await migrate(a.config), 0);
   const service = createCommunicationService(a.pool);
   const history = await service.history(s.user, chat, "messages");
@@ -6049,6 +6055,7 @@ test("F14 F13 upgrade backfills immutable initial order history and preserves pr
     dir = mkdtempSync(`${tmpdir()}/bazar-f14-upgrade-`);
   t.after(() => rmSync(dir, { recursive: true }));
   cpSync(migrationDirectory, dir, { recursive: true });
+  rmSync(`${dir}/0014_discounted_test_checkout.sql`);
   rmSync(`${dir}/0013_order_lifecycle.sql`);
   assert.equal(await migrate(db.config, dir), 12);
   const s = await seed(db.pool);
@@ -6078,7 +6085,7 @@ test("F14 F13 upgrade backfills immutable initial order history and preserves pr
       idempotencyKey: randomUUID(),
     })
   ).order;
-  assert.equal(await migrate(db.config), 1);
+  assert.equal(await migrate(db.config), 2);
   assert.equal(await migrate(db.config), 0);
   assert.deepEqual(await checkout.getOrder(s.user, original.id), original);
   const f = lifecycleFixture(),
@@ -6186,4 +6193,64 @@ test("F14 unknown/timeout outcomes retain refund budget; verified receipt and st
   );
   assert.equal(final.refunds[0].state, "confirmed-for-test");
   assert.equal(final.order.fundsReturned, false);
+});
+
+async function discountedCase(t:TestContext, percent=false) {
+ const a=await integratedCase(t,true);const session=await integrationLogin(a);
+ const cart=await a.client.cart.ensureCurrent();
+ await a.client.cart.add({variantId:a.s.variant,quantity:2,expectedVersion:cart.cart.version,idempotencyKey:randomUUID()});
+ const address=(await a.pool.query("INSERT INTO bazar.addresses(user_id,carrier,city_ref,location_ref) VALUES($1,'nova-poshta','synthetic-city','synthetic-location') RETURNING id",[session.user.id])).rows[0].id;
+ const promotion=(await a.pool.query("INSERT INTO bazar.promotions(code,kind,fixed_minor,percentage_basis_points,currency,min_subtotal_minor,starts_at,ends_at,enabled,max_uses,per_user_limit) VALUES('F16',$1,$2,$3,'UAH',1,clock_timestamp()-interval '1 day',clock_timestamp()+interval '1 day',true,1,1) RETURNING id",[percent?'percentage':'fixed',percent?null:1000,percent?2000:null])).rows[0].id;
+ await a.pool.query('INSERT INTO bazar.promotion_products(promotion_id,product_id) VALUES($1,$2)',[promotion,a.s.product]);
+ let draft=await a.client.startCurrentCheckout(randomUUID());
+ const selection=await a.client.shipping.select(draft.id,{expectedVersion:draft.version,addressId:address,kind:'branch'});
+ await a.client.shipping.quote(draft.id,{expectedVersion:selection.checkoutVersion,idempotencyKey:randomUUID()});
+ draft=await a.client.checkout.setPayment(draft.id,{expectedVersion:selection.checkoutVersion,paymentSelection:'card-online',promoCode:'F16'});
+ const attempt=(await a.client.payments.create({checkoutId:draft.id,expectedVersion:draft.version,method:'card',idempotencyKey:randomUUID()})).attempt;
+ const signed=a.payment.signed(a.payment.event(attempt.id,'succeeded'));await a.services.payments.webhook(signed.raw,signed.signature);
+ return {...a,session,promotion,draft,attempt,input:{expectedVersion:draft.version,expectedFingerprint:draft.pricing!.fingerprint,paymentAttemptId:attempt.id,idempotencyKey:randomUUID()}};
+}
+for(const percent of [false,true])test(`F16 discounted HTTP completion snapshots ${percent?'exact percentage':'fixed'} sums and atomically replays usage`,async t=>{
+ const a=await discountedCase(t,percent);
+ const discount=percent?4938:1000;
+ assert.equal(a.attempt.amount.amountMinor,24690-discount+7350);
+ const results=await Promise.all([a.client.checkout.confirmIntegratedForTest(a.draft.id,a.input),a.client.checkout.confirmIntegratedForTest(a.draft.id,a.input)]);
+ assert.equal(results[0].order.id,results[1].order.id);assert.equal(results.filter(x=>x.replayed).length,1);
+ const order=results[0].order;assert.equal(order.discount.amountMinor,discount);assert.equal(order.testFinancials!.shipping.amountMinor,7350);assert.equal(order.testFinancials!.total.amountMinor,a.attempt.amount.amountMinor);
+ assert.equal((await a.pool.query('SELECT count(*)::int n FROM bazar.promotion_usage_claims')).rows[0].n,1);
+ await a.pool.query('UPDATE bazar.variants SET price_minor=30000 WHERE id=$1',[a.s.variant]);
+ assert.deepEqual(await a.client.checkout.getOrder(order.id),order);
+ await assert.rejects(a.pool.query('UPDATE bazar.order_test_financials SET total_minor=1 WHERE order_id=$1',[order.id]),{code:'23514'});
+});
+test('F16 expiry after signed proof rolls back order and promotion usage',async t=>{
+ const a=await discountedCase(t);
+ await a.pool.query('UPDATE bazar.promotions SET ends_at=clock_timestamp() WHERE id=$1',[a.promotion]);
+ await assert.rejects(a.client.checkout.confirmIntegratedForTest(a.draft.id,a.input),{status:409});
+ assert.equal((await a.pool.query('SELECT count(*)::int n FROM bazar.promotion_usage_claims')).rows[0].n,0);
+ assert.equal((await a.pool.query("SELECT count(*)::int n FROM bazar.orders WHERE foundation_mode='integration-test'")).rows[0].n,0);
+});
+test('F16 competing discounted checkouts serialize one global use without deadlocks or double redemption',async t=>{
+ const a=await discountedCase(t);const actor=a.s.other;
+ const cart=await a.services.currentCart.ensure(actor,{});
+ await a.services.currentCart.mutate(actor,'add',{variantId:a.s.variant,quantity:2,expectedVersion:cart.cart.version,idempotencyKey:randomUUID()});
+ const fresh=await a.services.currentCart.get(actor);
+ const address=(await a.pool.query("INSERT INTO bazar.addresses(user_id,carrier,city_ref,location_ref) VALUES($1,'nova-poshta','synthetic-city','synthetic-location') RETURNING id",[actor])).rows[0].id;
+ let draft=await a.services.checkout.start(actor,{cartId:fresh.cart.id,expectedCartVersion:fresh.cart.version,idempotencyKey:randomUUID()});
+ const selection=await a.services.shipping.select(actor,draft.id,{expectedVersion:draft.version,addressId:address,kind:'branch'});
+ await a.services.shipping.quote(actor,draft.id,{expectedVersion:selection.checkoutVersion,idempotencyKey:randomUUID()});
+ draft=await a.services.checkout.setPayment(actor,draft.id,{expectedVersion:selection.checkoutVersion,paymentSelection:'card-online',promoCode:'F16'});
+ const attempt=(await a.services.payments.create(actor,{checkoutId:draft.id,expectedVersion:draft.version,method:'card',idempotencyKey:randomUUID()})).attempt;
+ const signed=a.payment.signed(a.payment.event(attempt.id,'succeeded'));await a.services.payments.webhook(signed.raw,signed.signature);
+ const outcomes=await Promise.allSettled([a.services.checkout.confirmIntegratedForTest(a.session.user.id,a.draft.id,a.input),a.services.checkout.confirmIntegratedForTest(actor,draft.id,{expectedVersion:draft.version,expectedFingerprint:draft.pricing!.fingerprint,paymentAttemptId:attempt.id,idempotencyKey:randomUUID()})]);
+ assert.equal(outcomes.filter(x=>x.status==='fulfilled').length,1);
+ const failure=outcomes.find(x=>x.status==='rejected');assert.ok(failure && failure.status==='rejected');assert.equal(failure.reason.status,409);
+ for(const table of ['orders','promotion_usage_claims','order_test_financials'])assert.equal((await a.pool.query(`SELECT count(*)::int n FROM bazar.${table}${table==='orders'?" WHERE foundation_mode='integration-test'":""}`)).rows[0].n,1);
+});
+test('F16 failed financial persistence rolls back usage and confirmation atomically and exact retry succeeds',async t=>{
+ const a=await discountedCase(t);
+ await a.pool.query("CREATE FUNCTION bazar.fail_f16() RETURNS trigger LANGUAGE plpgsql AS $$BEGIN RAISE EXCEPTION 'synthetic failure'; END$$; CREATE TRIGGER fail_f16 BEFORE INSERT ON bazar.order_test_financials FOR EACH ROW EXECUTE FUNCTION bazar.fail_f16()");
+ await assert.rejects(a.client.checkout.confirmIntegratedForTest(a.draft.id,a.input),{status:500});
+ for(const table of ['orders','promotion_usage_claims','order_test_financials'])assert.equal((await a.pool.query(`SELECT count(*)::int n FROM bazar.${table}${table==='orders'?" WHERE foundation_mode='integration-test'":""}`)).rows[0].n,0);
+ await a.pool.query('DROP TRIGGER fail_f16 ON bazar.order_test_financials');
+ assert.equal((await a.client.checkout.confirmIntegratedForTest(a.draft.id,a.input)).replayed,false);
 });

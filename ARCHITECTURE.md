@@ -1,5 +1,7 @@
 # BAZAR Storefront Architecture
 
+F16 supersedes the F15 discounted-completion blocker for isolated single-line fixed/exact-percentage checkout only: F5 reuse, atomic test usage/order/payment/shipping snapshot, browser refresh/history and cap contention. Multiple discounted lines, fractional rounding/allocation/stacking and all production financial/provider/auth gates remain blocked. [Scope](docs/F16_DISCOUNTED_CHECKOUT_ACCEPTANCE.md), [ADR0015](docs/adr/0015-discounted-browser-checkout.md).
+
 F15 adds a separate isolated Next browser app and loopback HTTPS/BFF test entry using real PostgreSQL/F4–F14 modules. Normal storefront/API main do not select its OTP/payment helpers or server mode. No-promo/card confirmation/history is browser-tested; production, discounted completion and actual wallets remain blocked. [ADR0014](docs/adr/0014-isolated-browser-checkout.md), [acceptance](docs/F15_BROWSER_CHECKOUT_ACCEPTANCE.md).
 
 F14 adds isolated order-lifecycle sidecars, owner/request/return quantity guards, immutable audit and synthetic refund capacity/authenticated-event protocols without changing F6 immutable order facts. Demo detail adds explicit request-only return/history/status scopes. [ADR 0013](docs/adr/0013-order-lifecycle-requests-refunds.md); [acceptance](docs/F14_ORDER_LIFECYCLE_ACCEPTANCE.md). Real cancellation/return/refund remains blocked.

@@ -1,5 +1,7 @@
 # BAZAR API modules — provisional v1 contracts
 
+F16 supersedes the F15 discounted-completion blocker for isolated single-line fixed/exact-percentage checkout only: F5 reuse, atomic test usage/order/payment/shipping snapshot, browser refresh/history and cap contention. Multiple discounted lines, fractional rounding/allocation/stacking and all production financial/provider/auth gates remain blocked. [Scope](F16_DISCOUNTED_CHECKOUT_ACCEPTANCE.md), [ADR0015](adr/0015-discounted-browser-checkout.md).
+
 F15 adds no public API path/schema or production selector. The separate test gateway preserves F4 Origin/session/CSRF and connects existing F3–F14 routes through browser cookies. OTP/payment helpers and Node control live under excluded tests only. [ADR0014](adr/0014-isolated-browser-checkout.md).
 
 F14: OpenAPI1.10 adds /api/v1/order-lifecycle/orders list/detail and cancellation/return request POST. Internal review/refund planning/verified test observation have no customer HTTP endpoint. Ordinary runtime503; F4 auth gates preserved. [ADR0013](adr/0013-order-lifecycle-requests-refunds.md).

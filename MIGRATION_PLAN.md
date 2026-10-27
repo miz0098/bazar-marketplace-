@@ -1,5 +1,7 @@
 # BAZAR Shopify-to-Next.js Migration Plan
 
+F16 supersedes the F15 discounted-completion blocker for isolated single-line fixed/exact-percentage checkout only: F5 reuse, atomic test usage/order/payment/shipping snapshot, browser refresh/history and cap contention. Multiple discounted lines, fractional rounding/allocation/stacking and all production financial/provider/auth gates remain blocked. [Scope](docs/F16_DISCOUNTED_CHECKOUT_ACCEPTANCE.md), [ADR0015](docs/adr/0015-discounted-browser-checkout.md).
+
 F15: merged PR #25 verified; isolated HTTPS browser checkout uses existing server modules and a separate Next test artifact. No schema changes or production helper routes. Existing preview remains intact. [Scope and blockers](docs/F15_BROWSER_CHECKOUT_ACCEPTANCE.md).
 
 F14 (base merged PR #24): additive0013, isolated owned lifecycle request/refund protocols, future client and bounded My Orders preview. No existing order/payment/delivery facts are rewritten; legal/financial/logistics rules remain blockers. [Scope](docs/F14_ORDER_LIFECYCLE_ACCEPTANCE.md).

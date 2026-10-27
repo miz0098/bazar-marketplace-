@@ -1,5 +1,7 @@
 # PostgreSQL architecture — Phase F2 foundation
 
+F16 supersedes the F15 discounted-completion blocker for isolated single-line fixed/exact-percentage checkout only: F5 reuse, atomic test usage/order/payment/shipping snapshot, browser refresh/history and cap contention. Multiple discounted lines, fractional rounding/allocation/stacking and all production financial/provider/auth gates remain blocked. [Scope](F16_DISCOUNTED_CHECKOUT_ACCEPTANCE.md), [ADR0015](adr/0015-discounted-browser-checkout.md).
+
 F15 uses the unchanged0013 inventory in a separate loopback Docker PostgreSQL project. Every browser case gets a new synthetic database; no real history is reset or relabelled. No new migration, runtime grant or production data. [Browser boundary](adr/0014-isolated-browser-checkout.md).
 
 F14 additive0013 adds order lifecycle requests, owned return-line claims, isolated refund attempts/evidence and immutable trigger audit with initial-order backfill. F6/F9 history/financial restrictions remain intact. No production data/grants/provider release. [ADR0013](adr/0013-order-lifecycle-requests-refunds.md).

@@ -82,6 +82,8 @@ function checkout(v: unknown): v is CheckoutSessionDto {
     !object(v) ||
     !id(v.id) ||
     v.mode !== 'integration-test' ||
+    !(v.testShippingEstimate===undefined || money(v.testShippingEstimate)) ||
+    !(v.appliedPromoCode===undefined || v.appliedPromoCode===null || text(v.appliedPromoCode,64)) ||
     !count(v.version) ||
     v.version < 1 ||
     !id(v.cartId) ||
@@ -136,9 +138,8 @@ function order(v: unknown): v is IntegrationOrderDto {
     !v.lines.length ||
     !money(v.subtotal) ||
     !money(v.discount) ||
-    v.discount.amountMinor !== 0 ||
     !money(v.merchandiseTotal) ||
-    v.merchandiseTotal.amountMinor !== v.subtotal.amountMinor ||
+    BigInt(v.merchandiseTotal.amountMinor) !== BigInt(v.subtotal.amountMinor)-BigInt(v.discount.amountMinor) ||
     v.payableTotal !== null ||
     !delivery(v.delivery) ||
     !choice(v.paymentSelection) ||
@@ -164,6 +165,9 @@ function order(v: unknown): v is IntegrationOrderDto {
       return false;
     total += BigInt(line.lineTotal.amountMinor);
   }
+  const f=v.testFinancials;
+  if(f!==undefined && (!object(f) || f.scope!=='isolated-test-plan' || !money(f.subtotal) || !money(f.discount) || !money(f.shipping) || !money(f.total) || !(f.promoCode===null || text(f.promoCode,64)) || f.subtotal.amountMinor!==v.subtotal.amountMinor || f.discount.amountMinor!==v.discount.amountMinor || BigInt(f.total.amountMinor)!==BigInt(v.merchandiseTotal.amountMinor)+BigInt(f.shipping.amountMinor)))return false;
+  if(v.discount.amountMinor>0 && f===undefined)return false;
   return total === BigInt(v.subtotal.amountMinor);
 }
 /** Opt-in future controller only. No cookie/token storage, live selector, provider action or automatic retry. */

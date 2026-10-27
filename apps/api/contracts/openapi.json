@@ -3,7 +3,7 @@
   "info": {
     "title": "BAZAR API",
     "version": "1.10.0",
-    "description": "PostgreSQL catalog and test-isolated server authentication foundation. Runtime SMS authentication is unavailable (503) pending approved provider, keys, security policy and rollout. F9 approves one active cart/user, explicit creation, local guest cart with no merge; live activation remains blocked on production SMS/security rollout. F5 adds isolated exact-integer promotion evaluation; no real redemption/checkout activation. F6 adds isolated three-step checkout and immutable pending integration orders; no live placement/provider operation. F7 adds isolated shipping directories, selections, expiring estimates and final transaction freshness guards. Live carrier contracts/transports remain disabled. F8 adds isolated provider-neutral payment protocol/security and Ukrposhta delivery; no real financial/provider activation. F9 adds verified-session current-cart HTTP and linked isolated checkout confirmation; no production orders or paid-order claims. F12 adds isolated owned wishlist, name-only profile and opaque address operations plus explicitly policy-gated private reviews. No real PII/provider/publication activation. F13 adds isolated membership-authorized chat history, idempotent support and notification inbox contracts. No real staff, channels, files or production activation. F14 adds isolated owned cancellation/return requests, immutable lifecycle history and strictly test-only refund capacity/authenticated-event protocols. No live transitions or financial/logistics activation."
+    "description": "PostgreSQL catalog and test-isolated server authentication foundation. Runtime SMS authentication is unavailable (503) pending approved provider, keys, security policy and rollout. F9 approves one active cart/user, explicit creation, local guest cart with no merge; live activation remains blocked on production SMS/security rollout. F5 adds isolated exact-integer promotion evaluation; no real redemption/checkout activation. F6 adds isolated three-step checkout and immutable pending integration orders; no live placement/provider operation. F7 adds isolated shipping directories, selections, expiring estimates and final transaction freshness guards. Live carrier contracts/transports remain disabled. F8 adds isolated provider-neutral payment protocol/security and Ukrposhta delivery; no real financial/provider activation. F9 adds verified-session current-cart HTTP and linked isolated checkout confirmation; no production orders or paid-order claims. F12 adds isolated owned wishlist, name-only profile and opaque address operations plus explicitly policy-gated private reviews. No real PII/provider/publication activation. F13 adds isolated membership-authorized chat history, idempotent support and notification inbox contracts. No real staff, channels, files or production activation. F14 adds isolated owned cancellation/return requests, immutable lifecycle history and strictly test-only refund capacity/authenticated-event protocols. No live transitions or financial/logistics activation. F16 adds optional immutable discounted test financial snapshots and server promo/shipping metadata; production remains blocked."
   },
   "servers": [
     {
@@ -10180,6 +10180,32 @@
             "items": {
               "type": "string"
             }
+          },
+          "appliedPromoCode": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "testShippingEstimate": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "amountMinor",
+              "currency"
+            ],
+            "properties": {
+              "amountMinor": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "currency": {
+                "const": "UAH"
+              }
+            }
           }
         }
       },
@@ -10377,6 +10403,9 @@
           },
           "inventoryStatus": {
             "const": "not-reserved"
+          },
+          "testFinancials": {
+            "$ref": "#/components/schemas/TestFinancialSnapshot"
           }
         }
       },
@@ -13601,6 +13630,104 @@
             }
           }
         }
+      },
+      "TestFinancialSnapshot": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "scope",
+          "subtotal",
+          "discount",
+          "shipping",
+          "total",
+          "promoCode"
+        ],
+        "properties": {
+          "scope": {
+            "const": "isolated-test-plan"
+          },
+          "subtotal": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "amountMinor",
+              "currency"
+            ],
+            "properties": {
+              "amountMinor": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "currency": {
+                "const": "UAH"
+              }
+            }
+          },
+          "discount": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "amountMinor",
+              "currency"
+            ],
+            "properties": {
+              "amountMinor": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "currency": {
+                "const": "UAH"
+              }
+            }
+          },
+          "shipping": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "amountMinor",
+              "currency"
+            ],
+            "properties": {
+              "amountMinor": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "currency": {
+                "const": "UAH"
+              }
+            }
+          },
+          "total": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "amountMinor",
+              "currency"
+            ],
+            "properties": {
+              "amountMinor": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "currency": {
+                "const": "UAH"
+              }
+            }
+          },
+          "promoCode": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "maxLength": 64
+          }
+        },
+        "description": "Immutable isolated-test evidence only; no real payable/paid claim. Total equals subtotal minus discount plus unchanged shipping. No allocation/rounding policy."
       }
     },
     "securitySchemes": {
