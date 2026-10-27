@@ -497,12 +497,12 @@
     {
       "id": "READINESSAUDIT-001",
       "title": "Audit F1-F17 marketplace readiness against pinned Shopify source and define measurable completion gates",
-      "status": "in_progress",
+      "status": "in_review",
       "readiness": "integration",
       "depends_on": ["NOTIFICATION-001"],
       "allowed_paths": ["FULL_MARKETPLACE_READINESS_AUDIT.md", "FUNCTIONAL_COMPLETION_BACKLOG.md", "REMAINING_DEVELOPMENT_ROADMAP.md", "FULL_AUDIT_ENTRY_CRITERIA.md", "ARCHITECTURE.md", "MIGRATION_PLAN.md", "FUNCTIONAL_GAP_AUDIT.md", "DEMO_READINESS_CHECKLIST.md", "DEMO_COMPLETION_PLAN.md", ".github/autonomous/tasks.json"],
       "acceptance": ["Evidence matrix separates local demo isolated browser server-only missing and production-blocked capabilities without design or code changes", "Pinned Shopify routes and actual UI/API/PostgreSQL/tests verify multi-item money ownership account marketplace and operational gaps", "Backlog roadmap and measurable buyer/full-marketplace entry gates preserve history and do not invent business rules or claim Demo100", "Existing checks and GitHub CI are rerun and actual skips/coverage gaps recorded without modifying tests for green CI"],
-      "pr": null,
+      "pr": 29,
       "blocker": "Audit completion does not complete functional gaps: ordinary server UI mapping multi-item financial/cart lifecycle privacy/authority seller/admin/staff providers and operations remain open."
     }
   ]
