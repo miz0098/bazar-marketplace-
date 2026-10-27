@@ -73,3 +73,7 @@ E02 gains ordinary shared browse/product/auth/cart/wishlist proof in the isolate
 F22 upgrades E02/E04/E06/E07 only for the documented isolated ordinary checkout scope: multi-seller selected offers, synthetic validated contacts, three carrier directories, card test proof, immutable sums/history and generation-aware cart clearing. E05 remains PARTIAL until approved fractional/zero/minimum/funding policies; E09 new-order lifecycle/refund bridge and legal gates remain. Production E12–15 and full marketplace scope are not closed. Overall **НЕ ГОТОВИЙ** for full audit; automated Chromium proof is not final design/physical-device/manual screen-reader acceptance.
 
 [Current evidence and remaining gates](docs/F22_CHECKOUT_ACCEPTANCE.md).
+
+## F22.1 evidence overlay
+
+Fractional percentage/commission checkout must pass approved HALF_UP boundary and multi-seller reconciliation tests plus existing payment-gated completion and history compatibility. [F22.1 evidence](docs/F22_1_FINANCIAL_PRECISION.md) records actual results. This resolves only the fractional arithmetic gate after successful validation; full audit still requires the other buyer/operator/legal/provider/operational criteria. BAZAR remains **НЕ ГОТОВИЙ** for full marketplace audit; no Demo100% declaration.

@@ -1077,7 +1077,7 @@
     {
       "id": "MULTICHECKOUT-001",
       "title": "Integrate isolated multi-seller checkout exact financial snapshots and payment-gated cart completion",
-      "status": "in_review",
+      "status": "done",
       "readiness": "integration",
       "depends_on": [
         "STOREFRONTINTEGRATION-001"
@@ -1108,7 +1108,42 @@
         "Existing and new unit PG HTTP security browser desktop mobile accessibility lint types build audit governance pass; unresolved legal financial and provider gates explicit"
       ],
       "pr": 33,
-      "blocker": "PD-01 rounding mode still pending; exact-only active. Zero-payable proof, minimum-basis ambiguity, legal refund/unit attribution, provider production and payouts remain gated."
+      "blocker": "Historical F22 completed via merged PR33; fractional rounding superseded by F22.1. Other finance/legal/provider gates remain."
+    },
+    {
+      "id": "FINANCIALROUNDING-001",
+      "title": "Complete approved HALF_UP financial precision with immutable historical snapshot compatibility",
+      "status": "in_progress",
+      "readiness": "integration",
+      "depends_on": [
+        "MULTICHECKOUT-001"
+      ],
+      "allowed_paths": [
+        "apps/api/",
+        "apps/storefront/",
+        "tests/e2e/",
+        "docs/",
+        "BUSINESS_RULES_V1.md",
+        "COMMERCE_DOMAIN_CONTRACTS.md",
+        "BUSINESS_DECISION_REGISTER.md",
+        "ARCHITECTURE.md",
+        "MIGRATION_PLAN.md",
+        "F20_F29_IMPLEMENTATION_CONTRACT.md",
+        "FUNCTIONAL_COMPLETION_BACKLOG.md",
+        "REMAINING_DEVELOPMENT_ROADMAP.md",
+        "FULL_AUDIT_ENTRY_CRITERIA.md",
+        "FUNCTIONAL_GAP_AUDIT.md",
+        "DEMO_READINESS_CHECKLIST.md",
+        "DEMO_COMPLETION_PLAN.md",
+        ".github/autonomous/tasks.json"
+      ],
+      "acceptance": [
+        "Exact rational HALF_UP parent percentage discounts and independent seller-level five-percent commission; largest remainder unchanged",
+        "Versioned policy/basis snapshots preserve historical v1 values and refund facts without migration rewrites",
+        "All unit PG HTTP security browser regression lint types builds audit and governance checks pass"
+      ],
+      "pr": null,
+      "blocker": null
     }
   ]
 }

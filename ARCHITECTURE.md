@@ -300,3 +300,7 @@ Create short architecture decision records for: system of record during transiti
 F22 connects the shared ordinary isolated checkout and My Orders to PostgreSQL multi-seller commerce. Existing sessions, seller offers/cart, campaign data, carrier directories, PaymentAdapter and F13 inbox are reused. Migration0018 adds immutable quotes/lines, parent/seller components, generation identities, payment/proof/history and exclusion/usage claims. Server financial calculations use BigInt and approved largest remainder; exact-only gates unresolved rounding. Legacy F6/F8/F14 contracts remain; new providers, payout, real PII and production auth are not activated. See ADR0020 and F22 acceptance.
 
 [Current evidence and remaining gates](docs/F22_CHECKOUT_ACCEPTANCE.md).
+
+## F22.1 financial precision
+
+The existing commerce engine now defaults new quotes to exact BigInt HALF_UP, calculation v2, preserving largest remainder and seller-level 5% calculation. Portable clients discriminate v1/v2 and require v2 policy/basis metadata. Historical reads and reviewed exact-only quotes retain v1 facts. No database migration, provider activation or UI redesign. [Algorithm, compatibility and evidence](docs/F22_1_FINANCIAL_PRECISION.md).
