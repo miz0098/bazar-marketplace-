@@ -486,12 +486,12 @@
     {
       "id": "NOTIFICATION-001",
       "title": "Reuse F13 inbox for secure isolated customer notification center and demo event integration",
-      "status": "in_progress",
+      "status": "in_review",
       "readiness": "integration",
       "depends_on": ["DISCOUNTBROWSER-001"],
       "allowed_paths": ["apps/api/", "apps/storefront/", "tests/e2e/", "docs/", "ARCHITECTURE.md", "MIGRATION_PLAN.md", "FUNCTIONAL_GAP_AUDIT.md", "DEMO_READINESS_CHECKLIST.md", "DEMO_COMPLETION_PLAN.md", ".github/autonomous/tasks.json"],
       "acceptance": ["Existing F13 owner inbox gains counter and monotonic bounded bulk-read without another notification system", "Isolated browser UI event links pagination persistence logout and accessibility work without new account navigation", "Test event provenance dedup concurrency security regression audit governance and CI pass; no real channels or financial claims"],
-      "pr": null,
+      "pr": 28,
       "blocker": "Production auth/BFF/privacy consent templates retention keys outbox and channel providers, actual staff/order/refund authority and normal storefront server-mode remain unapproved; F18 scope is separate."
     }
   ]
