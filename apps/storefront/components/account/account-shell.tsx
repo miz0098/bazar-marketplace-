@@ -1,7 +1,8 @@
 'use client';
+import {useServerCustomer} from '../server/customer-provider';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AccountIcon, type AccountIconName } from '@/components/account/account-icons';
 
@@ -19,6 +20,7 @@ const navigation: readonly { href: string; label: string; icon: AccountIconName 
 const focusableSelector = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 export function AccountShell({ children }: Readonly<{ children: React.ReactNode }>) {
+  const {store}=useServerCustomer();const router=useRouter();
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [logoutNotice, setLogoutNotice] = useState('');
@@ -71,7 +73,8 @@ export function AccountShell({ children }: Readonly<{ children: React.ReactNode 
     }
   };
 
-  const previewLogout = () => {
+  const previewLogout = async () => {
+    if(store){try{await store.logout();router.push('/');}catch{setLogoutNotice('Сервер не підтвердив вихід. Оновіть дані та повторіть.');}return;}
     closeDrawer(false);
     setLogoutNotice('Серверної сесії немає: це анонімний демо-перегляд, тому завершувати вхід не потрібно.');
     window.requestAnimationFrame(() => noticeRef.current?.focus({ preventScroll: true }));
@@ -126,8 +129,8 @@ export function AccountShell({ children }: Readonly<{ children: React.ReactNode 
 
           <div className="account-content" tabIndex={-1} ref={contentRef} inert={drawerOpen ? true : undefined}>
             <div className="account-preview-note" role="note">
-              <strong>Демонстраційний профіль</strong>
-              <span>Ви не автентифіковані. Дані вигадані, а зміни діють лише до оновлення сторінки.</span>
+              <strong>{store?'Тестовий серверний акаунт':'Демонстраційний профіль'}</strong>
+              <span>{store?'Сесія, кошик і обране підключені до тестового сервера. Інші розділи залишаються демонстраційними.':'Ви не автентифіковані. Дані вигадані, а зміни діють лише до оновлення сторінки.'}</span>
             </div>
             {logoutNotice && <p className="account-status" role="status" tabIndex={-1} ref={noticeRef}>{logoutNotice}</p>}
             {children}

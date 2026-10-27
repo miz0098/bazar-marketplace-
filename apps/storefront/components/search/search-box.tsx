@@ -29,7 +29,7 @@ export function SearchBox({
 
   return (
     <div className="search-shell" ref={rootRef}>
-      <Form className="search" action="/search" role="search">
+      <Form className="search" action="/search" role="search" aria-label="Пошук у шапці сайту">
         <label className="sr-only" htmlFor="header-search">
           Пошук товарів
         </label>
@@ -109,11 +109,11 @@ export function SearchBox({
             {suggestions.length ? (
               suggestions.map((product, index) => (
                 <Link
-                  href={`/products/${product.handle}`}
+                  href={`/products/${product.handle}${product.variantId?"?variant="+encodeURIComponent(product.variantId):""}`}
                   role="option"
                   id={`suggestion-${index}`}
                   aria-selected={active === index}
-                  key={product.id}
+                  key={product.offerId??product.id}
                   onClick={() => setOpen(false)}
                 >
                   <span>{product.vendor}</span>

@@ -1,3 +1,4 @@
+import {selectVariant} from './variants';
 import type { Product, ProductPage, ProductQuery, ProductSort, ProductSummary } from '@/services/contracts/catalog';
 
 export const DEFAULT_PAGE_SIZE = 8;
@@ -23,7 +24,7 @@ export function queryProducts(products: readonly Product[], input: ProductQuery 
   const pageSize = Math.max(1, Math.min(input.limit ?? DEFAULT_PAGE_SIZE, 24));
 
   const filtered = products.filter((product) => {
-    const haystack = normalizeSearch(`${product.title} ${product.vendor} ${product.subcategory} ${product.specifications.map(s=>s.value).join(" ")}`);
+    const haystack = normalizeSearch(`${product.title} ${product.variantLabel??""} ${product.vendor} ${product.subcategory} ${product.specifications.map(s=>s.value).join(" ")}`);
     return (input.available===undefined||product.available===input.available)
       && (!input.attribute||product.specifications.some(s=>s.label===input.attribute&&s.value===input.value))
       && (!query || haystack.includes(query))
@@ -50,6 +51,8 @@ export function suggestProducts(products: readonly ProductSummary[], query: stri
   const normalized = normalizeSearch(query);
   if (normalized.length < 2) return [];
   return products
-    .filter((product) => normalizeSearch(`${product.title} ${product.vendor} ${product.subcategory}`).includes(normalized))
+    .filter((product) => normalizeSearch(`${product.title} ${product.variantLabel??""} ${product.vendor} ${product.subcategory}`).includes(normalized))
     .slice(0, Math.max(1, limit));
 }
+
+export function expandOffers(products:readonly Product[]){return products.flatMap(p=>p.variants?.length?p.variants.map(v=>({...p,...selectVariant(p,v.id),offerId:v.id} as Product)):[p]);}

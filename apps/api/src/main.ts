@@ -1,3 +1,4 @@
+import {createOfferService} from './catalog/offers.js';
 import {createCatalogV2} from './catalog/service.js';
 import { createCatalog } from './business/catalog.js';
 import { readConfig } from './config.js';
@@ -9,7 +10,7 @@ async function main() {
   const config = readConfig(process.env);
   const logger = createLogger(config.logLevel);
   const database = config.database ? createDatabase(config.database, () => logger.write({ event: 'server_error' })) : undefined;
-  const app = createApiServer(config, logger, { isReady: () => database?.check() ?? false, catalog: database ? createCatalog(database.pool) : undefined, catalogV2:database?createCatalogV2(database.pool):undefined });
+  const app = createApiServer(config, logger, { isReady: () => database?.check() ?? false, catalog: database ? createCatalog(database.pool) : undefined, catalogV2:database?createCatalogV2(database.pool):undefined,offers:database?createOfferService(database.pool):undefined });
   try {
     await new Promise<void>((resolve, reject) => { app.server.once('error', reject); app.server.listen(config.port, config.host, resolve); });
   } catch { await database?.close(); throw new Error('API startup failed'); }

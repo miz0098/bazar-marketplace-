@@ -1,6 +1,6 @@
 # BAZAR Business Rules V1 — Phase F19
 
-Version: **1.1**, 2026-10-27 UTC. Business authority: the explicit Phase F19 user instruction in this session; not inferred from earlier code, tests or Shopify. Base: merged PR #29, `2057ecbb0e40b8866cf73a179e6153ecdd8110e9`. Branch: `codex/phase-f19-business-rules`.
+Version: **1.2**, 2026-10-27 UTC. Business authority: the explicit Phase F19 user instruction in this session; not inferred from earlier code, tests or Shopify. Base: merged PR #29, `2057ecbb0e40b8866cf73a179e6153ecdd8110e9`. Branch: `codex/phase-f19-business-rules`.
 
 This is the canonical **target business policy**, not an assertion that it is implemented. Approval is limited to what the user explicitly approved. Stable BR IDs are never reassigned; future edits increment version with supersession/history. “Approved” does not approve a provider, technical proposal, missing rounding rule or legal conclusion. No new functional coverage and no Demo 100% / Full Audit Ready claim.
 
@@ -63,3 +63,14 @@ No new profile menu or «Огляд» item, no admin «Клієнти» module, 
 - V1.0 / F19: records explicit user approvals, pending decision references and testable invariants. F18 inventory-reservation and carrier-tariff requirements are superseded as target requirements, not retrospectively removed from historical evidence. Technical representations remain proposals until reviewed.
 
 - V1.1 / F20: user explicitly resolves variant-level availability and recipient scope (BR-A04/BR-A05); implementation evidence is in docs/F20_CATALOG_ACCEPTANCE.md. Other financial/legal/merchandising pending decisions are not resolved by this approval.
+
+## F21 approved extension — version1.2
+
+Authority: explicit Phase F21 user instruction; historical v1.1 rules/evidence remain above.
+
+| Stable ID | Rule | Approval | Components | Acceptance |
+| --- | --- | --- | --- | --- |
+| BR-O01 | One distinct seller offer = one catalog card | Approved | Catalog/API/PDP | Existing variant UUID identifies seller/product/SKU, exact seller price and characteristics; no parent min/average/«Від»; pagination/sorting count individual offers, selected detail URL never switches offer. |
+| BR-O02 | Exact saved offer | Approved | Cart/wishlist/session | Authenticated saved data belongs to server owner, survives logout/login and refresh on another device; unavailable IDs remain and reactivate; guest never auto-merges. |
+
+This resolves the catalog-card merchandising ambiguity. It does not select an aggregate parent price or financial rounding policy. Legacy parent DTO remains unchanged. [Implementation boundaries and evidence](docs/F21_STOREFRONT_ACCEPTANCE.md); no production activation.

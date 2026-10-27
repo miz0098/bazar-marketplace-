@@ -1,3 +1,4 @@
+import {catalogAvailability} from '../catalog/availability.js';
 import type pg from 'pg';
 import { ApiError } from '../contracts/foundation.js';
 import {
@@ -61,10 +62,12 @@ export function createCurrentCartService(pool: pg.Pool) {
         [id],
       )
     ).rows;
+    const binary = await catalogAvailability(c,rows.map(r=>r.id));
     const inventory = rows.map((r, i) => ({
       variantId: uuid(r.id),
-      stock: integer(r.stock, 0, 2147483647),
-      available: cart.lines[i].quantity <= r.stock,
+      stock: binary.has(r.id) ? null : integer(r.stock, 0, 2147483647),
+      ...(binary.has(r.id) ? {availabilityModel:'binary' as const} : {}),
+      available: binary.has(r.id) ? binary.get(r.id)! : cart.lines[i].quantity <= r.stock,
       unitPrice: {
         amountMinor: money(r.price_minor),
         currency: 'UAH' as const,

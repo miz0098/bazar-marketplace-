@@ -1,3 +1,4 @@
+const storefront=process.env.BAZAR_STOREFRONT_INTEGRATION==='1';
 import { randomBytes, createHash } from "node:crypto";
 import {
   mkdtempSync,
@@ -97,7 +98,7 @@ async function ready(url, ca, p) {
   throw new Error("Isolated browser service startup timed out");
 }
 try {
-  const build = spawnSync("npm", ["run", "browser:build"], {
+  const build = spawnSync("npm", ["run", storefront?"storefront:build":"browser:build"], {
     cwd: path.join(root, "apps/storefront"),
     env,
     stdio: "inherit",
@@ -162,13 +163,14 @@ try {
     ...env,
     BAZAR_BROWSER_INTEGRATION: "1",
     BAZAR_BROWSER_STATE: state,
+    ...(storefront?{BAZAR_STOREFRONT_INTEGRATION:"1",STOREFRONT_DATA_SOURCE:"storefront-test",BAZAR_API_BASE_URL:origin,NODE_EXTRA_CA_CERTS:cert}:{}),
   };
   const ui = child(
     process.execPath,
     [
       "node_modules/next/dist/bin/next",
       "start",
-      "browser-integration",
+      storefront?"storefront-integration":"browser-integration",
       "--hostname",
       "127.0.0.1",
       "--port",
@@ -178,7 +180,7 @@ try {
     { ...common, NODE_ENV: "production" },
     "ui",
   );
-  await ready(`http://127.0.0.1:${uiPort}/catalog`, null, ui);
+  if(!storefront)await ready(`http://127.0.0.1:${uiPort}/catalog`, null, ui);
   const api = child(
     process.execPath,
     ["--import", "tsx", "tests/browser/server.ts"],
@@ -197,7 +199,7 @@ try {
       "node_modules/@playwright/test/cli.js",
       "test",
       "--config",
-      "browser.config.ts",
+      storefront?"storefront.config.ts":"browser.config.ts",
       ...process.argv.slice(2),
     ],
     {

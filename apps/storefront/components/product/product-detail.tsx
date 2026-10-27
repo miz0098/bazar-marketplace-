@@ -73,7 +73,7 @@ export function ProductDetail({
             ))}
           </div>
         </section>
-        <section className="product-summary">
+        <section className="product-summary" data-seller-id={product.sellerId}>
           <h1>{selected.title}</h1>
           <WishlistButton product={product} />
           <div className="product-summary__meta">
@@ -185,8 +185,8 @@ export function ProductDetail({
               className="button button--secondary buy-now-button"
               type="button"
               disabled={!selected.available || selected.requiresVariantSelection || product.purchaseEnabled===false || !cart.hydrated}
-              onClick={() => {
-                const error = cart.add(selected, quantity);
+              onClick={async () => {
+                const error = await cart.add(selected, quantity);
                 setPurchaseError(error);
                 if (!error) router.push('/checkout');
               }}

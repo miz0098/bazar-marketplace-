@@ -1,4 +1,5 @@
 'use client';
+import {useServerCustomer} from '../server/customer-provider';
 
 import { useState } from 'react';
 import { cartKey } from '@/domain/catalog/variants';
@@ -9,6 +10,7 @@ import { formatMoney } from '@/lib/money';
 
 export function CartPage() {
   const cart = useCart();
+  const {state:serverState}=useServerCustomer();
   const [error, setError] = useState('');
   if (!cart.hydrated)
     return (
@@ -73,11 +75,11 @@ export function CartPage() {
                     type="button"
                     disabled={!line.product.available}
                     aria-label={`Зменшити кількість ${line.product.title}`}
-                    onClick={() =>
+                    onClick={async () =>
                       line.quantity === 1
                         ? cart.remove(cartKey(line.product))
                         : setError(
-                            cart.update(
+                            await cart.update(
                               cartKey(line.product),
                               line.quantity - 1,
                             ),
@@ -93,18 +95,18 @@ export function CartPage() {
                     min="1"
                     max={quantityLimit(line.product)}
                     value={line.quantity}
-                    onChange={(event) => {
+                    onChange={async (event) => {
                       const quantity = Number(event.target.value);
-                      setError(cart.update(cartKey(line.product), quantity));
+                      setError(await cart.update(cartKey(line.product), quantity));
                     }}
                   />
                   <button
                     type="button"
                     disabled={!line.product.available}
                     aria-label={`Збільшити кількість ${line.product.title}`}
-                    onClick={() =>
+                    onClick={async () =>
                       setError(
-                        cart.update(cartKey(line.product), line.quantity + 1),
+                        await cart.update(cartKey(line.product), line.quantity + 1),
                       )
                     }
                   >
@@ -145,8 +147,7 @@ export function CartPage() {
           </Link>}
           <Link href="/catalog">Продовжити покупки</Link>
           <div className="demo-disclaimer">
-            Це локальний демонстраційний кошик. Оформлення не створює замовлення
-            й не проводить оплату.
+            {serverState.session?"Це збережений серверний тестовий кошик. Checkout підключатиметься у F22; реальні покупки недоступні.":"Це локальний демонстраційний кошик. Оформлення не створює замовлення й не проводить оплату."}
           </div>
         </aside>
       </div>

@@ -1,4 +1,5 @@
 'use client';
+import {useServerCustomer} from '../server/customer-provider';
 
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
@@ -33,10 +34,10 @@ interface AuthFlowProps {
   readonly surface: AuthSurface;
 }
 
-function errorMessage(error: unknown): string {
+function errorMessage(error: unknown, server=false): string {
   if (!(error instanceof IdentityServiceError)) return 'Сталася неочікувана помилка. Спробуйте ще раз.';
   switch (error.code) {
-    case 'invalid-code': return 'Код не підтверджено. Для демо використайте 123456.';
+    case 'invalid-code': if(server)return 'Код або дані не підтверджені сервером.';return 'Код не підтверджено. Для демо використайте 123456.';
     case 'expired-code': return 'Термін дії демо-коду минув. Повторіть демо-запит.';
     case 'rate-limited': return `Забагато спроб. Повторіть через ${error.retryAfterSeconds ?? 60} с.`;
     case 'network': return 'Помилка мережі. SMS не надсилалося, вхід не виконано.';
@@ -50,7 +51,8 @@ function formatCountdown(seconds: number) {
   return `${minutes}:${remainder}`;
 }
 
-export function AuthFlow({ idPrefix, initialIntent, onClose, service = demoIdentityService, surface }: AuthFlowProps) {
+function AuthFlowImplementation({ idPrefix, initialIntent, onClose, service = demoIdentityService, surface }: AuthFlowProps) {
+  const server=service.mode==='server-test';
   const rootRef = useRef<HTMLDivElement>(null);
   const requestRevisionRef = useRef(0);
   const [intent, setIntent] = useState<IdentityIntent>(initialIntent);
@@ -140,7 +142,7 @@ export function AuthFlow({ idPrefix, initialIntent, onClose, service = demoIdent
       setStep('code');
     } catch (error) {
       if (requestRevision !== requestRevisionRef.current) return;
-      setPhoneError(errorMessage(error));
+      setPhoneError(errorMessage(error,server));
     } finally {
       if (requestRevision === requestRevisionRef.current) setLoadingMessage('');
     }
@@ -168,9 +170,10 @@ export function AuthFlow({ idPrefix, initialIntent, onClose, service = demoIdent
       if (requestRevision !== requestRevisionRef.current) return;
       setVerificationCountdown(0);
       setStep(result.next === 'profile' ? 'profile' : 'complete');
+      if(result.status==='profile-required')setStatusMessage('Код ще не перевірено: сервер перевірить його разом із тестовими даними реєстрації.');
     } catch (error) {
       if (requestRevision !== requestRevisionRef.current) return;
-      setCodeError(errorMessage(error));
+      setCodeError(errorMessage(error,server));
       if (error instanceof IdentityServiceError && error.code === 'rate-limited') {
         setVerificationCountdown(error.retryAfterSeconds ?? 60);
       }
@@ -197,7 +200,7 @@ export function AuthFlow({ idPrefix, initialIntent, onClose, service = demoIdent
       setStatusMessage('Демо-запит оновлено. SMS не надсилалося.');
     } catch (error) {
       if (requestRevision !== requestRevisionRef.current) return;
-      setCodeError(errorMessage(error));
+      setCodeError(errorMessage(error,server));
     } finally {
       if (requestRevision === requestRevisionRef.current) setLoadingMessage('');
     }
@@ -213,7 +216,7 @@ export function AuthFlow({ idPrefix, initialIntent, onClose, service = demoIdent
       return;
     }
 
-    setLoadingMessage('Перевіряємо форму без створення акаунту…');
+    setLoadingMessage(server?'Перевіряємо код і створюємо ізольований тестовий акаунт…':'Перевіряємо форму без створення акаунту…');
     setStatusMessage('');
     const requestRevision = ++requestRevisionRef.current;
     try {
@@ -222,7 +225,7 @@ export function AuthFlow({ idPrefix, initialIntent, onClose, service = demoIdent
       setStep('complete');
     } catch (error) {
       if (requestRevision !== requestRevisionRef.current) return;
-      setStatusMessage(errorMessage(error));
+      setStatusMessage(errorMessage(error,server));
     } finally {
       if (requestRevision === requestRevisionRef.current) setLoadingMessage('');
     }
@@ -230,7 +233,7 @@ export function AuthFlow({ idPrefix, initialIntent, onClose, service = demoIdent
 
   const demoNote = (
     <p className="auth-demo-note" id={demoNoteId}>
-      Демо-перегляд: SMS не надсилається, вхід і сесія не створюються. Для переходу між екранами використайте код <strong>123456</strong>.
+      {server?'Ізольоване тестування: справжній серверний OTP і сесія, жодних реальних SMS. Використовуйте лише синтетичні дані.':<>Демо-перегляд: SMS не надсилається, вхід і сесія не створюються. Для переходу між екранами використайте код <strong>123456</strong>.</>}
     </p>
   );
 
@@ -351,7 +354,7 @@ export function AuthFlow({ idPrefix, initialIntent, onClose, service = demoIdent
                 onChange={(event) => { setProfile({ ...profile, termsAccepted: event.currentTarget.checked }); setProfileErrors({ ...profileErrors, termsAccepted: undefined }); }}
               />
               <span className="auth-consent__label">
-                Я погоджуюсь пройти лише демонстраційний перегляд форми без створення акаунту
+                {server?'Я погоджуюсь створити ізольований тестовий акаунт із синтетичними даними':'Я погоджуюсь пройти лише демонстраційний перегляд форми без створення акаунту'}
               </span>
             </label>
             <p className="auth-consent-note" id={`${idPrefix}-consent-note`}>
@@ -368,9 +371,9 @@ export function AuthFlow({ idPrefix, initialIntent, onClose, service = demoIdent
       {step === 'complete' && (
         <article className="auth-card">
           <AuthIcon name="check" />
-          <h1 className="auth-card__title" id={titleId}>Демо-перегляд завершено</h1>
+          <h1 className="auth-card__title" id={titleId}>{server?"Серверний тестовий вхід підтверджено":"Демо-перегляд завершено"}</h1>
           <p className="auth-card__text">
-            {intent === 'login' ? 'Вхід не виконано.' : 'Акаунт не створено.'} Серверної сесії немає, захищені дані недоступні.
+            {server?'Тестову сесію підтверджено сервером. Кошик та обране зберігаються в PostgreSQL.':<>{intent === 'login' ? 'Вхід не виконано.' : 'Акаунт не створено.'} Серверної сесії немає, захищені дані недоступні.</>}
           </p>
           {demoNote}
           <div className="auth-flow">
@@ -430,3 +433,5 @@ function AuthIcon({ name }: Readonly<{ name: 'phone' | 'sms' | 'user' | 'check' 
     </span>
   );
 }
+
+export function AuthFlow(props:AuthFlowProps){const {store}=useServerCustomer();return <AuthFlowImplementation {...props} service={store?.identity??props.service}/>;}

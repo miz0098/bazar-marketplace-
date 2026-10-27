@@ -59,3 +59,11 @@ Below table is the preserved F18 assessment of then-current code. Superseded inv
 ## Чому зараз НЕ ГОТОВИЙ
 
 Не виконано E01/E02/E05/E06 і included lifecycle/account/marketplace частини: ordinary mock-only storefront, неповний multi-item checkout, financial/cart-after-order/PII rules, server account/UI mapping, operational authorities, відсутні seller/admin/staff apps. F17 notification center і green CI — важливі bounded докази, але не закривають ці прогалини. Див. [пропоновані F19–F29](REMAINING_DEVELOPMENT_ROADMAP.md).
+
+## F21 current implementation overlay (historical evidence retained)
+
+[Ordinary storefront offer/session/cart/wishlist implementation, modes and verification](docs/F21_STOREFRONT_ACCEPTANCE.md). One distinct seller offer now maps to one exact-price card, resolving the former aggregate-card merchandising blocker without choosing an aggregate parent price. PostgreSQL persistence is available through shared ordinary components in the isolated HTTPS entry; default local demo and production activation remain distinct. F22 checkout/multi-seller financial snapshots, fuller profile/communication integration, seller/staff apps, licensed datasets/media, privacy/legal/finance decisions and live providers remain open. No quantitative inventory or automatic guest merge. No Demo100% / Full Audit Ready claim; BAZAR remains **НЕ ГОТОВИЙ** for full audit. New tests only establish their documented bounded workflows, not all entry criteria.
+
+### F21 gate reassessment
+
+E02 gains ordinary shared browse/product/auth/cart/wishlist proof in the isolated HTTPS entry, but **remains PARTIAL** because ordinary three-step server checkout is not connected. E04's owned persisted cart/session slice is tested on desktop/mobile and independent contexts; post-order lifecycle is still E07/F22. E03 exact-offer display rule is now approved/implemented, while approved datasets/content/media remain incomplete. E08 gains server exact-offer wishlist only, not all account sections. E05/E06/E09/E12–E15 are not upgraded by these changes. E11's automated evidence is bounded Chromium/axe/keyboard/reflow; no physical-device or manual screen-reader sign-off. Overall verdict remains **НЕ ГОТОВИЙ**.

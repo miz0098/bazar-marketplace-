@@ -39,7 +39,7 @@ export default async function SearchPage({
       <h1>
         {query ? `Результати для «${query}»` : 'Знайдіть потрібний товар'}
       </h1>
-      <Form className="search-page__form" action="/search" role="search">
+      <Form className="search-page__form" action="/search" role="search" aria-label="Пошук на сторінці результатів">
         <label className="sr-only" htmlFor="search-page-input">
           Пошук товарів
         </label>
@@ -99,7 +99,7 @@ export default async function SearchPage({
       ) : result.items.length ? (
         <div className="product-grid">
           {result.items.map((product) => (
-            <ProductCard product={product} key={product.id} />
+            <ProductCard product={product} key={product.offerId??product.id} />
           ))}
         </div>
       ) : (

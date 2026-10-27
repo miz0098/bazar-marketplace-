@@ -127,3 +127,7 @@ Stock/ціни беруться з поточних **demo fixtures**, не prod
 | Shopify authenticated preview / visual approval / production tests | Не виконувалися; відповідні blockers відкриті |
 
 Вісім існуючих Playwright skips, якщо повторяться, — viewport-specific умови suite, не нові F10 exceptions. Не перетворювати pass count у % Demo Ready.
+
+## F21 current implementation overlay (historical evidence retained)
+
+[Ordinary storefront offer/session/cart/wishlist implementation, modes and verification](docs/F21_STOREFRONT_ACCEPTANCE.md). One distinct seller offer now maps to one exact-price card, resolving the former aggregate-card merchandising blocker without choosing an aggregate parent price. PostgreSQL persistence is available through shared ordinary components in the isolated HTTPS entry; default local demo and production activation remain distinct. F22 checkout/multi-seller financial snapshots, fuller profile/communication integration, seller/staff apps, licensed datasets/media, privacy/legal/finance decisions and live providers remain open. No quantitative inventory or automatic guest merge. No Demo100% / Full Audit Ready claim; BAZAR remains **НЕ ГОТОВИЙ** for full audit. New tests only establish their documented bounded workflows, not all entry criteria.

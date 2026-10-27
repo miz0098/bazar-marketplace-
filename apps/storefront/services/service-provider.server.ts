@@ -1,5 +1,4 @@
-import {CatalogV2Service} from './http/catalog-v2-service';
-import {getCatalogV2Client} from './http/catalog-v2.server';
+import {getOfferCatalogService} from './http/offers.server';
 import 'server-only';
 import { MockCatalogService } from '@/services/mock/catalog-service';
 import { MockContentService } from '@/services/mock/content-service';
@@ -10,10 +9,11 @@ function assertMockMode() {
 }
 
 export function getCatalogService() {
+ if(process.env.STOREFRONT_DATA_SOURCE==='storefront-test')return getOfferCatalogService(true);
  if(process.env.STOREFRONT_DATA_SOURCE==='catalog-v2-preview'){
   if(process.env.NODE_ENV==='production')throw new Error('Catalog preview cannot activate production storefront');
-  return new CatalogV2Service(getCatalogV2Client());
+  return getOfferCatalogService(false);
  }
  assertMockMode(); return new MockCatalogService();
 }
-export function getContentService() { if(process.env.STOREFRONT_DATA_SOURCE!=="catalog-v2-preview")assertMockMode(); return new MockContentService(); }
+export function getContentService() { if(!["catalog-v2-preview","storefront-test"].includes(process.env.STOREFRONT_DATA_SOURCE??""))assertMockMode(); return new MockContentService(); }

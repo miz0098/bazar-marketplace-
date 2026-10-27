@@ -9,3 +9,5 @@ npm-debug.log*
 
 # Separate harness-generated types are rebuilt by its own Next app.
 browser-integration/next-env.d.ts
+
+storefront-integration/next-env.d.ts

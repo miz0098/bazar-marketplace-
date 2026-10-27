@@ -65,7 +65,7 @@ function ProductRail({ id, eyebrow, title, products, soft = false }: {
           <div><p>{eyebrow}</p><h2>{title}</h2></div>
           <Link className="button button--secondary" href="/catalog">Дивитися всі</Link>
         </div>
-        <div className="product-grid">{products.map((product) => <ProductCard key={product.id} product={product} />)}</div>
+        <div className="product-grid">{products.map((product) => <ProductCard key={product.offerId??product.id} product={product} />)}</div>
       </div>
     </section>
   );

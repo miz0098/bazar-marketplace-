@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 
 async function addDemoProduct(page: import('@playwright/test').Page) {
   await page.goto('/catalog');
-  await page.getByRole('article').filter({ hasText: 'Apple iPhone 15 Pro 128GB' }).getByRole('button', { name: 'У кошик' }).click();
+  await page.locator('[data-offer-id="iphone-15"]').getByRole('button', { name: 'У кошик' }).click();
   await page.goto('/cart');
   await page.getByRole('link', { name: 'Перейти до оформлення' }).click();
 }

@@ -19,8 +19,8 @@ export function AddToCartButton({
         className={`button add-cart-button${compact ? ' add-cart-button--compact' : ''}`}
         type="button"
         disabled={!product.available || product.requiresVariantSelection || product.purchaseEnabled===false || !cart.hydrated}
-        onClick={() => {
-          const error = cart.add(product, quantity);
+        onClick={async () => {
+          const error = await cart.add(product, quantity);
           setFeedback(error || 'Додано ✓ до демо-кошика');
         }}
       >

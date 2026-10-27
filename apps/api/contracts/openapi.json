@@ -10312,6 +10312,361 @@
           }
         }
       }
+    },
+    "/api/v1/catalog/offers": {
+      "get": {
+        "summary": "Individual seller offers: exact SKU prices, offer-based filters sort and pagination",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "description": "Single-valued. Unknown/duplicate parameters rejected; attribute and value used together."
+          },
+          {
+            "name": "categoryId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Single-valued. Unknown/duplicate parameters rejected; attribute and value used together."
+          },
+          {
+            "name": "brand",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "description": "Single-valued. Unknown/duplicate parameters rejected; attribute and value used together."
+          },
+          {
+            "name": "attribute",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-zA-Z][a-zA-Z0-9_-]{0,59}$"
+            },
+            "description": "Single-valued. Unknown/duplicate parameters rejected; attribute and value used together."
+          },
+          {
+            "name": "value",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "description": "Single-valued. Unknown/duplicate parameters rejected; attribute and value used together."
+          },
+          {
+            "name": "available",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Single-valued. Unknown/duplicate parameters rejected; attribute and value used together."
+          },
+          {
+            "name": "minPrice",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "description": "Single-valued. Unknown/duplicate parameters rejected; attribute and value used together."
+          },
+          {
+            "name": "maxPrice",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "description": "Single-valued. Unknown/duplicate parameters rejected; attribute and value used together."
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "default",
+                "newest",
+                "name",
+                "price-asc",
+                "price-desc"
+              ]
+            },
+            "description": "Single-valued. Unknown/duplicate parameters rejected; attribute and value used together."
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000
+            },
+            "description": "Single-valued. Unknown/duplicate parameters rejected; attribute and value used together."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "description": "Single-valued. Unknown/duplicate parameters rejected; attribute and value used together."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Validated OfferPage envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ok",
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/OfferPage"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [
+                        "requestId"
+                      ],
+                      "properties": {
+                        "requestId": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or repeated query"
+          },
+          "503": {
+            "description": "Schema or bounded dataset unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/offers/{id}": {
+      "get": {
+        "summary": "Exact published purchasable offer, including unavailable identity",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Validated SellerOffer envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ok",
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/SellerOffer"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [
+                        "requestId"
+                      ],
+                      "properties": {
+                        "requestId": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/customer-state": {
+      "get": {
+        "summary": "Isolated verified-session owner cart and exact-offer wishlist; no owner input",
+        "responses": {
+          "200": {
+            "description": "Validated CustomerOfferState envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ok",
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "ok": {
+                      "const": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/CustomerOfferState"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "required": [
+                        "requestId"
+                      ],
+                      "properties": {
+                        "requestId": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No verified session"
+          },
+          "503": {
+            "description": "Private integration not configured"
+          }
+        }
+      }
+    },
+    "/api/v1/catalog/wishlist/offers/{id}": {
+      "put": {
+        "summary": "Save own exact offer, idempotent, session Origin CSRF required",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "maxProperties": 0
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "offerId and saved boolean envelope"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Origin or CSRF denied"
+          },
+          "404": {
+            "description": "Offer unavailable for saving"
+          },
+          "503": {
+            "description": "Private integration disabled"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove own exact offer, idempotent, session Origin CSRF required",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "maxProperties": 0
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "offerId and saved boolean envelope"
+          },
+          "401": {
+            "description": "Unauthenticated"
+          },
+          "403": {
+            "description": "Origin or CSRF denied"
+          },
+          "404": {
+            "description": "Offer unavailable for saving"
+          },
+          "503": {
+            "description": "Private integration disabled"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -13109,7 +13464,10 @@
                   "format": "uuid"
                 },
                 "stock": {
-                  "type": "integer",
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
                   "minimum": 0,
                   "maximum": 2147483647
                 },
@@ -13118,8 +13476,40 @@
                 },
                 "unitPrice": {
                   "$ref": "#/components/schemas/Money"
+                },
+                "availabilityModel": {
+                  "const": "binary"
                 }
-              }
+              },
+              "oneOf": [
+                {
+                  "properties": {
+                    "availabilityModel": {
+                      "const": "binary"
+                    },
+                    "stock": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "availabilityModel"
+                  ]
+                },
+                {
+                  "not": {
+                    "required": [
+                      "availabilityModel"
+                    ]
+                  },
+                  "properties": {
+                    "stock": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 2147483647
+                    }
+                  }
+                }
+              ]
             }
           }
         }
@@ -15550,6 +15940,234 @@
           }
         },
         "additionalProperties": false
+      },
+      "SellerOffer": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "variantId",
+          "productId",
+          "sellerId",
+          "categoryId",
+          "contractVersion",
+          "sellerName",
+          "handle",
+          "title",
+          "variantTitle",
+          "sku",
+          "description",
+          "price",
+          "available",
+          "publishedAt",
+          "attributes",
+          "media"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "variantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sellerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contractVersion": {
+            "const": 1
+          },
+          "sellerName": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "handle": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "variantTitle": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "sku": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 10000
+          },
+          "price": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "publishedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "attributes": {
+            "type": "object",
+            "maxProperties": 60,
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 200
+            }
+          },
+          "media": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/CatalogV2Media"
+            }
+          }
+        }
+      },
+      "OfferPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "contractVersion",
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "properties": {
+          "contractVersion": {
+            "const": 1
+          },
+          "items": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/SellerOffer"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        }
+      },
+      "CustomerOfferState": {
+        "type": "object",
+        "required": [
+          "contractVersion",
+          "mode",
+          "subtotal",
+          "cartVersion",
+          "lines",
+          "wishlist",
+          "legacyWishlist"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "contractVersion": {
+            "const": 1
+          },
+          "mode": {
+            "const": "integration-test"
+          },
+          "subtotal": {
+            "$ref": "#/components/schemas/Money"
+          },
+          "cartVersion": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          },
+          "lines": {
+            "type": "array",
+            "maxItems": 1000,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "offer",
+                "quantity"
+              ],
+              "properties": {
+                "offer": {
+                  "$ref": "#/components/schemas/SellerOffer"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 2147483647
+                }
+              }
+            }
+          },
+          "wishlist": {
+            "type": "array",
+            "maxItems": 1000,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "offer",
+                "savedAt"
+              ],
+              "properties": {
+                "offer": {
+                  "$ref": "#/components/schemas/SellerOffer"
+                },
+                "savedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "legacyWishlist": {
+            "type": "array",
+            "maxItems": 1000,
+            "items": {
+              "type": "object",
+              "required": [
+                "productId"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "productId": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "securitySchemes": {

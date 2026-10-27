@@ -1,3 +1,4 @@
+import {productHref} from '@/domain/catalog/offers';
 import {CatalogImage} from './catalog-image';
 import { WishlistButton } from './wishlist-button';
 import Link from 'next/link';
@@ -7,9 +8,9 @@ import type { ProductSummary } from '@/services/contracts/catalog';
 
 export function ProductCard({ product }: { product: ProductSummary }) {
   return (
-    <article className="product-card">
+    <article className="product-card" data-offer-id={product.offerId??product.variantId} data-seller-id={product.sellerId}>
       <WishlistButton product={product} />
-      <Link className="product-card__link" href={`/products/${product.handle}`}>
+      <Link className="product-card__link" href={productHref(product)}>
         <span
           className={`product-visual product-visual--${product.visual}`}
           aria-hidden="true"
@@ -18,7 +19,9 @@ export function ProductCard({ product }: { product: ProductSummary }) {
         </span>
         <span className="product-card__body">
           <small>{product.vendor}</small>
+          {product.sellerName&&<small>Продавець: {product.sellerName}</small>}
           <strong>{product.title}</strong>
+          {product.variantLabel&&!product.title.includes(product.variantLabel)&&<small>{product.variantLabel}</small>}
           {product.reviewCount>0&&<span
             className="product-card__rating"
             aria-label={`Рейтинг ${product.rating} з 5`}

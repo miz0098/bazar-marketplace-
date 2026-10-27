@@ -16,6 +16,7 @@ export function selectVariant(
     ...product,
     title: variant.productTitle ?? product.title,
     variantId: variant.id,
+    offerId:variant.id,
     variantLabel: variant.title,
     price: variant.price,
     stock: variant.stock,

@@ -16,8 +16,8 @@ export function parseQuery(p:URLSearchParams){
  return {query,category:p.has('categoryId')?uuid(p.get('categoryId')):null,brand,attribute,value,available:available===null?null:available==='true',min,max,sort,page:n('page',1),limit:n('limit',20)};
 }
 export type CatalogQuery=ReturnType<typeof parseQuery>;
-export function attributes(v:unknown):Record<string,string>{
- if(!v||typeof v!=='object'||Array.isArray(v)||Object.keys(v).length>30)invalid();
+export function attributes(v:unknown,limit=30):Record<string,string>{
+ if(!v||typeof v!=='object'||Array.isArray(v)||Object.keys(v).length>limit)invalid();
  for(const [k,val] of Object.entries(v))if(!/^[a-zA-Z][a-zA-Z0-9_-]{0,59}$/.test(k)||typeof val!=='string'||val.length>200||!val.trim())invalid();
  return v as Record<string,string>;
 }
@@ -104,7 +104,8 @@ export function createCatalogV2(pool:pg.Pool){
      const event=(await c.query('INSERT INTO bazar.availability_events(audit_id,product_id,variant_id,kind) VALUES($1,$2,$3,$4) RETURNING id',[audit,pid,vid,kind])).rows[0].id;
      // If both restore scopes occur, cart+wishlist overlap is unioned onto the product event.
      if(kind==='variant'&&restored.includes('product'))continue;
-     const recipients=(await c.query("SELECT DISTINCT user_id FROM (SELECT w.user_id FROM bazar.wishlist_items w WHERE $3::boolean AND w.product_id=$1 UNION SELECT ca.user_id FROM bazar.carts ca JOIN bazar.cart_lines l ON l.cart_id=ca.id JOIN bazar.variants v ON v.id=l.variant_id WHERE ca.lifecycle='active' AND v.product_id=$1 AND ($2::uuid IS NULL OR v.id=$2) AND bazar.catalog_available(v.product_id,v.id)) r ORDER BY user_id",[pid,vid,kind==='product'])).rows;
+     const hasOffers=(await c.query("SELECT to_regclass('bazar.offer_wishlist_items') IS NOT NULL AS yes")).rows[0].yes;
+     const recipients=(await c.query("SELECT DISTINCT user_id FROM (SELECT w.user_id FROM bazar.wishlist_items w WHERE $3::boolean AND w.product_id=$1 UNION SELECT ca.user_id FROM bazar.carts ca JOIN bazar.cart_lines l ON l.cart_id=ca.id JOIN bazar.variants v ON v.id=l.variant_id WHERE ca.lifecycle='active' AND v.product_id=$1 AND ($2::uuid IS NULL OR v.id=$2) AND bazar.catalog_available(v.product_id,v.id)"+(hasOffers?" UNION SELECT ow.user_id FROM bazar.offer_wishlist_items ow WHERE ow.product_id=$1 AND ($2::uuid IS NULL OR ow.variant_id=$2) AND bazar.catalog_available(ow.product_id,ow.variant_id)":"")+") r ORDER BY user_id",[pid,vid,kind==='product'])).rows;
      for(const r of recipients)await c.query("INSERT INTO bazar.notification_events(user_id,kind,source_id,scope_id) VALUES($1,'product.availability_restored',$2,$3) ON CONFLICT(user_id,kind,source_id) DO NOTHING",[r.user_id,event,pid]);
     }
     await c.query('INSERT INTO bazar.catalog_commands(actor_id,key,digest,audit_id) VALUES($1,$2,$3,$4)',[actor,key,digest,audit]);

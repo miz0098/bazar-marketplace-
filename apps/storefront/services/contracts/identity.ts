@@ -27,23 +27,24 @@ export interface IdentityChallenge {
   readonly maskedPhone: string;
   readonly expiresInSeconds: number;
   readonly resendAfterSeconds: number;
-  readonly delivery: 'preview-only';
+  readonly delivery: 'preview-only' | 'test-only';
 }
 
 export interface IdentityVerificationResult {
-  readonly status: 'preview-only';
+  readonly status: 'preview-only' | 'authenticated' | 'profile-required';
   readonly next: 'profile' | 'complete';
 }
 
 export interface IdentityRegistrationResult {
-  readonly status: 'preview-only';
+  readonly status: 'preview-only' | 'authenticated' | 'profile-required';
 }
 
 export interface IdentitySession {
-  readonly status: 'anonymous';
+  readonly status: 'anonymous' | 'authenticated';
 }
 
 export interface IdentityService {
+  readonly mode?: "preview-only" | "server-test";
   startChallenge(input: { readonly phone: string; readonly intent: IdentityIntent }): Promise<IdentityChallenge>;
   verifyChallenge(input: {
     readonly challengeId: string;

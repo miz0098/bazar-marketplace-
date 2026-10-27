@@ -1,3 +1,6 @@
+import {createCatalogV2} from '../../src/catalog/service.js';
+import {createOfferService} from '../../src/catalog/offers.js';
+import {seedBrowserOffers} from './offer-fixture.js';
 import { randomUUID, timingSafeEqual } from "node:crypto";
 import { once } from "node:events";
 import { readFileSync } from "node:fs";
@@ -80,6 +83,8 @@ async function reset() {
       [category],
     )
   ).rows[0].id;
+  const offerSeed=process.env.BAZAR_STOREFRONT_INTEGRATION==='1'?await seedBrowserOffers(pool,category):[];
+  const offerService=createOfferService(pool),offerFailure={fail:false,public:false};
   const promotion = (
     await pool.query(
       "INSERT INTO bazar.promotions(code,kind,fixed_minor,currency,min_subtotal_minor,starts_at,ends_at,enabled,max_uses,per_user_limit) VALUES('TEST1000','fixed',1000,'UAH',1,clock_timestamp()-interval '1 day',clock_timestamp()+interval '1 day',true,10,10) RETURNING id",
@@ -140,6 +145,7 @@ async function reset() {
     createLogger("error"),
     {
       ...graph,
+      catalogV2:createCatalogV2(pool),offers:{...offerService,list:async q=>{if(offerFailure.public)throw new ApiError(503,'SERVICE_UNAVAILABLE','Test public failure');return offerService.list(q);},state:async actor=>{if(offerFailure.fail)throw new ApiError(503,'SERVICE_UNAVAILABLE','Test customer failure');return offerService.state(actor);}},
       communication:{...communication,notificationSummary:async(actor:string)=>{if(notices.delay)await new Promise(r=>setTimeout(r,notices.delay));if(notices.fail)throw new ApiError(503,"SERVICE_UNAVAILABLE","Test notifications unavailable.");return communication.notificationSummary(actor);}},
       customer: createCustomerService(pool),
       lifecycle: createOrderLifecycleService(pool),
@@ -156,7 +162,7 @@ async function reset() {
     payment,
     graph,
     app,
-    communication,notices,
+    communication,notices,offerSeed,offerFailure,
     port: address.port,
     product,
     variant,
@@ -246,7 +252,16 @@ const gateway = createBrowserGateway({
       return;
     }
     const a = active!;
-    if(action==="notifications-slow")a.notices.delay=1500;
+    if(action==='catalog-error')a.offerFailure.public=true;
+    else if(action==='catalog-ok')a.offerFailure.public=false;
+    else if(action==='offers-error')a.offerFailure.fail=true;
+    else if(action==='offers-ok')a.offerFailure.fail=false;
+    else if(action==='offer-out'||action==='offer-restored'){
+      const selected=a.offerSeed[0];if(!selected)throw new Error('Offer fixture missing');const cp=(await a.pool.query('SELECT version::text FROM bazar.catalog_products WHERE product_id=$1',[selected.productId])).rows[0];await createCatalogV2(a.pool).update(selected.owner,selected.productId,{expectedVersion:Number(cp.version),idempotencyKey:randomUUID(),variantId:selected.id,available:action==='offer-restored'});
+    }
+    else if(action==='expire-sessions')await a.pool.query("UPDATE bazar.sessions SET expires_at=created_at+interval '1 millisecond'");
+    else if(action==='offer-info'){reply(res,{offers:a.offerSeed});return;}
+    else if(action==="notifications-slow")a.notices.delay=1500;
     else if(action==="notifications-fast")a.notices.delay=0;
     else if(action==="notifications-error")a.notices.fail=true;
     else if(action==="notifications-ok")a.notices.fail=false;

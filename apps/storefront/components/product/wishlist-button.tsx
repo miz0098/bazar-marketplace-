@@ -1,10 +1,13 @@
 'use client';
+import {useServerCustomer} from '../server/customer-provider';
+import {useAuthModal} from '../auth/auth-provider';
 import { useState } from 'react';
 import { useWishlist } from './wishlist-provider';
 import type { ProductSummary } from '@/services/contracts/catalog';
 export function WishlistButton({ product }: { product: ProductSummary }) {
+  const {enabled,state}=useServerCustomer();const {openAuth}=useAuthModal();
   const { service, items, ready, notice } = useWishlist();
-  const item = items.find((i) => i.product.id === product.id);
+  const item = items.find((i) => enabled?i.product.offerId===product.offerId:i.product.id === product.id);
   const [busy, setBusy] = useState(false),
     [error, setError] = useState('');
   return (
@@ -16,6 +19,7 @@ export function WishlistButton({ product }: { product: ProductSummary }) {
         aria-pressed={Boolean(item)}
         aria-label={`${item ? 'Видалити' : 'Додати'} ${product.title} ${item ? 'з обраного' : 'до обраного'}`}
         onClick={async () => {
+          if(enabled&&!state.session){openAuth('login');return;}
           setBusy(true);
           setError('');
           try {
