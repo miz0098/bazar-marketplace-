@@ -34,3 +34,5 @@ Unit tests cover below/tie/above-half and approved examples, exact/fractional pe
 **456 passed,0 failed;8 unchanged viewport-specific exclusions.** Ten new test cases (4 API unit,1 storefront unit,3 PostgreSQL,2 viewport browser cases); matrix assertions are not counted separately and repeated/debug runs are excluded. Existing tests/retries/budgets/skips are not weakened. Desktop1440×900/mobile390×844, existing axe/keyboard/overflow coverage remain enabled.
 
 API/storefront lint; API/storefront/two isolated-entry typechecks; API and all Next production builds; ledger/task scope; OpenAPI and evidence references; git diff --check pass. Three dependency audits (API/storefront/E2E) report0 vulnerabilities. No dependencies/lockfiles, UI or migrations0001–0018 changed. Tests do not establish live-provider, payout/refund, legal or full marketplace readiness. See [ADR0021](adr/0021-half-up-financial-precision.md).
+
+Review: [PR #34](https://github.com/miz0098/bazar-marketplace-/pull/34), targeting `vps-migration`. Final-head GitHub CI is tracked on PR checks; no merge/deployment.

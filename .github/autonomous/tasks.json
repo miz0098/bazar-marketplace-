@@ -1113,7 +1113,7 @@
     {
       "id": "FINANCIALROUNDING-001",
       "title": "Complete approved HALF_UP financial precision with immutable historical snapshot compatibility",
-      "status": "in_progress",
+      "status": "in_review",
       "readiness": "integration",
       "depends_on": [
         "MULTICHECKOUT-001"
@@ -1142,7 +1142,7 @@
         "Versioned policy/basis snapshots preserve historical v1 values and refund facts without migration rewrites",
         "All unit PG HTTP security browser regression lint types builds audit and governance checks pass"
       ],
-      "pr": null,
+      "pr": 34,
       "blocker": null
     }
   ]
