@@ -31,7 +31,7 @@ CREATE TABLE bazar.commerce_return_items (
 CREATE FUNCTION bazar.commerce_return_guard() RETURNS trigger LANGUAGE plpgsql AS $$
 DECLARE so bazar.commerce_seller_orders; purchased integer; used bigint;
 BEGIN
- SELECT s.* INTO STRICT so FROM bazar.commerce_return_requests r JOIN bazar.commerce_seller_orders s ON s.id=r.seller_order_id WHERE r.id=NEW.request_id;
+ SELECT s.* INTO STRICT so FROM bazar.commerce_return_requests r JOIN bazar.commerce_seller_orders s ON s.id=r.seller_order_id WHERE r.id=NEW.request_id AND r.state='requested' AND r.xmin=pg_current_xact_id()::xid;
  PERFORM 1 FROM bazar.commerce_order_lifecycle WHERE seller_order_id=so.id FOR UPDATE;
  SELECT (snapshot->>'quantity')::integer INTO purchased FROM bazar.commerce_order_lines WHERE parent_id=NEW.parent_id AND parent_id=so.parent_id AND seller_id=so.seller_id AND line_id=NEW.line_id;
  SELECT coalesce(sum(i.quantity),0) INTO used FROM bazar.commerce_return_items i JOIN bazar.commerce_return_requests r ON r.id=i.request_id WHERE r.seller_order_id=so.id AND i.line_id=NEW.line_id;
@@ -86,7 +86,7 @@ BEGIN
  END IF;
  SELECT * INTO STRICT paid FROM bazar.commerce_payment_attempts WHERE id=NEW.attempt_id FOR UPDATE;
  SELECT s.parent_id INTO parent FROM bazar.commerce_return_requests r JOIN bazar.commerce_seller_orders s ON s.id=r.seller_order_id WHERE r.id=NEW.request_id AND r.state='received-for-test';
- IF parent IS NULL OR parent<>paid.parent_id OR paid.state<>'succeeded' OR paid.provider<>NEW.provider OR paid.account_ref<>NEW.account_ref OR paid.currency<>NEW.currency OR NOT EXISTS(SELECT 1 FROM bazar.commerce_payment_events WHERE attempt_id=paid.id) THEN RAISE EXCEPTION 'Refund lacks matching confirmed payment' USING ERRCODE='23514';END IF;
+ IF parent IS NULL OR parent<>paid.parent_id OR paid.state<>'succeeded' OR paid.provider<>NEW.provider OR paid.account_ref<>NEW.account_ref OR paid.currency<>NEW.currency OR NOT EXISTS(SELECT 1 FROM bazar.commerce_payment_events WHERE attempt_id=paid.id AND observation->>'status'='succeeded') THEN RAISE EXCEPTION 'Refund lacks matching confirmed payment' USING ERRCODE='23514';END IF;
  IF EXISTS(SELECT 1 FROM bazar.commerce_return_items i JOIN bazar.commerce_order_lines l USING(parent_id,line_id) WHERE i.request_id=NEW.request_id AND i.quantity<>(l.snapshot->>'quantity')::integer AND mod((l.snapshot->>'netMinor')::numeric,(l.snapshot->>'quantity')::numeric)<>0) THEN RAISE EXCEPTION 'Partial unit allocation requires policy' USING ERRCODE='23514';END IF;
  SELECT sum(CASE WHEN i.quantity=(l.snapshot->>'quantity')::integer THEN (l.snapshot->>'netMinor')::numeric ELSE (l.snapshot->>'netMinor')::numeric/(l.snapshot->>'quantity')::numeric*i.quantity END) INTO entitlement FROM bazar.commerce_return_items i JOIN bazar.commerce_order_lines l USING(parent_id,line_id) WHERE i.request_id=NEW.request_id;
  SELECT coalesce(sum(amount_minor),0) INTO claimed FROM bazar.commerce_return_refunds WHERE attempt_id=paid.id;
@@ -97,3 +97,10 @@ CREATE TRIGGER commerce_refund_guard BEFORE INSERT OR UPDATE ON bazar.commerce_r
 ALTER TABLE bazar.commerce_lifecycle_events ADD COLUMN reason text CHECK(reason IS NULL OR length(reason) BETWEEN 1 AND 2000);
 ALTER TABLE bazar.commerce_transport_events ADD COLUMN observation jsonb NOT NULL;
 ALTER TABLE bazar.commerce_refund_events ADD COLUMN observation jsonb NOT NULL;
+CREATE FUNCTION bazar.commerce_request_immutable() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN
+ IF TG_OP='DELETE' THEN RAISE EXCEPTION 'Lifecycle request history is immutable' USING ERRCODE='23514';END IF;
+ IF (NEW.id,NEW.seller_order_id,NEW.buyer_id,NEW.reason,NEW.created_at) IS DISTINCT FROM (OLD.id,OLD.seller_order_id,OLD.buyer_id,OLD.reason,OLD.created_at) OR OLD.state<>'requested' AND NEW.state<>OLD.state THEN RAISE EXCEPTION 'Immutable request basis or terminal state' USING ERRCODE='23514';END IF;RETURN NEW;
+END $$;
+CREATE TRIGGER commerce_cancellation_immutable BEFORE UPDATE OR DELETE ON bazar.commerce_cancellation_requests FOR EACH ROW EXECUTE FUNCTION bazar.commerce_request_immutable();
+CREATE TRIGGER commerce_return_request_immutable BEFORE UPDATE OR DELETE ON bazar.commerce_return_requests FOR EACH ROW EXECUTE FUNCTION bazar.commerce_request_immutable();
+CREATE TRIGGER commerce_refund_delete_immutable BEFORE DELETE ON bazar.commerce_return_refunds FOR EACH ROW EXECUTE FUNCTION bazar.commerce_immutable();

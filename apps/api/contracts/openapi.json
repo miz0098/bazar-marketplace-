@@ -11082,7 +11082,18 @@
           "503": {
             "description": "Unavailable, never synthetic success"
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/OrderBusinessStatus"
+            },
+            "description": "Match any owned seller component before the latest100 order bound; heterogeneous parents have no invented aggregate status."
+          }
+        ]
       }
     },
     "/api/v1/commerce/orders/{id}": {
@@ -11415,7 +11426,7 @@
                       "const": true
                     },
                     "data": {
-                      "$ref": "#/components/schemas/CommerceOrder"
+                      "$ref": "#/components/schemas/OrderFlowView"
                     },
                     "meta": {
                       "type": "object",
@@ -11489,7 +11500,7 @@
                       "const": true
                     },
                     "data": {
-                      "$ref": "#/components/schemas/CommerceOrder"
+                      "$ref": "#/components/schemas/OrderFlowView"
                     },
                     "meta": {
                       "type": "object",
@@ -11535,8 +11546,27 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": false,
-                "maxProperties": 0
+                "required": [
+                  "idempotencyKey",
+                  "expectedVersion",
+                  "reason"
+                ],
+                "properties": {
+                  "idempotencyKey": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "expectedVersion": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000
+                  }
+                },
+                "additionalProperties": false
               }
             }
           }
@@ -11575,7 +11605,7 @@
                       "const": true
                     },
                     "data": {
-                      "$ref": "#/components/schemas/CommerceOrder"
+                      "$ref": "#/components/schemas/OrderFlowView"
                     },
                     "meta": {
                       "type": "object",
@@ -11621,8 +11651,52 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": false,
-                "maxProperties": 0
+                "required": [
+                  "idempotencyKey",
+                  "expectedVersion",
+                  "reason",
+                  "items"
+                ],
+                "properties": {
+                  "idempotencyKey": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "expectedVersion": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000
+                  },
+                  "items": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 100,
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "lineId",
+                        "quantity"
+                      ],
+                      "properties": {
+                        "lineId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "quantity": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 2147483647
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "additionalProperties": false
               }
             }
           }
@@ -11661,7 +11735,20 @@
                       "const": true
                     },
                     "data": {
-                      "$ref": "#/components/schemas/CommerceOrder"
+                      "type": "object",
+                      "required": [
+                        "ok",
+                        "sellerOrderId"
+                      ],
+                      "properties": {
+                        "ok": {
+                          "const": true
+                        },
+                        "sellerOrderId": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      }
                     },
                     "meta": {
                       "type": "object",
@@ -11707,8 +11794,21 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": false,
-                "maxProperties": 0
+                "required": [
+                  "idempotencyKey",
+                  "expectedVersion"
+                ],
+                "properties": {
+                  "idempotencyKey": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "expectedVersion": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "additionalProperties": false
               }
             }
           }
@@ -11747,7 +11847,20 @@
                       "const": true
                     },
                     "data": {
-                      "$ref": "#/components/schemas/CommerceOrder"
+                      "type": "object",
+                      "required": [
+                        "ok",
+                        "sellerOrderId"
+                      ],
+                      "properties": {
+                        "ok": {
+                          "const": true
+                        },
+                        "sellerOrderId": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      }
                     },
                     "meta": {
                       "type": "object",
@@ -11793,8 +11906,26 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": false,
-                "maxProperties": 0
+                "required": [
+                  "idempotencyKey",
+                  "expectedVersion",
+                  "requestId"
+                ],
+                "properties": {
+                  "idempotencyKey": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "expectedVersion": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "requestId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "additionalProperties": false
               }
             }
           }
@@ -11833,7 +11964,20 @@
                       "const": true
                     },
                     "data": {
-                      "$ref": "#/components/schemas/CommerceOrder"
+                      "type": "object",
+                      "required": [
+                        "ok",
+                        "sellerOrderId"
+                      ],
+                      "properties": {
+                        "ok": {
+                          "const": true
+                        },
+                        "sellerOrderId": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      }
                     },
                     "meta": {
                       "type": "object",
@@ -11879,8 +12023,26 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": false,
-                "maxProperties": 0
+                "required": [
+                  "idempotencyKey",
+                  "expectedVersion",
+                  "requestId"
+                ],
+                "properties": {
+                  "idempotencyKey": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "expectedVersion": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "requestId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "additionalProperties": false
               }
             }
           }
@@ -11919,7 +12081,20 @@
                       "const": true
                     },
                     "data": {
-                      "$ref": "#/components/schemas/CommerceOrder"
+                      "type": "object",
+                      "required": [
+                        "ok",
+                        "sellerOrderId"
+                      ],
+                      "properties": {
+                        "ok": {
+                          "const": true
+                        },
+                        "sellerOrderId": {
+                          "type": "string",
+                          "format": "uuid"
+                        }
+                      }
                     },
                     "meta": {
                       "type": "object",
@@ -11965,8 +12140,27 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": false,
-                "maxProperties": 0
+                "required": [
+                  "idempotencyKey",
+                  "expectedVersion",
+                  "message"
+                ],
+                "properties": {
+                  "idempotencyKey": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "expectedVersion": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "message": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000
+                  }
+                },
+                "additionalProperties": false
               }
             }
           }
@@ -12005,7 +12199,7 @@
                       "const": true
                     },
                     "data": {
-                      "$ref": "#/components/schemas/CommerceOrder"
+                      "$ref": "#/components/schemas/OrderFlowView"
                     },
                     "meta": {
                       "type": "object",
@@ -12051,8 +12245,26 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "additionalProperties": false,
-                "maxProperties": 0
+                "required": [
+                  "idempotencyKey",
+                  "expectedVersion",
+                  "requestId"
+                ],
+                "properties": {
+                  "idempotencyKey": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "expectedVersion": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "requestId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "additionalProperties": false
               }
             }
           }
@@ -17953,7 +18165,9 @@
               "awaiting-payment",
               "confirmed",
               "verification-required"
-            ]
+            ],
+            "description": "Legacy checkout-commit/financial projection, not operational order status. Use business.parentStatus and seller states.",
+            "deprecated": true
           },
           "paymentState": {
             "enum": [
@@ -17998,6 +18212,9 @@
                 }
               }
             }
+          },
+          "business": {
+            "$ref": "#/components/schemas/OrderFlowProjection"
           }
         }
       },
@@ -18015,6 +18232,395 @@
           "returned"
         ],
         "description": "APPROVED F23 order states. Transport observations are shipment history only. Delivered is successful terminal delivery; no completion transition."
+      },
+      "OrderFlowProjection": {
+        "type": "object",
+        "required": [
+          "parentStatus",
+          "sellerOrders",
+          "fundsReturned"
+        ],
+        "properties": {
+          "parentStatus": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OrderBusinessStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sellerOrders": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 1000,
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "sellerId",
+                "status",
+                "version",
+                "cancellation",
+                "shipmentState",
+                "preparedAt",
+                "dispatchDueAt",
+                "deadlinePolicy",
+                "trackingRef"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "sellerId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "status": {
+                  "$ref": "#/components/schemas/OrderBusinessStatus"
+                },
+                "version": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "cancellation": {
+                  "enum": [
+                    "direct",
+                    "request",
+                    "return",
+                    "unavailable"
+                  ]
+                },
+                "shipmentState": {
+                  "enum": [
+                    "not-dispatched",
+                    "shipped",
+                    "transport",
+                    "delivered",
+                    "returned"
+                  ]
+                },
+                "preparedAt": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "dispatchDueAt": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "deadlinePolicy": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "trackingRef": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "fundsReturned": {
+            "const": false
+          }
+        }
+      },
+      "OrderFlowView": {
+        "type": "object",
+        "required": [
+          "parentStatus",
+          "sellerOrders",
+          "fundsReturned",
+          "mode",
+          "parentId",
+          "requests",
+          "returns",
+          "refunds",
+          "history"
+        ],
+        "properties": {
+          "parentStatus": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OrderBusinessStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sellerOrders": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 1000,
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "sellerId",
+                "status",
+                "version",
+                "cancellation",
+                "shipmentState",
+                "preparedAt",
+                "dispatchDueAt",
+                "deadlinePolicy",
+                "trackingRef"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "sellerId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "status": {
+                  "$ref": "#/components/schemas/OrderBusinessStatus"
+                },
+                "version": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "cancellation": {
+                  "enum": [
+                    "direct",
+                    "request",
+                    "return",
+                    "unavailable"
+                  ]
+                },
+                "shipmentState": {
+                  "enum": [
+                    "not-dispatched",
+                    "shipped",
+                    "transport",
+                    "delivered",
+                    "returned"
+                  ]
+                },
+                "preparedAt": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "dispatchDueAt": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "deadlinePolicy": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "trackingRef": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "fundsReturned": {
+            "const": false
+          },
+          "mode": {
+            "const": "integration-test"
+          },
+          "parentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "requests": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "sellerOrderId",
+                "kind",
+                "state",
+                "reason",
+                "createdAt"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "sellerOrderId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "kind": {
+                  "enum": [
+                    "cancellation",
+                    "return"
+                  ]
+                },
+                "state": {
+                  "enum": [
+                    "requested",
+                    "approved",
+                    "received-for-test"
+                  ]
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "returns": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "requestId",
+                "lineId",
+                "quantity"
+              ],
+              "properties": {
+                "requestId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "lineId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          },
+          "refunds": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "requestId",
+                "state",
+                "amountMinor",
+                "currency",
+                "realRefund",
+                "fundsReturned"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "requestId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "state": {
+                  "enum": [
+                    "prepared",
+                    "pending",
+                    "unknown",
+                    "confirmed-for-test",
+                    "rejected-for-test"
+                  ]
+                },
+                "amountMinor": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "currency": {
+                  "const": "UAH"
+                },
+                "realRefund": {
+                  "const": false
+                },
+                "fundsReturned": {
+                  "const": false
+                }
+              }
+            }
+          },
+          "history": {
+            "type": "array",
+            "maxItems": 1000,
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "sellerOrderId",
+                "kind",
+                "from",
+                "to",
+                "source",
+                "createdAt"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "sellerOrderId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "kind": {
+                  "type": "string"
+                },
+                "from": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/OrderBusinessStatus"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "to": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/OrderBusinessStatus"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "source": {
+                  "type": "string"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "securitySchemes": {

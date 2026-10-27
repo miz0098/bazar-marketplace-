@@ -119,7 +119,7 @@ Each shipment gets its own provider tracking identity; no one parent tracking fi
 
 ## Cancellation and lifecycle state contracts
 
-Target seller-order labels/technical codes below express the approved buyer-action policy, not the current limited SQL status enum. Core expected path New→Confirmed→Preparing→Shipped→In transit→Delivered→Completed requires explicit authorized transition evidence (PD-07/EX-02) before implementation; no caller may submit arbitrary status. Terminal cancellation labels are separate from payment/refund axes.
+Target seller-order labels/technical codes below express the approved buyer-action policy, not the current limited SQL status enum. Core expected path New→Confirmed→Preparing→Shipped→Delivered requires explicit authorized transition evidence (PD-07/EX-02) before implementation; no caller may submit arbitrary status. Terminal cancellation labels are separate from payment/refund axes.
 
 | Locked seller-order state | Buyer action approved | Responsible processing | Forbidden inference |
 | --- | --- | --- | --- |
@@ -127,9 +127,7 @@ Target seller-order labels/technical codes below express the approved buyer-acti
 | Confirmed / `confirmed` | Direct cancellation | Same owner/state guard | Seller-start-preparation race cannot bypass cutoff |
 | Готується до відправлення / `preparing` | Cancellation request only | Owning seller processes; staff/legal escalation as required | No direct buyer state update |
 | Shipped / `shipped` | Cancellation request only | Own seller; carrier interception separately verified | Seller approval is not proof parcel stopped or returned |
-| In transit / `in_transit` | Cancellation request only | Own seller; escalation/legal rights preserved | No automatic undo of shipment or money |
 | Delivered / `delivered` | Return procedure | Owned item-level return under PL-01 | No direct cancellation shortcut |
-| Completed / `completed` | Return procedure | Same legal entitlement gate | “Completed” does not waive statutory rights |
 | Cancelled / `cancelled`; Скасовано системою / `system_cancelled` | Replay/history/status, any further remedy per legal policy | Idempotent evidence-preserving workflow | No automatic refund success or sibling cancellation |
 | Повернено / `returned` | Applicable verified uncollected-return resolution | Carrier facts+seller/staff, legal financial resolution | Does not assert merchandise inspection, buyer fault or refund completion |
 

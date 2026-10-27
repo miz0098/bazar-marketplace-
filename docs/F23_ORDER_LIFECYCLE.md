@@ -25,3 +25,9 @@ Preparing timestamps are server-recorded. Without an explicitly injected calenda
 - Unit:60 API /93 storefront passed. Initial new lifecycle regression:131/131 real PostgreSQL/HTTP/security passed after correcting an expected migration-count assertion for additive0019; no checks weakened. Further coverage/browser validation pending.
 
 No production activation, real refund/payment/SMS/push/TTN, payouts, seller/staff app implementation, redesign, merge or deployment. Full marketplace audit and Demo100% remain unapproved.
+
+Checkpoint follow-up:133/133 PostgreSQL/HTTP/security now pass, including a real schema18→19 fixture that preserves source snapshot/status and imports only a documented projection. Full discounted-line net refunds work even when net/quantity is fractional; only unresolved partial-unit attribution is gated. No production database or production history was accessed; deployment requires a separate source-data inventory/import review.
+
+API and client response contracts now explicitly expose canonical operational projections and seller-owned requests; legacy checkout-commit status is deprecated for operational display. Canonical request hashing preserves key-order idempotency; pending browser requests retain their original command/key until acknowledgement. Provider event IDs remain exact opaque values, terminal refund confirmations do not duplicate notifications, and a matching succeeded payment observation is required. Requests, quantities, receipts, financial refund basis and event history are immutable at the database boundary.
+
+Browser debugging found an actual navigation wait race and insufficient secondary-button contrast. The test now waits for the actual order screen before reload, and the UI reuses existing account form/button styles. No timeout/retry/security/accessibility assertion is weakened. Final browser and full regression counts remain pending.

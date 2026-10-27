@@ -6,13 +6,7 @@ export type AccountOrderStatus = 'expected' | 'confirmed' | 'preparing' | 'syste
 export type AccountWishlistSort = 'newest' | 'price-asc' | 'price-desc' | 'name';
 export type AccountDeliveryMethod = 'nova-poshta' | 'meest' | 'ukrposhta' | 'courier';
 
-export const ACCOUNT_ORDER_STATUSES: readonly AccountOrderStatus[] = [
-  'expected', 'confirmed', 'preparing', 'system-cancelled', 'returning',
-  'shipped',
-  'delivered',
-  'canceled',
-  'returned',
-];
+export const ACCOUNT_ORDER_STATUSES: readonly AccountOrderStatus[] = ['expected','confirmed','preparing','shipped','delivered','canceled','system-cancelled','returning','returned'];
 
 export interface AccountProfile {
   readonly firstName: string;
