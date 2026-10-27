@@ -1,4 +1,5 @@
 import type pg from 'pg';
+import { appendNotificationForTest } from '../communication/notifications.js';
 import { evaluatePromotionInTransaction, claimPromotionForCheckout } from '../promotions/service.js';
 import { ApiError } from '../contracts/foundation.js';
 import { money, uuid } from '../business/validation.js';
@@ -248,6 +249,7 @@ export function createCheckoutBusinessService(
         const claim = promotion ? await claimPromotionForCheckout(c,actor,{cartId:row.cart_id,expectedCartVersion:money(row.cart_version),code:row.promo_code},input.idempotencyKey,promotion.pricingFingerprint) : null;
         await c.query("INSERT INTO bazar.order_test_financials(order_id,user_id,payment_operation_id,shipping_quote_id,promotion_claim_id,promo_code,subtotal_minor,discount_minor,shipping_minor,total_minor,currency,scope) SELECT $1,$2,p.id,q.id,$4,$5,$6,$7,q.amount_minor,p.amount_minor,'UAH','isolated-test-plan' FROM bazar.payment_operations p JOIN bazar.checkout_shipping s ON s.checkout_id=$3 AND s.user_id=p.user_id JOIN bazar.shipping_quotes q ON q.id=s.quote_id AND q.user_id=s.user_id WHERE p.id=$8 AND p.user_id=$2", [order.id,actor,id,claim,row.promo_code,preview.pricing.subtotal.amountMinor,preview.pricing.discount.amountMinor,paymentAttemptId]);
       }
+      if (discountedCheckoutForTest && paymentAttemptId) await appendNotificationForTest(c,actor,'order.created',order.id,order.id);
       return { order: await readOrder(c, actor, order.id), replayed: false };
     });
   }

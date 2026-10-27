@@ -2,6 +2,9 @@ import { randomUUID, timingSafeEqual } from "node:crypto";
 import { once } from "node:events";
 import { readFileSync } from "node:fs";
 import pg from "pg";
+import { createCommunicationService } from "../../src/communication/service.js";
+import { appendNotificationForTest } from "../../src/communication/notifications.js";
+import { ApiError } from "../../src/contracts/foundation.js";
 import { discountedTestPlan } from "../../src/payments/test-pricing.js";
 import {
   createBrowserGateway,
@@ -131,11 +134,13 @@ async function reset() {
       return true;
     },
   });
+  const communication=createCommunicationService(pool), notices={fail:false,delay:0};
   const app = createApiServer(
     readConfig({ NODE_ENV: "test", CORS_ORIGINS: info.origin }),
     createLogger("error"),
     {
       ...graph,
+      communication:{...communication,notificationSummary:async(actor:string)=>{if(notices.delay)await new Promise(r=>setTimeout(r,notices.delay));if(notices.fail)throw new ApiError(503,"SERVICE_UNAVAILABLE","Test notifications unavailable.");return communication.notificationSummary(actor);}},
       customer: createCustomerService(pool),
       lifecycle: createOrderLifecycleService(pool),
     },
@@ -151,6 +156,7 @@ async function reset() {
     payment,
     graph,
     app,
+    communication,notices,
     port: address.port,
     product,
     variant,
@@ -240,7 +246,34 @@ const gateway = createBrowserGateway({
       return;
     }
     const a = active!;
-    if (action === "price")
+    if(action==="notifications-slow")a.notices.delay=1500;
+    else if(action==="notifications-fast")a.notices.delay=0;
+    else if(action==="notifications-error")a.notices.fail=true;
+    else if(action==="notifications-ok")a.notices.fail=false;
+    else if(action==="notification-demo") {
+      const order=(await a.pool.query("SELECT id,user_id FROM bazar.orders WHERE foundation_mode='integration-test' ORDER BY created_at LIMIT 1")).rows[0];
+      if(!order)throw new Error('Test order required');
+      const actor=order.user_id;
+      const c=await a.pool.connect();
+      try {
+        await c.query('BEGIN');
+        // Stable source IDs are derived from this owned test order; replay must preserve read state.
+        for(const kind of ['order.status_changed','order.cancelled'] as const)
+          await appendNotificationForTest(c,actor,kind,order.id,order.id);
+        let chat=(await c.query('SELECT conversation_id FROM bazar.conversation_members WHERE user_id=$1 ORDER BY conversation_id LIMIT 1',[actor])).rows[0]?.conversation_id;
+        if(!chat){chat=(await c.query('INSERT INTO bazar.conversations DEFAULT VALUES RETURNING id')).rows[0].id;await c.query('INSERT INTO bazar.conversation_members(conversation_id,user_id) VALUES($1,$2)',[chat,actor]);}
+        let message=(await c.query('SELECT id FROM bazar.messages WHERE conversation_id=$1 LIMIT 1',[chat])).rows[0]?.id;
+        if(!message)message=(await c.query('INSERT INTO bazar.messages(conversation_id,sender_id,client_message_id,body) VALUES($1,$2,$3,$4) RETURNING id',[chat,actor,randomUUID(),'Ізольоване тестове повідомлення. Не доставлено реальному користувачу. '+'ДовгеТестовеСлово'.repeat(60)])).rows[0].id;
+        await appendNotificationForTest(c,actor,'message.created',message,chat);
+        let ticket=(await c.query('SELECT id FROM bazar.support_tickets WHERE user_id=$1 LIMIT 1',[actor])).rows[0]?.id;
+        if(!ticket)ticket=(await c.query("INSERT INTO bazar.support_tickets(user_id,subject,category) VALUES($1,'Ізольоване тестове звернення','other') RETURNING id",[actor])).rows[0].id;
+        let reply=(await c.query('SELECT id FROM bazar.support_messages WHERE ticket_id=$1 LIMIT 1',[ticket])).rows[0]?.id;
+        if(!reply)reply=(await c.query("INSERT INTO bazar.support_messages(ticket_id,user_id,body) VALUES($1,$2,'Симуляція відповіді підтримки. CRM і співробітники не підключені; це тестовий запис, а не відповідь реального оператора.') RETURNING id",[ticket,actor])).rows[0].id;
+        await appendNotificationForTest(c,actor,'support.replied',reply,ticket);
+        await c.query('COMMIT');
+      }catch(e){await c.query('ROLLBACK');throw e;}finally{c.release();}
+    }
+    else if (action === "price")
       await a.pool.query(
         "UPDATE bazar.variants SET price_minor=20000 WHERE id=$1",
         [a.variant],

@@ -1,5 +1,7 @@
 # Phase F10 — Demo Completion Plan
 
+F17 reuses the F13 inbox for an isolated browser notification center in existing session/orders UI (no new menu): owner count/read/bulk-read/pagination, atomic test-order event, explicit status/cancel/message/support simulations and verified F14 test-refund hook. No real channels or production activation. [Acceptance](docs/F17_NOTIFICATION_CENTER_ACCEPTANCE.md), [ADR0016](docs/adr/0016-customer-notification-center.md).
+
 F16 supersedes the F15 discounted-completion blocker for isolated single-line fixed/exact-percentage checkout only: F5 reuse, atomic test usage/order/payment/shipping snapshot, browser refresh/history and cap contention. Multiple discounted lines, fractional rounding/allocation/stacking and all production financial/provider/auth gates remain blocked. [Scope](docs/F16_DISCOUNTED_CHECKOUT_ACCEPTANCE.md), [ADR0015](docs/adr/0015-discounted-browser-checkout.md).
 
 F15 partially advances D05 with an isolated HTTPS/BFF browser harness and actual F4–F14 APIs, no-promo/card linked confirmation/history across NP/Meest/Ukrposhta. It does not complete D05/I09: promo redemption/financial/order/inventory policy, full real-contact/catalog mapping, actual wallet SDKs and repeat purchase still require D01/D03/D04 decisions. Production SMS/domain/BFF/provider rollout remains D08/D09. [Evidence](docs/F15_BROWSER_CHECKOUT_ACCEPTANCE.md).
