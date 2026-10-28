@@ -1,6 +1,6 @@
 # BAZAR Business Rules V1 — Phase F19
 
-Version: **1.5**, 2026-10-27 UTC. Business authority: the explicit Phase F19 user instruction in this session; not inferred from earlier code, tests or Shopify. Base: merged PR #29, `2057ecbb0e40b8866cf73a179e6153ecdd8110e9`. Branch: `codex/phase-f19-business-rules`.
+Version: **1.6**, 2026-10-27 UTC. Business authority: the explicit Phase F19 user instruction in this session; not inferred from earlier code, tests or Shopify. Base: merged PR #29, `2057ecbb0e40b8866cf73a179e6153ecdd8110e9`. Branch: `codex/phase-f19-business-rules`.
 
 This is the canonical **target business policy**, not an assertion that it is implemented. Approval is limited to what the user explicitly approved. Stable BR IDs are never reassigned; future edits increment version with supersession/history. “Approved” does not approve a provider, technical proposal, missing rounding rule or legal conclusion. No new functional coverage and no Demo 100% / Full Audit Ready claim.
 
@@ -104,3 +104,13 @@ Authority: explicit F22 instruction. Historical rules remain; these clarify the 
 **BR-L23-02 — APPROVED:** direct buyer cancellation only new/confirmed; preparing/shipped requires seller cancellation request; delivered uses returns. Preserve dispatch escalation/system cancellation policy. Physical return and financial refund remain independent. Partial returns use owned return-item quantities; seller returned only after all its purchased units are received; parent returned only when all seller components are returned. No statutory refund right is reduced.
 
 Supersedes prior F19 order-state references to in-transit/completed; historical audit source data are not rewritten. Components: lifecycle API, operational sidecars, customer order UI/filtering, future seller/staff contracts. Acceptance: nine-state allowlists, main/invalid transitions, cancellation cutoff/races, complete/partial multi-seller returns, immutable history and separate verified refund outcomes. [F23 evidence](docs/F23_ORDER_LIFECYCLE.md).
+
+## F24 approved account and communications scope — v1.6
+
+| Stable ID | Rule | Approval | Components | Acceptance |
+| --- | --- | --- | --- | --- |
+| BR-U24-01 | Owner-persisted profile, optional saved Ukraine carrier addresses and safe payment references; phone changes require separate OTP | APPROVED F24 | F12/F21 customer/BFF | Reload/login/device refresh retain owned data; no localStorage authority, raw cards, direct phone changes or historical address destruction |
+| BR-U24-02 | Reviews link actual purchase/offer, pending by default; review/answer moderation is separate from order status | APPROVED F24 scope; non-purchasers/edit windows/legal policy pending | Reviews/Q&A/F22/F23/F25/F26 | No fake purchase badge or auto-publication; seller cannot answer for another seller; no public contact metadata |
+| BR-U24-03 | F13 server conversations/support and F17 in-app inbox/preferences are reused; outbound marketing/providers remain disabled | APPROVED F24 | Communications/account | Participant/recipient isolation, conversation unread count, chronological history, durable retry/dedup; no fabricated live agent/provider or consent |
+
+[Actual implementation and limits](docs/F24_CUSTOMER_COMMUNICATIONS.md). Optional photos/attachments require secure storage/scan/access contracts; privacy requests do not authorize automatic financial-record erasure. No Demo100%/Production Ready claim.

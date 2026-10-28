@@ -21,6 +21,8 @@ export async function handleCustomer(
       'SERVICE_UNAVAILABLE',
       'Customer foundation is not configured.',
     );
+  const publicFeedback=url.pathname.match(/^\/api\/v1\/customer\/account\/published\/([^/]+)$/);
+  if(publicFeedback){if(!['GET','HEAD'].includes(request.method??'')||url.search||request.headers['transfer-encoding']||Number(request.headers['content-length']??0)!==0)throw new ApiError(400,'INVALID_REQUEST','Invalid published feedback request.');return service.account.published(publicFeedback[1]);}
   const read = request.method === 'GET' || request.method === 'HEAD',
     actor = (await authorize(request, auth, !read)).userId;
   if (url.search)
@@ -29,6 +31,14 @@ export async function handleCustomer(
       'INVALID_REQUEST',
       'Customer queries are not accepted.',
     );
+  if(url.pathname==='/api/v1/customer/account'){
+    if(read)return service.account.get(actor);
+    if(request.method!=='POST')throw new ApiError(405,'METHOD_NOT_ALLOWED','Method not allowed.');
+    const body=await readJson(request,response);const {fields}=await import('../checkout/input.js');const r=fields(body,['action','input']);if(typeof r.action!=='string')throw new ApiError(400,'INVALID_REQUEST','Invalid account action.');return service.account.command(actor,r.action,r.input);
+  }
+  const answer=url.pathname.match(/^\/api\/v1\/customer\/account\/questions\/([^/]+)\/answer$/);
+  if(answer){if(request.method!=='POST')throw new ApiError(405,'METHOD_NOT_ALLOWED','Method not allowed.');return service.account.answer(actor,answer[1],await readJson(request,response));}
+  if(url.pathname.startsWith('/api/v1/customer/account/attachments'))throw new ApiError(403,'FORBIDDEN','Attachment storage and inspection are not configured.');
   const path = url.pathname,
     profile = path === '/api/v1/customer/profile',
     addresses = path === '/api/v1/customer/addresses',

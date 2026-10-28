@@ -1,3 +1,4 @@
+import {createCustomerAccount,type AccountPolicy} from './account.js';
 import type pg from 'pg';
 import { createHash } from 'node:crypto';
 import { ApiError } from '../contracts/foundation.js';
@@ -31,6 +32,7 @@ const conflict = () =>
 export function createCustomerService(
   pool: pg.Pool,
   policy?: IsolatedReviewPolicy,
+  accountPolicy?: AccountPolicy,
 ) {
   if (
     process.env.NODE_ENV !== 'test' ||
@@ -189,6 +191,7 @@ export function createCustomerService(
     );
   }
   return {
+    account:createCustomerAccount(pool,accountPolicy),
     async get(actor: string, resource: CustomerView['resource']) {
       return tx(actor, (c) => read(c, uuid(actor), resource));
     },

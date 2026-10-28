@@ -1,4 +1,6 @@
 'use client';
+import {useServerCustomer} from '../server/customer-provider';
+import {ServerAccountScreen} from './server-account';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { accountDeliveryLabels } from '@/components/account/account-format';
@@ -29,7 +31,7 @@ const emptyDraft: AccountAddressDraft = {
   makeDefault: false,
 };
 
-export function AddressesScreen({ scenario }: { scenario: AccountScenario }) {
+function AddressesScreenPreview({ scenario }: { scenario: AccountScenario }) {
   const service = useAccountService(scenario);
   const [editingId, setEditingId] = useState<string | 'new' | null>(null);
   const [draft, setDraft] = useState<AccountAddressDraft>(emptyDraft);
@@ -485,3 +487,5 @@ export function AddressesScreen({ scenario }: { scenario: AccountScenario }) {
     </>
   );
 }
+
+export function AddressesScreen({scenario}:{scenario:AccountScenario}){const {enabled,state}=useServerCustomer();return enabled?<ServerAccountScreen key={state.session?.user.id} section="addresses"/>:<AddressesScreenPreview scenario={scenario}/>;}

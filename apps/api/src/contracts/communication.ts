@@ -1,5 +1,7 @@
 /** Private, isolated-test protocol. No delivery or production authentication claim. */
 export const notificationKinds = [
+  "review.moderated",
+  "question.answered",
   "product.availability_restored",
   "order.created",
   "order.status_changed",
@@ -33,6 +35,7 @@ export interface FutureNotificationChannel {
 }
 export type ConversationItem = {
   id: string;
+  context?: {sellerId:string;offerId:string;name:string};
   pinned: boolean;
   unread: boolean;
   lastReadSequence: number;
@@ -154,7 +157,9 @@ export function isCommunicationView(v: unknown): v is CommunicationView {
             "lastSequence",
             "preview",
             "updatedAt",
+            ...(i.context===undefined?[]:["context"]),
           ]) &&
+          (i.context===undefined||isRecord(i.context)&&exact(i.context,["sellerId","offerId","name"])&&isId(i.context.sellerId)&&isId(i.context.offerId)&&txt(i.context.name,200)) &&
           isId(i.id) &&
           typeof i.pinned === "boolean" &&
           typeof i.unread === "boolean" &&

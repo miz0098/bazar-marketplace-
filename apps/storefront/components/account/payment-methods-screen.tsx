@@ -1,4 +1,6 @@
 'use client';
+import {useServerCustomer} from '../server/customer-provider';
+import {ServerAccountScreen} from './server-account';
 
 import { useEffect, useMemo, useState } from 'react';
 import { AccountIcon } from '@/components/account/account-icons';
@@ -7,7 +9,7 @@ import { useAccountService } from '@/components/account/account-preview-provider
 import { AccountLoading, AccountPageHeading, AccountState } from '@/components/account/account-ui';
 import type { AccountPaymentMethod, AccountScenario } from '@/domain/account/account';
 
-export function PaymentMethodsScreen({ scenario }: { scenario: AccountScenario }) {
+function PaymentMethodsScreenPreview({ scenario }: { scenario: AccountScenario }) {
   const service = useAccountService(scenario);
   const [attempt, setAttempt] = useState(0);
 
@@ -39,3 +41,5 @@ export function PaymentMethodsScreen({ scenario }: { scenario: AccountScenario }
     </>
   );
 }
+
+export function PaymentMethodsScreen({scenario}:{scenario:AccountScenario}){const {enabled,state}=useServerCustomer();return enabled?<ServerAccountScreen key={state.session?.user.id} section="payments"/>:<PaymentMethodsScreenPreview scenario={scenario}/>;}

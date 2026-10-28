@@ -308,3 +308,9 @@ The existing commerce engine now defaults new quotes to exact BigInt HALF_UP, ca
 ## F23 order lifecycle
 
 [Migration0019](apps/api/migrations/0019_seller_order_lifecycle.sql), existing commerce/session/financial adapters and F13 inbox support the approved nine-state operational projection without mutating F22 money/history or rewriting F14 records. Exact ownership, version/idempotency receipts, parameterized SQL and serialized parent/child transitions protect requests and refund capacity. Existing F14 refund signature contract is reused for a new explicit commerce-payment proof link; no fake legacy paid order is manufactured. Ordinary account pages use the new sidecar; seller/staff applications are not implemented. [Scope, calendar/legal/provider gates and validation](docs/F23_ORDER_LIFECYCLE.md).
+
+## F24 customer account / communications overlay
+
+[Implementation, sources, validation and release gates](docs/F24_CUSTOMER_COMMUNICATIONS.md), [ADR0023](docs/adr/0023-customer-account-communications.md). Existing historical audit evidence remains unchanged. Ordinary customer screens in the explicit server integration entry now reuse F12/F13/F17/F21/F22/F23 for profile/address/payment-ref, actual-purchase review/Q&A moderation, messages/support/inbox/preferences. Preserve nine approved navigation destinations and design; no production auth/provider/grant bypass. Tests/results must be recorded after completion, not inferred from types or migration.
+
+F25 should reuse seller-owned offer conversation/answer and operator capability seams; F26 assigned support/moderation; F27 providers/consented channels; F28 privacy/storage/recovery/retention. Attachments/photos, production PII/key/retention rules, real card tokenization, SMS and outbound channels remain blocked. No Demo100%, Production Ready or final design/full-audit acceptance.

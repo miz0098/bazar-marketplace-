@@ -1,3 +1,4 @@
+import {isAccountView,isPublicFeedback,type AccountView,type PublicFeedback} from '../services/contracts/customer-account';
 import {
   isCustomerView,
   type CustomerView,
@@ -139,6 +140,9 @@ export function createCustomerBusinessClient(
   }
   const normalized = (s: string) => s.trim().normalize('NFC');
   return {
+    account:()=>request<AccountView>('/api/v1/customer/account','GET',undefined,isAccountView),
+    accountCommand:(action:string,input:Record<string,unknown>)=>request<AccountView>('/api/v1/customer/account','POST',{action,input},isAccountView),
+    feedback:(offerId:string)=>request<PublicFeedback>('/api/v1/customer/account/published/'+path(offerId),'GET',undefined,v=>isPublicFeedback(v)&&v.offerId===offerId),
     getProfile: () =>
       call('/api/v1/customer/profile', 'GET', undefined, 'profile'),
     updateProfile: (input: CustomerProfileInput) =>

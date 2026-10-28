@@ -98,3 +98,9 @@ Percentage/commission fractional-kopiyka blocker: **RESOLVED for percentage-tota
 ## F23 lifecycle implementation overlay
 
 Approved nine-state operational lifecycle and isolated buyer/seller request, return/refund/deadline foundation are implemented; all local validation passed in the documented isolated scope. Historical source data and finance remain intact. Remaining blockers: production calendar/DST/cutoff/dispatch evidence, legal eligibility/fees/retention, non-integral partial-unit attribution, staff grants/queue operational coverage, provider reconciliation and mixed-component aggregate prioritization if a single label is required. No new unapproved order state. [Evidence](docs/F23_ORDER_LIFECYCLE.md).
+
+## F24 customer account / communications overlay
+
+[Implementation, sources, validation and release gates](docs/F24_CUSTOMER_COMMUNICATIONS.md), [ADR0023](docs/adr/0023-customer-account-communications.md). Existing historical audit evidence remains unchanged. Ordinary customer screens in the explicit server integration entry now reuse F12/F13/F17/F21/F22/F23 for profile/address/payment-ref, actual-purchase review/Q&A moderation, messages/support/inbox/preferences. Preserve nine approved navigation destinations and design; no production auth/provider/grant bypass. Tests/results must be recorded after completion, not inferred from types or migration.
+
+F25 should reuse seller-owned offer conversation/answer and operator capability seams; F26 assigned support/moderation; F27 providers/consented channels; F28 privacy/storage/recovery/retention. Attachments/photos, production PII/key/retention rules, real card tokenization, SMS and outbound channels remain blocked. No Demo100%, Production Ready or final design/full-audit acceptance.

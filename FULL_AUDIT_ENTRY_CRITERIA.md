@@ -81,3 +81,9 @@ Fractional percentage/commission checkout must pass approved HALF_UP boundary an
 ## F23 lifecycle entry criteria update
 
 Current order-state acceptance uses nine approved values, not transport/completed states. Require main5 transitions, direct/request cancellation cutoff, concurrent negative cases, isolated system escalation, full/partial/multi-seller return aggregation, independent authenticated refund proof, historical snapshot preservation and browser desktop/mobile/filter/accessibility checks. [Actual F23 evidence](docs/F23_ORDER_LIFECYCLE.md) does not prove production deadline/legal/provider/staff readiness. BAZAR remains **НЕ ГОТОВИЙ** for full marketplace audit; no Demo100% claim.
+
+## F24 customer account / communications overlay
+
+[Implementation, sources, validation and release gates](docs/F24_CUSTOMER_COMMUNICATIONS.md), [ADR0023](docs/adr/0023-customer-account-communications.md). Existing historical audit evidence remains unchanged. Ordinary customer screens in the explicit server integration entry now reuse F12/F13/F17/F21/F22/F23 for profile/address/payment-ref, actual-purchase review/Q&A moderation, messages/support/inbox/preferences. Preserve nine approved navigation destinations and design; no production auth/provider/grant bypass. Tests/results must be recorded after completion, not inferred from types or migration.
+
+F25 should reuse seller-owned offer conversation/answer and operator capability seams; F26 assigned support/moderation; F27 providers/consented channels; F28 privacy/storage/recovery/retention. Attachments/photos, production PII/key/retention rules, real card tokenization, SMS and outbound channels remain blocked. No Demo100%, Production Ready or final design/full-audit acceptance.

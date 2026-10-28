@@ -20,8 +20,8 @@ const conflict = () =>
 const timestamp = (v: Date) => v.toISOString();
 const digest = (v: unknown) =>
   createHash("sha256").update(JSON.stringify(v)).digest();
-export function createCommunicationService(pool: pg.Pool) {
-  if (process.env.NODE_ENV !== "test")
+export function createCommunicationService(pool: pg.Pool, policy?:{scope:'isolated-test';canReply:(actor:string,ticketId:string)=>boolean}) {
+  if (process.env.NODE_ENV !== "test"||policy&&policy.scope!=='isolated-test')
     throw new Error("Communication requires an isolated test process");
   async function tx(
     actor: string,
@@ -51,6 +51,8 @@ export function createCommunicationService(pool: pg.Pool) {
     }
   }
   async function conversation(c: pg.PoolClient, actor: string, id: string) {
+    const context=(await c.query('SELECT buyer_id,seller_id FROM bazar.seller_conversation_contexts WHERE conversation_id=$1',[id])).rows[0];
+    if(context&&context.buyer_id!==actor&&!(await c.query('SELECT 1 FROM bazar.seller_owners o JOIN bazar.sellers s ON s.id=o.seller_id AND s.active WHERE o.seller_id=$1 AND o.user_id=$2 FOR SHARE OF o,s',[context.seller_id,actor])).rowCount)throw missing();
     // One parent lock orders sends, read markers and pin changes for all members.
     if (
       !(
@@ -84,7 +86,7 @@ export function createCommunicationService(pool: pg.Pool) {
    FROM bazar.conversation_members m JOIN bazar.conversations c ON c.id=m.conversation_id
    LEFT JOIN bazar.messages r ON r.id=m.last_read_message_id AND r.conversation_id=c.id
    LEFT JOIN LATERAL(SELECT sequence,body,created_at FROM bazar.messages WHERE conversation_id=c.id ORDER BY sequence DESC LIMIT 1) z ON true
-   WHERE m.user_id=$1 ORDER BY m.pinned DESC,z.sequence DESC NULLS LAST,c.id LIMIT 101`,
+   WHERE m.user_id=$1 AND NOT EXISTS(SELECT 1 FROM bazar.seller_conversation_contexts x WHERE x.conversation_id=c.id AND x.buyer_id<>$1 AND NOT EXISTS(SELECT 1 FROM bazar.seller_owners so JOIN bazar.sellers seller ON seller.id=so.seller_id AND seller.active WHERE so.seller_id=x.seller_id AND so.user_id=$1)) ORDER BY m.pinned DESC,coalesce(z.created_at,c.created_at) DESC,c.id LIMIT 101`,
         [actor],
       )
     ).rows;
@@ -94,7 +96,9 @@ export function createCommunicationService(pool: pg.Pool) {
         "SERVICE_UNAVAILABLE",
         "Conversation pagination needs an approved follow-up.",
       );
+    const contexts=(await c.query('SELECT x.conversation_id,x.seller_id,x.offer_id,s.name FROM bazar.seller_conversation_contexts x JOIN bazar.sellers s ON s.id=x.seller_id WHERE x.conversation_id=ANY($1::uuid[])',[rows.map(r=>r.id)])).rows;
     const items = rows.map((r) => ({
+      ...(contexts.some(x=>x.conversation_id===r.id)?{context:(()=>{const x=contexts.find(x=>x.conversation_id===r.id)!;return {sellerId:x.seller_id,offerId:x.offer_id,name:x.name};})()}:{}),
       id: r.id,
       pinned: r.pinned,
       unread: r.unread,
@@ -123,7 +127,7 @@ export function createCommunicationService(pool: pg.Pool) {
     const query =
       kind === "messages"
         ? "SELECT id,sequence::text,body,created_at,sender_id AS author_id,client_message_id FROM bazar.messages WHERE conversation_id=$1 AND sequence<$2 ORDER BY sequence DESC LIMIT $3"
-        : "SELECT id,sequence::text,body,created_at,user_id AS author_id,client_message_id FROM bazar.support_messages WHERE ticket_id=$1 AND sequence<$2 ORDER BY sequence DESC LIMIT $3";
+        : "SELECT id,sequence::text,body,created_at,coalesce(staff_actor_id,user_id) AS author_id,client_message_id FROM bazar.support_messages WHERE ticket_id=$1 AND sequence<$2 ORDER BY sequence DESC LIMIT $3";
     const rows = (await c.query(query, [id, before, limit + 1])).rows,
       hasMore = rows.length > limit;
     const items: MessageItem[] = rows
@@ -236,6 +240,9 @@ export function createCommunicationService(pool: pg.Pool) {
     }catch(e){await c.query('ROLLBACK');throw e;}finally{c.release();}
   }
   return {
+    async contactSeller(actor:string,value:unknown){actor=uuid(actor);const r=fields(value,['offerId','parentId']),offer=uuid(r.offerId),parent=r.parentId===null?null:uuid(r.parentId);return tx(actor,async c=>{await c.query('SELECT id FROM bazar.users WHERE id=$1 FOR UPDATE',[actor]);const target=(await c.query('SELECT seller_id FROM bazar.seller_offers WHERE id=$1',[offer])).rows[0];if(!target)throw missing();if(parent&&!(await c.query("SELECT 1 FROM bazar.commerce_parent_orders p JOIN bazar.commerce_order_lines l ON l.parent_id=p.id WHERE p.id=$1 AND p.user_id=$2 AND l.snapshot->>'variantId'=$3",[parent,actor,offer])).rowCount)throw missing();const old=(await c.query('SELECT conversation_id FROM bazar.seller_conversation_contexts WHERE buyer_id=$1 AND offer_id=$2',[actor,offer])).rows[0];if(!old){const members=(await c.query('SELECT o.user_id FROM bazar.seller_owners o JOIN bazar.sellers s ON s.id=o.seller_id AND s.active WHERE o.seller_id=$1 AND o.user_id<>$2 ORDER BY o.user_id',[target.seller_id,actor])).rows;if(!members.length)throw conflict();const id=(await c.query('INSERT INTO bazar.conversations DEFAULT VALUES RETURNING id')).rows[0].id;await c.query('INSERT INTO bazar.conversation_members(conversation_id,user_id) SELECT $1,x FROM unnest($2::uuid[]) x',[id,[actor,...members.map(m=>m.user_id)].sort()]);await c.query('INSERT INTO bazar.seller_conversation_contexts(conversation_id,buyer_id,seller_id,offer_id,parent_id) VALUES($1,$2,$3,$4,$5)',[id,actor,target.seller_id,offer,parent]);}return chats(c,actor);});},
+    async linkTicket(actor:string,id:string,value:unknown){actor=uuid(actor);id=uuid(id);const r=fields(value,['parentId','requestId']),parent=uuid(r.parentId),request=r.requestId===null?null:uuid(r.requestId);return tx(actor,async c=>{await ticket(c,actor,id);if(!(await c.query('SELECT 1 FROM bazar.commerce_parent_orders WHERE id=$1 AND user_id=$2',[parent,actor])).rowCount)throw missing();if(request&&!(await c.query('SELECT 1 FROM bazar.commerce_return_requests r JOIN bazar.commerce_seller_orders s ON s.id=r.seller_order_id WHERE r.id=$1 AND s.parent_id=$2 UNION ALL SELECT 1 FROM bazar.commerce_cancellation_requests r JOIN bazar.commerce_seller_orders s ON s.id=r.seller_order_id WHERE r.id=$1 AND s.parent_id=$2',[request,parent])).rowCount)throw missing();const old=(await c.query('SELECT * FROM bazar.support_contexts WHERE ticket_id=$1',[id])).rows[0];if(old&&(old.parent_id!==parent||old.request_id!==request))throw conflict();await c.query('INSERT INTO bazar.support_contexts(ticket_id,user_id,parent_id,request_id) VALUES($1,$2,$3,$4) ON CONFLICT DO NOTHING',[id,actor,parent,request]);return tickets(c,actor);});},
+    async staffReply(actor:string,id:string,value:unknown){actor=uuid(actor);id=uuid(id);const r=sendInput(value);if(!policy?.canReply(actor,id))throw new ApiError(403,'FORBIDDEN','Assigned test staff permission required.');const c=await pool.connect();try{await c.query('BEGIN');const parent=(await c.query('SELECT * FROM bazar.support_tickets WHERE id=$1 FOR UPDATE',[id])).rows[0];if(!parent)throw missing();const old=(await c.query('SELECT id,body FROM bazar.support_messages WHERE ticket_id=$1 AND staff_actor_id=$2 AND client_message_id=$3',[id,actor,r.clientMessageId])).rows[0];if(old&&old.body!==r.body)throw conflict();if(!old){if(parent.status==='closed')throw conflict();const event=(await c.query('INSERT INTO bazar.support_messages(ticket_id,user_id,staff_actor_id,body,client_message_id) VALUES($1,$2,$3,$4,$5) RETURNING id',[id,parent.user_id,actor,r.body,r.clientMessageId])).rows[0];await c.query("INSERT INTO bazar.notification_events(user_id,kind,source_id,scope_id) VALUES($1,'support.replied',$2,$3) ON CONFLICT DO NOTHING",[parent.user_id,event.id,id]);await c.query("INSERT INTO bazar.customer_account_audit(actor_id,resource_id,kind) VALUES($1,$2,'support.test-reply')",[actor,id]);}await c.query('COMMIT');return {mode:'integration-test' as const,accepted:true};}catch(e){await c.query('ROLLBACK');throw e;}finally{c.release();}},
     notificationSummary:(actor:string)=>summaryTx(actor),
     async readAllNotifications(actor:string,value:unknown){const r=fields(value,['throughSequence']);if(typeof r.throughSequence!=='number'||!Number.isSafeInteger(r.throughSequence)||r.throughSequence<0)invalid();return summaryTx(actor,r.throughSequence);},
     async getNotification(actor:string,id:string){
