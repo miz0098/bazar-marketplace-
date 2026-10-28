@@ -16,7 +16,7 @@ Preview architecture: independent host-only Secure/HttpOnly/SameSite cookies on 
 - Existing Playwright desktop/mobile regression: 100 passed, 8 conditionally skipped by the existing project matrix; seller preview additionally runs axe and overflow checks across all 12 seller destinations at 1440×900 and 390×844.
 - Lint, TypeScript (including isolated preview server), production builds and four package dependency audits passed; governance 5/5 and `git diff --check` passed.
 
-GitHub CI is pending PR creation. No Demo100%/Production Ready, merge or deployment.
+GitHub CI is running for [PR #37](https://github.com/miz0098/bazar-marketplace-/pull/37), head `ffb8493`. No Demo100%/Production Ready, merge or deployment.
 
 ## Implemented boundaries and scope
 

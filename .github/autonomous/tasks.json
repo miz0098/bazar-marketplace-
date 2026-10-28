@@ -1220,7 +1220,7 @@
     {
       "id": "SELLERDASHBOARD-001",
       "title": "Implement BAZAR Business seller dashboard and isolated dual-app Codespaces preview",
-      "status": "in_progress",
+      "status": "in_review",
       "readiness": "integration",
       "depends_on": [
         "CUSTOMERCOMMS-001"
@@ -1258,7 +1258,7 @@
         "Two isolated preview origins use shared PostgreSQL/API, bounded authenticated BFF transport and origin-bound Secure sessions without production weakening",
         "All regressions and new seller preview tests pass; visual parity NOT VERIFIED and business/provider gates explicit"
       ],
-      "pr": null,
+      "pr": 37,
       "blocker": "Original seller mockups unavailable (NOT VERIFIED); production grants, privacy/storage, promotion funding and settlement/provider rules remain gated."
     }
   ]
