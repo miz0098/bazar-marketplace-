@@ -3,6 +3,7 @@ export function notificationPresentation(item:NotificationItem){
  if(!isId(item.scopeId)||!notificationKinds.includes(item.kind))throw new Error('Unsafe notification target');
  const titles:Record<NotificationItem['kind'],string>={
   'review.moderated':'Результат тестової модерації відгуку',
+  'question.created':'Нове тестове запитання продавцю',
   'question.answered':'Опублікована тестова відповідь продавця',
   'product.availability_restored':'Товар знову доступний у тестовому каталозі',
   'order.created':'Створено тестове замовлення',
@@ -14,6 +15,6 @@ export function notificationPresentation(item:NotificationItem){
   'return.requested':'Тестовий запит на повернення',
   'return.status_changed':'Тестова зміна запиту на повернення',
  };
- const href=['review.moderated','question.answered'].includes(item.kind)?'/profile/reviews':item.kind==='product.availability_restored'?`/products/catalog/${item.scopeId}`:item.kind==='message.created'?`/profile/messages?id=${item.scopeId}`:item.kind==='support.replied'?`/profile/support/${item.scopeId}`:`/profile/orders/${item.scopeId}`;
+ const href=['review.moderated','question.answered','question.created'].includes(item.kind)?'/profile/reviews':item.kind==='product.availability_restored'?`/products/catalog/${item.scopeId}`:item.kind==='message.created'?`/profile/messages?id=${item.scopeId}`:item.kind==='support.replied'?`/profile/support/${item.scopeId}`:`/profile/orders/${item.scopeId}`;
  return {title:titles[item.kind],href};
 }

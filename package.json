@@ -7,7 +7,16 @@
     "theme:dev": "shopify theme dev",
     "theme:check": "shopify theme check",
     "theme:pull": "shopify theme pull",
-    "theme:push": "shopify theme push"
+    "theme:push": "shopify theme push",
+    "preview:install": "node scripts/preview/run.mjs install",
+    "preview:postgres": "node scripts/preview/run.mjs postgres",
+    "preview:api": "node scripts/preview/run.mjs api",
+    "preview:storefront": "node scripts/preview/run.mjs storefront",
+    "preview:seller": "node scripts/preview/run.mjs seller",
+    "preview:otp": "node scripts/preview/run.mjs otp",
+    "preview:event": "node scripts/preview/run.mjs event",
+    "preview:test": "node scripts/preview/browser-test.mjs",
+    "preview:stop": "node scripts/preview/run.mjs stop"
   },
   "engines": {
     "node": ">=20"

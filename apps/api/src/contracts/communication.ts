@@ -2,6 +2,7 @@
 export const notificationKinds = [
   "review.moderated",
   "question.answered",
+  "question.created",
   "product.availability_restored",
   "order.created",
   "order.status_changed",

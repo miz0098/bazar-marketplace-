@@ -106,3 +106,13 @@ Approved nine-state operational lifecycle and isolated buyer/seller request, ret
 F25 should reuse seller-owned offer conversation/answer and operator capability seams; F26 assigned support/moderation; F27 providers/consented channels; F28 privacy/storage/recovery/retention. Attachments/photos, production PII/key/retention rules, real card tokenization, SMS and outbound channels remain blocked. No Demo100%, Production Ready or final design/full-audit acceptance.
 
 F24 consolidated local evidence:504 passed (API60, storefront99, smoke3, PostgreSQL/HTTP/security149, shared browser44, isolated browser44, ordinary browser100, governance5);8 unchanged viewport exclusions. Extra debug/compatibility/final-UI reruns are not added. Lint/types/builds/audits/ledger/diff checks pass; final-head CI and exact SHA are tracked in [PR #36](https://github.com/miz0098/bazar-marketplace-/pull/36). This closes the documented isolated account/UGC/communication slice, not live PII/provider, attachment, legal or operator gates. No Demo100%/Production Ready declaration.
+
+## F25 seller dashboard delta
+
+| ID | Capability | Status | Remaining acceptance/blocker |
+| --- | --- | --- | --- |
+| SELLER-01 | Owner-only BAZAR Business dashboard, order lifecycle, exact-offer catalog edits, seller settings, context communications | Implemented for isolated synthetic Codespaces/API preview; verified only by recorded local tests | Original design parity NOT VERIFIED; seller/staff delegated roles and production grants pending |
+| SELLER-02 | Seller campaign creation and management | Inactive server-generated drafts only | Funding owner, eligibility and activation policy pending |
+| SELLER-03 | Finance and payout | Reads immutable test snapshots and 5% commission | Settlement, payout balance/timing/fees and production provider pending; no payout operation |
+| SELLER-04 | Documents and banking | Encrypted synthetic bank record and document metadata only | Production secrets/key management, private storage, scanning, legal retention and staff review pending |
+| SELLER-05 | Seller Codespaces preview | Shared isolated API/PostgreSQL and separate 3000/3001 HTTPS origins | Verify developer setup and exact CI result; does not prove production or screen-design readiness |

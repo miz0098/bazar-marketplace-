@@ -1,3 +1,4 @@
+import {verifyPreviewBody} from './preview-context.js';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { ApiError } from '../contracts/foundation.js';
 import { uuid } from '../business/validation.js';
@@ -110,6 +111,7 @@ export async function readJson(
     const end = () => {
       clean();
       try {
+        verifyPreviewBody(request,Buffer.concat(chunks));
         resolve(
           JSON.parse(
             new TextDecoder('utf-8', { fatal: true }).decode(
@@ -117,8 +119,8 @@ export async function readJson(
             ),
           ),
         );
-      } catch {
-        reject(new ApiError(400, 'INVALID_REQUEST', 'Invalid JSON body.'));
+      } catch (e) {
+        reject(e instanceof ApiError?e:new ApiError(400, 'INVALID_REQUEST', 'Invalid JSON body.'));
       }
     };
     const timer = setTimeout(error, 2000);

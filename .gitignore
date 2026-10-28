@@ -17,3 +17,12 @@ pnpm-lock.yaml
 apps/storefront/storefront-integration/.next/
 tests/e2e/storefront-results/
 tests/e2e/storefront-report/
+
+# Private, generated isolated preview state
+.bazar-preview/
+
+apps/seller-admin/.next/
+apps/seller-admin/node_modules/
+apps/seller-admin/next-env.d.ts
+apps/seller-admin/tsconfig.tsbuildinfo
+!apps/seller-admin/package-lock.json

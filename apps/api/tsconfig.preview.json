@@ -1,0 +1,1 @@
+{"extends":"./tsconfig.json","include":["src/**/*.ts","tests/helpers/**/*.ts","tests/browser/offer-fixture.ts","preview/**/*.ts"]}

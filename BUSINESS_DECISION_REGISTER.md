@@ -106,3 +106,13 @@ Explicit product owner approval removes in-transit and completed as order states
 - EX-01/03/04 remain PENDING: live tokenization/payment, SMS and consented outbound channels. Synthetic metadata is not a real saved card. Existing F22/F23 financial/calendar/legal blockers remain.
 
 [F24 evidence and boundaries](docs/F24_CUSTOMER_COMMUNICATIONS.md).
+
+## F25 seller dashboard status
+
+**Approved scope implemented as a bounded isolated seller owner dashboard:** owner/session checks, seller-order projections, F20 catalog mutations/import preview, F22/F22.1 frozen finance, F23 lifecycle actions, F24 communication/Q&A and F13 inbox reuse. Storefront and seller admin share the one test API/PostgreSQL in the Codespaces preview; no independent backend or live provider was added. Original admin design files were not available: design parity remains **NOT VERIFIED** pending separate desktop/mobile review.
+
+**Pending business/finance decisions:** who funds seller versus marketplace promotions and individual-customer applicability; settlement/payout availability/timing/fees; commission treatment for cancellation/nonfulfillment/returns; eligible export content and production operational reporting.
+
+**Pending legal/privacy/security:** production bank-data protection and access grants; document classes/signatures/storage/scanning/retention; seller employee roles and delegated grants; production seller onboarding/verification; customer-data minimization visible to sellers; statutory return and communication retention policy.
+
+**External dependencies:** production phone OTP/SMS provider; payment, carrier and shipment evidence integrations; private file/object storage and malware scanning; staff moderation/CRM. F25 test fixtures do not satisfy these dependencies.
