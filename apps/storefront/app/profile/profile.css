@@ -1,4 +1,5 @@
-.account-module {
+.account-module,
+.customer-feedback {
   --account-blue: #2962ff;
   --account-blue-dark: #1747c7;
   --account-blue-soft: #edf3ff;
@@ -14,6 +15,9 @@
   --account-violet: #5b4ab5;
   --account-radius: 18px;
   --account-shadow: 0 18px 45px rgb(6 19 52 / 8%);
+}
+
+.account-module {
   min-height: 72vh;
   padding: 32px 0 56px;
   background: var(--account-bg);

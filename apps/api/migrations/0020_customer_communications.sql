@@ -53,7 +53,7 @@ CREATE INDEX questions_owner ON bazar.product_questions(user_id,created_at,id);
 CREATE FUNCTION bazar.question_owner_guard() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN
  IF TG_OP='UPDATE' AND (NEW.user_id,NEW.offer_id,NEW.seller_id,NEW.created_at) IS DISTINCT FROM (OLD.user_id,OLD.offer_id,OLD.seller_id,OLD.created_at) THEN RAISE EXCEPTION 'Immutable question owner'; END IF;
  IF NOT EXISTS(SELECT 1 FROM bazar.seller_offers o WHERE o.id=NEW.offer_id AND o.seller_id=NEW.seller_id) THEN RAISE EXCEPTION 'Offer seller mismatch'; END IF;
- IF NEW.answer_actor IS NOT NULL AND NOT EXISTS(SELECT 1 FROM bazar.seller_owners s JOIN bazar.sellers seller ON seller.id=s.seller_id AND seller.active WHERE s.seller_id=NEW.seller_id AND s.user_id=NEW.answer_actor) THEN RAISE EXCEPTION 'Answer seller mismatch'; END IF; RETURN NEW; END $$;
+ IF NEW.answer_actor IS NOT NULL AND (TG_OP='INSERT' OR (NEW.answer,NEW.answer_actor) IS DISTINCT FROM (OLD.answer,OLD.answer_actor)) AND NOT EXISTS(SELECT 1 FROM bazar.seller_owners s JOIN bazar.sellers seller ON seller.id=s.seller_id AND seller.active WHERE s.seller_id=NEW.seller_id AND s.user_id=NEW.answer_actor) THEN RAISE EXCEPTION 'Answer seller mismatch'; END IF; RETURN NEW; END $$;
 CREATE TRIGGER question_owner_guard BEFORE INSERT OR UPDATE ON bazar.product_questions FOR EACH ROW EXECUTE FUNCTION bazar.question_owner_guard();
 CREATE TABLE bazar.customer_privacy_requests (
  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),user_id uuid NOT NULL REFERENCES bazar.users(id),kind text NOT NULL CHECK(kind IN ('access','deletion')),state text NOT NULL DEFAULT 'requested' CHECK(state='requested'),created_at timestamptz NOT NULL DEFAULT clock_timestamp()

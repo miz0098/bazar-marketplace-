@@ -126,8 +126,8 @@ export function createCommunicationService(pool: pg.Pool, policy?:{scope:'isolat
   ): Promise<CommunicationView> {
     const query =
       kind === "messages"
-        ? "SELECT id,sequence::text,body,created_at,sender_id AS author_id,client_message_id FROM bazar.messages WHERE conversation_id=$1 AND sequence<$2 ORDER BY sequence DESC LIMIT $3"
-        : "SELECT id,sequence::text,body,created_at,coalesce(staff_actor_id,user_id) AS author_id,client_message_id FROM bazar.support_messages WHERE ticket_id=$1 AND sequence<$2 ORDER BY sequence DESC LIMIT $3";
+        ? "SELECT id,sequence::text,body,created_at,sender_id AS author_id,client_message_id FROM bazar.messages m WHERE conversation_id=$1 AND m.sequence<$2 ORDER BY m.sequence DESC LIMIT $3"
+        : "SELECT id,sequence::text,body,created_at,coalesce(staff_actor_id,user_id) AS author_id,client_message_id FROM bazar.support_messages m WHERE ticket_id=$1 AND m.sequence<$2 ORDER BY m.sequence DESC LIMIT $3";
     const rows = (await c.query(query, [id, before, limit + 1])).rows,
       hasMore = rows.length > limit;
     const items: MessageItem[] = rows
