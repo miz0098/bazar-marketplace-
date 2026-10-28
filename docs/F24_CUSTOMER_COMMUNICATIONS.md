@@ -41,3 +41,5 @@ Concurrency detail: account owner locking uses NO KEY UPDATE (compatible with no
 Long-history regression: F13 message/support history now orders by the qualified numeric sequence, not the text-cast output alias. Multi-digit histories remain chronological and the latest-page cursor is correct; new PostgreSQL/browser coverage includes35 counterpart messages, unread-conversation rather than message counts, scroll-to-latest and prepended older-page history.
 
 Review and final-head check evidence: [PR #36](https://github.com/miz0098/bazar-marketplace-/pull/36), targeting `vps-migration`. CI runs the full API/PostgreSQL/unit/browser/governance/audit suites on the actual head; final results and SHA are recorded in the PR. No merge/deployment.
+
+Reference provenance: remote `bazar-latest-shopify` remains `105d10fb6b8e65c5f163016aa8c69072e85faa0e`; inspected read-only Git objects for account JS/CSS and existing F12 screens. Server profile preserves profile-aside/form layout; saved addresses/payment methods/reviews reuse existing approved grids/cards, and the address editor opens explicitly. No reference checkout, modification or claim of final visual acceptance.
