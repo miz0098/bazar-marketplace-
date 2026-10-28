@@ -1,3 +1,4 @@
+import {createCustomerAccount,type AccountPolicy} from './account.js';
 import type pg from 'pg';
 import { createHash } from 'node:crypto';
 import { ApiError } from '../contracts/foundation.js';
@@ -31,6 +32,7 @@ const conflict = () =>
 export function createCustomerService(
   pool: pg.Pool,
   policy?: IsolatedReviewPolicy,
+  accountPolicy?: AccountPolicy,
 ) {
   if (
     process.env.NODE_ENV !== 'test' ||
@@ -117,7 +119,7 @@ export function createCustomerService(
         resource,
         items: (
           await c.query(
-            'SELECT *,version::text FROM bazar.addresses WHERE user_id=$1 ORDER BY created_at,id LIMIT 101',
+            'SELECT *,version::text FROM bazar.addresses WHERE user_id=$1 AND archived_at IS NULL ORDER BY created_at,id LIMIT 101',
             [actor],
           )
         ).rows.map((r) => ({
@@ -170,7 +172,7 @@ export function createCustomerService(
   ) {
     const r = (
       await c.query(
-        'SELECT *,version::text FROM bazar.addresses WHERE id=$1 AND user_id=$2 FOR UPDATE',
+        'SELECT *,version::text FROM bazar.addresses WHERE id=$1 AND user_id=$2 AND archived_at IS NULL FOR UPDATE',
         [id, actor],
       )
     ).rows[0];
@@ -188,7 +190,9 @@ export function createCustomerService(
       [actor, exclude],
     );
   }
+  const account=createCustomerAccount(pool,accountPolicy);
   return {
+    account,
     async get(actor: string, resource: CustomerView['resource']) {
       return tx(actor, (c) => read(c, uuid(actor), resource));
     },
@@ -238,6 +242,7 @@ export function createCustomerService(
     },
     async createAddress(actor: string, value: unknown) {
       const r = addressInput(value);
+      if(accountPolicy)await account.validateLocation({...r,kind:'branch'});
       actor = uuid(actor);
       return tx(actor, async (c) => {
         if (r.isDefault) await defaults(c, actor, null);
@@ -259,6 +264,7 @@ export function createCustomerService(
       const raw = action === 'edit' ? null : fields(value, ['expectedVersion']),
         r = action === 'edit' ? addressInput(value, true) : null,
         expected = r?.expectedVersion ?? version(raw!);
+      if(accountPolicy&&r)await account.validateLocation({...r,kind:'branch'});
       return tx(actor, async (c) => {
         await address(c, actor, id, expected);
         if (action === 'delete')

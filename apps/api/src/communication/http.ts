@@ -22,6 +22,9 @@ export async function handleCommunication(
     );
   const read = ["GET", "HEAD"].includes(request.method ?? ""),
     actor = (await authorize(request, auth, !read)).userId;
+  if(url.pathname==='/api/v1/communication/conversations'&&request.method==='POST'){if(url.search)invalid();return service.contactSeller(actor,await readJson(request,response));}
+  const context=url.pathname.match(/^\/api\/v1\/communication\/tickets\/([^/]+)\/context$/);
+  if(context){if(request.method!=='PUT'||url.search)invalid();return service.linkTicket(actor,context[1],await readJson(request,response));}
   const route = url.pathname.slice("/api/v1/communication".length),
     list = route.match(/^\/(conversations|tickets|notifications)$/),
     history = route.match(/^\/(conversations|tickets)\/([^/]+)\/messages$/),

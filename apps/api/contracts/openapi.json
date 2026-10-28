@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "BAZAR API",
-    "version": "1.11.0",
+    "version": "1.12.0",
     "description": "PostgreSQL catalog and test-isolated server authentication foundation. Runtime SMS authentication is unavailable (503) pending approved provider, keys, security policy and rollout. F9 approves one active cart/user, explicit creation, local guest cart with no merge; live activation remains blocked on production SMS/security rollout. F5 adds isolated exact-integer promotion evaluation; no real redemption/checkout activation. F6 adds isolated three-step checkout and immutable pending integration orders; no live placement/provider operation. F7 adds isolated shipping directories, selections, expiring estimates and final transaction freshness guards. Live carrier contracts/transports remain disabled. F8 adds isolated provider-neutral payment protocol/security and Ukrposhta delivery; no real financial/provider activation. F9 adds verified-session current-cart HTTP and linked isolated checkout confirmation; no production orders or paid-order claims. F12 adds isolated owned wishlist, name-only profile and opaque address operations plus explicitly policy-gated private reviews. No real PII/provider/publication activation. F13 adds isolated membership-authorized chat history, idempotent support and notification inbox contracts. No real staff, channels, files or production activation. F14 adds isolated owned cancellation/return requests, immutable lifecycle history and strictly test-only refund capacity/authenticated-event protocols. No live transitions or financial/logistics activation. F16 adds optional immutable discounted test financial snapshots and server promo/shipping metadata; production remains blocked. F17 reuses the owned F13 inbox for read/count/bulk-read/pagination and isolated browser notifications; no real channels or generic event ingestion. F20 adds explicit catalog v2 public reads with stable seller/variant ownership, binary availability, attributes/media and guarded test-only seller PATCH; legacy stock-based contracts remain separate. No production mutation/provider activation."
   },
   "servers": [
@@ -6460,6 +6460,145 @@
             "ServerSession": []
           }
         ]
+      },
+      "post": {
+        "operationId": "contactOfferSeller",
+        "description": "F24 isolated server-backed customer/UGC contract. Ordinary production entry remains unavailable. No live PII, card tokenization, upload, provider or staff-grant activation. Owner/session/Origin and mutation CSRF required; exact request UUID receipts and versions protect retries.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Isolated owned customer result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommunicationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "offerId",
+                  "parentId"
+                ],
+                "properties": {
+                  "offerId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "parentId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/communication/tickets": {
@@ -12281,6 +12420,661 @@
           }
         ]
       }
+    },
+    "/api/v1/customer/account": {
+      "get": {
+        "operationId": "getCustomerAccount",
+        "description": "F24 isolated server-backed customer/UGC contract. Ordinary production entry remains unavailable. No live PII, card tokenization, upload, provider or staff-grant activation. Owner/session/Origin and mutation CSRF required; exact request UUID receipts and versions protect retries.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Isolated owned customer result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerAccountResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "commandCustomerAccount",
+        "description": "F24 isolated server-backed customer/UGC contract. Ordinary production entry remains unavailable. No live PII, card tokenization, upload, provider or staff-grant activation. Owner/session/Origin and mutation CSRF required; exact request UUID receipts and versions protect retries.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Isolated owned customer result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerAccountResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerAccountCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/customer/account/published/{offerId}": {
+      "parameters": [
+        {
+          "name": "offerId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "publishedOfferFeedback",
+        "description": "Published moderated offer-only test feedback. No customer IDs, phone, email or contact metadata. Production entry unavailable.",
+        "responses": {
+          "200": {
+            "description": "Isolated owned customer result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicOfferFeedbackResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/customer/account/questions/{id}/answer": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "answerOwnSellerQuestion",
+        "description": "F24 isolated server-backed customer/UGC contract. Ordinary production entry remains unavailable. No live PII, card tokenization, upload, provider or staff-grant activation. Owner/session/Origin and mutation CSRF required; exact request UUID receipts and versions protect retries.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Isolated owned customer result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionAnswerReceipt"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "expectedVersion",
+                  "body"
+                ],
+                "properties": {
+                  "expectedVersion": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "body": {
+                    "type": "string",
+                    "maxLength": 2000
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/communication/tickets/{id}/context": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
+      "put": {
+        "operationId": "linkOwnSupportOrder",
+        "description": "F24 isolated server-backed customer/UGC contract. Ordinary production entry remains unavailable. No live PII, card tokenization, upload, provider or staff-grant activation. Owner/session/Origin and mutation CSRF required; exact request UUID receipts and versions protect retries.",
+        "security": [
+          {
+            "ServerSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Isolated owned customer result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommunicationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Sanitized failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "parentId",
+                  "requestId"
+                ],
+                "properties": {
+                  "parentId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "requestId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -12483,7 +13277,8 @@
                   "PAYMENT_REJECTED",
                   "PAYMENT_STALE",
                   "PAYMENT_AUTH_FAILED",
-                  "CATALOG_PRICE_POLICY_REQUIRED"
+                  "CATALOG_PRICE_POLICY_REQUIRED",
+                  "FORBIDDEN"
                 ]
               },
               "message": {
@@ -16046,6 +16841,29 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "context": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "sellerId",
+              "offerId",
+              "name"
+            ],
+            "properties": {
+              "sellerId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "offerId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string",
+                "maxLength": 200
+              }
+            }
           }
         }
       },
@@ -16121,7 +16939,9 @@
               "refund.completed",
               "return.requested",
               "return.status_changed",
-              "product.availability_restored"
+              "product.availability_restored",
+              "review.moderated",
+              "question.answered"
             ]
           },
           "sourceId": {
@@ -16171,7 +16991,9 @@
               "refund.completed",
               "return.requested",
               "return.status_changed",
-              "product.availability_restored"
+              "product.availability_restored",
+              "review.moderated",
+              "question.answered"
             ]
           },
           "recipientId": {
@@ -18619,6 +19441,1271 @@
                 }
               }
             }
+          }
+        }
+      },
+      "CustomerAccountView": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "mode",
+          "profile",
+          "addresses",
+          "paymentMethods",
+          "reviews",
+          "questions",
+          "purchases",
+          "preferences",
+          "privacyRequests"
+        ],
+        "properties": {
+          "mode": {
+            "const": "integration-test"
+          },
+          "profile": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "firstName",
+              "lastName",
+              "patronymic",
+              "email",
+              "maskedPhone",
+              "version"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "firstName": {
+                "type": "string",
+                "maxLength": 100
+              },
+              "lastName": {
+                "type": "string",
+                "maxLength": 100
+              },
+              "patronymic": {
+                "type": "string",
+                "maxLength": 100
+              },
+              "email": {
+                "type": "string",
+                "maxLength": 254
+              },
+              "maskedPhone": {
+                "type": "string",
+                "maxLength": 40
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              }
+            }
+          },
+          "addresses": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "carrier",
+                "cityRef",
+                "locationRef",
+                "cityName",
+                "locationName",
+                "kind",
+                "label",
+                "isDefault",
+                "version"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "carrier": {
+                  "enum": [
+                    "nova-poshta",
+                    "meest",
+                    "ukrposhta"
+                  ]
+                },
+                "cityRef": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "locationRef": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "cityName": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "locationName": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "kind": {
+                  "enum": [
+                    "branch",
+                    "parcel-locker"
+                  ]
+                },
+                "label": {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                "isDefault": {
+                  "type": "boolean"
+                },
+                "version": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 9007199254740991
+                }
+              }
+            }
+          },
+          "paymentMethods": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "brand",
+                "lastFour",
+                "expiryMonth",
+                "expiryYear",
+                "available",
+                "isDefault",
+                "version"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "brand": {
+                  "enum": [
+                    "Visa",
+                    "Mastercard",
+                    "Test"
+                  ]
+                },
+                "lastFour": {
+                  "type": "string",
+                  "pattern": "^[0-9]{4}$"
+                },
+                "expiryMonth": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 12
+                },
+                "expiryYear": {
+                  "type": "integer",
+                  "minimum": 2020,
+                  "maximum": 2200
+                },
+                "available": {
+                  "type": "boolean"
+                },
+                "isDefault": {
+                  "type": "boolean"
+                },
+                "version": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 9007199254740991
+                }
+              }
+            }
+          },
+          "reviews": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "offerId",
+                "productId",
+                "parentId",
+                "lineId",
+                "rating",
+                "body",
+                "state",
+                "withdrawn",
+                "version",
+                "createdAt",
+                "verifiedPurchase"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "offerId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "productId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "parentId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "lineId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "rating": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 5
+                },
+                "body": {
+                  "type": "string",
+                  "maxLength": 2000
+                },
+                "state": {
+                  "enum": [
+                    "pending",
+                    "published",
+                    "rejected",
+                    "hidden"
+                  ]
+                },
+                "withdrawn": {
+                  "type": "boolean"
+                },
+                "version": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 9007199254740991
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "verifiedPurchase": {
+                  "const": true
+                }
+              }
+            }
+          },
+          "questions": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "offerId",
+                "body",
+                "answer",
+                "state",
+                "answerState",
+                "version",
+                "createdAt"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "offerId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "body": {
+                  "type": "string",
+                  "maxLength": 2000
+                },
+                "answer": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 2000
+                },
+                "state": {
+                  "enum": [
+                    "pending",
+                    "published",
+                    "rejected",
+                    "hidden"
+                  ]
+                },
+                "answerState": {
+                  "enum": [
+                    "pending",
+                    "published",
+                    "rejected",
+                    "hidden"
+                  ]
+                },
+                "version": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 9007199254740991
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "purchases": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "parentId",
+                "lineId",
+                "offerId",
+                "title"
+              ],
+              "properties": {
+                "parentId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "lineId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "offerId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "title": {
+                  "type": "string",
+                  "maxLength": 300
+                }
+              }
+            }
+          },
+          "preferences": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "version",
+              "orders",
+              "messages",
+              "reviewsQuestions",
+              "availability",
+              "promotions",
+              "outboundEnabled"
+            ],
+            "properties": {
+              "version": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "orders": {
+                "const": true
+              },
+              "messages": {
+                "type": "boolean"
+              },
+              "reviewsQuestions": {
+                "type": "boolean"
+              },
+              "availability": {
+                "type": "boolean"
+              },
+              "promotions": {
+                "const": false
+              },
+              "outboundEnabled": {
+                "const": false
+              }
+            }
+          },
+          "privacyRequests": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "kind",
+                "state"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "kind": {
+                  "enum": [
+                    "access",
+                    "deletion"
+                  ]
+                },
+                "state": {
+                  "const": "requested"
+                }
+              }
+            }
+          }
+        }
+      },
+      "CustomerAccountResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ok",
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/CustomerAccountView"
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "requestId"
+            ]
+          }
+        }
+      },
+      "PublicOfferFeedback": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "mode",
+          "offerId",
+          "reviews",
+          "questions",
+          "rating"
+        ],
+        "properties": {
+          "mode": {
+            "const": "integration-test"
+          },
+          "offerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reviews": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "rating",
+                "body",
+                "createdAt",
+                "verifiedPurchase"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "rating": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 5
+                },
+                "body": {
+                  "type": "string",
+                  "maxLength": 2000
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "verifiedPurchase": {
+                  "const": true
+                }
+              }
+            }
+          },
+          "questions": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "body",
+                "answer",
+                "createdAt"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "body": {
+                  "type": "string",
+                  "maxLength": 2000
+                },
+                "answer": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 2000
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
+          "rating": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "count",
+              "sum"
+            ],
+            "properties": {
+              "count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "sum": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        }
+      },
+      "PublicOfferFeedbackResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ok",
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/PublicOfferFeedback"
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "requestId"
+            ]
+          }
+        }
+      },
+      "CustomerAccountCommand": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "action",
+              "input"
+            ],
+            "properties": {
+              "action": {
+                "const": "profile"
+              },
+              "input": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "requestId",
+                  "expectedVersion",
+                  "firstName",
+                  "lastName",
+                  "patronymic",
+                  "email"
+                ],
+                "properties": {
+                  "requestId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "expectedVersion": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "firstName": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "lastName": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "patronymic": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "email": {
+                    "type": "string",
+                    "maxLength": 254
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "action",
+              "input"
+            ],
+            "properties": {
+              "action": {
+                "const": "address-add"
+              },
+              "input": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "requestId",
+                  "carrier",
+                  "cityRef",
+                  "locationRef",
+                  "kind",
+                  "label",
+                  "isDefault"
+                ],
+                "properties": {
+                  "requestId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "carrier": {
+                    "enum": [
+                      "nova-poshta",
+                      "meest",
+                      "ukrposhta"
+                    ]
+                  },
+                  "cityRef": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "locationRef": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "kind": {
+                    "enum": [
+                      "branch",
+                      "parcel-locker"
+                    ]
+                  },
+                  "label": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "isDefault": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "action",
+              "input"
+            ],
+            "properties": {
+              "action": {
+                "const": "address-edit"
+              },
+              "input": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "requestId",
+                  "id",
+                  "expectedVersion",
+                  "carrier",
+                  "cityRef",
+                  "locationRef",
+                  "kind",
+                  "label",
+                  "isDefault"
+                ],
+                "properties": {
+                  "requestId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "expectedVersion": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "carrier": {
+                    "enum": [
+                      "nova-poshta",
+                      "meest",
+                      "ukrposhta"
+                    ]
+                  },
+                  "cityRef": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "locationRef": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "kind": {
+                    "enum": [
+                      "branch",
+                      "parcel-locker"
+                    ]
+                  },
+                  "label": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "isDefault": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "action",
+              "input"
+            ],
+            "properties": {
+              "action": {
+                "const": "preferences"
+              },
+              "input": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "requestId",
+                  "expectedVersion",
+                  "messages",
+                  "reviewsQuestions",
+                  "availability",
+                  "promotions"
+                ],
+                "properties": {
+                  "requestId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "expectedVersion": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "messages": {
+                    "type": "boolean"
+                  },
+                  "reviewsQuestions": {
+                    "type": "boolean"
+                  },
+                  "availability": {
+                    "type": "boolean"
+                  },
+                  "promotions": {
+                    "const": false
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "action",
+              "input"
+            ],
+            "properties": {
+              "action": {
+                "const": "review-add"
+              },
+              "input": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "requestId",
+                  "parentId",
+                  "lineId",
+                  "rating",
+                  "body"
+                ],
+                "properties": {
+                  "requestId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "parentId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "lineId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "rating": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5
+                  },
+                  "body": {
+                    "type": "string",
+                    "maxLength": 2000
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "action",
+              "input"
+            ],
+            "properties": {
+              "action": {
+                "const": "review-edit"
+              },
+              "input": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "requestId",
+                  "id",
+                  "expectedVersion",
+                  "rating",
+                  "body"
+                ],
+                "properties": {
+                  "requestId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "expectedVersion": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "rating": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5
+                  },
+                  "body": {
+                    "type": "string",
+                    "maxLength": 2000
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "action",
+              "input"
+            ],
+            "properties": {
+              "action": {
+                "const": "question-add"
+              },
+              "input": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "requestId",
+                  "offerId",
+                  "body"
+                ],
+                "properties": {
+                  "requestId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "offerId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "body": {
+                    "type": "string",
+                    "maxLength": 2000
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "action",
+              "input"
+            ],
+            "properties": {
+              "action": {
+                "const": "privacy"
+              },
+              "input": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "requestId",
+                  "kind"
+                ],
+                "properties": {
+                  "requestId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "kind": {
+                    "enum": [
+                      "access",
+                      "deletion"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "action",
+              "input"
+            ],
+            "properties": {
+              "action": {
+                "const": "report"
+              },
+              "input": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "requestId",
+                  "id",
+                  "kind",
+                  "reason"
+                ],
+                "properties": {
+                  "requestId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "kind": {
+                    "enum": [
+                      "review",
+                      "question"
+                    ]
+                  },
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 2000
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "action",
+              "input"
+            ],
+            "properties": {
+              "action": {
+                "const": "address-delete"
+              },
+              "input": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "requestId",
+                  "id",
+                  "expectedVersion"
+                ],
+                "properties": {
+                  "requestId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "expectedVersion": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "action",
+              "input"
+            ],
+            "properties": {
+              "action": {
+                "const": "address-default"
+              },
+              "input": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "requestId",
+                  "id",
+                  "expectedVersion"
+                ],
+                "properties": {
+                  "requestId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "expectedVersion": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "action",
+              "input"
+            ],
+            "properties": {
+              "action": {
+                "const": "method-delete"
+              },
+              "input": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "requestId",
+                  "id",
+                  "expectedVersion"
+                ],
+                "properties": {
+                  "requestId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "expectedVersion": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "action",
+              "input"
+            ],
+            "properties": {
+              "action": {
+                "const": "method-default"
+              },
+              "input": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "requestId",
+                  "id",
+                  "expectedVersion"
+                ],
+                "properties": {
+                  "requestId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "expectedVersion": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "action",
+              "input"
+            ],
+            "properties": {
+              "action": {
+                "const": "review-withdraw"
+              },
+              "input": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "requestId",
+                  "id",
+                  "expectedVersion"
+                ],
+                "properties": {
+                  "requestId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "expectedVersion": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "QuestionAnswerReceipt": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ok",
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "mode",
+              "accepted"
+            ],
+            "properties": {
+              "mode": {
+                "const": "integration-test"
+              },
+              "accepted": {
+                "const": true
+              }
+            }
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "requestId"
+            ]
           }
         }
       }

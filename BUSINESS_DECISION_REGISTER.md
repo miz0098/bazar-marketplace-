@@ -96,3 +96,13 @@ Implementation/validation status: see [F22.1 evidence](docs/F22_1_FINANCIAL_PREC
 ## AD-F23-01 — APPROVED order status simplification
 
 Explicit product owner approval removes in-transit and completed as order states and approves the nine BR-L23-01 values. Delivered ends successful delivery; transport remains a carrier observation. Direct cancellation cutoff and delivered→returning→returned replace old branches. This is not approval of production calendar/DST, dispatch evidence cutoffs, legal return/refund conditions, optional employee/staff grants, refund penny allocation, commission retention or settlement. Heterogeneous parent projection is null with seller states exposed; no new aggregate state or arbitrary priority is invented. [F23](docs/F23_ORDER_LIFECYCLE.md).
+
+## F24 decision overlay
+
+- AD-F24-01 — APPROVED: BR-U24-01–03 account fields/navigation, actual-purchase reviews, seller-scoped Q&A, persistent F13 messaging/support and F17 in-app preferences, as explicitly requested.
+- TD-F24-01 — Implemented isolated technical contract: additive0020, archive addresses, canonical owner receipts/version checks, private moderation/assigned-reply capabilities, contact-free public feedback, durable preference suppression. No production grants inferred.
+- PD-F24-01 — PENDING business/legal: non-purchaser reviews, edit/withdraw windows, moderation appeals/publication rules, content/evidence terms and abuse-resolution policy. Tests inject explicit synthetic editing/moderator permissions; default capability denies.
+- PL-02 remains PENDING: retention/erasure/export/consent/recovery/encryption and safe private attachment storage/scanning. No invented retention interval.
+- EX-01/03/04 remain PENDING: live tokenization/payment, SMS and consented outbound channels. Synthetic metadata is not a real saved card. Existing F22/F23 financial/calendar/legal blockers remain.
+
+[F24 evidence and boundaries](docs/F24_CUSTOMER_COMMUNICATIONS.md).

@@ -1,4 +1,6 @@
 'use client';
+import {useServerCustomer} from '../server/customer-provider';
+import {ServerCommunication} from './server-communication';
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -42,7 +44,7 @@ function NewTicketForm({ onCreate, onCancel }: { onCreate: (draft: TicketDraft) 
   </form>;
 }
 
-export function SupportScreen({ id, scenario }: { id?: string; scenario: CommunicationScenario }) {
+function SupportScreenPreview({ id, scenario }: { id?: string; scenario: CommunicationScenario }) {
   const { support } = useCommunicationServices(scenario);
   const router = useRouter();
   const [attempt, setAttempt] = useState(0);
@@ -74,3 +76,5 @@ export function SupportScreen({ id, scenario }: { id?: string; scenario: Communi
     </>}
   </div>;
 }
+
+export function SupportScreen({id,scenario,orderContext,requestContext}:{id?:string;scenario:CommunicationScenario;orderContext?:string;requestContext?:string}){const {enabled,state}=useServerCustomer();return enabled?<ServerCommunication key={state.session?.user.id+(id??'')} id={id} support={true} orderContext={orderContext} requestContext={requestContext}/>:<SupportScreenPreview id={id} scenario={scenario}/>;}

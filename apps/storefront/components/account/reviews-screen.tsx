@@ -1,4 +1,6 @@
 'use client';
+import {useServerCustomer} from '../server/customer-provider';
+import {ServerAccountScreen} from './server-account';
 
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -11,7 +13,7 @@ import { hasAccountValidationErrors, validateAccountReview, type AccountReview, 
 
 const emptyDraft: AccountReviewDraft = { rating: 5, text: '' };
 
-export function ReviewsScreen({ scenario }: { scenario: AccountScenario }) {
+function ReviewsScreenPreview({ scenario }: { scenario: AccountScenario }) {
   const service = useAccountService(scenario);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<AccountReviewDraft>(emptyDraft);
@@ -121,3 +123,5 @@ export function ReviewsScreen({ scenario }: { scenario: AccountScenario }) {
     </>
   );
 }
+
+export function ReviewsScreen({scenario}:{scenario:AccountScenario}){const {enabled,state}=useServerCustomer();return enabled?<ServerAccountScreen key={state.session?.user.id} section="reviews"/>:<ReviewsScreenPreview scenario={scenario}/>;}

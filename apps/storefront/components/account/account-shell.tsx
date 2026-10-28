@@ -1,4 +1,5 @@
 'use client';
+import {ServerAccountNotifications,ServerConversationBadge} from './server-account-notifications';
 import {useServerCustomer} from '../server/customer-provider';
 
 import Link from 'next/link';
@@ -116,7 +117,7 @@ export function AccountShell({ children }: Readonly<{ children: React.ReactNode 
                 return (
                   <Link className={`account-nav__item${active ? ' is-active' : ''}`} href={item.href} aria-current={active ? 'page' : undefined} key={item.href} onClick={() => closeDrawer(false)}>
                     <span className="account-nav__icon"><AccountIcon name={item.icon} /></span>
-                    {item.label}
+                    {item.label}{item.href==='/profile/messages'&&<ServerConversationBadge/>}
                   </Link>
                 );
               })}
@@ -130,9 +131,10 @@ export function AccountShell({ children }: Readonly<{ children: React.ReactNode 
           <div className="account-content" tabIndex={-1} ref={contentRef} inert={drawerOpen ? true : undefined}>
             <div className="account-preview-note" role="note">
               <strong>{store?'Тестовий серверний акаунт':'Демонстраційний профіль'}</strong>
-              <span>{store?'Сесія, кошик і обране підключені до тестового сервера. Інші розділи залишаються демонстраційними.':'Ви не автентифіковані. Дані вигадані, а зміни діють лише до оновлення сторінки.'}</span>
+              <span>{store?'Сесія, кошик і обране підключені до тестового сервера. Профіль, адреси, відгуки, листування й сповіщення зберігаються в тестовому акаунті.':'Ви не автентифіковані. Дані вигадані, а зміни діють лише до оновлення сторінки.'}</span>
             </div>
             {logoutNotice && <p className="account-status" role="status" tabIndex={-1} ref={noticeRef}>{logoutNotice}</p>}
+            {store&&<ServerAccountNotifications/>}
             {children}
           </div>
         </div>

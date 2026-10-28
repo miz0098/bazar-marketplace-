@@ -154,6 +154,8 @@ export function createCommunicationBusinessClient(
   const messagePath = (id: string, support: boolean) =>
     `${root}/${support ? "tickets" : "conversations"}/${path(id)}/messages`;
   return {
+    contactSeller:(offerId:string,parentId:string|null=null)=>call(`${root}/conversations`,'POST',{offerId:path(offerId),parentId:parentId===null?null:path(parentId)},'conversations',null),
+    linkTicket:(id:string,parentId:string,requestId:string|null=null)=>call(`${root}/tickets/${path(id)}/context`,'PUT',{parentId:path(parentId),requestId:requestId===null?null:path(requestId)},'tickets',null),
     conversations: () =>
       call(`${root}/conversations`, "GET", undefined, "conversations", null),
     tickets: () => call(`${root}/tickets`, "GET", undefined, "tickets", null),

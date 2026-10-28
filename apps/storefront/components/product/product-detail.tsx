@@ -1,4 +1,6 @@
 'use client';
+import {useServerCustomer} from '../server/customer-provider';
+import {OfferFeedback} from './offer-feedback';
 
 import {CatalogImage} from './catalog-image';
 import { useRouter } from 'next/navigation';
@@ -27,6 +29,7 @@ export function ProductDetail({
   product: Product;
   initialVariant?: string;
 }) {
+  const {enabled}=useServerCustomer();
   const router = useRouter(),
     cart = useCart();
   const [purchaseError, setPurchaseError] = useState('');
@@ -291,7 +294,7 @@ export function ProductDetail({
               </tbody>
             </table>
           )}
-          {tab === 'reviews' && (
+          {tab === 'reviews' && enabled&&selected.offerId ? <OfferFeedback key={selected.offerId} offerId={selected.offerId}/> : tab === 'reviews' && (
             <div className="reviews">
               <header>
                 <strong>{product.rating}/5</strong>
@@ -319,7 +322,7 @@ export function ProductDetail({
               )}
             </div>
           )}
-          {tab === 'questions' && (
+          {tab === 'questions' && enabled&&selected.offerId ? <OfferFeedback key={selected.offerId} offerId={selected.offerId} questions/> : tab === 'questions' && (
             <p>Питань поки що немає. Надсилання запитань у демо недоступне.</p>
           )}
           {tab === 'delivery' && (

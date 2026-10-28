@@ -1,4 +1,6 @@
 'use client';
+import {useServerCustomer} from '../server/customer-provider';
+import {ServerCommunication} from './server-communication';
 
 import Link from 'next/link';
 import { useCallback, useState } from 'react';
@@ -8,7 +10,7 @@ import { MessageThread } from './message-thread';
 import { useCommunicationServices } from './preview-provider';
 import { usePreviewQuery } from './use-preview-query';
 
-export function MessagesScreen({ id, scenario }: { id?: string; scenario: CommunicationScenario }) {
+function MessagesScreenPreview({ id, scenario }: { id?: string; scenario: CommunicationScenario }) {
   const { messaging } = useCommunicationServices(scenario);
   const [search, setSearch] = useState('');
   const [attempt, setAttempt] = useState(0);
@@ -62,3 +64,5 @@ export function MessagesScreen({ id, scenario }: { id?: string; scenario: Commun
     </div>}
   </div>;
 }
+
+export function MessagesScreen({id,scenario,orderContext,requestContext}:{id?:string;scenario:CommunicationScenario;orderContext?:string;requestContext?:string}){const {enabled,state}=useServerCustomer();return enabled?<ServerCommunication key={state.session?.user.id+(id??'')} id={id} support={false} orderContext={orderContext} requestContext={requestContext}/>:<MessagesScreenPreview id={id} scenario={scenario}/>;}

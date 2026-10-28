@@ -77,3 +77,7 @@ GET `/api/v1/catalog/offers` and `/{id}` expose exact normalized seller offers (
 F22 `/api/v1/commerce/*` is isolated-test only: directory, immutable quotes, pay/reconcile, buyer parent/order history and owner seller component reads; raw signed webhook uses provider authenticity rather than client success/CSRF. Buyer writes require existing verified session/Origin/CSRF and strict fields; no caller price/amount/status/owner. Legacy contracts remain. See `apps/api/contracts/openapi.json`, `apps/api/src/commerce/model.ts` and F22 acceptance.
 
 [Current evidence and remaining gates](F22_CHECKOUT_ACCEPTANCE.md).
+
+## F24 isolated customer/communication extension
+
+The existing customer factory adds strict GET/POST `/api/v1/customer/account`, contact-free GET `/account/published/{offerId}` and seller-scoped POST `/account/questions/{id}/answer`. Existing F13 conversations gain owned offer contact creation; tickets gain an owned order/request context command. All paths/schemas are in `apps/api/contracts/openapi.json`; account/feedback codecs and same-origin clients are portable. Unknown actions, caller owner fields, direct phone changes, raw card data and uploads are denied. Internal moderation and assigned test-support replies are not exposed as buyer HTTP routes. Production main does not compose these isolated services. [Complete implemented scope and gates](F24_CUSTOMER_COMMUNICATIONS.md).

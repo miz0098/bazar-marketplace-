@@ -1,4 +1,6 @@
 'use client';
+import {useServerCustomer} from '../server/customer-provider';
+import {ServerAccountScreen} from './server-account';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRequestState } from '@/components/account/use-request-state';
@@ -8,7 +10,7 @@ import { hasAccountValidationErrors, validateAccountProfile, type AccountProfile
 
 const emptyDraft: AccountProfileDraft = { firstName: '', lastName: '', email: '', birthday: '', gender: 'unspecified' };
 
-export function PersonalDataScreen({ scenario }: { scenario: AccountScenario }) {
+function PersonalDataScreenPreview({ scenario }: { scenario: AccountScenario }) {
   const service = useAccountService(scenario);
   const [draft, setDraft] = useState<AccountProfileDraft>(emptyDraft);
   const [errors, setErrors] = useState<AccountProfileErrors>({});
@@ -86,3 +88,5 @@ export function PersonalDataScreen({ scenario }: { scenario: AccountScenario }) 
     </>
   );
 }
+
+export function PersonalDataScreen({scenario}:{scenario:AccountScenario}){const {enabled,state}=useServerCustomer();return enabled?<ServerAccountScreen key={state.session?.user.id} section="profile"/>:<PersonalDataScreenPreview scenario={scenario}/>;}

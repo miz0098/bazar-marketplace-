@@ -18,7 +18,7 @@ try {
   const address = docker(['port', 'postgres', '5432'], true);
   if (!/^127\.0\.0\.1:\d+$/.test(address)) throw new Error('Test database must bind only to loopback');
   const databaseUrl = `postgresql://bazar_test_owner:${password}@${address}/bazar_f2_test`;
-  const result = spawnSync(process.execPath, ['--import', 'tsx', '--test', 'tests/integration/postgres.test.ts'], { env: { ...env, DATABASE_TEST_URL: databaseUrl, BAZAR_INTEGRATION_TEST: '1', NODE_ENV: 'test' }, stdio: 'inherit' });
+  const result = spawnSync(process.execPath, ['--import', 'tsx', '--test', ...process.argv.slice(2), 'tests/integration/postgres.test.ts'], { env: { ...env, DATABASE_TEST_URL: databaseUrl, BAZAR_INTEGRATION_TEST: '1', NODE_ENV: 'test' }, stdio: 'inherit' });
   process.exitCode = result.status ?? 1;
 } catch {
   process.stderr.write('PostgreSQL integration run failed. No credentials are printed.\n'); process.exitCode = 1;

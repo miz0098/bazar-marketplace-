@@ -4,15 +4,17 @@ import { useEffect, useRef, useState } from 'react';
 import { AccountState } from '@/components/account/account-ui';
 import { messageDate, messageTime, validateMessage, type DemoMessage } from '@/domain/communication/communication';
 
-export function MessageThread({ messages, title, closed = false, attachments = false, onSend }: {
+export function MessageThread({ messages, title, closed = false, attachments = false, serverBacked = false, onSend }: {
   messages: readonly DemoMessage[];
   title: string;
   closed?: boolean;
   attachments?: boolean;
+  serverBacked?:boolean;
   onSend: (text: string, attachment?: DemoMessage['attachment']) => Promise<void>;
 }) {
   const historyRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const previousScroll=useRef<{first?:string;last?:string;height:number}>({height:0});
   const fileRef = useRef<HTMLInputElement>(null);
   const [text, setText] = useState('');
   const [attachment, setAttachment] = useState<DemoMessage['attachment']>();
@@ -23,7 +25,7 @@ export function MessageThread({ messages, title, closed = false, attachments = f
 
   useEffect(() => {
     const history = historyRef.current;
-    if (history) history.scrollTop = history.scrollHeight;
+    if (history){const previous=previousScroll.current,first=messages[0]?.id,last=messages.at(-1)?.id;history.scrollTop=previous.first&&first!==previous.first&&last===previous.last?history.scrollTop+history.scrollHeight-previous.height:history.scrollHeight;previousScroll.current={first,last,height:history.scrollHeight};}
   }, [messages]);
 
   useEffect(() => {
@@ -44,7 +46,7 @@ export function MessageThread({ messages, title, closed = false, attachments = f
       setText('');
       setAttachment(undefined);
       if (fileRef.current) fileRef.current.value = '';
-      setNotice('Додано лише до демо-історії. Нікому не доставлено; після перезавантаження запис зникне.');
+      setNotice(serverBacked?'Збережено в тестовій серверній історії. Реальна доставка не підтверджується.':'Додано лише до демо-історії. Нікому не доставлено; після перезавантаження запис зникне.');
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Демо-дію не виконано. Спробуйте ще раз.');
     } finally {
@@ -66,7 +68,7 @@ export function MessageThread({ messages, title, closed = false, attachments = f
           {messages.map((message, index) => <li className={`communication-message${message.author === 'customer' ? ' is-own' : ''}`} key={message.id} data-message-id={message.id} data-created-at={message.createdAt}>
             {(index === 0 || messageDate(messages[index - 1].createdAt) !== messageDate(message.createdAt)) && <p className="communication-date">{messageDate(message.createdAt)}</p>}
             <div className="communication-bubble">
-              <span className="communication-author">{message.author === 'customer' ? 'Ви · демо' : 'Вигаданий співрозмовник'}</span>
+              <span className="communication-author">{message.author === 'customer' ? (serverBacked?'Ви · тестовий акаунт':'Ви · демо') : (serverBacked?'Співрозмовник · тестове середовище':'Вигаданий співрозмовник')}</span>
               {message.text && <p>{message.text}</p>}
               {message.attachment && <p className="communication-attachment">Файл: {message.attachment.name} · лише назва, без завантаження</p>}
               <footer><time dateTime={message.createdAt}>{messageTime(message.createdAt)}</time>{message.author === 'customer' && <span>Лише демо · не доставлено</span>}</footer>
@@ -76,7 +78,7 @@ export function MessageThread({ messages, title, closed = false, attachments = f
       )}
     </div>
     {closed ? <p className="communication-disclaimer">Демо-звернення закрите. Додавання повідомлень недоступне.</p> : <form className="communication-composer" onSubmit={submit} noValidate aria-label="Демонстраційне повідомлення">
-      <p className="communication-disclaimer" id="demo-message-hint">Лише демонстрація. Вводьте вигаданий текст: сервер і реальні користувачі його не отримують.</p>
+      <p className="communication-disclaimer" id="demo-message-hint">Лише демонстрація. Вводьте вигаданий текст: {serverBacked?'текст зберігається у тестовій PostgreSQL, реальні користувачі його не отримують.':'сервер і реальні користувачі його не отримують.'}</p>
       <label className="account-field"><span>Ваше повідомлення</span><textarea ref={inputRef} value={text} maxLength={2000} rows={2} disabled={busy} aria-invalid={Boolean(error)} aria-describedby={`demo-message-hint${error ? ' demo-message-error' : ''}`} onChange={(event) => setText(event.target.value)} onKeyDown={(event) => {
         if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); }
       }} /></label>

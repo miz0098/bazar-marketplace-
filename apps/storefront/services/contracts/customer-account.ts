@@ -1,0 +1,26 @@
+/** F24 portable isolated-account contract. No real card token or contact is exposed publicly. */
+export type ModerationState='pending'|'published'|'rejected'|'hidden';
+export type SavedAddress={id:string;carrier:'nova-poshta'|'meest'|'ukrposhta';cityRef:string;locationRef:string;cityName:string;locationName:string;kind:'branch'|'parcel-locker';label:string;isDefault:boolean;version:number};
+export type SavedMethod={id:string;brand:string;lastFour:string;expiryMonth:number;expiryYear:number;available:boolean;isDefault:boolean;version:number};
+export type AccountReview={id:string;offerId:string;productId:string;parentId:string;lineId:string;rating:number;body:string;state:ModerationState;withdrawn:boolean;version:number;createdAt:string;verifiedPurchase:true};
+export type AccountQuestion={id:string;offerId:string;body:string;answer:string|null;state:ModerationState;answerState:ModerationState;version:number;createdAt:string};
+export type AccountView={mode:'integration-test';profile:{id:string;firstName:string;lastName:string;patronymic:string;email:string;maskedPhone:string;version:number};addresses:SavedAddress[];paymentMethods:SavedMethod[];reviews:AccountReview[];questions:AccountQuestion[];purchases:{parentId:string;lineId:string;offerId:string;title:string}[];preferences:{version:number;orders:true;messages:boolean;reviewsQuestions:boolean;availability:boolean;promotions:false;outboundEnabled:false};privacyRequests:{id:string;kind:'access'|'deletion';state:'requested'}[]};
+export type PublicFeedback={mode:'integration-test';offerId:string;reviews:{id:string;rating:number;body:string;createdAt:string;verifiedPurchase:true}[];questions:{id:string;body:string;answer:string|null;createdAt:string}[];rating:{count:number;sum:number}};
+const obj=(v:unknown):v is Record<string,unknown>=>!!v&&typeof v==='object'&&!Array.isArray(v);
+export const accountId=(v:unknown):v is string=>typeof v==='string'&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(v);
+const exact=(r:Record<string,unknown>,keys:string)=>Object.keys(r).sort().join(',')===keys.split(',').sort().join(',');
+const num=(v:unknown,min=0,max=Number.MAX_SAFE_INTEGER):v is number=>typeof v==='number'&&Number.isSafeInteger(v)&&v>=min&&v<=max;
+const txt=(v:unknown,max=2000):v is string=>typeof v==='string'&&v.length<=max;
+const state=(v:unknown)=>['pending','published','rejected','hidden'].includes(String(v));
+const date=(v:unknown)=>typeof v==='string'&&Number.isFinite(Date.parse(v));
+const rows=(v:unknown,check:(r:Record<string,unknown>)=>boolean):boolean=>Array.isArray(v)&&v.length<=100&&v.every(r=>obj(r)&&check(r));
+export function isAccountView(v:unknown):v is AccountView{
+ if(!obj(v)||!exact(v,'mode,profile,addresses,paymentMethods,reviews,questions,purchases,preferences,privacyRequests')||v.mode!=='integration-test'||!obj(v.profile)||!obj(v.preferences))return false;const p=v.profile,n=v.preferences;
+ return exact(p,'id,firstName,lastName,patronymic,email,maskedPhone,version')&&exact(n,'version,orders,messages,reviewsQuestions,availability,promotions,outboundEnabled')&&accountId(p.id)&&['firstName','lastName','patronymic','email','maskedPhone'].every(k=>txt(p[k],254))&&num(p.version,1)&&n.orders===true&&n.promotions===false&&n.outboundEnabled===false&&['messages','reviewsQuestions','availability'].every(k=>typeof n[k]==='boolean')&&num(n.version,1)&&
+ rows(v.addresses,r=>accountId(r.id)&&['nova-poshta','meest','ukrposhta'].includes(String(r.carrier))&&['branch','parcel-locker'].includes(String(r.kind))&&['cityRef','locationRef','cityName','locationName','label'].every(k=>txt(r[k],200))&&typeof r.isDefault==='boolean'&&num(r.version,1))&&
+ rows(v.paymentMethods,r=>exact(r,'id,brand,lastFour,expiryMonth,expiryYear,available,isDefault,version')&&accountId(r.id)&&['Visa','Mastercard','Test'].includes(String(r.brand))&&typeof r.lastFour==='string'&&/^\d{4}$/.test(r.lastFour)&&num(r.expiryMonth,1,12)&&num(r.expiryYear,2020,2200)&&typeof r.available==='boolean'&&typeof r.isDefault==='boolean'&&num(r.version,1))&&
+ rows(v.reviews,r=>['id','offerId','productId','parentId','lineId'].every(k=>accountId(r[k]))&&num(r.rating,1,5)&&txt(r.body)&&state(r.state)&&typeof r.withdrawn==='boolean'&&num(r.version,1)&&date(r.createdAt)&&r.verifiedPurchase===true)&&
+ rows(v.questions,r=>accountId(r.id)&&accountId(r.offerId)&&txt(r.body)&&(r.answer===null||txt(r.answer))&&state(r.state)&&state(r.answerState)&&num(r.version,1)&&date(r.createdAt))&&
+ rows(v.purchases,r=>['parentId','lineId','offerId'].every(k=>accountId(r[k]))&&txt(r.title,300))&&rows(v.privacyRequests,r=>accountId(r.id)&&['access','deletion'].includes(String(r.kind))&&r.state==='requested');
+}
+export function isPublicFeedback(v:unknown):v is PublicFeedback{return obj(v)&&v.mode==='integration-test'&&accountId(v.offerId)&&rows(v.reviews,r=>Object.keys(r).sort().join(',')==='body,createdAt,id,rating,verifiedPurchase'&&accountId(r.id)&&txt(r.body)&&num(r.rating,1,5)&&r.verifiedPurchase===true&&date(r.createdAt))&&rows(v.questions,r=>Object.keys(r).sort().join(',')==='answer,body,createdAt,id'&&accountId(r.id)&&txt(r.body)&&(r.answer===null||txt(r.answer))&&date(r.createdAt))&&obj(v.rating)&&num(v.rating.count)&&num(v.rating.sum)&&v.rating.sum>=v.rating.count&&v.rating.sum<=v.rating.count*5;}

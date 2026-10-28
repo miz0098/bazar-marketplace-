@@ -87,3 +87,9 @@ PD-01 percentage-total and seller commission rounding mode is now HALF_UP. Imple
 ## F23 APPROVED status delta
 
 BR-L23-01/02 supersede the old seven-row cancellation/status targets: main new→confirmed→preparing→shipped→delivered; buyer direct new/confirmed, seller request preparing/shipped, returns after delivered. No in-transit/completed order state. TC10–13 gain operational seller isolation, homogeneous/null parent aggregation, quantity-bound requests, immutable receipt/history and commerce-payment-linked refund protocol. TC11 uses only explicit isolated calendar/clock/staff authority; production PD-08/PL/EX gates remain. [F23 evidence](docs/F23_ORDER_LIFECYCLE.md).
+
+## F24 customer account / communications overlay
+
+[Implementation, sources, validation and release gates](docs/F24_CUSTOMER_COMMUNICATIONS.md), [ADR0023](docs/adr/0023-customer-account-communications.md). Existing historical audit evidence remains unchanged. Ordinary customer screens in the explicit server integration entry now reuse F12/F13/F17/F21/F22/F23 for profile/address/payment-ref, actual-purchase review/Q&A moderation, messages/support/inbox/preferences. Preserve nine approved navigation destinations and design; no production auth/provider/grant bypass. Tests/results must be recorded after completion, not inferred from types or migration.
+
+F25 should reuse seller-owned offer conversation/answer and operator capability seams; F26 assigned support/moderation; F27 providers/consented channels; F28 privacy/storage/recovery/retention. Attachments/photos, production PII/key/retention rules, real card tokenization, SMS and outbound channels remain blocked. No Demo100%, Production Ready or final design/full-audit acceptance.
