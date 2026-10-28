@@ -30,7 +30,20 @@ Only synthetic data may be used in the isolated entry. Profile email/patronymic/
 
 ## Verification
 
-Final-head suite results are recorded in the linked PR/CI checks; documentation and types alone are not functional coverage. Local checkpoint: API unit60, storefront unit99, compiled smoke3, PostgreSQL/HTTP/security149 and governance5 passed; three dependency audits report0 vulnerabilities. Browser regressions are still being completed at this checkpoint, with final results tracked on the PR. New PostgreSQL tests cover profile/phone restrictions, all carrier addresses, replay/archival/default, payment refs, paid review/moderation/review races, seller Q&A, preference suppression, conversation isolation/revocation/order/read/pin, support assignment, privacy, HTTP CSRF/Origin and schema19→20 preservation. New desktop/mobile browser cases cover ordinary account persistence, cross-device session reads, checkout address selection, paid review/Q&A/moderation notices, message/support reply persistence, safe errors, keyboard/axe and overflow. Existing F12–F23 regressions are preserved.
+Final-head GitHub results are recorded on PR #36; documentation/types alone are not coverage. Consolidated local verification completed on 2026-10-28:
+
+| Suite | Passed |
+| --- | ---: |
+| API unit | 60 |
+| Storefront unit | 99 |
+| Compiled API smoke | 3 |
+| PostgreSQL / HTTP / security | 149 |
+| Shared ordinary-page HTTPS browser | 44 |
+| Existing isolated checkout/notifications | 44 |
+| Ordinary desktop/mobile Playwright | 100 |
+| Governance unit | 5 |
+
+**504 passed; zero final failures;8 unchanged viewport exclusions.** Thirty new cases compared with F23:6 client/codec,16 PostgreSQL,8 viewport browser cases. An additional25-case F12/F24 compatibility replay and8-case final UI replay are not added to the total. The latter covers approved profile/grid/address-editor parity and a single white empty chat card without a duplicate workspace. API/storefront/isolated-entry typechecks, lint, production builds, three dependency audits (0 vulnerabilities), ledger/allowlist/reference checks and git diff --check pass. Existing tests/assertions/retries/timeouts are preserved.  New PostgreSQL tests cover profile/phone restrictions, all carrier addresses, replay/archival/default, payment refs, paid review/moderation/review races, seller Q&A, preference suppression, conversation isolation/revocation/order/read/pin, support assignment, privacy, HTTP CSRF/Origin and schema19→20 preservation. New desktop/mobile browser cases cover ordinary account persistence, cross-device session reads, checkout address selection, paid review/Q&A/moderation notices, message/support reply persistence, safe errors, keyboard/axe and overflow. Existing F12–F23 regressions are preserved.
 
 ## Remaining gates / recommended F25
 
@@ -43,3 +56,5 @@ Long-history regression: F13 message/support history now orders by the qualified
 Review and final-head check evidence: [PR #36](https://github.com/miz0098/bazar-marketplace-/pull/36), targeting `vps-migration`. CI runs the full API/PostgreSQL/unit/browser/governance/audit suites on the actual head; final results and SHA are recorded in the PR. No merge/deployment.
 
 Reference provenance: remote `bazar-latest-shopify` remains `105d10fb6b8e65c5f163016aa8c69072e85faa0e`; inspected read-only Git objects for account JS/CSS and existing F12 screens. Server profile preserves profile-aside/form layout; saved addresses/payment methods/reviews reuse existing approved grids/cards, and the address editor opens explicitly. No reference checkout, modification or claim of final visual acceptance.
+
+Debugging evidence: fixes address actual selected-offer feedback identity, approved button contrast and numeric multi-digit history ordering. New test locators are scoped to semantic history/account cards/main errors rather than composer previews or the Next route announcer; no accessibility/security assertion or time budget is relaxed. Final code commit/CI is linked through PR checks; no merge or deployment.
