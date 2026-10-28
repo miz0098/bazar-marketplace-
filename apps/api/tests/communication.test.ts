@@ -123,7 +123,7 @@ test("F13 response validation enforces isolated scope, chronology, counters and 
   };
   assert.ok(isCommunicationView(chats));
   assert.equal(isCommunicationView({ ...chats, unreadChats: 2 }), false);
-  assert.equal(notificationKinds.length, 11);
+  assert.equal(notificationKinds.length, 12);
 });
 test("F13 service and HTTP composition refuse ordinary production activation", () => {
   const result = spawnSync(

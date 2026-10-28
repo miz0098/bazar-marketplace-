@@ -1184,7 +1184,7 @@
     {
       "id": "CUSTOMERCOMMS-001",
       "title": "Complete isolated server-backed customer account reviews Q&A communications preferences",
-      "status": "in_review",
+      "status": "done",
       "readiness": "integration",
       "depends_on": [
         "ORDERLIFECYCLE-002"
@@ -1216,6 +1216,50 @@
       ],
       "pr": 36,
       "blocker": "Live PII retention/key/consent, review edit/legal policies, attachment storage/scanning, operator grants and real providers remain gated."
+    },
+    {
+      "id": "SELLERDASHBOARD-001",
+      "title": "Implement BAZAR Business seller dashboard and isolated dual-app Codespaces preview",
+      "status": "in_review",
+      "readiness": "integration",
+      "depends_on": [
+        "CUSTOMERCOMMS-001"
+      ],
+      "allowed_paths": [
+        "apps/api/",
+        "apps/storefront/",
+        "tests/e2e/",
+        "docs/",
+        "BUSINESS_RULES_V1.md",
+        "COMMERCE_DOMAIN_CONTRACTS.md",
+        "BUSINESS_DECISION_REGISTER.md",
+        "ARCHITECTURE.md",
+        "MIGRATION_PLAN.md",
+        "F20_F29_IMPLEMENTATION_CONTRACT.md",
+        "FUNCTIONAL_COMPLETION_BACKLOG.md",
+        "REMAINING_DEVELOPMENT_ROADMAP.md",
+        "FULL_AUDIT_ENTRY_CRITERIA.md",
+        "FUNCTIONAL_GAP_AUDIT.md",
+        "DEMO_READINESS_CHECKLIST.md",
+        "DEMO_COMPLETION_PLAN.md",
+        ".github/autonomous/tasks.json",
+        "apps/seller-admin/",
+        "infra/",
+        ".devcontainer/",
+        "package.json",
+        "CODESPACES_PREVIEW.md",
+        ".github/workflows/ci.yml",
+        ".gitignore",
+        "scripts/preview/"
+      ],
+      "acceptance": [
+        "Six approved seller destinations, scoped seller owner RBAC, no customer directory/staff privilege",
+        "Reuse catalog checkout finance lifecycle communication services with additive schema and immutable historical data",
+        "Two isolated preview origins use shared PostgreSQL/API, bounded authenticated BFF transport and origin-bound Secure sessions without production weakening",
+        "All regressions and new seller preview tests pass; visual parity NOT VERIFIED and business/provider gates explicit"
+      ],
+      "pr": 37,
+      "blocker": "Original seller mockups unavailable (NOT VERIFIED); production grants, privacy/storage, promotion funding and settlement/provider rules remain gated."
     }
   ]
 }

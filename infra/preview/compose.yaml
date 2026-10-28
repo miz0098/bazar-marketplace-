@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:17-alpine@sha256:eee6c6e1b0894fa4fe0075eb054af9fd1cf39a35321c2d4110626cfe506411fb
+    environment:
+      POSTGRES_USER: bazar_preview_owner
+      POSTGRES_DB: bazar_preview_f25
+      POSTGRES_PASSWORD: ${BAZAR_POSTGRES_PASSWORD:?Use npm run preview:postgres}
+    ports: ["127.0.0.1:5433:5432"]
+    volumes: ["preview-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bazar_preview_owner -d bazar_preview_f25"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+volumes:
+  preview-data:

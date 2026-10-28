@@ -147,3 +147,14 @@ F23 adds desktop/mobile scenarios for nine status choices, no removed labels, ma
 F25 should reuse seller-owned offer conversation/answer and operator capability seams; F26 assigned support/moderation; F27 providers/consented channels; F28 privacy/storage/recovery/retention. Attachments/photos, production PII/key/retention rules, real card tokenization, SMS and outbound channels remain blocked. No Demo100%, Production Ready or final design/full-audit acceptance.
 
 F24 consolidated local evidence:504 passed (API60, storefront99, smoke3, PostgreSQL/HTTP/security149, shared browser44, isolated browser44, ordinary browser100, governance5);8 unchanged viewport exclusions. Extra debug/compatibility/final-UI reruns are not added. Lint/types/builds/audits/ledger/diff checks pass; final-head CI and exact SHA are tracked in [PR #36](https://github.com/miz0098/bazar-marketplace-/pull/36). This closes the documented isolated account/UGC/communication slice, not live PII/provider, attachment, legal or operator gates. No Demo100%/Production Ready declaration.
+
+## Seller dashboard F25 readiness overlay
+
+- [ ] Sign in to each of the three isolated seller accounts using the filesystem-only demo OTP instructions in `CODESPACES_PREVIEW.md`.
+- [ ] Confirm six primary sections and six settings areas; there is no Customers module.
+- [ ] Verify product/SKU/price/availability changes in Storefront through shared PostgreSQL refresh.
+- [ ] Verify seller A/B order, catalog, messages and Q&A isolation.
+- [ ] Verify orders increment by ten, state-machine actions, test-only export and F23 deadline display.
+- [ ] Confirm inactive promo drafts, unavailable payout balance, disabled uploads, no live SMS/payments/TTN.
+- [ ] Exercise logout/reload/expiry, API errors, keyboard navigation and 1440×900 / 390×844 accessibility/overflow checks.
+- [ ] Complete separate visual comparison against approved BAZAR Business screens; current parity is **NOT VERIFIED**.

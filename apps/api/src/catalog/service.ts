@@ -69,13 +69,16 @@ export function createCatalogV2(pool:pg.Pool){
    actor=uuid(actor);pid=uuid(pid);
    if(process.env.NODE_ENV!=='test')throw new ApiError(503,'SERVICE_UNAVAILABLE','Seller mutation is isolated-test only.');
    if(!input||typeof input!=='object'||Array.isArray(input))invalid();const b=input as Record<string,unknown>;
-   const keys=['expectedVersion','idempotencyKey','title','description','attributes','available','variantId','priceMinor','purchasable'];
+   const keys=['expectedVersion','idempotencyKey','title','description','attributes','available','variantId','priceMinor','purchasable','categoryId','status','media'];
    if(Object.keys(b).some(k=>!keys.includes(k)))invalid();
    const version=integer(b.expectedVersion,1),key=uuid(b.idempotencyKey),vid=b.variantId===undefined?null:uuid(b.variantId);
    if(b.available!==undefined&&typeof b.available!=='boolean'||b.purchasable!==undefined&&typeof b.purchasable!=='boolean')invalid();
    if(b.title!==undefined)text(b.title,vid?200:300);if(b.description!==undefined&&(typeof b.description!=='string'||b.description.length>10000))invalid();
    if(b.attributes!==undefined)attributes(b.attributes);if(b.priceMinor!==undefined)integer(b.priceMinor,0);
    if(vid&&(b.description!==undefined||b.attributes!==undefined)||!vid&&(b.priceMinor!==undefined||b.purchasable!==undefined))invalid();
+   if(b.categoryId!==undefined)uuid(b.categoryId);if(b.status!==undefined&&!['published','archived'].includes(String(b.status)))invalid();
+   if(vid&&(b.categoryId!==undefined||b.status!==undefined||b.media!==undefined))invalid();
+   if(b.media!==undefined){if(!Array.isArray(b.media)||b.media.length>12)invalid();for(const m of b.media){if(!m||typeof m!=='object'||Array.isArray(m))invalid();const r=m as Record<string,unknown>;if(Object.keys(r).some(k=>!['path','alt','variantId','width','height'].includes(k))||typeof r.path!=='string'||!/^\/images\/[a-zA-Z0-9/_-]+\.(svg|png|webp|jpg)$/.test(r.path))invalid();text(r.alt,300);integer(r.width,1,10000);integer(r.height,1,10000);if(r.variantId!==null)uuid(r.variantId);}}
    const digest=createHash('sha256').update(JSON.stringify({pid,...Object.fromEntries(Object.entries(b).sort())})).digest('hex');
    const c=await pool.connect();try{
     await c.query('BEGIN');await c.query('SELECT pg_advisory_xact_lock(hashtextextended($1,20))',[actor+key]);
@@ -86,6 +89,12 @@ export function createCatalogV2(pool:pg.Pool){
     await c.query('SELECT id FROM bazar.variants WHERE product_id=$1 ORDER BY id FOR UPDATE',[pid]);
     const before=(await c.query('SELECT *,bazar.catalog_available(product_id) AS effective FROM bazar.catalog_products WHERE product_id=$1 FOR UPDATE',[pid])).rows[0];
     if(Number(before.version)!==version)throw new ApiError(409,'CONFLICT','Catalog version changed.');
+    const oldMedia=(await c.query('SELECT * FROM bazar.catalog_media WHERE product_id=$1 ORDER BY position,id',[pid])).rows;
+    const oldBase=(await c.query('SELECT title,description,category_id FROM bazar.products WHERE id=$1',[pid])).rows[0];
+    if(b.categoryId!==undefined&&!(await c.query('SELECT 1 FROM bazar.categories WHERE id=$1',[b.categoryId])).rowCount)throw missing();
+    if(b.media!==undefined){for(const m of b.media as Record<string,unknown>[])if(m.variantId!==null&&!(await c.query('SELECT 1 FROM bazar.variants WHERE id=$1 AND product_id=$2',[m.variantId,pid])).rowCount)throw missing();await c.query('DELETE FROM bazar.catalog_media WHERE product_id=$1',[pid]);for(const [position,m]of (b.media as Record<string,unknown>[]).entries())await c.query('INSERT INTO bazar.catalog_media(product_id,variant_id,path,alt,width,height,position) VALUES($1,$2,$3,$4,$5,$6,$7)',[pid,m.variantId,m.path,m.alt,m.width,m.height,position]);}
+    if(b.categoryId!==undefined)await c.query('UPDATE bazar.products SET category_id=$2 WHERE id=$1',[pid,b.categoryId]);
+    if(b.status!==undefined)await c.query('UPDATE bazar.catalog_products SET status=$2 WHERE product_id=$1',[pid,b.status]);
     const oldPrices=(await c.query('SELECT id,price_minor::text,version::text FROM bazar.variants WHERE product_id=$1 ORDER BY id',[pid])).rows;
     const vb=vid?(await c.query('SELECT *,bazar.catalog_available(product_id,variant_id) AS effective FROM bazar.catalog_variants WHERE variant_id=$1 AND product_id=$2 FOR UPDATE',[vid,pid])).rows[0]:null;
     if(vid&&!vb)throw missing();
@@ -96,7 +105,7 @@ export function createCatalogV2(pool:pg.Pool){
     await c.query('UPDATE bazar.catalog_products SET version=version+1 WHERE product_id=$1',[pid]);
     const after=(await c.query('SELECT *,bazar.catalog_available(product_id) AS effective FROM bazar.catalog_products WHERE product_id=$1',[pid])).rows[0];
     const va=vid?(await c.query('SELECT *,bazar.catalog_available(product_id,variant_id) AS effective FROM bazar.catalog_variants WHERE variant_id=$1',[vid])).rows[0]:null;
-    const audit=(await c.query('INSERT INTO bazar.catalog_audit(product_id,variant_id,seller_id,actor_id,revision,before_data,after_data) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id',[pid,vid,owner.seller_id,actor,after.version,JSON.stringify({product:before,variant:vb,prices:oldPrices}),JSON.stringify({product:after,variant:va,prices:(await c.query('SELECT id,price_minor::text,version::text FROM bazar.variants WHERE product_id=$1 ORDER BY id',[pid])).rows})])).rows[0].id;
+    const audit=(await c.query('INSERT INTO bazar.catalog_audit(product_id,variant_id,seller_id,actor_id,revision,before_data,after_data) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id',[pid,vid,owner.seller_id,actor,after.version,JSON.stringify({product:before,variant:vb,prices:oldPrices,media:oldMedia,base:oldBase}),JSON.stringify({product:after,variant:va,base:(await c.query('SELECT title,description,category_id FROM bazar.products WHERE id=$1',[pid])).rows[0],media:(await c.query('SELECT * FROM bazar.catalog_media WHERE product_id=$1 ORDER BY position,id',[pid])).rows,prices:(await c.query('SELECT id,price_minor::text,version::text FROM bazar.variants WHERE product_id=$1 ORDER BY id',[pid])).rows})])).rows[0].id;
     // Same transition may create two event scopes; union recipients per event, no retry duplication.
     const restored:('product'|'variant')[]=[];
     if(!before.effective&&after.effective)restored.push('product');if(vid&&!vb.effective&&va.effective)restored.push('variant');

@@ -94,3 +94,11 @@ F23 now has the approved nine-state operational/return/refund/escalation test sl
 [Implementation, sources, validation and release gates](docs/F24_CUSTOMER_COMMUNICATIONS.md), [ADR0023](docs/adr/0023-customer-account-communications.md). Existing historical audit evidence remains unchanged. Ordinary customer screens in the explicit server integration entry now reuse F12/F13/F17/F21/F22/F23 for profile/address/payment-ref, actual-purchase review/Q&A moderation, messages/support/inbox/preferences. Preserve nine approved navigation destinations and design; no production auth/provider/grant bypass. Tests/results must be recorded after completion, not inferred from types or migration.
 
 F25 should reuse seller-owned offer conversation/answer and operator capability seams; F26 assigned support/moderation; F27 providers/consented channels; F28 privacy/storage/recovery/retention. Attachments/photos, production PII/key/retention rules, real card tokenization, SMS and outbound channels remain blocked. No Demo100%, Production Ready or final design/full-audit acceptance.
+
+## Roadmap update after F25
+
+- **F26 — Staff CRM, support and moderation:** approved staff roles/assignments, queue coverage, least-privilege seller/order/review/Q&A access, auditable decisions, case escalation and cross-tenant negative tests. No seller dashboard duplication.
+- **F27 — Production provider integrations:** select/approve phone OTP, payment, carrier, notification providers; contracts, consent, secrets, webhook reconciliation, failure/retry and operational ownership before activation.
+- **F28 — Seller onboarding, files and privacy operations:** legal/verification documents, private object storage/scanning, banking/key grants, access/deletion/retention policy, consent and audited recovery.
+- **F29 — Marketplace operations and full-audit entry:** seller-funded/marketplace promotion policy, settlement/payout rules, staff coverage, backups/restore, production observability and measured closure of all full-audit criteria.
+- **After F25:** perform the separately agreed seller dashboard desktop/mobile design review; original mockup parity remains NOT VERIFIED. This is not a functional implementation approval or Demo100% declaration.

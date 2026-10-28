@@ -114,3 +114,15 @@ Supersedes prior F19 order-state references to in-transit/completed; historical 
 | BR-U24-03 | F13 server conversations/support and F17 in-app inbox/preferences are reused; outbound marketing/providers remain disabled | APPROVED F24 | Communications/account | Participant/recipient isolation, conversation unread count, chronological history, durable retry/dedup; no fabricated live agent/provider or consent |
 
 [Actual implementation and limits](docs/F24_CUSTOMER_COMMUNICATIONS.md). Optional photos/attachments require secure storage/scan/access contracts; privacy requests do not authorize automatic financial-record erasure. No Demo100%/Production Ready claim.
+
+## F25 seller dashboard implementation boundary
+
+- **BR-S25-01 — APPROVED (seller ownership):** every seller view derives the actor from the verified server session and rechecks active seller ownership; browser-provided seller/store identifiers never grant access. Acceptance: owner-only read/write and negative cross-seller/session tests.
+- **BR-S25-02 — APPROVED (seller order scope):** seller order views contain only that seller order, its lines, fulfillment context and frozen financial snapshot; no other seller's lines or unrelated buyer history. Acceptance: multi-seller isolation tests.
+- **BR-S25-03 — APPROVED (catalog operations):** sellers may manage only their own offers, exact variant prices and binary availability; archive is additive/non-destructive and archived offers are excluded from public catalog. No quantitative stock or reservation behavior. Acceptance: versioned owner-authorized mutations and public-catalog exclusion.
+- **BR-S25-04 — APPROVED (order operations):** use the F23 nine-status state machine and its deadlines/authorization; a seller UI cannot directly assign arbitrary states or assert shipment/refund without server-verified evidence. Acceptance: invalid transitions fail, seller scope and audit are preserved.
+- **BR-S25-05 — APPROVED (seller promotion scope):** seller-issued codes use server-generated unique BZ+11-digit IDs and F22/F22.1 calculation contracts; one code per order. Creation may be retained as an inactive draft while funding and marketplace eligibility remain unresolved; activation is not authorized by the dashboard phase.
+- **BR-S25-06 — APPROVED (finance):** display historical F22/F22.1 seller snapshots and 5% commission; do not infer payout balance, settlement, payout timing or irreversible fee retention. Acceptance: frozen snapshot read, no payout operation, unresolved balance clearly unavailable.
+- **BR-S25-07 — APPROVED (isolated preview):** seller OTP, bank-data fixture, carrier proof, export and Codespaces data are synthetic/test-only and cannot be configured in production. Production auth/provider/settlement grants remain off.
+
+These rules record the requested F25 implementation limits; they do not approve unresolved financial, legal, staff-grant, privacy or production-provider policy.

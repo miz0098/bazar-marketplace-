@@ -1,3 +1,5 @@
+import {handleSeller} from './seller/http.js';
+import type {SellerService} from './seller/service.js';
 import {handleCommerce} from './commerce/http.js';
 import type {CommerceService} from './commerce/service.js';
 import {handleOffers,isOfferPath} from './catalog/offer-http.js';
@@ -48,7 +50,9 @@ function validateBody(request: IncomingMessage, response: ServerResponse) {
   }
 }
 
-export function createApiServer(config: ApiConfig, logger: Logger, dependencies: { isReady?: () => boolean | Promise<boolean>; commerce?:CommerceService; catalogV2?:CatalogV2; offers?:OfferService; catalog?: Catalog; auth?: AuthService; promotions?: PromotionService; checkout?: CheckoutBusinessService; shipping?: ShippingService; payments?: PaymentService; currentCart?: CurrentCartService; customer?:CustomerService; communication?:CommunicationService; lifecycle?:OrderLifecycleService } = {}) {
+export function createApiServer(config: ApiConfig, logger: Logger, dependencies: { seller?:SellerService; isReady?: () => boolean | Promise<boolean>; commerce?:CommerceService; catalogV2?:CatalogV2; offers?:OfferService; catalog?: Catalog; auth?: AuthService; resolveAuth?: (request:IncomingMessage)=>AuthService|undefined; promotions?: PromotionService; checkout?: CheckoutBusinessService; shipping?: ShippingService; payments?: PaymentService; currentCart?: CurrentCartService; customer?:CustomerService; communication?:CommunicationService; lifecycle?:OrderLifecycleService } = {}) {
+  if(dependencies.seller&&config.environment!=='test')throw new Error('Seller integration is isolated-test only');
+  if(dependencies.resolveAuth&&config.environment!=='test')throw new Error('Preview auth dispatch is isolated-test only');
   if(dependencies.commerce&&config.environment!=='test')throw new Error('Commerce is isolated-test only');
   if (dependencies.auth && config.environment !== 'test') throw new Error('Test authentication cannot be registered outside an isolated test server');
   if (dependencies.promotions && config.environment !== 'test') throw new Error('Promotion integration cannot be registered outside a test server');
@@ -69,65 +73,67 @@ export function createApiServer(config: ApiConfig, logger: Logger, dependencies:
     response.setHeader('vary', 'Origin');
     response.on('finish', () => logger.write({ event: 'request', requestId, method: method === 'GET' || method === 'HEAD' || method === 'OPTIONS' ? method : 'OTHER', route, status: response.statusCode, durationMs: performance.now() - start, code }));
     try {
+      const auth=dependencies.resolveAuth?dependencies.resolveAuth(request):dependencies.auth;
       if (!request.url?.startsWith('/') || request.url.startsWith('//')) throw new ApiError(400, 'INVALID_REQUEST', 'Invalid request target.');
       let url: URL;
       try { decodeURIComponent(request.url); url = new URL(request.url, 'http://api.invalid'); } catch { throw new ApiError(400, 'INVALID_REQUEST', 'Invalid request target.'); }
-      if(url.pathname.startsWith('/api/v1/commerce/')){route='/api/v1/commerce';if(draining||!dependencies.isReady||!await dependencies.isReady())throw new ApiError(503,'SERVICE_UNAVAILABLE','Commerce unavailable.');const data=await handleCommerce(request,response,url,dependencies.commerce,dependencies.auth);reply(response,method,200,{ok:true,data,meta:{requestId}});return;}
-      if(isOfferPath(url.pathname)){route='/api/v1/products';if(draining||!dependencies.isReady||!await dependencies.isReady())throw new ApiError(503,'SERVICE_UNAVAILABLE','Offers unavailable.');const data=await handleOffers(request,response,url,dependencies.offers,dependencies.auth,config.corsOrigins);reply(response,method,200,{ok:true,data,meta:{requestId}});return;}
+      if(url.pathname.startsWith('/api/v1/seller/')){if(draining||!dependencies.isReady||!await dependencies.isReady())throw new ApiError(503,'SERVICE_UNAVAILABLE','Seller integration unavailable.');const data=await handleSeller(request,response,url,auth,dependencies.seller);reply(response,method,200,{ok:true,data,meta:{requestId}});return;}
+      if(url.pathname.startsWith('/api/v1/commerce/')){route='/api/v1/commerce';if(draining||!dependencies.isReady||!await dependencies.isReady())throw new ApiError(503,'SERVICE_UNAVAILABLE','Commerce unavailable.');const data=await handleCommerce(request,response,url,dependencies.commerce,auth);reply(response,method,200,{ok:true,data,meta:{requestId}});return;}
+      if(isOfferPath(url.pathname)){route='/api/v1/products';if(draining||!dependencies.isReady||!await dependencies.isReady())throw new ApiError(503,'SERVICE_UNAVAILABLE','Offers unavailable.');const data=await handleOffers(request,response,url,dependencies.offers,auth,config.corsOrigins);reply(response,method,200,{ok:true,data,meta:{requestId}});return;}
       if(url.pathname.startsWith('/api/v1/catalog/')){
         route='/api/v1/products';
         if(draining||!dependencies.isReady||!await dependencies.isReady())throw new ApiError(503,'SERVICE_UNAVAILABLE','Catalog v2 is unavailable.');
-        const data=await handleCatalogV2(request,response,url,dependencies.catalogV2,config.corsOrigins,dependencies.auth);reply(response,method,200,{ok:true,data,meta:{requestId}});return;
+        const data=await handleCatalogV2(request,response,url,dependencies.catalogV2,config.corsOrigins,auth);reply(response,method,200,{ok:true,data,meta:{requestId}});return;
       }
       if(isLifecyclePath(url.pathname)){
         route='/api/v1/order-lifecycle';
         if(draining||(dependencies.lifecycle&&(!dependencies.isReady||!await dependencies.isReady())))throw new ApiError(503,'SERVICE_UNAVAILABLE','Order lifecycle is unavailable.');
-        const data=await handleLifecycle(request,response,url,dependencies.auth,dependencies.lifecycle);reply(response,method,200,{ok:true,data,meta:{requestId}});return;
+        const data=await handleLifecycle(request,response,url,auth,dependencies.lifecycle);reply(response,method,200,{ok:true,data,meta:{requestId}});return;
       }
       if(isCommunicationPath(url.pathname)){
         route='/api/v1/communication';
         if(draining||(dependencies.communication&&(!dependencies.isReady||!await dependencies.isReady())))throw new ApiError(503,'SERVICE_UNAVAILABLE','Communication foundation is unavailable.');
-        const data=await handleCommunication(request,response,url,dependencies.auth,dependencies.communication);reply(response,method,200,{ok:true,data,meta:{requestId}});return;
+        const data=await handleCommunication(request,response,url,auth,dependencies.communication);reply(response,method,200,{ok:true,data,meta:{requestId}});return;
       }
       if(isCustomerPath(url.pathname)){
         route='/api/v1/customer';
         if(draining||(dependencies.customer&&(!dependencies.isReady||!await dependencies.isReady())))throw new ApiError(503,'SERVICE_UNAVAILABLE','Customer foundation is unavailable.');
-        const data=await handleCustomer(request,response,url,dependencies.auth,dependencies.customer);reply(response,method,200,{ok:true,data,meta:{requestId}});return;
+        const data=await handleCustomer(request,response,url,auth,dependencies.customer);reply(response,method,200,{ok:true,data,meta:{requestId}});return;
       }
       if(isCartPath(url.pathname)){
         route='/api/v1/cart';
         if(draining || (dependencies.currentCart && (!dependencies.isReady || !await dependencies.isReady())))throw new ApiError(503,'SERVICE_UNAVAILABLE','Current cart is unavailable.');
-        const data=await handleCart(request,response,url,dependencies.auth,dependencies.currentCart);
+        const data=await handleCart(request,response,url,auth,dependencies.currentCart);
         reply(response,method,200,{ok:true,data,meta:{requestId}});return;
       }
       if(isPaymentPath(url.pathname)){
         route='/api/v1/payments';
         if(draining || (dependencies.payments && (!dependencies.isReady || !await dependencies.isReady())))throw new ApiError(503,'SERVICE_UNAVAILABLE','Payments are unavailable.');
-        const data=await handlePayment(request,response,url,dependencies.auth,dependencies.payments);
+        const data=await handlePayment(request,response,url,auth,dependencies.payments);
         reply(response,method,200,{ok:true,data,meta:{requestId}});return;
       }
       if(isShippingPath(url.pathname)){
         route='/api/v1/delivery';
         if(draining || (dependencies.shipping && (!dependencies.isReady || !await dependencies.isReady())))throw new ApiError(503,'SERVICE_UNAVAILABLE','Delivery is unavailable.');
-        const data=await handleShipping(request,response,url,dependencies.auth,dependencies.shipping);
+        const data=await handleShipping(request,response,url,auth,dependencies.shipping);
         reply(response,method,200,{ok:true,data,meta:{requestId}});return;
       }
       if(isCheckoutPath(url.pathname)){
         route=url.pathname.startsWith('/api/v1/orders')?'/api/v1/orders':'/api/v1/checkouts';
         if(draining || (dependencies.checkout && (!dependencies.isReady || !await dependencies.isReady())))throw new ApiError(503,'SERVICE_UNAVAILABLE','Checkout is unavailable.');
-        const data=await handleCheckout(request,response,url,dependencies.auth,dependencies.checkout);
+        const data=await handleCheckout(request,response,url,auth,dependencies.checkout);
         reply(response,method,200,{ok:true,data,meta:{requestId}});return;
       }
       if(url.pathname===promotionPath){
         route='/api/v1/pricing/promotions/evaluate';
         if(draining || (dependencies.promotions && (!dependencies.isReady || !await dependencies.isReady())))throw new ApiError(503,'SERVICE_UNAVAILABLE','Promotion pricing is unavailable.');
-        const data=await handlePromotion(request,response,url,dependencies.auth,dependencies.promotions);
+        const data=await handlePromotion(request,response,url,auth,dependencies.promotions);
         reply(response,method,200,{ok:true,data,meta:{requestId}});return;
       }
       if (authPaths.some(path=>path===url.pathname)) {
         route='/api/v1/auth';
-        if(draining || (dependencies.auth && (!dependencies.isReady || !await dependencies.isReady()))) throw new ApiError(503,'SERVICE_UNAVAILABLE','Authentication is unavailable.');
-        const data=await handleAuth(request,response,url,dependencies.auth);
+        if(draining || (auth && (!dependencies.isReady || !await dependencies.isReady()))) throw new ApiError(503,'SERVICE_UNAVAILABLE','Authentication is unavailable.');
+        const data=await handleAuth(request,response,url,auth);
         reply(response,method,200,{ok:true,data,meta:{requestId}});return;
       }
       const catalogRoute = url.pathname === '/api/v1/products' || /^\/api\/v1\/products\/[^/]+$/.test(url.pathname) ? '/api/v1/products' : url.pathname === '/api/v1/categories' ? '/api/v1/categories' : undefined;

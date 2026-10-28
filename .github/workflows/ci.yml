@@ -109,6 +109,8 @@ jobs:
         working-directory: tests/e2e
       - run: npm audit --audit-level=high
         working-directory: apps/api
+      - run: npm audit --audit-level=high
+        working-directory: apps/seller-admin
       - name: Review dependency changes
         if: vars.ENABLE_DEPENDENCY_REVIEW == 'true'
         uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
@@ -138,9 +140,9 @@ jobs:
       - run: npm audit --audit-level=high
 
   browser-checkout:
-    name: Isolated HTTPS browser checkout
+    name: Isolated HTTPS checkout and Seller Admin preview
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
@@ -150,11 +152,14 @@ jobs:
           cache-dependency-path: |
             apps/api/package-lock.json
             apps/storefront/package-lock.json
+            apps/seller-admin/package-lock.json
             tests/e2e/package-lock.json
       - run: npm ci
         working-directory: apps/api
       - run: npm ci
         working-directory: apps/storefront
+      - run: npm ci
+        working-directory: apps/seller-admin
       - run: npm ci
         working-directory: tests/e2e
       - name: Use official HTTPS Ubuntu mirrors for browser dependencies
@@ -178,12 +183,24 @@ jobs:
         working-directory: tests/e2e
       - run: npm run typecheck:browser
         working-directory: apps/storefront
+      - run: npm run typecheck:preview
+        working-directory: apps/api
       - run: npm run typecheck:storefront
         working-directory: apps/storefront
       - run: npm run test:storefront
         working-directory: apps/api
       - run: npm run test:browser
         working-directory: apps/api
+      - name: Seller Admin checks
+        working-directory: apps/seller-admin
+        run: |
+          npm run lint
+          npm run typecheck
+          npm test
+          npm run build
+          npm audit --audit-level=high
+      - name: Codespaces dual-app PostgreSQL browser preview
+        run: npm run preview:test
       - name: Upload isolated browser report on failure
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

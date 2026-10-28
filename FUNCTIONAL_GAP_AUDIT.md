@@ -194,3 +194,7 @@ F23 closes the bounded isolated buyer order-lifecycle slice: nine states, main d
 F25 should reuse seller-owned offer conversation/answer and operator capability seams; F26 assigned support/moderation; F27 providers/consented channels; F28 privacy/storage/recovery/retention. Attachments/photos, production PII/key/retention rules, real card tokenization, SMS and outbound channels remain blocked. No Demo100%, Production Ready or final design/full-audit acceptance.
 
 F24 consolidated local evidence:504 passed (API60, storefront99, smoke3, PostgreSQL/HTTP/security149, shared browser44, isolated browser44, ordinary browser100, governance5);8 unchanged viewport exclusions. Extra debug/compatibility/final-UI reruns are not added. Lint/types/builds/audits/ledger/diff checks pass; final-head CI and exact SHA are tracked in [PR #36](https://github.com/miz0098/bazar-marketplace-/pull/36). This closes the documented isolated account/UGC/communication slice, not live PII/provider, attachment, legal or operator gates. No Demo100%/Production Ready declaration.
+
+## F25 seller workspace update (without replacing earlier audit evidence)
+
+See `docs/F25_SELLER_DASHBOARD.md` and `CODESPACES_PREVIEW.md`. Seller-owned dashboard functionality is available only in the isolated API/PostgreSQL preview. Original admin design parity remains NOT VERIFIED; live OTP/payments/carrier events/payouts and document uploads remain unavailable. The F25 implementation and its test evidence must not be interpreted as Production Ready or Demo100%.

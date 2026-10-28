@@ -2,23 +2,47 @@
   "name": "BAZAR Marketplace",
   "image": "mcr.microsoft.com/devcontainers/javascript-node:5-24-bookworm",
   "remoteUser": "node",
-  "forwardPorts": [3000],
+  "forwardPorts": [
+    3000,
+    3001
+  ],
   "portsAttributes": {
     "3000": {
-      "label": "BAZAR storefront",
-      "onAutoForward": "notify"
+      "label": "BAZAR Storefront",
+      "onAutoForward": "notify",
+      "visibility": "private"
+    },
+    "3001": {
+      "label": "BAZAR Business",
+      "onAutoForward": "notify",
+      "visibility": "private"
+    },
+    "4000": {
+      "onAutoForward": "ignore"
+    },
+    "5433": {
+      "onAutoForward": "ignore"
+    },
+    "5000": {
+      "onAutoForward": "ignore"
+    },
+    "5001": {
+      "onAutoForward": "ignore"
     }
   },
   "containerEnv": {
     "NEXT_TELEMETRY_DISABLED": "1",
     "STOREFRONT_DATA_SOURCE": "mock"
   },
-  "postCreateCommand": "npm --prefix apps/storefront ci && npm --prefix tests/e2e ci && cd tests/e2e && npx playwright install --with-deps chromium",
+  "postCreateCommand": "npm run preview:install && npm --prefix tests/e2e ci && cd tests/e2e && npx playwright install --with-deps chromium",
   "customizations": {
     "vscode": {
       "extensions": [
         "dbaeumer.vscode-eslint"
       ]
     }
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
   }
 }
