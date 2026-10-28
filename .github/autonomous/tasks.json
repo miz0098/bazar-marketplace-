@@ -1184,7 +1184,7 @@
     {
       "id": "CUSTOMERCOMMS-001",
       "title": "Complete isolated server-backed customer account reviews Q&A communications preferences",
-      "status": "in_progress",
+      "status": "in_review",
       "readiness": "integration",
       "depends_on": [
         "ORDERLIFECYCLE-002"
@@ -1214,7 +1214,7 @@
         "Synthetic card references only, address directory validation and historical archival, private attachments and live providers gated",
         "All regression PostgreSQL HTTP security browser desktop/mobile lint types builds audits governance and diff checks pass"
       ],
-      "pr": null,
+      "pr": 36,
       "blocker": "Live PII retention/key/consent, review edit/legal policies, attachment storage/scanning, operator grants and real providers remain gated."
     }
   ]
