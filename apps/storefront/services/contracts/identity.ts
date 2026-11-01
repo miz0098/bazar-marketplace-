@@ -22,6 +22,7 @@ export class IdentityServiceError extends Error {
 }
 
 export interface IdentityChallenge {
+  readonly inboxCode?: string;
   readonly id: string;
   readonly intent: IdentityIntent;
   readonly maskedPhone: string;

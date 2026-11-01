@@ -1,3 +1,4 @@
+import {simulationMode} from '../../lib/simulation';
 import { SocialIcon } from './social-icon';
 import Link from 'next/link';
 import { Logo } from '@/components/brand/logo';
@@ -78,8 +79,7 @@ export function SiteFooter() {
           <address>
             <h2>Підтримка</h2>
             <p>Щодня з 9:00 до 21:00</p>
-            <span>support@example.invalid</span>
-            <small>Демонстраційна адреса</small>
+            {simulationMode?<Link href="/profile/support">Написати в підтримку</Link>:<><span>support@example.invalid</span><small>Демонстраційна адреса</small></>}
           </address>
         </div>
       </div>

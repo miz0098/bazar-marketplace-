@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import {simulationMode} from '../../lib/simulation';
 import {createContext,useContext,useEffect,useState,useSyncExternalStore} from 'react';
 import {createServerCustomerStore,type ServerCustomerStore} from '../../services/server/customer-store';
 const Context=createContext<ServerCustomerStore|null>(null);
@@ -14,5 +15,5 @@ export function ServerCustomerProvider({children,enabled=false}:{children:React.
  return <Context.Provider value={store}>{children}</Context.Provider>;
 }
 export function useServerCustomer(){const store=useContext(Context);const state=useSyncExternalStore(store?.subscribe??noSubscribe,store?.getSnapshot??(()=>disabled),store?.getServerSnapshot??(()=>disabled));return {store,enabled:store!==null,state};}
-export function ServerCustomerStatus(){const {store,state}=useServerCustomer();if(!store)return null;return <div className="demo-disclaimer"><p role="status">{state.error||(state.status==='loading'?'Перевіряємо серверну сесію…':state.session?'Тестова серверна сесія. Кошик та обране зберігаються у тестовому акаунті.':'Гостьовий кошик локальний. Автоматичного об’єднання немає.')}</p><button type="button" disabled={state.status==='loading'} onClick={()=>{void store.refresh();}}>Оновити серверні дані</button></div>;}
+export function ServerCustomerStatus(){const {store,state}=useServerCustomer();if(!store||simulationMode&&!state.error&&state.status!=='loading')return null;return <div className="demo-disclaimer"><p role="status">{state.error||(state.status==='loading'?'Перевіряємо серверну сесію…':state.session?'Тестова серверна сесія. Кошик та обране зберігаються у тестовому акаунті.':'Гостьовий кошик локальний. Автоматичного об’єднання немає.')}</p><button type="button" disabled={state.status==='loading'} onClick={()=>{void store.refresh();}}>Оновити серверні дані</button></div>;}
 export function ServerAccountGate({children}:{children:React.ReactNode}){const {store,state}=useServerCustomer();if(!store)return children;if(state.status==='loading')return <p role="status">Перевіряємо доступ…</p>;if(!state.session)return <div className="empty-state"><h1>Потрібен вхід</h1><p>{state.error||'Особисті дані доступні лише після перевірки серверної сесії.'}</p><Link className="button" href="/account/login">Увійти</Link></div>;return children;}

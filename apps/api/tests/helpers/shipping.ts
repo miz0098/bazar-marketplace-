@@ -4,7 +4,7 @@ import type {
   ParcelPlan,
 } from "../../src/shipping/adapter.js";
 /** Explicit synthetic fixtures. Not imported by src or included in production build. */
-export function shippingFixture() {
+export function shippingFixture(labels = {city: "Тестове місто", point: "Тестовий пункт"}) {
   const state = {
     available: true,
     amount: 7350,
@@ -19,7 +19,7 @@ export function shippingFixture() {
     return {
       ref: "synthetic-location",
       cityRef: "synthetic-city",
-      name: "Тестовий пункт",
+      name: labels.point,
       kind: "branch",
       available: state.available,
       revision: state.pointRevision,
@@ -32,10 +32,10 @@ export function shippingFixture() {
     carrier,
     pickupKinds: ["branch"],
     async cities() {
-      return [{ ref: "synthetic-city", name: "Тестове місто" }];
+      return [{ ref: "synthetic-city", name: labels.city }];
     },
     async city(ref) {
-      return ref === "synthetic-city" ? { ref, name: "Тестове місто" } : null;
+      return ref === "synthetic-city" ? { ref, name: labels.city } : null;
     },
     async points() {
       return [point()];

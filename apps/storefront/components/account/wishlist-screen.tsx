@@ -1,4 +1,5 @@
 'use client';
+import {simulationCopy} from '../../lib/simulation';
 import {useServerCustomer} from '../server/customer-provider';
 import {productHref} from '@/domain/catalog/offers';
 
@@ -95,7 +96,7 @@ export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
       setError(
         reason instanceof Error
           ? reason.message
-          : 'Не вдалося виконати демо-дію.',
+          : simulationCopy('Не вдалося виконати демо-дію.','Не вдалося виконати дію.'),
       );
     } finally {
       setBusy(false);
@@ -126,7 +127,7 @@ export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
       <AccountPageHeading
         kicker="Збережені товари"
         title="Обране"
-        description={serverEnabled?"Тестове обране зберігає конкретні пропозиції у вашому серверному акаунті. Оновлення синхронізує дані між пристроями.":"Пошук і дії працюють лише з демонстраційним списком та зберігаються локально без персональних даних і не синхронізуються з акаунтом."}
+        description={serverEnabled?simulationCopy("Тестове обране зберігає конкретні пропозиції у вашому серверному акаунті. Оновлення синхронізує дані між пристроями.","Зберігайте цікаві пропозиції та повертайтеся до них з будь-якого пристрою."):"Пошук і дії працюють лише з демонстраційним списком та зберігаються локально без персональних даних і не синхронізуються з акаунтом."}
       />
       <div className="account-wishlist-toolbar account-toolbar">
         <label className="account-search">
@@ -166,7 +167,7 @@ export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
       {cartError && <p role="alert">{cartError}</p>}
       {notice && (
         <DemoMutationNotice>
-          {notice} {serverEnabled?"Зміни зберігаються у вашому тестовому акаунті.":"Демо-обране використовує лише локальне сховище."}
+          {notice} {serverEnabled?simulationCopy("Зміни зберігаються у вашому тестовому акаунті.","Зміни збережено у вашому акаунті."):"Демо-обране використовує лише локальне сховище."}
         </DemoMutationNotice>
       )}
       {error ? (
@@ -186,7 +187,7 @@ export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
           }
         />
       ) : !result ? (
-        <AccountLoading label="Завантажуємо демонстраційне обране…" />
+        <AccountLoading label={simulationCopy('Завантажуємо демонстраційне обране…','Завантажуємо обране…')} />
       ) : result.items.length === 0 ? (
         <AccountState
           icon="wishlist"
@@ -194,7 +195,7 @@ export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
           text={
             search
               ? 'Спробуйте змінити запит або очистити пошук.'
-              : 'Додайте товари з каталогу. Обране зберігається локально лише в цьому браузері.'
+              : simulationCopy('Додайте товари з каталогу. Обране зберігається локально лише в цьому браузері.','Додайте товари з каталогу до вашого обраного.')
           }
           action={
             search ? (
@@ -234,7 +235,7 @@ export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
               onClick={() =>
                 void mutate(
                   () => service.removeWishlistItems([...selected]),
-                  'Обрані товари прибрано з демо-списку.',
+                  simulationCopy('Обрані товари прибрано з демо-списку.','Обрані товари видалено.'),
                 )
               }
             >
@@ -264,7 +265,7 @@ export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
                   onClick={() =>
                     void mutate(
                       () => service.removeWishlistItem(item.id),
-                      `${item.product.title} прибрано з демо-списку.`,
+                      simulationCopy(`${item.product.title} прибрано з демо-списку.`,`${item.product.title} видалено з обраного.`),
                     )
                   }
                 >
@@ -303,7 +304,7 @@ export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
                         setNotice(
                           error
                             ? ''
-                            : `${item.product.title} додано до демонстраційного кошика.`,
+                            : simulationCopy(`${item.product.title} додано до демонстраційного кошика.`,`${item.product.title} додано до кошика.`),
                         );
                       }}
                     >

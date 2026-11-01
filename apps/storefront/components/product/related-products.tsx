@@ -1,4 +1,5 @@
 'use client';
+import {simulationCopy} from '../../lib/simulation';
 import { createDemoRecentViews } from '@/services/mock/recent-service';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import type { ProductSummary } from '@/services/contracts/catalog';
@@ -37,7 +38,7 @@ export function RelatedProducts({
         <section className="home-section">
           <h2>Рекомендовані товари</h2>
           <p>
-            Демонстраційна добірка з тієї самої категорії, без персоналізації.
+            {simulationCopy('Демонстраційна добірка з тієї самої категорії, без персоналізації.','Інші товари з цієї категорії.')}
           </p>
           <div className="product-grid">
             {recommended.map((p) => (

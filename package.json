@@ -7,7 +7,9 @@
     "theme:dev": "shopify theme dev",
     "theme:check": "shopify theme check",
     "theme:pull": "shopify theme pull",
-    "theme:push": "shopify theme push"
+    "theme:push": "shopify theme push",
+    "simulation:start": "BAZAR_FULL_SIMULATION=1 BAZAR_STOREFRONT_INTEGRATION=1 node apps/api/scripts/test-browser.mjs --serve",
+    "simulation:test": "BAZAR_FULL_SIMULATION=1 BAZAR_SIMULATION_STEP_MS=1000 BAZAR_STOREFRONT_INTEGRATION=1 node apps/api/scripts/test-browser.mjs --simulation-test"
   },
   "engines": {
     "node": ">=20"

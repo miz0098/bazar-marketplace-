@@ -1,4 +1,5 @@
 'use client';
+import {simulationMode,simulationCopy} from '../../lib/simulation';
 
 import { useEffect, useRef, useState } from 'react';
 import { AccountState } from '@/components/account/account-ui';
@@ -46,7 +47,7 @@ export function MessageThread({ messages, title, closed = false, attachments = f
       setText('');
       setAttachment(undefined);
       if (fileRef.current) fileRef.current.value = '';
-      setNotice(serverBacked?'Збережено в тестовій серверній історії. Реальна доставка не підтверджується.':'Додано лише до демо-історії. Нікому не доставлено; після перезавантаження запис зникне.');
+      setNotice(serverBacked?simulationCopy("Збережено в тестовій серверній історії. Реальна доставка не підтверджується.","Повідомлення збережено."):'Додано лише до демо-історії. Нікому не доставлено; після перезавантаження запис зникне.');
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Демо-дію не виконано. Спробуйте ще раз.');
     } finally {
@@ -63,22 +64,22 @@ export function MessageThread({ messages, title, closed = false, attachments = f
         event.currentTarget.scrollTop = event.key === 'Home' ? 0 : event.currentTarget.scrollHeight;
       }
     }}>
-      {messages.length === 0 ? <AccountState icon="messages" title="Тут поки немає повідомлень" text="Це порожня демонстраційна історія. Реального зв’язку зі співрозмовником немає." /> : (
+      {messages.length === 0 ? <AccountState icon="messages" title="Тут поки немає повідомлень" text={simulationCopy('Це порожня демонстраційна історія. Реального зв’язку зі співрозмовником немає.','Напишіть перше повідомлення.')} /> : (
         <ol className="communication-message-list">
           {messages.map((message, index) => <li className={`communication-message${message.author === 'customer' ? ' is-own' : ''}`} key={message.id} data-message-id={message.id} data-created-at={message.createdAt}>
             {(index === 0 || messageDate(messages[index - 1].createdAt) !== messageDate(message.createdAt)) && <p className="communication-date">{messageDate(message.createdAt)}</p>}
             <div className="communication-bubble">
-              <span className="communication-author">{message.author === 'customer' ? (serverBacked?'Ви · тестовий акаунт':'Ви · демо') : (serverBacked?'Співрозмовник · тестове середовище':'Вигаданий співрозмовник')}</span>
+              <span className="communication-author">{message.author === 'customer' ? (serverBacked?simulationCopy("Ви · тестовий акаунт","Ви"):'Ви · демо') : (serverBacked?simulationCopy("Співрозмовник · тестове середовище","Співрозмовник"):'Вигаданий співрозмовник')}</span>
               {message.text && <p>{message.text}</p>}
               {message.attachment && <p className="communication-attachment">Файл: {message.attachment.name} · лише назва, без завантаження</p>}
-              <footer><time dateTime={message.createdAt}>{messageTime(message.createdAt)}</time>{message.author === 'customer' && <span>Лише демо · не доставлено</span>}</footer>
+              <footer><time dateTime={message.createdAt}>{messageTime(message.createdAt)}</time>{message.author === 'customer' && <span>{simulationCopy('Лише демо · не доставлено','Збережено')}</span>}</footer>
             </div>
           </li>)}
         </ol>
       )}
     </div>
-    {closed ? <p className="communication-disclaimer">Демо-звернення закрите. Додавання повідомлень недоступне.</p> : <form className="communication-composer" onSubmit={submit} noValidate aria-label="Демонстраційне повідомлення">
-      <p className="communication-disclaimer" id="demo-message-hint">Лише демонстрація. Вводьте вигаданий текст: {serverBacked?'текст зберігається у тестовій PostgreSQL, реальні користувачі його не отримують.':'сервер і реальні користувачі його не отримують.'}</p>
+    {closed ? <p className="communication-disclaimer">Демо-звернення закрите. Додавання повідомлень недоступне.</p> : <form className="communication-composer" onSubmit={submit} noValidate aria-label={simulationCopy('Демонстраційне повідомлення','Повідомлення')}>
+      <p className="communication-disclaimer" id="demo-message-hint">{simulationMode?'Напишіть повідомлення.':<>Лише демонстрація. Вводьте вигаданий текст: {serverBacked?'текст зберігається у тестовій PostgreSQL, реальні користувачі його не отримують.':'сервер і реальні користувачі його не отримують.'}</>}</p>
       <label className="account-field"><span>Ваше повідомлення</span><textarea ref={inputRef} value={text} maxLength={2000} rows={2} disabled={busy} aria-invalid={Boolean(error)} aria-describedby={`demo-message-hint${error ? ' demo-message-error' : ''}`} onChange={(event) => setText(event.target.value)} onKeyDown={(event) => {
         if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); }
       }} /></label>
@@ -97,7 +98,7 @@ export function MessageThread({ messages, title, closed = false, attachments = f
       </div>}
       {error && <p className="account-field-error" id="demo-message-error" role="alert">{error}</p>}
       {notice && <p className="communication-notice" role="status">{notice}</p>}
-      <div className="communication-send-row"><span>Enter — додати в демо, Shift+Enter — новий рядок</span><button className="account-button account-button--primary" type="submit" disabled={busy}>{busy ? 'Додаємо в демо…' : 'Надіслати в демо'}</button></div>
+      <div className="communication-send-row"><span>{simulationCopy('Enter — додати в демо, Shift+Enter — новий рядок','Enter — надіслати, Shift+Enter — новий рядок')}</span><button className="account-button account-button--primary" type="submit" disabled={busy}>{busy ? simulationCopy("Додаємо в демо…","Надсилаємо…") : simulationCopy("Надіслати в демо","Надіслати")}</button></div>
     </form>}
   </section>;
 }

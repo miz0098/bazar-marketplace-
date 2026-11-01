@@ -1,4 +1,5 @@
 'use client';
+import {simulationMode,simulationCopy} from '../../lib/simulation';
 import {useServerCustomer} from '../server/customer-provider';
 import {OfferFeedback} from './offer-feedback';
 
@@ -205,8 +206,8 @@ export function ProductDetail({
                 <h2>Наявність</h2>
                 <p>
                   {selected.available
-                    ? 'Демонстраційно доступний'
-                    : 'Демонстраційно недоступний'}
+                    ? simulationCopy('Демонстраційно доступний','Є в наявності')
+                    : simulationCopy('Демонстраційно недоступний','Немає в наявності')}
                 </p>
               </div>
             </article>
@@ -232,10 +233,10 @@ export function ProductDetail({
               </div>
             </article>
           </div>
-          <div className="demo-disclaimer" role="note">
+          {!simulationMode&&<div className="demo-disclaimer" role="note">
             Демонстраційні ціни й наявність. Реальне резервування товару не
             виконується.
-          </div>
+          </div>}
         </section>
       </div>
 
@@ -294,7 +295,7 @@ export function ProductDetail({
               </tbody>
             </table>
           )}
-          {tab === 'reviews' && enabled&&selected.offerId ? <OfferFeedback key={selected.offerId} offerId={selected.offerId}/> : tab === 'reviews' && (
+          {tab === 'reviews' && enabled&&selected.offerId ? <OfferFeedback key={selected.offerId} offerId={selected.offerId}/> : tab === 'reviews' && (simulationMode?<p>Оберіть варіант товару, щоб переглянути відгуки.</p>:
             <div className="reviews">
               <header>
                 <strong>{product.rating}/5</strong>
@@ -323,7 +324,7 @@ export function ProductDetail({
             </div>
           )}
           {tab === 'questions' && enabled&&selected.offerId ? <OfferFeedback key={selected.offerId} offerId={selected.offerId} questions/> : tab === 'questions' && (
-            <p>Питань поки що немає. Надсилання запитань у демо недоступне.</p>
+            <p>{simulationCopy('Питань поки що немає. Надсилання запитань у демо недоступне.','Оберіть варіант товару, щоб поставити запитання.')}</p>
           )}
           {tab === 'delivery' && (
             <div className="delivery-copy">
@@ -331,8 +332,7 @@ export function ProductDetail({
                 <strong>Доставка:</strong> вартість за тарифами перевізника.
               </p>
               <p>
-                <strong>Оплата:</strong> платіжна інтеграція не входить до
-                демонстраційної фази.
+                <strong>Оплата:</strong> {simulationCopy('платіжна інтеграція не входить до демонстраційної фази.','карткою онлайн під час оформлення замовлення.')}
               </p>
               <p>
                 <strong>Повернення:</strong> остаточні правила мають бути
