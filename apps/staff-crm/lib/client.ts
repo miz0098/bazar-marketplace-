@@ -1,0 +1,7 @@
+import {createServerAuthClient} from '../../storefront/lib/server-auth-client';
+export {createServerAuthClient};
+export class StaffError extends Error{constructor(readonly status:number,readonly code:string){super(status===401?'Сесія завершилася. Увійдіть повторно.':status===403?'Доступ до цієї черги або справи не надано.':status===409?'Запис змінився. Оновіть дані перед повторною дією.':'Запит не виконано. Спробуйте ще раз.');}}
+export function record(v:unknown):Record<string,unknown>{if(!v||typeof v!=='object'||Array.isArray(v))throw new Error('Некоректна відповідь сервера');return v as Record<string,unknown>;}
+export function rows(v:unknown):Record<string,unknown>[]{return Array.isArray(v)?v.map(record):[];}
+export async function staffRequest(path:string,csrf:string,body?:unknown){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),10000);try{const response=await fetch('/api/v1/staff/'+path,{credentials:'same-origin',cache:'no-store',redirect:'error',signal:controller.signal,method:body===undefined?'GET':'POST',headers:body===undefined?{}:{'content-type':'application/json','x-csrf-token':csrf},...(body===undefined?{}:{body:JSON.stringify(body)})});const raw=await response.text();if(raw.length>1048576)throw new Error('Завелика відповідь');const v=record(JSON.parse(raw));if(!response.ok||v.ok!==true)throw new StaffError(response.status,String(record(v.error).code));return record(v.data);}finally{clearTimeout(timer);}}
+export function requestId(){return crypto.randomUUID();}

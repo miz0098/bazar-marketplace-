@@ -1,5 +1,7 @@
 import {expect} from '@playwright/test';
 export async function authenticate(page:import('@playwright/test').Page,register=true,phone='671234567'){
+ // Keep each auth flow independent if a runner reuses an existing browser context.
+ await page.context().clearCookies();
  await page.addInitScript(()=>{const original=window.fetch;window.fetch=async(...args)=>{const r=await original(...args);if(String(args[0]).endsWith('/api/v1/auth/otp/challenges')){document.documentElement.dataset.testChallengeStatus=String(r.status);if(r.ok){const v=await r.clone().json();document.documentElement.dataset.testChallenge=v.data.challengeId;}}return r;};});
  await page.goto(register?'/account/register':'/account/login');
  await expect(page.getByRole('button',{name:'Оновити серверні дані'})).toBeEnabled();

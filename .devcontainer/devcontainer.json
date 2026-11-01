@@ -4,7 +4,8 @@
   "remoteUser": "node",
   "forwardPorts": [
     3000,
-    3001
+    3001,
+    3002
   ],
   "portsAttributes": {
     "3000": {
@@ -14,6 +15,11 @@
     },
     "3001": {
       "label": "BAZAR Business",
+      "onAutoForward": "notify",
+      "visibility": "private"
+    },
+    "3002": {
+      "label": "BAZAR Staff",
       "onAutoForward": "notify",
       "visibility": "private"
     },
@@ -27,6 +33,9 @@
       "onAutoForward": "ignore"
     },
     "5001": {
+      "onAutoForward": "ignore"
+    },
+    "5002": {
       "onAutoForward": "ignore"
     }
   },

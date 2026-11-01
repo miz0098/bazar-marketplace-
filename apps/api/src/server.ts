@@ -1,5 +1,7 @@
 import {handleSeller} from './seller/http.js';
 import type {SellerService} from './seller/service.js';
+import {handleStaff,isStaffPath} from './staff/http.js';
+import type {StaffService} from './staff/service.js';
 import {handleCommerce} from './commerce/http.js';
 import type {CommerceService} from './commerce/service.js';
 import {handleOffers,isOfferPath} from './catalog/offer-http.js';
@@ -50,8 +52,9 @@ function validateBody(request: IncomingMessage, response: ServerResponse) {
   }
 }
 
-export function createApiServer(config: ApiConfig, logger: Logger, dependencies: { seller?:SellerService; isReady?: () => boolean | Promise<boolean>; commerce?:CommerceService; catalogV2?:CatalogV2; offers?:OfferService; catalog?: Catalog; auth?: AuthService; resolveAuth?: (request:IncomingMessage)=>AuthService|undefined; promotions?: PromotionService; checkout?: CheckoutBusinessService; shipping?: ShippingService; payments?: PaymentService; currentCart?: CurrentCartService; customer?:CustomerService; communication?:CommunicationService; lifecycle?:OrderLifecycleService } = {}) {
+export function createApiServer(config: ApiConfig, logger: Logger, dependencies: { seller?:SellerService; staff?:StaffService; isReady?: () => boolean | Promise<boolean>; commerce?:CommerceService; catalogV2?:CatalogV2; offers?:OfferService; catalog?: Catalog; auth?: AuthService; resolveAuth?: (request:IncomingMessage)=>AuthService|undefined; promotions?: PromotionService; checkout?: CheckoutBusinessService; shipping?: ShippingService; payments?: PaymentService; currentCart?: CurrentCartService; customer?:CustomerService; communication?:CommunicationService; lifecycle?:OrderLifecycleService } = {}) {
   if(dependencies.seller&&config.environment!=='test')throw new Error('Seller integration is isolated-test only');
+  if(dependencies.staff&&config.environment!=='test')throw new Error('Staff CRM is isolated-test only');
   if(dependencies.resolveAuth&&config.environment!=='test')throw new Error('Preview auth dispatch is isolated-test only');
   if(dependencies.commerce&&config.environment!=='test')throw new Error('Commerce is isolated-test only');
   if (dependencies.auth && config.environment !== 'test') throw new Error('Test authentication cannot be registered outside an isolated test server');
@@ -77,6 +80,7 @@ export function createApiServer(config: ApiConfig, logger: Logger, dependencies:
       if (!request.url?.startsWith('/') || request.url.startsWith('//')) throw new ApiError(400, 'INVALID_REQUEST', 'Invalid request target.');
       let url: URL;
       try { decodeURIComponent(request.url); url = new URL(request.url, 'http://api.invalid'); } catch { throw new ApiError(400, 'INVALID_REQUEST', 'Invalid request target.'); }
+      if(isStaffPath(url.pathname)){route='/api/v1/staff';if(draining||!dependencies.isReady||!await dependencies.isReady())throw new ApiError(503,'SERVICE_UNAVAILABLE','Staff operations are unavailable.');const data=await handleStaff(request,response,url,auth,dependencies.staff);reply(response,method,200,{ok:true,data,meta:{requestId}});return;}
       if(url.pathname.startsWith('/api/v1/seller/')){if(draining||!dependencies.isReady||!await dependencies.isReady())throw new ApiError(503,'SERVICE_UNAVAILABLE','Seller integration unavailable.');const data=await handleSeller(request,response,url,auth,dependencies.seller);reply(response,method,200,{ok:true,data,meta:{requestId}});return;}
       if(url.pathname.startsWith('/api/v1/commerce/')){route='/api/v1/commerce';if(draining||!dependencies.isReady||!await dependencies.isReady())throw new ApiError(503,'SERVICE_UNAVAILABLE','Commerce unavailable.');const data=await handleCommerce(request,response,url,dependencies.commerce,auth);reply(response,method,200,{ok:true,data,meta:{requestId}});return;}
       if(isOfferPath(url.pathname)){route='/api/v1/products';if(draining||!dependencies.isReady||!await dependencies.isReady())throw new ApiError(503,'SERVICE_UNAVAILABLE','Offers unavailable.');const data=await handleOffers(request,response,url,dependencies.offers,auth,config.corsOrigins);reply(response,method,200,{ok:true,data,meta:{requestId}});return;}

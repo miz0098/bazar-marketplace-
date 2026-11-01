@@ -102,3 +102,7 @@ F25 should reuse seller-owned offer conversation/answer and operator capability 
 - **F28 — Seller onboarding, files and privacy operations:** legal/verification documents, private object storage/scanning, banking/key grants, access/deletion/retention policy, consent and audited recovery.
 - **F29 — Marketplace operations and full-audit entry:** seller-funded/marketplace promotion policy, settlement/payout rules, staff coverage, backups/restore, production observability and measured closure of all full-audit criteria.
 - **After F25:** perform the separately agreed seller dashboard desktop/mobile design review; original mockup parity remains NOT VERIFIED. This is not a functional implementation approval or Demo100% declaration.
+
+## F26 execution update
+
+F26 adds an isolated assigned-case Staff CRM slice on F13/F23/F24 and a third Codespaces UI origin. Do not activate staff access until PD-09 grant administration, coverage/fallback, case status/resolution authority and privacy/retention are decided. Continue F27 only after required channels, consent and ownership are approved; live SMS, provider channels or production grants are not enabled by this test preview. Production OTP, legal/privacy retention, disaster recovery and provider keys remain separate gates. Staff visual parity awaits reference screens and review.

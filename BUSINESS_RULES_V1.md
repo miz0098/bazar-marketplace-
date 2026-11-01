@@ -126,3 +126,7 @@ Supersedes prior F19 order-state references to in-transit/completed; historical 
 - **BR-S25-07 — APPROVED (isolated preview):** seller OTP, bank-data fixture, carrier proof, export and Codespaces data are synthetic/test-only and cannot be configured in production. Production auth/provider/settlement grants remain off.
 
 These rules record the requested F25 implementation limits; they do not approve unresolved financial, legal, staff-grant, privacy or production-provider policy.
+
+## F26 staff-operations implementation boundary (no new business approval)
+
+F26 records the existing F23/F24 staff seams as an isolated implementation contract only. No new support status, staff SLA, staffing fallback, customer-directory authority, moderation appeal, or personal-data retention period is approved by this implementation. The test API defaults to no staff membership/capabilities; every case action requires current explicit capability and assignment, and every revocation is honored on the next request. See [F26 evidence](docs/F26_STAFF_CRM.md). Product/legal/security approval is still required before any staff account is provisioned outside the private test fixture.

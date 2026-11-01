@@ -116,3 +116,9 @@ Explicit product owner approval removes in-transit and completed as order states
 **Pending legal/privacy/security:** production bank-data protection and access grants; document classes/signatures/storage/scanning/retention; seller employee roles and delegated grants; production seller onboarding/verification; customer-data minimization visible to sellers; statutory return and communication retention policy.
 
 **External dependencies:** production phone OTP/SMS provider; payment, carrier and shipment evidence integrations; private file/object storage and malware scanning; staff moderation/CRM. F25 test fixtures do not satisfy these dependencies.
+
+## F26 staff operations implementation delta
+
+**TD-F26-01 — implemented technical boundary, not business approval:** additive0022 stores staff memberships, enumerated capability grants/revocations, assigned cases, private notes, idempotency receipts and immutable audits. API composition is rejected outside `NODE_ENV=test`; no default grant, browser provisioning, customer directory or impersonation. Support/moderation actions require both current capability and current case assignment; dispatch uses F23's existing staff assignment. F13/F24 records remain authoritative. See [F26](docs/F26_STAFF_CRM.md).
+
+**Pending PD-09 / privacy / scope:** staff onboarding and grant/revocation authority; role delegation and sensitive employee permissions; fallback/unassigned queue and coverage; support case status, resolve/reopen/transfer and service-level policy; staff audit/note and customer-data retention. No legal retention duration or production staff access is inferred. Original staff mockups were unavailable: visual parity **NOT VERIFIED**.

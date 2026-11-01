@@ -116,3 +116,7 @@ F24 consolidated local evidence:504 passed (API60, storefront99, smoke3, Postgre
 | SELLER-03 | Finance and payout | Reads immutable test snapshots and 5% commission | Settlement, payout balance/timing/fees and production provider pending; no payout operation |
 | SELLER-04 | Documents and banking | Encrypted synthetic bank record and document metadata only | Production secrets/key management, private storage, scanning, legal retention and staff review pending |
 | SELLER-05 | Seller Codespaces preview | Shared isolated API/PostgreSQL and separate 3000/3001 HTTPS origins | Verify developer setup and exact CI result; does not prove production or screen-design readiness |
+
+## F26 evidence update — STAFFCRM-001
+
+Assigned-case staff UI/API and the three-origin test preview now exist for synthetic support replies, review/Q&A moderation and F23 dispatch visibility/notes. This partially satisfies B23's API, app and cross-role denial requirements in isolated mode. B23 remains open for production grant authority, staff onboarding/revocation governance, coverage/fallback, support resolution/status policy, audit/privacy retention, queue continuation, approved staff design and provider acceptance. F26 tests do not establish production readiness or close E13. See [F26 scope](docs/F26_STAFF_CRM.md).

@@ -5,7 +5,7 @@ export interface LogRecord {
   event: typeof events[number];
   requestId?: string;
   method?: 'GET' | 'HEAD' | 'OPTIONS' | 'OTHER';
-  route?: '/health' | '/ready' | '/api/v1' | '/api/v1/products' | '/api/v1/categories' | '/api/v1/order-lifecycle' | '/api/v1/communication' | '/api/v1/customer' | '/api/v1/cart' | '/api/v1/auth' | '/api/v1/pricing/promotions/evaluate' | '/api/v1/orders' | '/api/v1/checkouts' | '/api/v1/delivery' | '/api/v1/payments' | '/api/v1/commerce' | 'unmatched';
+  route?: '/health' | '/ready' | '/api/v1' | '/api/v1/products' | '/api/v1/categories' | '/api/v1/order-lifecycle' | '/api/v1/communication' | '/api/v1/customer' | '/api/v1/cart' | '/api/v1/auth' | '/api/v1/pricing/promotions/evaluate' | '/api/v1/orders' | '/api/v1/checkouts' | '/api/v1/delivery' | '/api/v1/payments' | '/api/v1/commerce' | '/api/v1/staff' | 'unmatched';
   status?: number;
   durationMs?: number;
   port?: number;

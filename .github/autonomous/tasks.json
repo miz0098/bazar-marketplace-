@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-27",
+  "updated_at": "2026-11-01",
   "tasks": [
     {
       "id": "OPS-001",
@@ -1260,6 +1260,47 @@
       ],
       "pr": 37,
       "blocker": "Original seller mockups unavailable (NOT VERIFIED); production grants, privacy/storage, promotion funding and settlement/provider rules remain gated."
+    },
+    {
+      "id": "STAFFCRM-001",
+      "title": "Implement assigned-case Staff CRM and isolated three-app Codespaces preview",
+      "status": "in_progress",
+      "readiness": "integration",
+      "depends_on": [
+        "SELLERDASHBOARD-001"
+      ],
+      "allowed_paths": [
+        "apps/api/",
+        "apps/staff-crm/",
+        "apps/api/tests/",
+        ".github/workflows/ci.yml",
+        ".github/autonomous/tasks.json",
+        "docs/",
+        "ARCHITECTURE.md",
+        "BUSINESS_RULES_V1.md",
+        "COMMERCE_DOMAIN_CONTRACTS.md",
+        "BUSINESS_DECISION_REGISTER.md",
+        "F20_F29_IMPLEMENTATION_CONTRACT.md",
+        "FUNCTIONAL_COMPLETION_BACKLOG.md",
+        "REMAINING_DEVELOPMENT_ROADMAP.md",
+        "FULL_AUDIT_ENTRY_CRITERIA.md",
+        "CODESPACES_PREVIEW.md",
+        ".devcontainer/",
+        "package.json",
+        "scripts/preview/",
+        "MIGRATION_PLAN.md",
+        ".gitignore",
+        "tests/e2e/"
+      ],
+      "acceptance": [
+        "Staff permissions are explicit, deny by default, server checked on every request, assigned-case access only, no customer directory or impersonation",
+        "Support, moderation and dispatch read/note queues use F13/F24/F23 records; mutations are audited/idempotent and policy-gated",
+        "Additive PostgreSQL migration preserves prior schemas; cross-role, assignment race, revocation, CSRF/Origin and owner-negative integration tests pass",
+        "Dedicated staff-crm UI runs on port 3002 beside existing storefront 3000 and seller admin 3001 through exact-origin HTTPS preview gateways and shared test API/PostgreSQL",
+        "Desktop/mobile browser, accessibility, API/unit/PostgreSQL, lint, typecheck, builds, audits and governance checks pass; original staff visual parity remains NOT VERIFIED"
+      ],
+      "pr": null,
+      "blocker": "Production staff grants/coverage/fallback policy, sensitive employee permissions, privacy retention, live OTP/providers and approved original staff mockups remain gated."
     }
   ]
 }

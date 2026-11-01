@@ -1,0 +1,3 @@
+import {notFound} from 'next/navigation';
+import {StaffApp} from '../../components/staff-app';
+export default async function Page({params,searchParams}:{params:Promise<{path?:string[]}>;searchParams:Promise<Record<string,string|string[]|undefined>>}){const {path=[]}=await params,q=await searchParams;if(path.length>1||!['','support','moderation','dispatch'].includes(path[0]??''))notFound();const selected=typeof q.case==='string'&&/^(support|review|question|answer|dispatch):[a-f0-9-]{36}$/.test(q.case)?q.case:'';return <StaffApp key={`${path[0]??''}:${selected}`} section={(path[0]??'') as ''|'support'|'moderation'|'dispatch'} initialCase={selected}/>;}

@@ -111,6 +111,8 @@ jobs:
         working-directory: apps/api
       - run: npm audit --audit-level=high
         working-directory: apps/seller-admin
+      - run: npm audit --audit-level=high
+        working-directory: apps/staff-crm
       - name: Review dependency changes
         if: vars.ENABLE_DEPENDENCY_REVIEW == 'true'
         uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
@@ -153,6 +155,7 @@ jobs:
             apps/api/package-lock.json
             apps/storefront/package-lock.json
             apps/seller-admin/package-lock.json
+            apps/staff-crm/package-lock.json
             tests/e2e/package-lock.json
       - run: npm ci
         working-directory: apps/api
@@ -160,6 +163,8 @@ jobs:
         working-directory: apps/storefront
       - run: npm ci
         working-directory: apps/seller-admin
+      - run: npm ci
+        working-directory: apps/staff-crm
       - run: npm ci
         working-directory: tests/e2e
       - name: Use official HTTPS Ubuntu mirrors for browser dependencies
@@ -199,7 +204,15 @@ jobs:
           npm test
           npm run build
           npm audit --audit-level=high
-      - name: Codespaces dual-app PostgreSQL browser preview
+      - name: Staff CRM checks
+        working-directory: apps/staff-crm
+        run: |
+          npm run lint
+          npm run typecheck
+          npm test
+          npm run build
+          npm audit --audit-level=high
+      - name: Codespaces three-app PostgreSQL browser preview
         run: npm run preview:test
       - name: Upload isolated browser report on failure
         if: failure()

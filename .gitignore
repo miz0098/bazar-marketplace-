@@ -26,3 +26,9 @@ apps/seller-admin/node_modules/
 apps/seller-admin/next-env.d.ts
 apps/seller-admin/tsconfig.tsbuildinfo
 !apps/seller-admin/package-lock.json
+
+apps/staff-crm/.next/
+apps/staff-crm/node_modules/
+apps/staff-crm/next-env.d.ts
+apps/staff-crm/tsconfig.tsbuildinfo
+!apps/staff-crm/package-lock.json

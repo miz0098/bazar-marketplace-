@@ -13,6 +13,7 @@
     "preview:api": "node scripts/preview/run.mjs api",
     "preview:storefront": "node scripts/preview/run.mjs storefront",
     "preview:seller": "node scripts/preview/run.mjs seller",
+    "preview:staff": "node scripts/preview/run.mjs staff",
     "preview:otp": "node scripts/preview/run.mjs otp",
     "preview:event": "node scripts/preview/run.mjs event",
     "preview:test": "node scripts/preview/browser-test.mjs",
