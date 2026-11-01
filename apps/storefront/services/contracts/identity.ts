@@ -22,7 +22,6 @@ export class IdentityServiceError extends Error {
 }
 
 export interface IdentityChallenge {
-  readonly inboxCode?: string;
   readonly id: string;
   readonly intent: IdentityIntent;
   readonly maskedPhone: string;
@@ -52,7 +51,7 @@ export interface IdentityService {
     readonly code: string;
   }): Promise<IdentityVerificationResult>;
   resendChallenge(input: { readonly challengeId: string }): Promise<IdentityChallenge>;
-  previewRegistration(input: {
+  register(input: {
     readonly challengeId: string;
     readonly profile: RegistrationProfile;
   }): Promise<IdentityRegistrationResult>;

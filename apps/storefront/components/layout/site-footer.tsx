@@ -1,5 +1,3 @@
-import {simulationMode} from '../../lib/simulation';
-import { SocialIcon } from './social-icon';
 import Link from 'next/link';
 import { Logo } from '@/components/brand/logo';
 
@@ -41,27 +39,6 @@ export function SiteFooter() {
             <br />
             Маркетплейс щоденних покупок
           </p>
-          <nav className="footer-socials" aria-label="Соціальні мережі">
-            {[
-              ['Facebook', 'https://www.facebook.com/'],
-              ['Instagram', 'https://www.instagram.com/'],
-              ['Threads', 'https://www.threads.net/'],
-              ['Telegram', 'https://telegram.org/'],
-            ].map(([name, href]) => (
-              <a
-                href={href}
-                key={name}
-                aria-label={name}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <SocialIcon name={name} />
-              </a>
-            ))}
-          </nav>
-          <small>
-            Посилання на платформи; офіційні сторінки BAZAR ще не погоджено.
-          </small>
         </div>
         <div className="footer-links">
           {groups.map(([title, links]) => (
@@ -78,8 +55,8 @@ export function SiteFooter() {
           ))}
           <address>
             <h2>Підтримка</h2>
-            <p>Щодня з 9:00 до 21:00</p>
-            {simulationMode?<Link href="/profile/support">Написати в підтримку</Link>:<><span>support@example.invalid</span><small>Демонстраційна адреса</small></>}
+            <p>Звернення в особистому кабінеті</p>
+            {(<Link href="/profile/support">Написати в підтримку</Link>)}
           </address>
         </div>
       </div>

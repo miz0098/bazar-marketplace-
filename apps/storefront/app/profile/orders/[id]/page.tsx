@@ -1,8 +1,2 @@
-import { readAccountScenario } from '@/components/account/account-format';
 import {CommerceOrdersRouter} from '@/components/account/commerce-orders';
-
-export const metadata = { title: 'Деталі замовлення' };
-
-export default async function OrderPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ preview?: string | string[] }> }) {
-  return <CommerceOrdersRouter id={(await params).id} scenario={readAccountScenario((await searchParams).preview)} />;
-}
+export default async function Page({params}:{params:Promise<{id:string}>}){return <CommerceOrdersRouter id={(await params).id}/>;}

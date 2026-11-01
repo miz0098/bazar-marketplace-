@@ -1,4 +1,4 @@
-import type { InfoPage } from '../contracts/info';
+import type { InfoPage } from '../../../services/contracts/info';
 export const demoInfoPages: Readonly<Record<string, InfoPage>> = {
   'how-to-order': {
     title: 'Як замовити',

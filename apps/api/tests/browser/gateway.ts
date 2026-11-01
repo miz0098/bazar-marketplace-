@@ -1,6 +1,7 @@
 import { createServer, type ServerOptions } from "node:https";
 import { request as httpRequest } from "node:http";
 import type { IncomingMessage, ServerResponse } from "node:http";
+import {codespacesOrigin} from './codespaces.js';
 export function requireBrowserTest() {
   if (
     process.env.NODE_ENV !== "test" ||
@@ -18,6 +19,8 @@ export function browserOrigin(value: string) {
     throw new Error("Browser integration requires loopback HTTPS");
   return u;
 }
+/** Normalize only local redirects to relative paths, retaining public HTTPS at the edge. */
+export function safeLocalRedirect(origin:string,location:string){try{const expected=new URL(origin),target=new URL(location,expected);return expected.protocol==='https:'&&target.host===expected.host&&['http:','https:'].includes(target.protocol)&&!target.username&&!target.password?target.pathname+target.search+target.hash:null;}catch{return null;}}
 export function createBrowserGateway(input: {
   origin: string;
   uiPort: number;
@@ -27,7 +30,7 @@ export function createBrowserGateway(input: {
   control: (r: IncomingMessage, s: ServerResponse) => Promise<void>;
 }) {
   requireBrowserTest();
-  const origin = browserOrigin(input.origin);
+  const origin = process.env.BAZAR_FULL_SIMULATION==='1'&&codespacesOrigin(process.env)===input.origin ? new URL(input.origin) : browserOrigin(input.origin);
   return createServer(
     {
       ...input.tls,
@@ -145,6 +148,12 @@ export function createBrowserGateway(input: {
               response.resume();
               fail(502);
               return;
+            }
+            const location=response.headers.location;
+            if(location){
+              const target=safeLocalRedirect(input.origin,location);
+              if(!target){response.resume();fail(502);return;}
+              res.setHeader('location',target);
             }
             res.statusCode = response.statusCode ?? 502;
             for (const key of [

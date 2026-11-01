@@ -80,7 +80,7 @@ export function createAuthService(
       const subject = keyed(config.phoneKey, 'phone', normalized);
       await charge(pool, config, 'challenge', clientAddress, subject);
       const id = randomUUID(),
-        code = otp();
+        code = config.fixedOtp ?? otp();
       const client = await pool.connect();
       let expiresAt: string;
       try {

@@ -1,24 +1,19 @@
 'use client';
-import {simulationMode,simulationCopy} from '../../lib/simulation';
 
 import { useEffect, useRef, useState } from 'react';
 import { AccountState } from '@/components/account/account-ui';
 import { messageDate, messageTime, validateMessage, type DemoMessage } from '@/domain/communication/communication';
 
-export function MessageThread({ messages, title, closed = false, attachments = false, serverBacked = false, onSend }: {
+export function MessageThread({ messages, title, closed = false, onSend }: {
   messages: readonly DemoMessage[];
   title: string;
   closed?: boolean;
-  attachments?: boolean;
-  serverBacked?:boolean;
   onSend: (text: string, attachment?: DemoMessage['attachment']) => Promise<void>;
 }) {
   const historyRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const previousScroll=useRef<{first?:string;last?:string;height:number}>({height:0});
-  const fileRef = useRef<HTMLInputElement>(null);
   const [text, setText] = useState('');
-  const [attachment, setAttachment] = useState<DemoMessage['attachment']>();
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
@@ -36,20 +31,18 @@ export function MessageThread({ messages, title, closed = false, attachments = f
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (sendingRef.current || closed) return;
-    const validation = validateMessage(text, attachment);
+    const validation = validateMessage(text);
     setError(validation);
     setNotice('');
     if (validation) { inputRef.current?.focus(); return; }
     sendingRef.current = true;
     setBusy(true);
     try {
-      await onSend(text, attachment);
+      await onSend(text);
       setText('');
-      setAttachment(undefined);
-      if (fileRef.current) fileRef.current.value = '';
-      setNotice(serverBacked?simulationCopy("Збережено в тестовій серверній історії. Реальна доставка не підтверджується.","Повідомлення збережено."):'Додано лише до демо-історії. Нікому не доставлено; після перезавантаження запис зникне.');
+      setNotice('Повідомлення збережено.');
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Демо-дію не виконано. Спробуйте ще раз.');
+      setError(reason instanceof Error ? reason.message : 'Не вдалося надіслати повідомлення. Спробуйте ще раз.');
     } finally {
       sendingRef.current = false;
       setBusy(false);
@@ -64,41 +57,28 @@ export function MessageThread({ messages, title, closed = false, attachments = f
         event.currentTarget.scrollTop = event.key === 'Home' ? 0 : event.currentTarget.scrollHeight;
       }
     }}>
-      {messages.length === 0 ? <AccountState icon="messages" title="Тут поки немає повідомлень" text={simulationCopy('Це порожня демонстраційна історія. Реального зв’язку зі співрозмовником немає.','Напишіть перше повідомлення.')} /> : (
+      {messages.length === 0 ? <AccountState icon="messages" title="Тут поки немає повідомлень" text={('Напишіть перше повідомлення.')} /> : (
         <ol className="communication-message-list">
           {messages.map((message, index) => <li className={`communication-message${message.author === 'customer' ? ' is-own' : ''}`} key={message.id} data-message-id={message.id} data-created-at={message.createdAt}>
             {(index === 0 || messageDate(messages[index - 1].createdAt) !== messageDate(message.createdAt)) && <p className="communication-date">{messageDate(message.createdAt)}</p>}
             <div className="communication-bubble">
-              <span className="communication-author">{message.author === 'customer' ? (serverBacked?simulationCopy("Ви · тестовий акаунт","Ви"):'Ви · демо') : (serverBacked?simulationCopy("Співрозмовник · тестове середовище","Співрозмовник"):'Вигаданий співрозмовник')}</span>
+              <span className="communication-author">{message.author === 'customer' ? 'Ви' : 'Співрозмовник'}</span>
               {message.text && <p>{message.text}</p>}
               {message.attachment && <p className="communication-attachment">Файл: {message.attachment.name} · лише назва, без завантаження</p>}
-              <footer><time dateTime={message.createdAt}>{messageTime(message.createdAt)}</time>{message.author === 'customer' && <span>{simulationCopy('Лише демо · не доставлено','Збережено')}</span>}</footer>
+              <footer><time dateTime={message.createdAt}>{messageTime(message.createdAt)}</time>{message.author === 'customer' && <span>{('Збережено')}</span>}</footer>
             </div>
           </li>)}
         </ol>
       )}
     </div>
-    {closed ? <p className="communication-disclaimer">Демо-звернення закрите. Додавання повідомлень недоступне.</p> : <form className="communication-composer" onSubmit={submit} noValidate aria-label={simulationCopy('Демонстраційне повідомлення','Повідомлення')}>
-      <p className="communication-disclaimer" id="demo-message-hint">{simulationMode?'Напишіть повідомлення.':<>Лише демонстрація. Вводьте вигаданий текст: {serverBacked?'текст зберігається у тестовій PostgreSQL, реальні користувачі його не отримують.':'сервер і реальні користувачі його не отримують.'}</>}</p>
-      <label className="account-field"><span>Ваше повідомлення</span><textarea ref={inputRef} value={text} maxLength={2000} rows={2} disabled={busy} aria-invalid={Boolean(error)} aria-describedby={`demo-message-hint${error ? ' demo-message-error' : ''}`} onChange={(event) => setText(event.target.value)} onKeyDown={(event) => {
+    {closed ? <p className="communication-disclaimer">Звернення закрите. Додавання повідомлень недоступне.</p> : <form className="communication-composer" onSubmit={submit} noValidate aria-label={('Повідомлення')}>
+      <p className="communication-disclaimer" id="message-hint">{('Напишіть повідомлення.')}</p>
+      <label className="account-field"><span>Ваше повідомлення</span><textarea ref={inputRef} value={text} maxLength={2000} rows={2} disabled={busy} aria-invalid={Boolean(error)} aria-describedby={`message-hint${error ? ' message-error' : ''}`} onChange={(event) => setText(event.target.value)} onKeyDown={(event) => {
         if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); }
       }} /></label>
-      {attachments && <div className="communication-file">
-        <label>Демо-вкладення (до 5 МБ)<input className="sr-only" aria-label="Демо-вкладення (до 5 МБ)" ref={fileRef} type="file" disabled={busy} onChange={(event) => {
-          const file = event.target.files?.[0];
-          const candidate = file ? { name: file.name, size: file.size } : undefined;
-          const validation = candidate ? validateMessage('', candidate) : '';
-          setError(validation);
-          setAttachment(validation ? undefined : candidate);
-          if (validation) event.target.value = '';
-        }} /><span className="account-button account-button--secondary communication-file-trigger">Обрати файл</span></label>
-        <span>{attachment?.name ?? 'Файл не обрано'}</span>
-        <span>Читається лише назва й розмір. Вміст не відкривається і не передається.</span>
-        {attachment && <button className="account-button account-button--ghost" type="button" disabled={busy} onClick={() => { setAttachment(undefined); if (fileRef.current) fileRef.current.value = ''; }}>Прибрати вкладення</button>}
-      </div>}
-      {error && <p className="account-field-error" id="demo-message-error" role="alert">{error}</p>}
+      {error && <p className="account-field-error" id="message-error" role="alert">{error}</p>}
       {notice && <p className="communication-notice" role="status">{notice}</p>}
-      <div className="communication-send-row"><span>{simulationCopy('Enter — додати в демо, Shift+Enter — новий рядок','Enter — надіслати, Shift+Enter — новий рядок')}</span><button className="account-button account-button--primary" type="submit" disabled={busy}>{busy ? simulationCopy("Додаємо в демо…","Надсилаємо…") : simulationCopy("Надіслати в демо","Надіслати")}</button></div>
+      <div className="communication-send-row"><span>{('Enter — надіслати, Shift+Enter — новий рядок')}</span><button className="account-button account-button--primary" type="submit" disabled={busy}>{busy ? ("Надсилаємо…") : ("Надіслати")}</button></div>
     </form>}
   </section>;
 }

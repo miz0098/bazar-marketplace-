@@ -1,3 +1,11 @@
+# BAZAR — server-backed storefront
+
+Start the complete isolated stack from the repository root with `npm run simulation:start` (Node24, Docker/Compose, OpenSSL). The command starts PostgreSQL, API, gateway and Next automatically. In Codespaces, open forwarded port3000; do not start an additional Next server. Register/log in by phone with OTP **123456**, verified by the server only in the explicitly isolated test process. Production rejects this fixed-code configuration.
+
+See [Codespaces setup](docs/CODESPACES.md) and [UI cleanup and verification](docs/REMOVE_DEMO_FLOWS.md). Data is stored in PostgreSQL for the lifetime of the run; Ctrl+C removes its disposable database. No real SMS, payment credentials, bank transactions or shipments are used.
+
+The migration history below describes earlier phases; its client-only preview commands are superseded by the complete-stack launcher above.
+
 # BAZAR Marketplace Shopify Theme
 
 BAZAR Marketplace is a Shopify Online Store 2.0 theme project built on Shopify Horizon. This repository starts as a clean development foundation for future BAZAR storefront work.

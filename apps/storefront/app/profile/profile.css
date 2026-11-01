@@ -216,30 +216,8 @@
   outline-offset: 5px;
 }
 
-.account-preview-note {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: 10px 16px;
-  margin-bottom: 18px;
-  padding: 13px 16px;
-  border: 1px solid #c7d8ff;
-  border-radius: 14px;
-  background: var(--account-blue-soft);
-  color: var(--account-blue-dark);
-  font-size: 13px;
-  line-height: 1.45;
-}
 
-.account-preview-note strong {
-  white-space: nowrap;
-  font-weight: 850;
-}
 
-.account-preview-note span {
-  min-width: 0;
-  color: #345590;
-}
 
 .account-status,
 .account-action-status {
@@ -1444,7 +1422,7 @@
   padding-inline: 10px;
 }
 
-/* Reviews and demo-only edits. */
+/* Reviews. */
 .account-review-card {
   display: grid;
   align-items: start;
@@ -1838,15 +1816,7 @@
     width: min(100% - 20px, 1440px);
   }
 
-  .account-preview-note {
-    grid-template-columns: 1fr;
-    gap: 4px;
-    padding: 12px;
-  }
 
-  .account-preview-note strong {
-    white-space: normal;
-  }
 
   .account-page-head,
   .account-page-actions,

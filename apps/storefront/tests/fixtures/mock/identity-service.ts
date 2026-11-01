@@ -105,7 +105,7 @@ export function createDemoIdentityService(): IdentityService {
       return createChallenge(record.challenge.intent, record.challenge.maskedPhone);
     },
 
-    async previewRegistration({ challengeId, profile }) {
+    async register({ challengeId, profile }) {
       await previewDelay();
       const record = challenges.get(challengeId);
       if (!record || record.challenge.intent !== 'register' || !record.verified) {

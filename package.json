@@ -9,9 +9,12 @@
     "theme:pull": "shopify theme pull",
     "theme:push": "shopify theme push",
     "simulation:start": "BAZAR_FULL_SIMULATION=1 BAZAR_STOREFRONT_INTEGRATION=1 node apps/api/scripts/test-browser.mjs --serve",
-    "simulation:test": "BAZAR_FULL_SIMULATION=1 BAZAR_SIMULATION_STEP_MS=1000 BAZAR_STOREFRONT_INTEGRATION=1 node apps/api/scripts/test-browser.mjs --simulation-test"
+    "simulation:test": "BAZAR_FULL_SIMULATION=1 BAZAR_SIMULATION_STEP_MS=1000 BAZAR_STOREFRONT_INTEGRATION=1 node apps/api/scripts/test-browser.mjs --simulation-test",
+    "simulation:test:declined": "BAZAR_SIMULATION_PAYMENT_OUTCOME=declined npm run simulation:test",
+    "simulation:test:unknown": "BAZAR_SIMULATION_PAYMENT_OUTCOME=unknown npm run simulation:test",
+    "simulation:test:codespaces": "node apps/api/scripts/test-codespaces.mjs"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   }
 }

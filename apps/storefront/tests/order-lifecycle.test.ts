@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createDemoAccountService } from "../services/mock/account-service";
+import { createDemoAccountService } from "./fixtures/mock/account-service";
 import { validateDemoReturn } from "../domain/account/order-lifecycle";
 import { createOrderLifecycleClient } from "../lib/order-lifecycle-client";
 import { isLifecycleView } from "../services/contracts/order-lifecycle";

@@ -76,7 +76,7 @@ export function AuthModal({ initialIntent, open, onClose }: AuthModalProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="auth-modal-title"
-        aria-describedby="auth-modal-demo-note"
+        aria-describedby="auth-modal-code-note"
       >
         <button className="auth-modal__close" type="button" aria-label="Закрити" onClick={onClose}>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>

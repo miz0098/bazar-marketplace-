@@ -1,20 +1,6 @@
 import {test,expect,type Page} from '@playwright/test';
 
-async function register(page:Page,phone:string){
- await page.goto('/account/register');
- await page.getByLabel('Номер телефону',{exact:true}).fill(phone);
- await page.getByRole('button',{name:'Продовжити',exact:true}).click();
- const inbox=page.getByRole('status').filter({hasText:'Код підтвердження:'});
- await expect(inbox).toBeVisible();
- const code=(await inbox.innerText()).match(/\d{6}/)![0];
- for(let i=0;i<6;i++)await page.getByLabel(`Цифра ${i+1} з 6`,{exact:true}).fill(code[i]);
- await page.locator('.auth-page').getByRole('button',{name:'Продовжити',exact:true}).click();
- await page.getByLabel('Імʼя',{exact:true}).fill('Олена');
- await page.getByLabel('Прізвище',{exact:true}).fill('Коваль');
- await page.locator('.auth-consent input').check();
- await page.getByRole('button',{name:'Зареєструватися',exact:true}).click();
- await expect(page.getByRole('heading',{name:'Ви успішно увійшли!',exact:true})).toBeVisible();
-}
+import {register} from './auth';
 async function assertOrdinary(page:Page){
  const text=await page.locator('body').innerText();
  expect(text).not.toMatch(/demo|mock|preview|демо|тестов|ізольован/i);
@@ -123,17 +109,16 @@ test('saved addresses, wishlist, logout and repeat login use the same database a
  expect(await page.evaluate(async()=>(await fetch('/api/v1/auth/session')).status)).toBe(401);
  await page.goto('/account/login');await page.getByLabel('Номер телефону',{exact:true}).fill(phone);
  await page.getByRole('button',{name:'Продовжити',exact:true}).click();
- const inbox=page.getByRole('status').filter({hasText:'Код підтвердження:'});await expect(inbox).toBeVisible();
- const code=(await inbox.innerText()).match(/\d{6}/)![0];
+ const code='123456';
  for(let i=0;i<6;i++)await page.getByLabel(`Цифра ${i+1} з 6`,{exact:true}).fill(code[i]);
- await page.locator('.auth-page').getByRole('button',{name:'Увійти',exact:true}).click();await expect(page.getByRole('heading',{name:'Ви успішно увійшли!',exact:true})).toBeVisible();
+ await page.locator('.auth-page').getByRole('button',{name:'Увійти',exact:true}).click();await expect(page).toHaveURL(/\/profile\/personal-data$/);
  await page.goto('/profile/addresses');await expect(page.locator('article.account-panel')).toContainText('Основна адреса');
  await page.goto('/profile/wishlist');await expect(page.locator('.account-wishlist-card')).toHaveCount(1);
 });
 
 
 test('ordinary catalog and information screens contain no simulation labels; guest cart requires an account',async({page})=>{
- for(const path of ['/','/catalog','/products/offer-phone-0','/help/how-to-order','/help/delivery','/help/returns','/help/order-tracking','/help/privacy-policy','/about','/contacts']){
+ for(const path of ['/','/catalog','/catalog?preview=error','/catalog?preview=empty','/products/offer-phone-0','/help/how-to-order','/help/delivery','/help/returns','/help/order-tracking','/help/privacy-policy','/about','/contacts']){
   await page.goto(path);await expect(page.locator('main')).toBeVisible();await assertOrdinary(page);
  }
  await page.goto('/search?q=iPhone');

@@ -1,13 +1,13 @@
 import type { Cart, CartAction, CartLine } from '@/services/contracts/cart';
 import type { ProductSummary } from '@/services/contracts/catalog';
 import { cartKey, selectVariant } from '@/domain/catalog/variants';
-export const MAX_DEMO_QUANTITY = 99;
+export const MAX_CART_QUANTITY = 99;
 export const quantityLimit = (product: ProductSummary) =>
-  Number.isSafeInteger(product.price.amountMinor) ? MAX_DEMO_QUANTITY : 0;
+  Number.isSafeInteger(product.price.amountMinor) ? MAX_CART_QUANTITY : 0;
 export function normalizeQuantity(value: unknown, fallback = 1) {
   const q = Number(value);
   return Number.isInteger(q) && q > 0
-    ? Math.min(q, MAX_DEMO_QUANTITY)
+    ? Math.min(q, MAX_CART_QUANTITY)
     : fallback;
 }
 export function cartError(
@@ -16,7 +16,7 @@ export function cartError(
   quantity: number,
   add = false,
 ) {
-  if (!product.available || product.requiresVariantSelection) return 'Товару немає в демонстраційній наявності.';
+  if (!product.available || product.requiresVariantSelection) return 'Товар недоступний для замовлення.';
   if (!Number.isInteger(quantity) || quantity < 1)
     return 'Введіть цілу кількість від 1.';
   const total =
@@ -26,7 +26,7 @@ export function cartError(
           ?.quantity ?? 0)
       : 0);
   if (total > quantityLimit(product))
-    return `Ліміт одного демонстраційного запиту — ${quantityLimit(product)} одиниць. Це не складський залишок.`;
+    return `Максимальна кількість у кошику — ${quantityLimit(product)} одиниць.`;
   return '';
 }
 export function createCart(lines: readonly CartLine[]): Cart {

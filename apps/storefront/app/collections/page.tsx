@@ -6,7 +6,7 @@ export default async function Collections() {
   return (
     <div className="container catalog-page">
       <h1>Категорії товарів</h1>
-      <p>Демонстраційні категорії BAZAR</p>
+      <p>Оберіть категорію товарів</p>
       <div className="category-grid">
         {categories.map((c) => (
           <Link

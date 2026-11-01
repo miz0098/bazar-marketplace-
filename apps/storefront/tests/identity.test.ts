@@ -10,7 +10,7 @@ import {
   validateRegistrationProfile,
 } from '../domain/identity/identity';
 import { IdentityServiceError, type IdentityServiceErrorCode } from '../services/contracts/identity';
-import { createDemoIdentityService } from '../services/mock/identity-service';
+import { createDemoIdentityService } from './fixtures/mock/identity-service';
 
 test('normalizes, formats and masks valid Ukrainian phone values', () => {
   assert.equal(extractNationalDigits('067 123 45 67'), '671234567');
@@ -49,7 +49,7 @@ test('validates the approved registration profile and consent fields', () => {
       firstName: 'Вкажіть імʼя.',
       lastName: 'Вкажіть прізвище.',
       email: 'Введіть коректну електронну пошту.',
-      termsAccepted: 'Підтвердьте участь у демо-перегляді.',
+      termsAccepted: 'Підтвердьте згоду з умовами користування.',
     },
   );
 });
@@ -79,7 +79,7 @@ test('demo registration advances to profile but remains preview-only', async () 
     next: 'profile',
   });
   assert.deepEqual(
-    await service.previewRegistration({
+    await service.register({
       challengeId: challenge.id,
       profile: { firstName: 'Іван', lastName: 'Петренко', email: '', termsAccepted: true },
     }),

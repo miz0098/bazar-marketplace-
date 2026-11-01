@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { chronological, readCommunicationScenario, unreadConversationCount, validateMessage, validateTicket } from '../domain/communication/communication';
-import { createDemoMessagingService, createDemoSupportService } from '../services/mock/communication-service';
+import { createDemoMessagingService, createDemoSupportService } from './fixtures/mock/communication-service';
 import { CommunicationError } from '../services/contracts/communication';
 
 const options = { wait: async () => {}, now: () => '2026-10-26T12:00:00.000Z' };

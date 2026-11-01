@@ -4,16 +4,11 @@ import {createServerAccountFacade} from '../../services/server/account-facade';
 import {
   createContext,
   useContext,
-  useEffect,
   useState,
   useSyncExternalStore,
 } from 'react';
-import {
-  createPersistentDemoAccountService,
-  DEMO_WISHLIST_KEY,
-} from '@/services/mock/persistent-wishlist';
 import type { AccountWishlistItem } from '@/domain/account/account';
-type Service = ReturnType<typeof createPersistentDemoAccountService>;
+type Service = ReturnType<typeof createServerAccountFacade>;
 const Context = createContext<{
   service: Service;
   initial: readonly AccountWishlistItem[];
@@ -21,25 +16,10 @@ const Context = createContext<{
 export function WishlistProvider({ children }: { children: React.ReactNode }) {
   const {store}=useServerCustomer();
   const [value] = useState(() => {
-    const service = store?createServerAccountFacade(store):createPersistentDemoAccountService();
+    if(!store)throw new Error('Server wishlist provider required');
+    const service=createServerAccountFacade(store);
     return { service, initial: service.getWishlistSnapshot() };
   });
-  useEffect(() => {
-    if(store)return;
-    const disconnect = value.service.connectWishlist({
-      read: () => localStorage.getItem(DEMO_WISHLIST_KEY),
-      write: (data) => localStorage.setItem(DEMO_WISHLIST_KEY, data),
-    });
-    const sync = (event: StorageEvent) => {
-      if (event.key === DEMO_WISHLIST_KEY || event.key === null)
-        value.service.reloadWishlist();
-    };
-    window.addEventListener('storage', sync);
-    return () => {
-      disconnect();
-      window.removeEventListener('storage', sync);
-    };
-  }, [value,store]);
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }
 export function useWishlist() {

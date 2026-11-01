@@ -14,6 +14,8 @@ export interface AuthPolicy {
 }
 export interface AuthConfig {
   environment: 'test';
+  /** Fixed code is restricted to the explicitly isolated interactive composition. */
+  fixedOtp?: '123456';
   publicOrigin: string;
   phoneKey: Buffer;
   otpKey: Buffer;
@@ -26,6 +28,7 @@ export function validateAuthConfig(config: AuthConfig): void {
     throw new Error(
       'Authentication test adapter requires an isolated test process',
     );
+  if(config.fixedOtp!==undefined&&(config.fixedOtp!=='123456'||process.env.BAZAR_FULL_SIMULATION!=='1'||process.env.BAZAR_BROWSER_INTEGRATION!=='1'))throw new Error('Fixed OTP requires isolated interactive composition');
   let origin: URL;
   try {
     origin = new URL(config.publicOrigin);

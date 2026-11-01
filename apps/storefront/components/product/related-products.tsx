@@ -1,6 +1,5 @@
 'use client';
-import {simulationCopy} from '../../lib/simulation';
-import { createDemoRecentViews } from '@/services/mock/recent-service';
+import { createRecentViews } from '@/services/recent-views';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import type { ProductSummary } from '@/services/contracts/catalog';
 import { ProductCard } from './product-card';
@@ -11,7 +10,7 @@ export function RelatedProducts({
   products: readonly ProductSummary[];
   current: ProductSummary;
 }) {
-  const [history] = useState(() => createDemoRecentViews());
+  const [history] = useState(() => createRecentViews());
   const recent = useSyncExternalStore(
     history.subscribe,
     history.getSnapshot,
@@ -38,7 +37,7 @@ export function RelatedProducts({
         <section className="home-section">
           <h2>Рекомендовані товари</h2>
           <p>
-            {simulationCopy('Демонстраційна добірка з тієї самої категорії, без персоналізації.','Інші товари з цієї категорії.')}
+            {('Інші товари з цієї категорії.')}
           </p>
           <div className="product-grid">
             {recommended.map((p) => (

@@ -1,6 +1,4 @@
 'use client';
-import {simulationMode,simulationCopy} from '../../lib/simulation';
-import {useServerCustomer} from '../server/customer-provider';
 
 import { useState } from 'react';
 import { cartKey } from '@/domain/catalog/variants';
@@ -11,7 +9,7 @@ import { formatMoney } from '@/lib/money';
 
 export function CartPage() {
   const cart = useCart();
-  const {state:serverState}=useServerCustomer();
+
   const [error, setError] = useState('');
   if (!cart.hydrated)
     return (
@@ -26,7 +24,7 @@ export function CartPage() {
         <span aria-hidden="true">🛒</span>
         <h1>Ваш кошик порожній</h1>
         <p>
-          {simulationCopy('Додайте товари з каталогу — демонстраційний кошик збережеться після оновлення сторінки.','Додайте товари з каталогу, щоб почати покупки.')}
+          {('Додайте товари з каталогу, щоб почати покупки.')}
         </p>
         <Link className="button" href="/catalog">
           Перейти до каталогу
@@ -146,9 +144,7 @@ export function CartPage() {
             Перейти до оформлення
           </Link>}
           <Link href="/catalog">Продовжити покупки</Link>
-          {!simulationMode&&<div className="demo-disclaimer">
-            {serverState.session?"Це збережений серверний тестовий кошик. Checkout підключатиметься у F22; реальні покупки недоступні.":"Це локальний демонстраційний кошик. Оформлення не створює замовлення й не проводить оплату."}
-          </div>}
+
         </aside>
       </div>
     </div>

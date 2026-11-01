@@ -1,5 +1,4 @@
 'use client';
-import {simulationMode,simulationCopy} from '../../lib/simulation';
 import {useServerCustomer} from '../server/customer-provider';
 import {useAuthModal} from '../auth/auth-provider';
 import { useState } from 'react';
@@ -25,9 +24,9 @@ export function AddToCartButton({
         type="button"
         disabled={!product.available || product.requiresVariantSelection || product.purchaseEnabled===false || !cart.hydrated}
         onClick={async () => {
-          if(simulationMode&&!state.session){openAuth('login');return;}
+          if((!state.session)){openAuth('login');return;}
           const error = await cart.add(product, quantity);
-          setFeedback(error || simulationCopy('Додано ✓ до демо-кошика','Додано ✓'));
+          setFeedback(error || ('Додано ✓'));
         }}
       >
         {!product.available

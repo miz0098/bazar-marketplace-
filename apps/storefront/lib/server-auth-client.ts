@@ -184,9 +184,6 @@ export function createServerAuthClient(
       csrfToken = data.csrfToken;
       return data;
     },
-    inbox(challengeId: string) {
-      return request('/__browser/otp', (v): v is {code: string} => record(v) && typeof v.code === 'string' && /^\d{6}$/.test(v.code), {challengeId});
-    },
     start(input: { phone: string; intent: 'login' | 'register' }) {
       return request('/api/v1/auth/otp/challenges', challenge, input);
     },

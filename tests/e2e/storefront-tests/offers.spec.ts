@@ -33,9 +33,9 @@ test('catalog keyboard and accessible names remain usable on desktop and mobile'
 });
 
 test('ordinary authentication persists exact offer cart/wishlist, refresh, no guest merge and cross-device isolation',async({page,context,browser})=>{
- await page.goto('/search?q=iPhone');await expect(page.getByRole('button',{name:'Оновити серверні дані'})).toBeEnabled();
- const guestCard=page.locator('[data-offer-id]').filter({hasText:'37'}).first();await guestCard.getByRole('button',{name:/кошик/}).click();await expect(guestCard.getByRole('button',{name:'Додано ✓',exact:true})).toBeVisible();
- // Register through ordinary UI; existing guest selection is never merged.
+ await page.goto('/search?q=iPhone');
+ const guestCard=page.locator('[data-offer-id]').filter({hasText:'37'}).first();await expect(guestCard.getByRole('button',{name:/кошик/})).toBeEnabled();await guestCard.getByRole('button',{name:/кошик/}).click();await expect(page.getByRole('dialog')).toBeVisible();await expect(guestCard.getByRole('button',{name:'Додано ✓',exact:true})).toHaveCount(0);expect(await page.evaluate(async()=>(await fetch('/api/v1/auth/session')).status)).toBe(401);await page.keyboard.press('Escape');await expect(page.getByRole('dialog')).toHaveCount(0);
+ // Register through ordinary UI; a guest action cannot fabricate a saved customer cart.
  await authenticate(page);
  expect((await page.evaluate(async()=> (await(await fetch('/api/v1/catalog/customer-state')).json()).data)).lines).toHaveLength(0);
  await page.goto('/search?q=iPhone&sort=price-asc');
@@ -50,10 +50,10 @@ test('ordinary authentication persists exact offer cart/wishlist, refresh, no gu
  await authenticate(other,false);await expect(other.getByRole('link',{name:'Кошик: 2',exact:true})).toBeVisible();await expect(other.getByRole('link',{name:'Обране: 1',exact:true})).toBeVisible();const copy=await other.evaluate(async()=> (await(await fetch('/api/v1/catalog/customer-state')).json()).data);
  expect(copy.lines).toHaveLength(2);expect(copy.lines.some((l:{offer:{id:string}})=>l.offer.id===id)).toBe(true);expect(copy.wishlist[0].offer.id).toBe(id);
  const cookies=(await context.cookies()).filter(c=>c.name==='__Host-bazar-session');expect(cookies).toHaveLength(1);expect(cookies.every(c=>c.httpOnly&&c.secure&&c.sameSite==='Strict')).toBe(true);expect(await page.evaluate(()=>document.cookie.includes('__Host-bazar'))).toBe(false);
- await page.goto('/profile/wishlist');await expect(page.getByRole('heading',{name:'Обране',exact:true})).toBeVisible();if(await page.getByRole('button',{name:'Відкрити меню профілю',exact:true}).isVisible())await page.getByRole('button',{name:'Відкрити меню профілю',exact:true}).click();await page.getByRole('button',{name:'Вихід',exact:true}).click();await expect(page.getByText('Гостьовий кошик локальний. Автоматичного об’єднання немає.',{exact:true})).toBeVisible();
- expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('bazar-offer-guest-cart-v1')??'[]').length)).toBe(1);
+ await page.goto('/profile/wishlist');await expect(page.getByRole('heading',{name:'Обране',exact:true})).toBeVisible();if(await page.getByRole('button',{name:'Відкрити меню профілю',exact:true}).isVisible())await page.getByRole('button',{name:'Відкрити меню профілю',exact:true}).click();await page.getByRole('button',{name:'Вихід',exact:true}).click();expect(await page.evaluate(async()=>(await fetch('/api/v1/auth/session')).status)).toBe(401);
+ expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('bazar-offer-guest-cart-v1')??'[]').length)).toBe(0);
  await authenticate(page,false);
- await control('expire-sessions');await page.reload();await expect(page.getByText('Гостьовий кошик локальний. Автоматичного об’єднання немає.',{exact:true})).toBeVisible();
+ await control('expire-sessions');await page.reload();await expect(page.getByRole('heading',{name:'Потрібен вхід',exact:true})).toBeVisible();
  expect(await page.evaluate(async()=> (await fetch('/api/v1/catalog/customer-state')).status)).toBe(401);
  await second.close();
 });
@@ -70,8 +70,8 @@ test('saved unavailable offer survives server refresh, restoration and owner/CSR
  await control('offer-restored');await page.reload();expect((await read()).wishlist[0].offer.available).toBe(true);expect((await read()).lines[0].offer.available).toBe(true);
  const second=await browser.newContext({baseURL:new URL(page.url()).origin});const other=await second.newPage();await authenticate(other,true,'931234567');
  const otherState=await other.evaluate(async()=> (await(await fetch('/api/v1/catalog/customer-state')).json()).data);expect(otherState.wishlist).toHaveLength(0);expect(otherState.lines).toHaveLength(0);
- await control('offers-error');await page.getByRole('button',{name:'Оновити серверні дані'}).click();await expect(page.locator('main')).toContainText('Серверні дані недоступні');
- await control('offers-ok');await page.getByRole('button',{name:'Оновити серверні дані'}).click();await expect(page.getByText('Тестова серверна сесія. Кошик та обране зберігаються у тестовому акаунті.',{exact:true})).toBeVisible();
+ await control('offers-error');await page.reload();await expect(page.locator('main')).toContainText('Серверні дані недоступні');
+ await control('offers-ok');await page.locator('.server-status').getByRole('button',{name:'Повторити',exact:true}).click();await expect(page.locator('.server-status')).toHaveCount(0);expect(await page.evaluate(async()=>(await fetch('/api/v1/auth/session')).status)).toBe(200);
  await second.close();
 });
 
