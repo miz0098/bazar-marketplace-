@@ -1,8 +1,8 @@
 'use client';
-import {simulationMode,simulationCopy} from '../../lib/simulation';
 import {useServerCustomer} from '../server/customer-provider';
 
 import Link from 'next/link';
+import {useRouter} from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { OtpInput } from '@/components/auth/otp-input';
 import {
@@ -19,7 +19,6 @@ import {
   type IdentityIntent,
   type IdentityService,
 } from '@/services/contracts/identity';
-import { demoIdentityService } from '@/services/mock/identity-service';
 
 type AuthStep = 'phone' | 'code' | 'profile' | 'complete';
 type AuthSurface = 'modal' | 'page';
@@ -31,18 +30,17 @@ interface AuthFlowProps {
   readonly idPrefix: string;
   readonly initialIntent: IdentityIntent;
   readonly onClose?: () => void;
-  readonly service?: IdentityService;
   readonly surface: AuthSurface;
 }
 
-function errorMessage(error: unknown, server=false): string {
+function errorMessage(error: unknown): string {
   if (!(error instanceof IdentityServiceError)) return 'Сталася неочікувана помилка. Спробуйте ще раз.';
   switch (error.code) {
-    case 'invalid-code': if(server)return 'Код або дані не підтверджені сервером.';return 'Код не підтверджено. Для демо використайте 123456.';
-    case 'expired-code': return simulationCopy('Термін дії демо-коду минув. Повторіть демо-запит.','Термін дії коду минув. Отримайте новий код.');
+    case 'invalid-code': return 'Код або дані не підтверджені сервером.';
+    case 'expired-code': return ('Термін дії коду минув. Отримайте новий код.');
     case 'rate-limited': return `Забагато спроб. Повторіть через ${error.retryAfterSeconds ?? 60} с.`;
-    case 'network': return 'Помилка мережі. SMS не надсилалося, вхід не виконано.';
-    case 'unavailable': return simulationCopy('Демо-сервіс тимчасово недоступний. Почніть перевірку знову.','Сервіс тимчасово недоступний. Спробуйте ще раз.');
+    case 'network': return 'Помилка мережі. Спробуйте ще раз.';
+    case 'unavailable': return ('Сервіс тимчасово недоступний. Спробуйте ще раз.');
   }
 }
 
@@ -52,8 +50,8 @@ function formatCountdown(seconds: number) {
   return `${minutes}:${remainder}`;
 }
 
-function AuthFlowImplementation({ idPrefix, initialIntent, onClose, service = demoIdentityService, surface }: AuthFlowProps) {
-  const server=service.mode==='server-test';
+function AuthFlowImplementation({ idPrefix, initialIntent, onClose, service, surface, storeLoading }: AuthFlowProps & {service:IdentityService;storeLoading:boolean}) {
+  const router=useRouter();
   const rootRef = useRef<HTMLDivElement>(null);
   const requestRevisionRef = useRef(0);
   const [intent, setIntent] = useState<IdentityIntent>(initialIntent);
@@ -70,9 +68,10 @@ function AuthFlowImplementation({ idPrefix, initialIntent, onClose, service = de
   const [loadingMessage, setLoadingMessage] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
 
-  const busy = Boolean(loadingMessage);
+  useEffect(()=>{if(step==='complete'){onClose?.();router.replace('/profile');router.refresh();}},[step,onClose,router]);
+  const busy = Boolean(loadingMessage)||storeLoading;
   const titleId = `${idPrefix}-title`;
-  const demoNoteId = `${idPrefix}-demo-note`;
+  const codeNoteId = `${idPrefix}-code-note`;
   const phoneErrorId = `${idPrefix}-phone-error`;
   const codeErrorId = `${idPrefix}-code-error`;
   const otpLabelId = `${idPrefix}-otp-label`;
@@ -131,7 +130,7 @@ function AuthFlowImplementation({ idPrefix, initialIntent, onClose, service = de
 
     setPhoneError('');
     setStatusMessage('');
-    setLoadingMessage(server?'Надсилаємо запит коду…':'Готуємо безпечний демо-перегляд…');
+    setLoadingMessage('Отримуємо код підтвердження…');
     const requestRevision = ++requestRevisionRef.current;
     try {
       const nextChallenge = await service.startChallenge({ phone, intent });
@@ -143,7 +142,7 @@ function AuthFlowImplementation({ idPrefix, initialIntent, onClose, service = de
       setStep('code');
     } catch (error) {
       if (requestRevision !== requestRevisionRef.current) return;
-      setPhoneError(errorMessage(error,server));
+      setPhoneError(errorMessage(error));
       if(error instanceof IdentityServiceError&&error.code==='rate-limited')setCountdown(error.retryAfterSeconds??60);
     } finally {
       if (requestRevision === requestRevisionRef.current) setLoadingMessage('');
@@ -153,7 +152,7 @@ function AuthFlowImplementation({ idPrefix, initialIntent, onClose, service = de
   const submitCode = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!challenge) {
-      setCodeError(simulationCopy('Демо-виклик відсутній. Поверніться до введення номера.','Запит коду відсутній. Введіть номер телефону.'));
+      setCodeError(('Запит коду відсутній. Введіть номер телефону.'));
       return;
     }
     const code = otp.join('');
@@ -165,17 +164,17 @@ function AuthFlowImplementation({ idPrefix, initialIntent, onClose, service = de
 
     setCodeError('');
     setStatusMessage('');
-    setLoadingMessage(simulationCopy('Перевіряємо демо-стан…','Перевіряємо код…'));
+    setLoadingMessage(('Перевіряємо код…'));
     const requestRevision = ++requestRevisionRef.current;
     try {
       const result = await service.verifyChallenge({ challengeId: challenge.id, code });
       if (requestRevision !== requestRevisionRef.current) return;
       setVerificationCountdown(0);
       setStep(result.next === 'profile' ? 'profile' : 'complete');
-      if(result.status==='profile-required')setStatusMessage(simulationCopy('Код ще не перевірено: сервер перевірить його разом із тестовими даними реєстрації.','Заповніть дані для завершення реєстрації.'));
+      if(result.status==='profile-required')setStatusMessage(('Заповніть дані для завершення реєстрації.'));
     } catch (error) {
       if (requestRevision !== requestRevisionRef.current) return;
-      setCodeError(errorMessage(error,server));
+      setCodeError(errorMessage(error));
       if (error instanceof IdentityServiceError && error.code === 'rate-limited') {
         setVerificationCountdown(error.retryAfterSeconds ?? 60);
       }
@@ -190,7 +189,7 @@ function AuthFlowImplementation({ idPrefix, initialIntent, onClose, service = de
     if (!challenge || countdown > 0 || busy) return;
     setCodeError('');
     setStatusMessage('');
-    setLoadingMessage(simulationCopy('Оновлюємо демо-виклик…','Отримуємо новий код…'));
+    setLoadingMessage(('Отримуємо новий код…'));
     const requestRevision = ++requestRevisionRef.current;
     try {
       const nextChallenge = await service.resendChallenge({ challengeId: challenge.id });
@@ -199,10 +198,10 @@ function AuthFlowImplementation({ idPrefix, initialIntent, onClose, service = de
       setOtp(emptyOtp());
       setCountdown(nextChallenge.resendAfterSeconds);
       setVerificationCountdown(0);
-      setStatusMessage(simulationCopy('Демо-запит оновлено. SMS не надсилалося.','Новий код готовий.'));
+      setStatusMessage(('Новий код готовий.'));
     } catch (error) {
       if (requestRevision !== requestRevisionRef.current) return;
-      setCodeError(errorMessage(error,server));
+      setCodeError(errorMessage(error));
     } finally {
       if (requestRevision === requestRevisionRef.current) setLoadingMessage('');
     }
@@ -218,26 +217,22 @@ function AuthFlowImplementation({ idPrefix, initialIntent, onClose, service = de
       return;
     }
 
-    setLoadingMessage(server?simulationCopy('Перевіряємо код і створюємо ізольований тестовий акаунт…','Створюємо ваш акаунт…'):'Перевіряємо форму без створення акаунту…');
+    setLoadingMessage('Створюємо ваш акаунт…');
     setStatusMessage('');
     const requestRevision = ++requestRevisionRef.current;
     try {
-      await service.previewRegistration({ challengeId: challenge.id, profile });
+      await service.register({ challengeId: challenge.id, profile });
       if (requestRevision !== requestRevisionRef.current) return;
       setStep('complete');
     } catch (error) {
       if (requestRevision !== requestRevisionRef.current) return;
-      setStatusMessage(errorMessage(error,server));
+      setStatusMessage(errorMessage(error));
     } finally {
       if (requestRevision === requestRevisionRef.current) setLoadingMessage('');
     }
   };
 
-  const demoNote = simulationMode ? <p className="auth-demo-note" id={demoNoteId}>Вхід за одноразовим кодом підтвердження.</p> : (
-    <p className="auth-demo-note" id={demoNoteId}>
-      {server?'Ізольоване тестування: справжній серверний OTP і сесія, жодних реальних SMS. Використовуйте лише синтетичні дані.':<>Демо-перегляд: SMS не надсилається, вхід і сесія не створюються. Для переходу між екранами використайте код <strong>123456</strong>.</>}
-    </p>
-  );
+  const codeNote = (<p className="auth-code-note" id={codeNoteId}>Вхід за одноразовим кодом підтвердження.</p>);
 
   return (
     <div className="auth-widget" ref={rootRef} aria-busy={busy} data-auth-surface={surface}>
@@ -261,7 +256,7 @@ function AuthFlowImplementation({ idPrefix, initialIntent, onClose, service = de
                   autoComplete="tel-national"
                   maxLength={16}
                   placeholder="XX XXX XX XX"
-                  aria-describedby={`${phoneErrorId} ${demoNoteId}`}
+                  aria-describedby={`${phoneErrorId} ${codeNoteId}`}
                   aria-invalid={Boolean(phoneError)}
                   data-auth-phone-input
                   data-auth-initial-focus
@@ -281,7 +276,7 @@ function AuthFlowImplementation({ idPrefix, initialIntent, onClose, service = de
             </div>
             <button className="auth-primary" type="submit" disabled={busy||countdown>0}>{busy ? 'Зачекайте…' : countdown>0?`Повторити через ${countdown} с`:'Продовжити'}</button>
             {loadingMessage && <p className="auth-status" role="status">{loadingMessage}</p>}
-            {demoNote}
+            {codeNote}
           </form>
           <p className="auth-card__bottom">
             {intent === 'login' ? 'Ще не маєте акаунту? ' : 'Вже маєте акаунт? '}
@@ -307,8 +302,8 @@ function AuthFlowImplementation({ idPrefix, initialIntent, onClose, service = de
       {step === 'code' && challenge && (
         <article className="auth-card">
           <AuthIcon name="sms" />
-          <h1 className="auth-card__title" id={titleId}>{simulationCopy('Код з SMS','Код підтвердження')}</h1>
-          <p className="auth-card__text">{simulationCopy('У демо-режимі SMS не надсилається. Перевірте інтерфейс для номера','Введіть код підтвердження для номера')}</p>{simulationMode&&challenge.inboxCode&&<p className="auth-status" role="status">Код підтвердження: <strong>{challenge.inboxCode}</strong></p>}
+          <h1 className="auth-card__title" id={titleId}>{('Код підтвердження')}</h1>
+          <p className="auth-card__text">{('Введіть код підтвердження для номера')}</p>
           <p className="auth-card__phone">{challenge.maskedPhone}</p>
           <button className="auth-link" type="button" disabled={busy} onClick={() => resetToPhone(intent)}>Змінити номер</button>
           <form className="auth-flow" noValidate onSubmit={submitCode}>
@@ -328,10 +323,10 @@ function AuthFlowImplementation({ idPrefix, initialIntent, onClose, service = de
                   : intent === 'login' ? 'Увійти' : 'Продовжити'}
             </button>
             <button className="auth-secondary" type="button" disabled={busy || countdown > 0} onClick={resend}>
-              {countdown > 0 ? `Надіслати повторно через ${formatCountdown(countdown)}` : simulationCopy('Повторити демо-запит','Надіслати код повторно')}
+              {countdown > 0 ? `Надіслати повторно через ${formatCountdown(countdown)}` : ('Надіслати код повторно')}
             </button>
             {(loadingMessage || statusMessage) && <p className="auth-status" role="status" aria-live="polite">{loadingMessage || statusMessage}</p>}
-            {demoNote}
+            {codeNote}
           </form>
         </article>
       )}
@@ -356,38 +351,21 @@ function AuthFlowImplementation({ idPrefix, initialIntent, onClose, service = de
                 onChange={(event) => { setProfile({ ...profile, termsAccepted: event.currentTarget.checked }); setProfileErrors({ ...profileErrors, termsAccepted: undefined }); }}
               />
               <span className="auth-consent__label">
-                {server?simulationCopy('Я погоджуюсь створити ізольований тестовий акаунт із синтетичними даними','Я погоджуюсь створити акаунт'):'Я погоджуюсь пройти лише демонстраційний перегляд форми без створення акаунту'}
+                {'Я погоджуюсь створити акаунт'}
               </span>
             </label>
             <p className="auth-consent-note" id={`${idPrefix}-consent-note`}>
-              {simulationCopy('Юридичні тексти Умов використання та Політики конфіденційності ще не затверджені й не приймаються в цьому демо.','Підтверджую правильність введених даних.')}
+              {('Підтверджую правильність введених даних.')}
             </p>
             <p className="auth-error" id={`${idPrefix}-terms-error`} aria-live="polite">{profileErrors.termsAccepted}</p>
             <button className="auth-primary" type="submit" disabled={busy}>{busy ? 'Зачекайте…' : 'Зареєструватися'}</button>
             {(loadingMessage || statusMessage) && <p className="auth-status" role="status">{loadingMessage || statusMessage}</p>}
-            {demoNote}
+            {codeNote}
           </form>
         </article>
       )}
 
-      {step === 'complete' && (
-        <article className="auth-card">
-          <AuthIcon name="check" />
-          <h1 className="auth-card__title" id={titleId}>{server?simulationCopy('Серверний тестовий вхід підтверджено','Ви успішно увійшли!'):"Демо-перегляд завершено"}</h1>
-          <p className="auth-card__text">
-            {server?simulationCopy('Тестову сесію підтверджено сервером. Кошик та обране зберігаються в PostgreSQL.','Ваш акаунт готовий. Можете продовжити покупки.'):<>{intent === 'login' ? 'Вхід не виконано.' : 'Акаунт не створено.'} Серверної сесії немає, захищені дані недоступні.</>}
-          </p>
-          {demoNote}
-          <div className="auth-flow">
-            <button className="auth-primary" type="button" data-auth-initial-focus onClick={() => resetToPhone(intent)}>Почати спочатку</button>
-            {surface === 'modal' && onClose ? (
-              <button className="auth-secondary" type="button" onClick={onClose}>Закрити</button>
-            ) : (
-              <Link className="auth-secondary" href="/">Повернутися на головну</Link>
-            )}
-          </div>
-        </article>
-      )}
+      {step === 'complete' && <p role="status">Відкриваємо особистий кабінет…</p>}
     </div>
   );
 }
@@ -436,4 +414,4 @@ function AuthIcon({ name }: Readonly<{ name: 'phone' | 'sms' | 'user' | 'check' 
   );
 }
 
-export function AuthFlow(props:AuthFlowProps){const {store}=useServerCustomer();return <AuthFlowImplementation {...props} service={store?.identity??props.service}/>;}
+export function AuthFlow(props:AuthFlowProps){const {store,state}=useServerCustomer();if(!store)return <p role="alert">Сервіс авторизації недоступний.</p>;return <AuthFlowImplementation {...props} service={store.identity} storeLoading={state.status==='loading'}/>;}

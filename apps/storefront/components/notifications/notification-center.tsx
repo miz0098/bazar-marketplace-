@@ -1,5 +1,4 @@
 'use client';
-import {simulationMode,simulationCopy} from '../../lib/simulation';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { createCommunicationBusinessClient } from '../../lib/communication-business-client';
@@ -29,7 +28,7 @@ export function NotificationCenter({client}:{client:Client}){
   <h2 id="notification-heading">Сповіщення</h2>
   <button type="button" aria-expanded={open} aria-controls="notification-content" onClick={()=>setOpen(x=>!x)}>Сповіщення · непрочитаних: {summary?.unread ?? '…'}</button>
   <div id="notification-content" hidden={!open} style={{overflowWrap:'anywhere'}}>
-   {!simulationMode&&<p>Ізольовані тестові події. Це не підтвердження реальної оплати, доставки, скасування чи повернення коштів. Email, SMS і push не надсилаються.</p>}
+   {false}
    {loading && <p role="status">Завантажуємо сповіщення…</p>}
    {error && <p role="alert">{error}</p>}
    <button type="button" disabled={busy||loading} onClick={()=>{setLoading(true);setRevision(x=>x+1);}}>Оновити сповіщення / повторити</button>
@@ -41,12 +40,12 @@ export function NotificationCenter({client}:{client:Client}){
      setItems(rows=>rows.map(i=>i.sequence<=through?{...i,read:true}:i));setSummary(result);
     })}>Позначити всі прочитаними</button>
    </>}
-   {!loading&&!error&&items.length===0 && <div className="account-empty"><span aria-hidden="true">♧</span><h3>Сповіщень поки немає</h3><p>{simulationCopy('Нові тестові події з’являться тут після відповідних дій у цьому ізольованому середовищі.','Тут з’являтимуться новини про ваші замовлення та повідомлення.')}</p></div>}
+   {!loading&&!error&&items.length===0 && <div className="account-empty"><span aria-hidden="true">♧</span><h3>Сповіщень поки немає</h3><p>{('Тут з’являтимуться новини про ваші замовлення та повідомлення.')}</p></div>}
    <ol aria-label="Список сповіщень">
     {items.map(item=>{const p=notificationPresentation(item);return <li key={item.id} data-notification-sequence={item.sequence}>
      <article aria-label={`${p.title} · ${item.read?'прочитано':'непрочитано'}`}>
       <h3>{p.title}</h3><time dateTime={item.createdAt}>{date(item.createdAt)} · Київ</time>
-      <p>{item.read?'Прочитано':'Непрочитано'}{!simulationMode&&' · тестова подія'}</p>
+      <p>{item.read?'Прочитано':'Непрочитано'}{false}</p>
       <Link href={p.href}>Відкрити пов’язаний {item.kind==='review.moderated'?'відгук':item.kind==='question.answered'?'запитання':item.kind==='product.availability_restored'?'товар':item.kind==='message.created'?'чат':item.kind==='support.replied'?'запит':'запис замовлення'}</Link>
       <button type="button" disabled={busy||loading||item.read} onClick={()=>void mutate(async()=>{
        await client.readNotification(item.id);const next=await client.notificationSummary();

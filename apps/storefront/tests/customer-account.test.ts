@@ -3,7 +3,7 @@ import test from 'node:test';
 import {
   createPersistentDemoAccountService,
   parseWishlistIds,
-} from '../services/mock/persistent-wishlist';
+} from './fixtures/mock/persistent-wishlist';
 import { demoProducts } from '../fixtures/catalog';
 import { createCustomerBusinessClient } from '../lib/customer-business-client';
 import { isCustomerView } from '../services/contracts/customer-business';

@@ -1,3 +1,4 @@
+export const dynamic='force-dynamic';
 import {ServerCustomerProvider,ServerCustomerStatus} from '@/components/server/customer-provider';
 import type { Metadata } from 'next';
 import { SiteFooter } from '@/components/layout/site-footer';
@@ -10,10 +11,10 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: { default: 'BAZAR — маркетплейс', template: '%s — BAZAR' },
-  description: 'Самостійна вітрина BAZAR. Фундамент міграції з Shopify.',
+  description: 'Маркетплейс BAZAR: товари, пропозиції продавців та ваші покупки.',
 };
 
-export default async function RootLayout({ children, integration=false }: Readonly<{ children: React.ReactNode;integration?:boolean }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const catalog = getCatalogService();
   const [categoryState, productState] = await Promise.allSettled([catalog.getCategories(), catalog.listProducts({ limit: 24 })]);
   const categories=categoryState.status==='fulfilled'?categoryState.value:[];
@@ -22,11 +23,11 @@ export default async function RootLayout({ children, integration=false }: Readon
   return (
     <html lang="uk">
       <body>
-        <ServerCustomerProvider enabled={integration}><WishlistProvider><CartProvider products={products.items}>
+        <ServerCustomerProvider><WishlistProvider><CartProvider products={products.items}>
           <AuthProvider>
             <a className="skip-link" href="#main-content">Перейти до вмісту</a>
             <SiteHeader categories={categories} products={products.items} />
-            <main id="main-content"><ServerCustomerStatus/>{shellError&&<p className="demo-disclaimer" role="alert">Каталог недоступний. Оновіть сторінку, щоб повторити запит.</p>}{process.env.STOREFRONT_DATA_SOURCE==="catalog-v2-preview"&&<p className="demo-disclaimer" role="status">Catalog v2 — тестовий перегляд API. Купівля та серверне обране ще не підключені.</p>}{children}</main>
+            <main id="main-content"><ServerCustomerStatus/>{shellError&&<p className="server-status" role="alert">Каталог недоступний. Оновіть сторінку, щоб повторити запит.</p>}{children}</main>
             <SiteFooter />
           </AuthProvider>
         </CartProvider></WishlistProvider></ServerCustomerProvider>

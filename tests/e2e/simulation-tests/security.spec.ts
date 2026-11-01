@@ -1,0 +1,23 @@
+import {test,expect} from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
+import {register} from './auth';
+test('fixed OTP is server-verified; wrong OTP, missing CSRF and foreign Origin cannot authenticate or mutate',async({page,context},info)=>{
+ const phone=info.project.name==='server-mobile'?'701110002':'701110001';
+ await register(page,phone);
+ const cookies=await context.cookies();const cookie=cookies.find(c=>c.name==='__Host-bazar-session')!;
+ expect(cookie.httpOnly).toBe(true);expect(cookie.secure).toBe(true);expect(cookie.sameSite).toBe('Strict');
+ const session=await page.evaluate(async()=>(await(await fetch('/api/v1/auth/session')).json()).data);
+ const foreign=await context.request.post('/api/v1/auth/logout',{headers:{origin:'https://evil.example','sec-fetch-site':'same-origin','x-csrf-token':session.csrfToken},data:{}});expect(foreign.status()).toBe(403);
+ const csrf=await page.evaluate(async()=>(await fetch('/api/v1/auth/logout',{method:'POST',headers:{'content-type':'application/json'},body:'{}'})).status);expect(csrf).toBe(403);
+ if(info.project.name==='server-mobile')await page.getByRole('button',{name:'Відкрити меню профілю',exact:true}).click();
+ await page.getByRole('button',{name:'Вихід',exact:true}).click();await expect(page).toHaveURL(/\/$/);
+ await page.goto('/account/login');await page.getByLabel('Номер телефону',{exact:true}).fill(phone);const started=page.waitForResponse(r=>r.url().endsWith('/api/v1/auth/otp/challenges'));await page.getByRole('button',{name:'Продовжити',exact:true}).click();const result=await started;
+ if(result.status()===429){await expect(page.locator('.auth-page').getByRole('alert')).toContainText('Забагато спроб');await expect(page.getByRole('button',{name:'Продовжити',exact:true})).toBeEnabled();const retry=page.waitForResponse(r=>r.url().endsWith('/api/v1/auth/otp/challenges'));await page.getByRole('button',{name:'Продовжити',exact:true}).click();expect((await retry).status()).toBe(200);}else expect(result.status()).toBe(200);
+ for(let i=0;i<6;i++)await page.getByLabel(`Цифра ${i+1} з 6`,{exact:true}).fill('000001'[i]);
+ await page.locator('.auth-page').getByRole('button',{name:'Увійти',exact:true}).click();
+ await expect(page.locator('.auth-page').getByRole('alert')).toContainText('Код або дані не підтверджені сервером.');
+ expect(await page.evaluate(async()=>(await fetch('/api/v1/auth/session')).status)).toBe(401);
+ for(let i=0;i<6;i++)await page.getByLabel(`Цифра ${i+1} з 6`,{exact:true}).fill('123456'[i]);
+ await page.locator('.auth-page').getByRole('button',{name:'Увійти',exact:true}).click();await expect(page).toHaveURL(/\/profile\/personal-data$/);
+ const axe=await new AxeBuilder({page}).analyze();expect(axe.violations.filter(v=>['serious','critical'].includes(v.impact??''))).toEqual([]);
+});

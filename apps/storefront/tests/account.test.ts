@@ -8,7 +8,7 @@ import {
 } from '../domain/account/account';
 import { demoAccountFixtures } from '../fixtures/account';
 import { AccountServiceError } from '../services/contracts/account';
-import { createDemoAccountService } from '../services/mock/account-service';
+import { createDemoAccountService } from './fixtures/mock/account-service';
 
 const noWait = async () => {};
 

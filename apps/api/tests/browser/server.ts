@@ -1,3 +1,4 @@
+import {codespacesOrigin,createCodespacesBridge} from './codespaces.js';
 import {startSimulationWorker} from './simulation-worker.js';
 import {orderFlowFixture} from '../helpers/order-flow.js';
 import {createCommerceService} from '../../src/commerce/service.js';
@@ -52,8 +53,10 @@ const info = JSON.parse(
   secret: string;
   cert: string;
   key: string;
+  gatewayPort?: number;
+  forwarded?: boolean;
 };
-browserOrigin(info.origin);
+if(codespacesOrigin(process.env)!==info.origin)browserOrigin(info.origin);
 const source = new URL(process.env.DATABASE_TEST_URL!);
 if (source.hostname !== "127.0.0.1" || source.pathname !== "/bazar_f2_test")
   throw new Error("Browser DB must be disposable loopback test PostgreSQL");
@@ -80,6 +83,7 @@ async function reset() {
     shipping = shippingFixture(simulation ? {city:"Київ",point:"Відділення № 1"} : undefined),
     payment = paymentFixture();
   auth.config.publicOrigin = info.origin;
+  if(simulation)auth.config.fixedOtp="123456";
   if (simulation) {
     const submit = payment.adapter.submit;
     payment.adapter.submit = async (input, signal) => {
@@ -218,6 +222,7 @@ const gateway = createBrowserGateway({
     if (req.method !== "POST") throw new Error("method");
     const body = await readJson(req, res);
     if (req.url === "/__browser/otp") {
+      if(simulation)throw new Error("OTP inbox endpoint is not available");
       requireCsrf(
         a.auth.config,
         cookies(req).flow,
@@ -379,11 +384,14 @@ const gateway = createBrowserGateway({
     reply(res, { ready: true });
   },
 });
-gateway.listen(Number(new URL(info.origin).port), "127.0.0.1");
+gateway.listen(info.gatewayPort??Number(new URL(info.origin).port), "127.0.0.1");
 await once(gateway, "listening");
+const bridge=info.forwarded?createCodespacesBridge(info.origin,info.gatewayPort!,readFileSync(info.cert)):undefined;
+if(bridge){bridge.listen(3000,"0.0.0.0");await once(bridge,"listening");}
 process.stdout.write("Isolated HTTPS browser gateway ready\n");
 async function close() {
   await stopSimulation?.();
+  if(bridge){bridge.closeAllConnections();await new Promise<void>(resolve=>bridge.close(()=>resolve()));}
   gateway.closeAllConnections();
   await new Promise<void>((resolve) => gateway.close(() => resolve()));
   if (active) {

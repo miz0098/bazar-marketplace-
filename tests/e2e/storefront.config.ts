@@ -10,6 +10,7 @@ const state = JSON.parse(
 ) as { origin: string; spki: string };
 export default defineConfig({
   testDir: process.env.BAZAR_FULL_SIMULATION === "1" ? "./simulation-tests" : "./storefront-tests",
+  testMatch: process.env.BAZAR_FULL_SIMULATION==='1' ? (['declined','unknown'].includes(process.env.BAZAR_SIMULATION_PAYMENT_OUTCOME??'') ? '**/payment-outcomes.spec.ts' : ['**/journey.spec.ts','**/security.spec.ts']) : '**/*.spec.ts',
   fullyParallel: false,
   workers: 1,
   retries: 0,

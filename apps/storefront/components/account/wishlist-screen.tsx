@@ -1,5 +1,4 @@
 'use client';
-import {simulationCopy} from '../../lib/simulation';
 import {useServerCustomer} from '../server/customer-provider';
 import {productHref} from '@/domain/catalog/offers';
 
@@ -8,25 +7,23 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { AccountIcon } from '@/components/account/account-icons';
 import { useRequestState } from '@/components/account/use-request-state';
-import { useAccountService } from '@/components/account/account-preview-provider';
 import {
   AccountLoading,
   AccountPageHeading,
   AccountState,
-  DemoMutationNotice,
+  MutationNotice,
 } from '@/components/account/account-ui';
 import { useCart } from '@/components/cart/cart-provider';
 import type {
-  AccountScenario,
   AccountWishlistPage,
   AccountWishlistSort,
 } from '@/domain/account/account';
 import { formatMoney } from '@/lib/money';
 
-export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
-  const {state:serverState,enabled:serverEnabled}=useServerCustomer();
+export function WishlistScreen() {
+  const {state:serverState}=useServerCustomer();
   const { items: sharedItems, notice: persistenceNotice } = useWishlist();
-  const service = useAccountService(scenario);
+  const {service}=useWishlist();
   const cart = useCart();
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<AccountWishlistSort>('newest');
@@ -96,7 +93,7 @@ export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
       setError(
         reason instanceof Error
           ? reason.message
-          : simulationCopy('Не вдалося виконати демо-дію.','Не вдалося виконати дію.'),
+          : ('Не вдалося виконати дію.'),
       );
     } finally {
       setBusy(false);
@@ -123,11 +120,11 @@ export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
 
   return (
     <div className="account-wishlist-screen">
-      {serverEnabled&&serverState.legacyWishlist.length>0&&<p role="status">Збережено {serverState.legacyWishlist.length} попередніх записів товарів. Варіант не обирався автоматично.</p>}
+      {(serverState.legacyWishlist.length>0)&&<p role="status">Збережено {serverState.legacyWishlist.length} попередніх записів товарів. Варіант не обирався автоматично.</p>}
       <AccountPageHeading
         kicker="Збережені товари"
         title="Обране"
-        description={serverEnabled?simulationCopy("Тестове обране зберігає конкретні пропозиції у вашому серверному акаунті. Оновлення синхронізує дані між пристроями.","Зберігайте цікаві пропозиції та повертайтеся до них з будь-якого пристрою."):"Пошук і дії працюють лише з демонстраційним списком та зберігаються локально без персональних даних і не синхронізуються з акаунтом."}
+        description={(("Зберігайте цікаві пропозиції та повертайтеся до них з будь-якого пристрою."))}
       />
       <div className="account-wishlist-toolbar account-toolbar">
         <label className="account-search">
@@ -161,14 +158,14 @@ export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
           </select>
         </label>
       </div>
-      {scenario === 'ready' && persistenceNotice && (
+      {persistenceNotice && (
         <p role="alert">{persistenceNotice}</p>
       )}
       {cartError && <p role="alert">{cartError}</p>}
       {notice && (
-        <DemoMutationNotice>
-          {notice} {serverEnabled?simulationCopy("Зміни зберігаються у вашому тестовому акаунті.","Зміни збережено у вашому акаунті."):"Демо-обране використовує лише локальне сховище."}
-        </DemoMutationNotice>
+        <MutationNotice>
+          {notice} {(("Зміни збережено у вашому акаунті."))}
+        </MutationNotice>
       )}
       {error ? (
         <AccountState
@@ -187,7 +184,7 @@ export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
           }
         />
       ) : !result ? (
-        <AccountLoading label={simulationCopy('Завантажуємо демонстраційне обране…','Завантажуємо обране…')} />
+        <AccountLoading label={('Завантажуємо обране…')} />
       ) : result.items.length === 0 ? (
         <AccountState
           icon="wishlist"
@@ -195,7 +192,7 @@ export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
           text={
             search
               ? 'Спробуйте змінити запит або очистити пошук.'
-              : simulationCopy('Додайте товари з каталогу. Обране зберігається локально лише в цьому браузері.','Додайте товари з каталогу до вашого обраного.')
+              : ('Додайте товари з каталогу до вашого обраного.')
           }
           action={
             search ? (
@@ -235,7 +232,7 @@ export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
               onClick={() =>
                 void mutate(
                   () => service.removeWishlistItems([...selected]),
-                  simulationCopy('Обрані товари прибрано з демо-списку.','Обрані товари видалено.'),
+                  ('Обрані товари видалено.'),
                 )
               }
             >
@@ -265,7 +262,7 @@ export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
                   onClick={() =>
                     void mutate(
                       () => service.removeWishlistItem(item.id),
-                      simulationCopy(`${item.product.title} прибрано з демо-списку.`,`${item.product.title} видалено з обраного.`),
+                      (`${item.product.title} видалено з обраного.`),
                     )
                   }
                 >
@@ -304,7 +301,7 @@ export function WishlistScreen({ scenario }: { scenario: AccountScenario }) {
                         setNotice(
                           error
                             ? ''
-                            : simulationCopy(`${item.product.title} додано до демонстраційного кошика.`,`${item.product.title} додано до кошика.`),
+                            : (`${item.product.title} додано до кошика.`),
                         );
                       }}
                     >

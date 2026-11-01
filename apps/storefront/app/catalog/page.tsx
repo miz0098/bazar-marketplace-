@@ -1,4 +1,3 @@
-import {simulationCopy} from '@/lib/simulation';
 import Form from 'next/form';
 import Link from 'next/link';
 import { ProductCard } from '@/components/product/product-card';
@@ -41,7 +40,6 @@ export default async function CatalogPage({
     !validPrice(minRaw) ||
     !validPrice(maxRaw) ||
     (minPrice !== undefined && maxPrice !== undefined && minPrice > maxPrice);
-  const preview = one(params.preview);
   const vendor = one(params.vendor) ?? '';
   const sort = parseProductSort(one(params.sort));
   const page = parsePositiveInteger(one(params.page), 1);
@@ -89,11 +87,11 @@ export default async function CatalogPage({
           <p className="eyebrow">Каталог</p>
           <h1>{selectedCategory?.title ?? 'Товари BAZAR'}</h1>
           <p>
-            {simulationCopy('Демонстраційний каталог працює без Shopify. Ціни та наявність не є комерційною пропозицією.','Порівнюйте товари, ціни та пропозиції продавців.')}
+            {('Порівнюйте товари, ціни та пропозиції продавців.')}
           </p>
         </div>
         <strong>
-          {preview === 'empty' || preview === 'error' || priceError
+          {priceError
             ? 0
             : result.total}{' '}
           товарів
@@ -235,15 +233,7 @@ export default async function CatalogPage({
               <Link href="/catalog">Очистити</Link>
             </div>
           )}
-          {preview === 'error' ? (
-            <div className="empty-state" role="alert">
-              <h2>Не вдалося завантажити демо-каталог</h2>
-              <p>Демонстраційний стан помилки. Реальні API не викликаються.</p>
-              <Link className="button" href={`/catalog?${base}`}>
-                Спробувати ще раз
-              </Link>
-            </div>
-          ) : priceError ? (
+          {priceError ? (
             <div className="empty-state" role="alert">
               <h2>Перевірте діапазон ціни</h2>
               <p>
@@ -252,7 +242,7 @@ export default async function CatalogPage({
               </p>
               <Link href="/catalog">Очистити фільтри</Link>
             </div>
-          ) : result.items.length && preview !== 'empty' ? (
+          ) : result.items.length ? (
             <div className="product-grid">
               {result.items.map((product) => (
                 <ProductCard key={product.offerId??product.id} product={product} />
@@ -269,8 +259,6 @@ export default async function CatalogPage({
             </div>
           )}
           {!priceError &&
-            preview !== 'empty' &&
-            preview !== 'error' &&
             result.pageCount > 1 && (
               <nav className="pagination" aria-label="Сторінки каталогу">
                 {Array.from({ length: result.pageCount }, (_, index) => {

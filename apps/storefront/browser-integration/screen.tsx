@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { ServerCustomerProvider } from "../components/server/customer-provider";
 import { NotificationCenter } from "../components/notifications/notification-center";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -60,13 +61,13 @@ const codeOf = (e: unknown) =>
   e && typeof e === "object" && "status" in e ? e.status : undefined;
 export function BrowserIntegrationApp() {
   return (
-    <WishlistProvider>
+    <ServerCustomerProvider autoConnect={false}><WishlistProvider>
       <CartProvider products={[]}>
         <AuthProvider>
           <Screen />
         </AuthProvider>
       </CartProvider>
-    </WishlistProvider>
+    </WishlistProvider></ServerCustomerProvider>
   );
 }
 function Screen() {

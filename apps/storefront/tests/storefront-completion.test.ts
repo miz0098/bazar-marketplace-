@@ -1,4 +1,4 @@
-import { createDemoRecentViews } from '../services/mock/recent-service';
+import { createDemoRecentViews } from './fixtures/mock/recent-service';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { demoProducts } from '../fixtures/catalog';
@@ -10,8 +10,8 @@ import {
   parseStoredCart,
 } from '../domain/cart/cart';
 import { queryProducts } from '../domain/catalog/query';
-import { createDemoAccountService } from '../services/mock/account-service';
-import { MockContentService } from '../services/mock/content-service';
+import { createDemoAccountService } from './fixtures/mock/account-service';
+import { MockContentService } from './fixtures/mock/content-service';
 const phone = demoProducts.find((p) => p.id === 'iphone-15')!;
 test('distinct binary variants preserve prices and positive requested quantities without warehouse caps', () => {
   const base = selectVariant(phone)!,

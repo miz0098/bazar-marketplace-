@@ -1,0 +1,3 @@
+# Historical first-phase UI specifications
+
+These specifications describe the retired client-only preview (including an intentional checkout stop and absence of sessions). They are retained as historical tests; their expected preview behavior is incompatible with the server-backed storefront and is no longer the default application E2E contract. No security assertion from the API/PostgreSQL/F15–F24 suites is removed. The default npm test now starts the complete stack and runs simulation-tests; F21–F24 regressions remain under storefront-tests, and the isolated security harness remains under browser-tests. Authentication, persistence, failed checkout/payment, CSRF/ownership, keyboard, accessibility and forwarding checks are tested against the actual stack.

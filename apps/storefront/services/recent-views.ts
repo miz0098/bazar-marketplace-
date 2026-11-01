@@ -1,9 +1,9 @@
-/** Optional tab-local demo history. No user identity, telemetry or remote persistence. */
-export function createDemoRecentViews(
+/** Optional tab-local browsing history. No user identity, telemetry or remote persistence. */
+export function createRecentViews(
   storage = {
-    read: () => sessionStorage.getItem('bazar-demo-recent-v1'),
+    read: () => sessionStorage.getItem('bazar-recent-v1'),
     write: (value: string) =>
-      sessionStorage.setItem('bazar-demo-recent-v1', value),
+      sessionStorage.setItem('bazar-recent-v1', value),
   },
 ) {
   const empty: readonly string[] = [];

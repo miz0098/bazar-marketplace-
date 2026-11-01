@@ -2,7 +2,7 @@ import {expect} from '@playwright/test';
 export async function authenticate(page:import('@playwright/test').Page,register=true,phone='671234567'){
  await page.addInitScript(()=>{const original=window.fetch;window.fetch=async(...args)=>{const r=await original(...args);if(String(args[0]).endsWith('/api/v1/auth/otp/challenges')){document.documentElement.dataset.testChallengeStatus=String(r.status);if(r.ok){const v=await r.clone().json();document.documentElement.dataset.testChallenge=v.data.challengeId;}}return r;};});
  await page.goto(register?'/account/register':'/account/login');
- await expect(page.getByRole('button',{name:'Оновити серверні дані'})).toBeEnabled();
+ await expect(page.getByRole('button',{name:'Продовжити',exact:true})).toBeEnabled();
  await page.getByLabel('Номер телефону',{exact:true}).fill(phone);
 
  await page.getByRole('button',{name:'Продовжити',exact:true}).click();
@@ -14,5 +14,5 @@ export async function authenticate(page:import('@playwright/test').Page,register
  for(let i=0;i<6;i++)await page.getByLabel(`Цифра ${i+1} з 6`,{exact:true}).fill(code[i]);
  await page.locator('.auth-page').getByRole('button',{name:register?'Продовжити':'Увійти',exact:true}).click();
  if(register){await page.getByLabel('Імʼя',{exact:true}).fill('Тестовий');await page.getByLabel('Прізвище',{exact:true}).fill('Покупець');await page.locator('.auth-consent input').check();await page.getByRole('button',{name:'Зареєструватися',exact:true}).click();}
- await expect(page.getByText('Тестова серверна сесія. Кошик та обране зберігаються у тестовому акаунті.',{exact:true})).toBeVisible();
+ await expect(page).toHaveURL(/\/profile\/personal-data$/);
 }

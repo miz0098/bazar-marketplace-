@@ -1,5 +1,4 @@
 'use client';
-import {simulationCopy} from '../../lib/simulation';
 import {ServerAccountNotifications,ServerConversationBadge} from './server-account-notifications';
 import {useServerCustomer} from '../server/customer-provider';
 
@@ -75,12 +74,7 @@ export function AccountShell({ children }: Readonly<{ children: React.ReactNode 
     }
   };
 
-  const previewLogout = async () => {
-    if(store){try{await store.logout();router.push('/');}catch{setLogoutNotice('Сервер не підтвердив вихід. Оновіть дані та повторіть.');}return;}
-    closeDrawer(false);
-    setLogoutNotice('Серверної сесії немає: це анонімний демо-перегляд, тому завершувати вхід не потрібно.');
-    window.requestAnimationFrame(() => noticeRef.current?.focus({ preventScroll: true }));
-  };
+  const logout=async()=>{try{if(!store)throw new Error('Session unavailable');await store.logout();router.push('/');}catch{setLogoutNotice('Сервер не підтвердив вихід. Повторіть спробу.');}};
 
   return (
     <section className={`account-module${drawerOpen ? ' is-drawer-open' : ''}`} data-account-shell>
@@ -122,7 +116,7 @@ export function AccountShell({ children }: Readonly<{ children: React.ReactNode 
                   </Link>
                 );
               })}
-              <button className="account-nav__item account-nav__item--logout" type="button" onClick={previewLogout}>
+              <button className="account-nav__item account-nav__item--logout" type="button" onClick={logout}>
                 <span className="account-nav__icon"><AccountIcon name="logout" /></span>
                 Вихід
               </button>
@@ -130,10 +124,6 @@ export function AccountShell({ children }: Readonly<{ children: React.ReactNode 
           </aside>
 
           <div className="account-content" tabIndex={-1} ref={contentRef} inert={drawerOpen ? true : undefined}>
-            <div className="account-preview-note" role="note">
-              <strong>{store?simulationCopy("Тестовий серверний акаунт","Особистий кабінет"):'Демонстраційний профіль'}</strong>
-              <span>{store?simulationCopy("Сесія, кошик і обране підключені до тестового сервера. Профіль, адреси, відгуки, листування й сповіщення зберігаються в тестовому акаунті.","Ваші покупки, особисті дані та повідомлення збережені у вашому акаунті."):'Ви не автентифіковані. Дані вигадані, а зміни діють лише до оновлення сторінки.'}</span>
-            </div>
             {logoutNotice && <p className="account-status" role="status" tabIndex={-1} ref={noticeRef}>{logoutNotice}</p>}
             {store&&<ServerAccountNotifications/>}
             {children}

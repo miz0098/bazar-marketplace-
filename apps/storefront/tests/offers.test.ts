@@ -24,10 +24,10 @@ test('guest state remains separate from server cart through login refresh logout
  if(p.includes('/offers/'))return response(offer);
  throw new Error('Unexpected transport path '+p);
  });
- await store.connect(()=>JSON.stringify([{variantId:id,quantity:2}]),v=>writes.push(v));assert.equal(store.getSnapshot().status,'anonymous');assert.equal(store.getSnapshot().cart.itemCount,2);
+ await store.connect();assert.notEqual(await store.mutate('add',mapSellerOffer(offer),2),'');assert.equal(store.getSnapshot().status,'anonymous');assert.equal(store.getSnapshot().cart.itemCount,0);
  logged=true;await store.refresh();assert.equal(store.getSnapshot().cart.itemCount,0);assert.equal(store.getSnapshot().wishlist.length,1);assert.equal(writes.length,0);assert.equal(calls.some(p=>p.includes('/cart/lines')),false);
  failed=true;await store.refresh();assert.equal(store.getSnapshot().status,'error');assert.equal(store.getSnapshot().wishlist.length,0);
- failed=false;await store.refresh();await store.logout();assert.equal(store.getSnapshot().cart.itemCount,2);assert.equal(store.getSnapshot().wishlist.length,0);assert.equal(writes.length,0);
+ failed=false;await store.refresh();await store.logout();assert.equal(store.getSnapshot().cart.itemCount,0);assert.equal(store.getSnapshot().wishlist.length,0);assert.equal(writes.length,0);
 });
 
 test('acknowledged cart write with failed refresh retains its receipt key and never adds twice',async()=>{
@@ -42,7 +42,7 @@ test('acknowledged cart write with failed refresh retains its receipt key and ne
  if(p.endsWith('/customer-state'))return fail?new Response('',{status:503}):response({contractVersion:1,mode:'integration-test',cartVersion:written?2:1,subtotal:written?offer.price:{amountMinor:0,currency:'UAH'},lines:written?[{offer,quantity:1}]:[],wishlist:[],legacyWishlist:[]});
  throw new Error('Unexpected request '+p);
  });
- await store.connect(()=>null,()=>{throw new Error('Authenticated state must not be written locally');});
+ await store.connect();
  fail=true;assert.notEqual(await store.mutate('add',mapSellerOffer(offer),1),'');
  fail=false;assert.equal(await store.mutate('add',mapSellerOffer(offer),1),'');
  assert.equal(keys.length,2);assert.equal(keys[0],keys[1]);assert.equal(store.getSnapshot().cart.itemCount,1);

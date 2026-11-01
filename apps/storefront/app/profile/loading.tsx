@@ -4,7 +4,7 @@ export default function ProfileLoading() {
       <span className="account-skeleton account-skeleton--title" />
       <span className="account-skeleton account-skeleton--line" />
       <div className="account-skeleton-grid"><span /><span /><span /></div>
-      <span className="sr-only">Завантажуємо демонстраційний профіль…</span>
+      <span className="sr-only">Завантажуємо профіль…</span>
     </div>
   );
 }

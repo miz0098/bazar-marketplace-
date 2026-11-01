@@ -24,7 +24,7 @@ export function AccountPageHeading({
   );
 }
 
-export function AccountLoading({ label = 'Завантажуємо демонстраційні дані…' }: { label?: string }) {
+export function AccountLoading({ label = 'Завантажуємо дані…' }: { label?: string }) {
   return (
     <div className="account-loading" role="status" aria-live="polite">
       <span className="account-skeleton account-skeleton--title" />
@@ -58,7 +58,7 @@ export function AccountState({
   );
 }
 
-export function DemoMutationNotice({ children }: Readonly<{ children: React.ReactNode }>) {
+export function MutationNotice({ children }: Readonly<{ children: React.ReactNode }>) {
   return <p className="account-mutation-note" role="status">{children}</p>;
 }
 

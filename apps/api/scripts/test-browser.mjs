@@ -1,3 +1,4 @@
+import {codespacesOrigin} from '../tests/browser/codespaces.ts';
 const storefront=process.env.BAZAR_STOREFRONT_INTEGRATION==='1';
 const simulation=process.env.BAZAR_FULL_SIMULATION==='1';
 const serve=process.argv.includes('--serve');
@@ -6,6 +7,7 @@ if(simulation!==(serve||simulationTest) || simulation&&!storefront)throw new Err
 import { randomBytes, createHash } from "node:crypto";
 import {
   mkdtempSync,
+  existsSync,
   writeFileSync,
   readFileSync,
   rmSync,
@@ -26,7 +28,7 @@ const root = fileURLToPath(new URL("../../../", import.meta.url)),
   dir = mkdtempSync(path.join(tmpdir(), "bazar-browser-")),
   project = "bazar-f15-" + randomBytes(6).toString("hex"),
   password = randomBytes(32).toString("hex");
-const env = { ...process.env, BAZAR_POSTGRES_PASSWORD: password, NEXT_PUBLIC_BAZAR_SIMULATION: simulation ? "1" : "0" };
+const env = { ...process.env, BAZAR_POSTGRES_PASSWORD: password };
 for (const k of [
   "DOCKER_HOST",
   "DOCKER_CONTEXT",
@@ -77,14 +79,14 @@ function child(cmd, args, cwd, childEnv, label) {
   children.push(p);
   return p;
 }
-async function ready(url, ca, p) {
+async function ready(url, ca, p, host) {
   for (let i = 0; i < 120; i++) {
     if (p.exitCode !== null)
       throw new Error("Isolated browser service exited during startup");
     const ok = await new Promise((resolve) => {
       const r = (ca ? httpsGet : httpGet)(
         url,
-        { ...(ca ? { ca } : {}), timeout: 1000 },
+        { ...(ca ? { ca } : {}), ...(host?{headers:{host}}:{}), timeout: 1000 },
         (s) => {
           s.resume();
           resolve(s.statusCode === 200);
@@ -102,6 +104,10 @@ async function ready(url, ca, p) {
   throw new Error("Isolated browser service startup timed out");
 }
 try {
+  if(serve)for(const app of ['api','storefront'])if(!existsSync(path.join(root,'apps',app,'node_modules'))){
+    const install=spawnSync('npm',['ci'],{cwd:path.join(root,'apps',app),env,stdio:'inherit'});
+    if(install.status!==0)throw new Error('Dependency installation failed');
+  }
   const build = spawnSync("npm", ["run", storefront?"storefront:build":"browser:build"], {
     cwd: path.join(root, "apps/storefront"),
     env,
@@ -112,6 +118,7 @@ try {
   const address = docker(["port", "postgres", "5432"], true);
   if (!/^127\.0\.0\.1:\d+$/.test(address))
     throw new Error("PostgreSQL must be loopback only");
+  const forwardedOrigin=serve?codespacesOrigin(env):null;
   const cert = path.join(dir, "cert.pem"),
     key = path.join(dir, "key.pem");
   execFileSync(
@@ -131,7 +138,7 @@ try {
       "-subj",
       "/CN=127.0.0.1",
       "-addext",
-      "subjectAltName=IP:127.0.0.1,DNS:localhost",
+      "subjectAltName=IP:127.0.0.1,DNS:localhost"+(forwardedOrigin?",DNS:"+new URL(forwardedOrigin).hostname:""),
     ],
     { stdio: "ignore" },
   );
@@ -148,14 +155,18 @@ try {
   });
   const spki = createHash("sha256").update(der).digest("base64");
   const uiPort = await port(),
-    tlsPort = await port(),
-    origin = `https://127.0.0.1:${tlsPort}`,
+    publicOrigin = forwardedOrigin,
+    tlsPort = serve&&!publicOrigin?3000:await port(),
+    internalOrigin = `https://127.0.0.1:${tlsPort}`,
+    origin = publicOrigin??internalOrigin,
     state = path.join(dir, "state.json");
   writeFileSync(
     state,
     JSON.stringify({
       origin,
       uiPort,
+      gatewayPort:tlsPort,
+      forwarded:Boolean(publicOrigin),
       cert,
       key,
       spki,
@@ -167,7 +178,7 @@ try {
     ...env,
     BAZAR_BROWSER_INTEGRATION: "1",
     BAZAR_BROWSER_STATE: state,
-    ...(storefront?{BAZAR_STOREFRONT_INTEGRATION:"1",STOREFRONT_DATA_SOURCE:"storefront-test",BAZAR_API_BASE_URL:origin,NODE_EXTRA_CA_CERTS:cert}:{}),
+    ...(storefront?{BAZAR_STOREFRONT_INTEGRATION:"1",STOREFRONT_DATA_SOURCE:"storefront-test",BAZAR_API_BASE_URL:internalOrigin,BAZAR_PUBLIC_ORIGIN:origin,NODE_EXTRA_CA_CERTS:cert}:{}),
   };
   const ui = child(
     process.execPath,
@@ -196,7 +207,7 @@ try {
     },
     "api",
   );
-  await ready(origin + "/catalog", readFileSync(cert), api);
+  await ready(internalOrigin + "/catalog", readFileSync(cert), api, new URL(origin).host);
   if (serve) {
     process.stdout.write(`BAZAR: ${origin}\nOnly invented personal information. No real SMS, payments or shipments. Database lifetime: this process.\nCertificate: ${cert}\n`);
     await Promise.race([once(process, "SIGINT"), once(process, "SIGTERM"), ...children.map(p=>once(p,"exit").then(()=>{throw new Error("Simulation service exited");}))]);
@@ -219,9 +230,9 @@ try {
   const [exit] = await once(p, "exit");
   process.exitCode = exit ?? 1;
   }
-} catch {
+} catch (error) {
   process.stderr.write(
-    "Isolated browser integration failed; no credentials are printed.\n",
+    "Isolated browser integration failed: "+(error instanceof Error?error.message:"startup error")+". No credentials are printed.\n",
   );
   for (const label of ["ui", "api"]) {
     try {

@@ -60,6 +60,8 @@ jobs:
             apps/storefront/package-lock.json
             tests/e2e/package-lock.json
       - run: npm ci
+        working-directory: apps/api
+      - run: npm ci
         working-directory: apps/storefront
       - run: npm ci
         working-directory: tests/e2e
@@ -86,12 +88,15 @@ jobs:
         working-directory: apps/storefront
       - run: npm test
         working-directory: tests/e2e
+      - run: npm run simulation:test:declined
+      - run: npm run simulation:test:unknown
+      - run: npm run simulation:test:codespaces
       - name: Upload browser report on failure
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: playwright-report
-          path: tests/e2e/playwright-report
+          path: tests/e2e/storefront-report
           retention-days: 14
 
   dependency-review:

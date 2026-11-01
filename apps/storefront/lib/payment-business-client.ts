@@ -13,7 +13,7 @@ export class PaymentClientError extends Error {
       | 'unavailable',
     readonly status?: number,
   ) {
-    super('Не вдалося перевірити стан тестової оплати.');
+    super('Не вдалося перевірити стан оплати.');
     this.name = 'PaymentClientError';
   }
 }
