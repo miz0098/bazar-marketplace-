@@ -1,3 +1,5 @@
+> Updated entrypoint and UI contracts: see [REMOVE_DEMO_FLOWS.md](REMOVE_DEMO_FLOWS.md) and [CODESPACES.md](CODESPACES.md). The current launcher uses port3000 and isolated server OTP123456; the older random-code inbox and client-only UI paths described in the initial implementation have been removed. Historical validation totals below belong to that initial implementation.
+
 # Full Functional Simulation — F24 baseline
 
 Audit: origin/vps-migration is 8080264 (F24). The supplied work checkout contained F25; no F25/F26 source is used. Existing F4/F15 authentication, F21 cart/wishlist, F22 checkout/payment and F24 account/communications remain authoritative. Production entry is unchanged.

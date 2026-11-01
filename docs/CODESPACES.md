@@ -1,62 +1,21 @@
-# BAZAR development in GitHub Codespaces
+# BAZAR in Codespaces
 
-The repository includes `.devcontainer/devcontainer.json` so Phase E1 can continue without installing dependencies on the local Mac. The container uses the same Node.js 24 line as GitHub CI, installs the storefront and Playwright lockfiles, installs Chromium plus its Linux dependencies, and forwards the Next.js port `3000`.
+Use Node24, Docker/Compose and OpenSSL. The devcontainer installs API, storefront and browser-test dependencies and provides Docker-in-Docker. Rebuild the devcontainer after pulling changes to its configuration.
 
-## Create the Codespace
-
-1. Push and select the working branch (`codex/phase-e1-profile`) on GitHub.
-2. Choose **Code → Codespaces → Create codespace on codex/phase-e1-profile**.
-3. Wait for the `postCreateCommand` to finish. It runs deterministic `npm ci` installs from both lockfiles and prepares Chromium for the browser suite.
-
-No repository secret is required for the current mock-only storefront. Do not add credentials to `.devcontainer`, `.env.example`, repository files, terminal output, or Codespaces dotfiles. Future integration secrets belong in Codespaces secrets only after their use is approved.
-
-If dependency setup was interrupted, rerun it from the repository root:
+From the repository root run:
 
 ```sh
-npm --prefix apps/storefront ci
-npm --prefix tests/e2e ci
-cd tests/e2e
-npx playwright install --with-deps chromium
-cd ../..
+npm run simulation:start
 ```
 
-## Run the storefront
+This single command starts PostgreSQL, migrates/seeds the isolated database, builds and starts the Next storefront and starts its API/gateway. Missing API/storefront node_modules are installed automatically. Do not start an additional Next server.
 
-Create the untracked local environment file and start Next.js on the forwarded interface:
+Open port3000 from the Codespaces Ports panel. The launcher derives the exact HTTPS origin from CODESPACE_NAME and GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN. Codespaces terminates HTTPS; a constrained HTTP bridge on port3000 forwards to the private, certificate-verified HTTPS gateway. Secure/HttpOnly/SameSite cookies, exact Origin/CSRF checks and gateway authorization remain enabled. Arbitrary forwarded hosts are rejected; forwarded metadata is not used as customer identity.
 
-```sh
-cp apps/storefront/.env.example apps/storefront/.env.local
-npm --prefix apps/storefront run dev -- --hostname 0.0.0.0
-```
+Register or log in by phone using OTP **123456**. New accounts collect their profile through the ordinary registration form. After server verification the browser opens the account. The fixed code requires NODE_ENV=test and explicit isolated-composition flags; production rejects it.
 
-Open the forwarded **BAZAR storefront** port when Codespaces reports port `3000`. The current configuration uses deterministic mock data and does not contact Shopify or a production BAZAR backend.
+Outside Codespaces the same command serves https://127.0.0.1:3000 and prints the local certificate path. Trust that exact certificate for a manual local browser; do not disable TLS validation.
 
-## Run checks
+Use invented personal data. No real SMS, bank transactions, card credentials or shipments are used. Successful operations are stored in PostgreSQL throughout the run, including refresh and logout/login. Ctrl+C removes that run's disposable database. This does not provide persistence across stopping/restarting the runtime.
 
-From the repository root:
-
-```sh
-npm --prefix apps/storefront run test
-npm --prefix apps/storefront run lint
-npm --prefix apps/storefront run typecheck
-npm --prefix apps/storefront run build
-npm --prefix apps/storefront audit --audit-level=high
-node scripts/autonomy/validate-ledger.mjs
-node --test scripts/autonomy/*.test.mjs
-git diff --check
-```
-
-After the production build, run the desktop and mobile Playwright suite:
-
-```sh
-npm --prefix tests/e2e test
-```
-
-Playwright starts the built storefront itself. Stop a manually running development server first if it already occupies port `3000`.
-
-## Resume safely
-
-- Keep Phase E1 work on `codex/phase-e1-profile` until its review is complete.
-- Commit and push frequently so the Codespace can be rebuilt without losing source changes.
-- Do not merge into `vps-migration`, modify `main`, or deploy from the Codespace without explicit approval.
-- Generated `node_modules`, `.next`, Playwright reports, and `.env.local` remain ignored and must not be committed.
+Checks: npm run simulation:test, npm run simulation:test:declined, npm run simulation:test:unknown, npm run simulation:test:codespaces. The last command tests the Codespaces forwarding contract locally; it is not a claim that a separate real Codespace was provisioned during verification.
