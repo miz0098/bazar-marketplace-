@@ -1,3 +1,4 @@
+import {startSimulationWorker} from './simulation-worker.js';
 import {orderFlowFixture} from '../helpers/order-flow.js';
 import {createCommerceService} from '../../src/commerce/service.js';
 import {insertUniquePromo} from '../../src/commerce/finance.js';
@@ -39,6 +40,10 @@ import { shippingFixture } from "../helpers/shipping.js";
 import { paymentFixture } from "../helpers/payments.js";
 import type { ShippingAdapter } from "../../src/shipping/adapter.js";
 requireBrowserTest();
+const simulation = process.env.BAZAR_FULL_SIMULATION === "1";
+const paymentOutcome = process.env.BAZAR_SIMULATION_PAYMENT_OUTCOME ?? "succeeded";
+if(simulation&&!["succeeded","declined","pending","unknown"].includes(paymentOutcome))throw new Error("Invalid simulation payment outcome");
+if (simulation && process.env.BAZAR_STOREFRONT_INTEGRATION !== "1") throw new Error("Simulation requires isolated storefront");
 const info = JSON.parse(
   readFileSync(process.env.BAZAR_BROWSER_STATE!, "utf8"),
 ) as {
@@ -72,9 +77,18 @@ async function reset() {
   await migrate(config);
   const pool = new pg.Pool({ connectionString: url.toString() }),
     auth = authFixture({ resendSeconds: 1, challengePhoneLimit: 20 }),
-    shipping = shippingFixture(),
+    shipping = shippingFixture(simulation ? {city:"Київ",point:"Відділення № 1"} : undefined),
     payment = paymentFixture();
   auth.config.publicOrigin = info.origin;
+  if (simulation) {
+    const submit = payment.adapter.submit;
+    payment.adapter.submit = async (input, signal) => {
+      const result = await submit(input, signal);
+      payment.operations.get(input.operationId)!.status = paymentOutcome === "declined" ? "declined" : paymentOutcome === "succeeded" ? "succeeded" : "pending";
+      if(paymentOutcome === "unknown")throw new Error("Synthetic provider outcome unavailable");
+      return result;
+    };
+  }
   const category = (
     await pool.query(
       "INSERT INTO bazar.categories(handle,title) VALUES('test-category','Тестова категорія') RETURNING id",
@@ -87,6 +101,13 @@ async function reset() {
     )
   ).rows[0].id;
   const offerSeed=process.env.BAZAR_STOREFRONT_INTEGRATION==='1'?await seedBrowserOffers(pool,category):[];
+  if (simulation) {
+    await pool.query("UPDATE bazar.categories SET title='Смартфони',handle='smartphones' WHERE id=$1",[category]);
+    await pool.query("UPDATE bazar.catalog_products SET attributes=jsonb_set(attributes,'{brand}',to_jsonb('Apple'::text))");
+    await pool.query("UPDATE bazar.variants SET sku=replace(sku,'SYNTHETIC-OFFER','BZ-PHONE') WHERE sku LIKE 'SYNTHETIC-OFFER-%'");
+    await pool.query("UPDATE bazar.sellers SET name=CASE name WHEN 'Synthetic seller 0' THEN 'ТехноСвіт' WHEN 'Synthetic seller 1' THEN 'Мобільна крамниця' ELSE 'Цифровий простір' END");
+    await pool.query("UPDATE bazar.products SET description='Смартфон із великим дисплеєм та місткою пам’яттю' WHERE handle LIKE 'offer-phone-%'");
+  }
   const offerService=createOfferService(pool),offerFailure={fail:false,public:false};
   const promotion = (
     await pool.query(
@@ -145,7 +166,7 @@ async function reset() {
   const notices={fail:false,delay:0};
   const flowStaff=offerSeed.length?(await pool.query("INSERT INTO bazar.users(first_name,last_name) VALUES('Synthetic','Staff') RETURNING id")).rows[0].id:null;const flowFixture=flowStaff?orderFlowFixture(flowStaff):undefined;
   const staffTickets=new Set<string>();const communication=createCommunicationService(pool,{scope:'isolated-test',canReply:(actor,id)=>actor===flowStaff&&staffTickets.has(id)});
-  const customer=createCustomerService(pool,undefined,{scope:'isolated-test',shipping:[...shipping.adapters,ukr],canChangeReview:()=>true,canModerate:actor=>actor===flowStaff});const accountFailure={fail:false};
+  const customer=createCustomerService(pool,undefined,{scope:'isolated-test',allowSyntheticPaymentMethods:simulation,shipping:[...shipping.adapters,ukr],canChangeReview:()=>true,canModerate:actor=>actor===flowStaff});const accountFailure={fail:false};
   const commerce=offerSeed.length?createCommerceService(pool,payment.adapter,[...shipping.adapters,ukr],flowFixture?.policy):undefined;
   const commercePromos:Record<string,string>={};
   if(commerce){for(const [label,kind,scope] of [['fixed','fixed','order'],['percent','percentage','order'],['category','fixed','category'],['product','fixed','product'],['fractional','percentage','product']] as const){let promoId='';commercePromos[label]=await insertUniquePromo(async code=>{const r=await pool.query("INSERT INTO bazar.promotions(code,kind,fixed_minor,percentage_basis_points,currency,min_subtotal_minor,starts_at,ends_at,enabled,max_uses,per_user_limit) VALUES($1,$2,$3,$4,'UAH',1,clock_timestamp()-interval '1 day',clock_timestamp()+interval '1 day',true,10,10) ON CONFLICT(code) DO NOTHING RETURNING id",[code,kind,kind==='fixed'?100000:null,kind==='percentage'?1000:null]);if(!r.rows.length)return false;promoId=r.rows[0].id;return true;});await pool.query('INSERT INTO bazar.commerce_promotions(promotion_id,scope,code) VALUES($1,$2,$3)',[promoId,scope,commercePromos[label]]);if(scope==='category')await pool.query('INSERT INTO bazar.commerce_promotion_categories(promotion_id,category_id) VALUES($1,$2)',[promoId,category]);if(scope==='product')await pool.query('INSERT INTO bazar.promotion_products(promotion_id,product_id) VALUES($1,$2)',[promoId,offerSeed[0].productId]);}}
@@ -178,6 +199,7 @@ async function reset() {
   };
 }
 active = await reset();
+const stopSimulation = simulation && active.commerce && active.flowFixture && active.flowStaff ? startSimulationWorker({...active,commerce:active.commerce,flowFixture:active.flowFixture,flowStaff:active.flowStaff},Number(process.env.BAZAR_SIMULATION_STEP_MS??15000)) : undefined;
 const reply = (res: import("node:http").ServerResponse, value: unknown) => {
   res.writeHead(200, {
     "content-type": "application/json",
@@ -211,9 +233,10 @@ const gateway = createBrowserGateway({
       ).rowCount;
       const sent = a.auth.sent.get(id);
       if (!row || !sent) throw new Error("own challenge required");
-      reply(res, { code: sent.code });
+      reply(res, simulation ? {ok:true,data:{code:sent.code},meta:{requestId:randomUUID()}} : { code: sent.code });
       return;
     }
+    if (simulation) throw new Error("Browser payment proofs are unavailable in simulation");
     if(req.url==='/__browser/commerce-payment'){
       const actor=(await authorize(req,a.graph.auth,true)).userId,r=fields(body,['operationId','result']),id=uuid(r.operationId);
       if(!a.commerce||!['succeeded','declined'].includes(String(r.result))||!(await a.pool.query('SELECT id FROM bazar.commerce_payment_attempts WHERE id=$1 AND user_id=$2',[id,actor])).rowCount)throw new Error('Owner/result denied');
@@ -244,6 +267,7 @@ const gateway = createBrowserGateway({
     throw new Error("unknown helper");
   },
   async control(req, res) {
+    if (simulation) throw new Error("Test controller is unavailable in simulation");
     if (
       req.headers.origin ||
       req.headers["sec-fetch-site"] ||
@@ -359,6 +383,7 @@ gateway.listen(Number(new URL(info.origin).port), "127.0.0.1");
 await once(gateway, "listening");
 process.stdout.write("Isolated HTTPS browser gateway ready\n");
 async function close() {
+  await stopSimulation?.();
   gateway.closeAllConnections();
   await new Promise<void>((resolve) => gateway.close(() => resolve()));
   if (active) {

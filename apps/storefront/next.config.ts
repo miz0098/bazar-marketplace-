@@ -1,3 +1,4 @@
+if(process.env.NEXT_PUBLIC_BAZAR_SIMULATION==='1'||process.env.BAZAR_FULL_SIMULATION==='1')throw new Error('Simulation requires isolated storefront');
 if(process.env.BAZAR_STOREFRONT_INTEGRATION==='1'||process.env.STOREFRONT_DATA_SOURCE==='storefront-test')throw new Error('Use the isolated storefront entry, never production');
 import type { NextConfig } from 'next';
 

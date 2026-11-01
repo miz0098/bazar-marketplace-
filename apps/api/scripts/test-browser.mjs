@@ -1,4 +1,8 @@
 const storefront=process.env.BAZAR_STOREFRONT_INTEGRATION==='1';
+const simulation=process.env.BAZAR_FULL_SIMULATION==='1';
+const serve=process.argv.includes('--serve');
+const simulationTest=process.argv.includes('--simulation-test');
+if(simulation!==(serve||simulationTest) || simulation&&!storefront)throw new Error('Simulation requires --serve and the isolated storefront');
 import { randomBytes, createHash } from "node:crypto";
 import {
   mkdtempSync,
@@ -22,7 +26,7 @@ const root = fileURLToPath(new URL("../../../", import.meta.url)),
   dir = mkdtempSync(path.join(tmpdir(), "bazar-browser-")),
   project = "bazar-f15-" + randomBytes(6).toString("hex"),
   password = randomBytes(32).toString("hex");
-const env = { ...process.env, BAZAR_POSTGRES_PASSWORD: password };
+const env = { ...process.env, BAZAR_POSTGRES_PASSWORD: password, NEXT_PUBLIC_BAZAR_SIMULATION: simulation ? "1" : "0" };
 for (const k of [
   "DOCKER_HOST",
   "DOCKER_CONTEXT",
@@ -193,6 +197,10 @@ try {
     "api",
   );
   await ready(origin + "/catalog", readFileSync(cert), api);
+  if (serve) {
+    process.stdout.write(`BAZAR: ${origin}\nOnly invented personal information. No real SMS, payments or shipments. Database lifetime: this process.\nCertificate: ${cert}\n`);
+    await Promise.race([once(process, "SIGINT"), once(process, "SIGTERM"), ...children.map(p=>once(p,"exit").then(()=>{throw new Error("Simulation service exited");}))]);
+  } else {
   const p = spawn(
     process.execPath,
     [
@@ -200,7 +208,7 @@ try {
       "test",
       "--config",
       storefront?"storefront.config.ts":"browser.config.ts",
-      ...process.argv.slice(2),
+      ...process.argv.slice(2).filter(arg=>arg!=="--simulation-test"),
     ],
     {
       cwd: path.join(root, "tests/e2e"),
@@ -210,6 +218,7 @@ try {
   );
   const [exit] = await once(p, "exit");
   process.exitCode = exit ?? 1;
+  }
 } catch {
   process.stderr.write(
     "Isolated browser integration failed; no credentials are printed.\n",

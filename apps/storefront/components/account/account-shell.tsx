@@ -1,4 +1,5 @@
 'use client';
+import {simulationCopy} from '../../lib/simulation';
 import {ServerAccountNotifications,ServerConversationBadge} from './server-account-notifications';
 import {useServerCustomer} from '../server/customer-provider';
 
@@ -130,8 +131,8 @@ export function AccountShell({ children }: Readonly<{ children: React.ReactNode 
 
           <div className="account-content" tabIndex={-1} ref={contentRef} inert={drawerOpen ? true : undefined}>
             <div className="account-preview-note" role="note">
-              <strong>{store?'Тестовий серверний акаунт':'Демонстраційний профіль'}</strong>
-              <span>{store?'Сесія, кошик і обране підключені до тестового сервера. Профіль, адреси, відгуки, листування й сповіщення зберігаються в тестовому акаунті.':'Ви не автентифіковані. Дані вигадані, а зміни діють лише до оновлення сторінки.'}</span>
+              <strong>{store?simulationCopy("Тестовий серверний акаунт","Особистий кабінет"):'Демонстраційний профіль'}</strong>
+              <span>{store?simulationCopy("Сесія, кошик і обране підключені до тестового сервера. Профіль, адреси, відгуки, листування й сповіщення зберігаються в тестовому акаунті.","Ваші покупки, особисті дані та повідомлення збережені у вашому акаунті."):'Ви не автентифіковані. Дані вигадані, а зміни діють лише до оновлення сторінки.'}</span>
             </div>
             {logoutNotice && <p className="account-status" role="status" tabIndex={-1} ref={noticeRef}>{logoutNotice}</p>}
             {store&&<ServerAccountNotifications/>}

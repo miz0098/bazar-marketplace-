@@ -1,4 +1,5 @@
 'use client';
+import {simulationCopy} from '../../lib/simulation';
 import {useServerCustomer} from '../server/customer-provider';
 import {useAuthModal} from '../auth/auth-provider';
 import { useState } from 'react';
@@ -26,7 +27,7 @@ export function WishlistButton({ product }: { product: ProductSummary }) {
             if (item) await service.removeWishlistItem(item.id);
             else await service.addWishlistItem(product);
           } catch {
-            setError('Не вдалося змінити демо-обране. Спробуйте ще раз.');
+            setError(simulationCopy('Не вдалося змінити демо-обране. Спробуйте ще раз.','Не вдалося оновити обране. Спробуйте ще раз.'));
           } finally {
             setBusy(false);
           }

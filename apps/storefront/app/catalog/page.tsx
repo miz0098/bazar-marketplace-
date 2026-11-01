@@ -1,3 +1,4 @@
+import {simulationCopy} from '@/lib/simulation';
 import Form from 'next/form';
 import Link from 'next/link';
 import { ProductCard } from '@/components/product/product-card';
@@ -88,8 +89,7 @@ export default async function CatalogPage({
           <p className="eyebrow">Каталог</p>
           <h1>{selectedCategory?.title ?? 'Товари BAZAR'}</h1>
           <p>
-            Демонстраційний каталог працює без Shopify. Ціни та наявність не є
-            комерційною пропозицією.
+            {simulationCopy('Демонстраційний каталог працює без Shopify. Ціни та наявність не є комерційною пропозицією.','Порівнюйте товари, ціни та пропозиції продавців.')}
           </p>
         </div>
         <strong>

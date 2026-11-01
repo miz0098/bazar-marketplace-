@@ -9,7 +9,7 @@ const state = JSON.parse(
   readFileSync(process.env.BAZAR_BROWSER_STATE, "utf8"),
 ) as { origin: string; spki: string };
 export default defineConfig({
-  testDir: "./storefront-tests",
+  testDir: process.env.BAZAR_FULL_SIMULATION === "1" ? "./simulation-tests" : "./storefront-tests",
   fullyParallel: false,
   workers: 1,
   retries: 0,
