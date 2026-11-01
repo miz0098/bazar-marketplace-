@@ -1264,7 +1264,7 @@
     {
       "id": "STAFFCRM-001",
       "title": "Implement assigned-case Staff CRM and isolated three-app Codespaces preview",
-      "status": "in_progress",
+      "status": "in_review",
       "readiness": "integration",
       "depends_on": [
         "SELLERDASHBOARD-001"
@@ -1299,7 +1299,7 @@
         "Dedicated staff-crm UI runs on port 3002 beside existing storefront 3000 and seller admin 3001 through exact-origin HTTPS preview gateways and shared test API/PostgreSQL",
         "Desktop/mobile browser, accessibility, API/unit/PostgreSQL, lint, typecheck, builds, audits and governance checks pass; original staff visual parity remains NOT VERIFIED"
       ],
-      "pr": null,
+      "pr": 38,
       "blocker": "Production staff grants/coverage/fallback policy, sensitive employee permissions, privacy retention, live OTP/providers and approved original staff mockups remain gated."
     }
   ]
