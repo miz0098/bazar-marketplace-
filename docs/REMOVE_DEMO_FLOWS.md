@@ -35,3 +35,23 @@ The Codespaces smoke runs the real launcher through a locally emulated forwardin
 - File uploads, phone replacement, automatic privacy erasure and unsupported partial-unit financial operations remain guarded where F24 lacks a safe implementation. These are capability/security boundaries, not demonstration stop screens.
 - Approved legal policy texts and real branded social destinations were not supplied; no legal promises or social identities were invented.
 - Nothing is automatically merged into `vps-migration` or deployed.
+
+## Executed checks (2026-11-01)
+
+| Check | Result |
+| --- | --- |
+| API lint, typecheck, build | Passed |
+| API unit / isolated entry policy | 62 passed |
+| Compiled API startup smoke | 3 passed |
+| PostgreSQL integration | 150 passed |
+| Storefront lint, typecheck (ordinary, browser and storefront entries), build | Passed |
+| Storefront unit | 99 passed |
+| F24 storefront browser regressions (desktop/mobile) | 44 passed |
+| Retained legacy checkout/security browser coverage | 36 checkout cases passed across regression runs |
+| Retained notification browser coverage | 8 passed in the final targeted run after updating obsolete copy selectors |
+| Complete marketplace journey/security (desktop/mobile) | 10 passed |
+| Declined / unknown payment outcomes | 2 + 2 passed |
+| Codespaces port3000 / real catalog / OTP / session / CSRF / logout smoke | Passed |
+| Governance tests / task ledger / whitespace | 5 passed / valid / passed |
+
+Earlier regressions exposed a missing catalog-path allowlist entry, duplicate authentication bootstrap in the legacy harness and obsolete notification-copy selectors. These were corrected and affected checks rerun; no security assertion or test file was deleted. Local results above are distinct from GitHub Actions status, which is shown on the PR.
