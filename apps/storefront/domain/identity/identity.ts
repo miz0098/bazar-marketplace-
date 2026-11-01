@@ -114,7 +114,7 @@ export function validateRegistrationProfile(profile: RegistrationProfile): Regis
     errors.email = 'Введіть коректну електронну пошту.';
   }
 
-  if (!profile.termsAccepted) errors.termsAccepted = 'Підтвердьте участь у демо-перегляді.';
+  if (!profile.termsAccepted) errors.termsAccepted = 'Підтвердьте згоду з умовами користування.';
 
   return errors;
 }

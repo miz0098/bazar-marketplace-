@@ -230,7 +230,7 @@ export function ProductDetail({
               </div>
             </article>
           </div>
-          {false}
+
         </section>
       </div>
 

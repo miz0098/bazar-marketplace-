@@ -49,7 +49,7 @@ test('validates the approved registration profile and consent fields', () => {
       firstName: 'Вкажіть імʼя.',
       lastName: 'Вкажіть прізвище.',
       email: 'Введіть коректну електронну пошту.',
-      termsAccepted: 'Підтвердьте участь у демо-перегляді.',
+      termsAccepted: 'Підтвердьте згоду з умовами користування.',
     },
   );
 });

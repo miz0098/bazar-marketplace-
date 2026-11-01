@@ -28,7 +28,7 @@ export function NotificationCenter({client}:{client:Client}){
   <h2 id="notification-heading">Сповіщення</h2>
   <button type="button" aria-expanded={open} aria-controls="notification-content" onClick={()=>setOpen(x=>!x)}>Сповіщення · непрочитаних: {summary?.unread ?? '…'}</button>
   <div id="notification-content" hidden={!open} style={{overflowWrap:'anywhere'}}>
-   {false}
+
    {loading && <p role="status">Завантажуємо сповіщення…</p>}
    {error && <p role="alert">{error}</p>}
    <button type="button" disabled={busy||loading} onClick={()=>{setLoading(true);setRevision(x=>x+1);}}>Оновити сповіщення / повторити</button>
@@ -45,7 +45,7 @@ export function NotificationCenter({client}:{client:Client}){
     {items.map(item=>{const p=notificationPresentation(item);return <li key={item.id} data-notification-sequence={item.sequence}>
      <article aria-label={`${p.title} · ${item.read?'прочитано':'непрочитано'}`}>
       <h3>{p.title}</h3><time dateTime={item.createdAt}>{date(item.createdAt)} · Київ</time>
-      <p>{item.read?'Прочитано':'Непрочитано'}{false}</p>
+      <p>{item.read?'Прочитано':'Непрочитано'}</p>
       <Link href={p.href}>Відкрити пов’язаний {item.kind==='review.moderated'?'відгук':item.kind==='question.answered'?'запитання':item.kind==='product.availability_restored'?'товар':item.kind==='message.created'?'чат':item.kind==='support.replied'?'запит':'запис замовлення'}</Link>
       <button type="button" disabled={busy||loading||item.read} onClick={()=>void mutate(async()=>{
        await client.readNotification(item.id);const next=await client.notificationSummary();

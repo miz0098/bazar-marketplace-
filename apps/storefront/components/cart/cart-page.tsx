@@ -144,7 +144,7 @@ export function CartPage() {
             Перейти до оформлення
           </Link>}
           <Link href="/catalog">Продовжити покупки</Link>
-          {false}
+
         </aside>
       </div>
     </div>
