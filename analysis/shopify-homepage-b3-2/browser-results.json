@@ -1,0 +1,102 @@
+{
+  "scope": "LOCAL fixtures and synthetic form/cart API responses; no merchant tests",
+  "results": [
+    {
+      "name": "Empty settings hide all customer modules and technical notes; editor explains all configuration gaps",
+      "result": "passed"
+    },
+    {
+      "name": "Approved seven-module order, actual category URLs and configured image/brand/promotion counts",
+      "result": "passed"
+    },
+    {
+      "name": "Carousel filters blank slides, uses mobile source and has no autoplay",
+      "result": "passed"
+    },
+    {
+      "name": "Carousel next/previous/dots/keyboard/Home/End and actual slide links",
+      "result": "passed"
+    },
+    {
+      "name": "Shopify block selection reveals actual slide; reconnect does not duplicate listeners",
+      "result": "passed"
+    },
+    {
+      "name": "Canonical product cards use bounded real fixture objects; eligible add, multivariant selection and unavailable states",
+      "result": "passed"
+    },
+    {
+      "name": "Homepage quick-add uses existing supported cart endpoint/exact variant and confirmed event feedback",
+      "result": "passed"
+    },
+    {
+      "name": "Homepage quick-add Shopify rejection remains a genuine visible error, no fake success",
+      "result": "passed"
+    },
+    {
+      "name": "Featured selections override collection using the same canonical card renderer",
+      "result": "passed"
+    },
+    {
+      "name": "Product rail scroll and keyboard controls preserve finite content and reduced-motion behavior",
+      "result": "passed"
+    },
+    {
+      "name": "Newsletter inactive by default, including enabled-without-consent; native customer form only when ready",
+      "result": "passed"
+    },
+    {
+      "name": "Newsletter server form success/error output only; no client-generated success or POST in tests",
+      "result": "passed"
+    },
+    {
+      "name": "320/390/768/1024/1440 no document overflow, 2/3/4/5 rail columns, real mobile media fallback",
+      "result": "passed"
+    },
+    {
+      "name": "WCAG A/AA configured mobile/desktop, inactive newsletter and blank homepage",
+      "result": "passed"
+    },
+    {
+      "name": "No-JavaScript leaves genuine slide images, links, product POST and ready newsletter usable",
+      "result": "passed"
+    },
+    {
+      "name": "Labeled desktop/mobile screenshots; no runtime exceptions",
+      "result": "passed"
+    }
+  ],
+  "errors": [],
+  "measurements": [
+    {
+      "width": 320,
+      "overflow": false,
+      "columns": "2",
+      "hero": "http://127.0.0.1:44627/fixture.svg?mobile=1"
+    },
+    {
+      "width": 390,
+      "overflow": false,
+      "columns": "2",
+      "hero": "http://127.0.0.1:44627/fixture.svg?mobile=1"
+    },
+    {
+      "width": 768,
+      "overflow": false,
+      "columns": "3",
+      "hero": "http://127.0.0.1:44627/fixture.svg"
+    },
+    {
+      "width": 1024,
+      "overflow": false,
+      "columns": "4",
+      "hero": "http://127.0.0.1:44627/fixture.svg"
+    },
+    {
+      "width": 1440,
+      "overflow": false,
+      "columns": "5",
+      "hero": "http://127.0.0.1:44627/fixture.svg"
+    }
+  ]
+}

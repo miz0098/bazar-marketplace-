@@ -1,0 +1,27 @@
+{% doc %}
+  Genuine merchant-selected hero image and optional real campaign text.
+  @param {object} content - Section or slide settings
+  @param {boolean} [eager] - Prioritize the first image
+{% enddoc %}
+{% liquid
+  assign alt = content.image_alt | default: content.image.alt | default: 'Головний банер BAZAR'
+  assign loading = 'lazy'
+  assign priority = 'auto'
+  if eager
+    assign loading = 'eager'
+    assign priority = 'high'
+  endif
+%}
+<div class="bazar-home-slide">
+  {% if content.link != blank %}<a href="{{ content.link }}">{% endif %}
+  <picture>
+    {% if content.mobile_image != blank %}<source media="(max-width: 767px)" srcset="{{ content.mobile_image | image_url: width: 900 }}">{% endif %}
+    {{ content.image | image_url: width: 2000 | image_tag: widths: '600,900,1200,1600,2000', sizes: '(min-width: 1440px) 1120px, (min-width: 1024px) 75vw, 100vw', loading: loading, fetchpriority: priority, alt: alt, class: 'bazar-home-hero__image' }}
+  </picture>
+  {% if content.link != blank %}</a>{% endif %}
+  {% if content.heading != blank or content.text != blank %}<div class="bazar-home-slide__copy">
+    {% if content.heading != blank %}<h2>{{ content.heading | escape }}</h2>{% endif %}
+    {% if content.text != blank %}<p>{{ content.text | escape }}</p>{% endif %}
+    {% if content.link != blank and content.label != blank %}<a class="bazar-button" href="{{ content.link }}">{{ content.label | escape }}</a>{% endif %}
+  </div>{% endif %}
+</div>
