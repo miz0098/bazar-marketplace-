@@ -1,0 +1,178 @@
+{% comment %}Layout/social/app vectors adapted selectively from bazar-footer@105d10f; all destinations merchant-owned.{% endcomment %}
+<div class="bazar-ui bazar-footer">
+  <div class="bazar-container">
+    <div class="bazar-footer__main">
+      <div class="bazar-footer__brand">
+        {% render 'bazar-logo' %}
+        <div class="bazar-footer__social" aria-label="Соціальні мережі">
+          {% render 'bazar-destination', label: 'Facebook', url: section.settings.facebook_url, icon: 'facebook', class: 'bazar-footer__social-link' %}
+          {% render 'bazar-destination', label: 'Instagram', url: section.settings.instagram_url, icon: 'instagram', class: 'bazar-footer__social-link' %}
+          {% render 'bazar-destination', label: 'Threads', url: section.settings.threads_url, icon: 'threads', class: 'bazar-footer__social-link' %}
+          {% render 'bazar-destination', label: 'Telegram', url: section.settings.telegram_url, icon: 'telegram', class: 'bazar-footer__social-link' %}
+        </div>
+      </div>
+      {% for block in section.blocks %}
+        <nav class="bazar-footer__nav" aria-label="{{ block.settings.heading | escape }}" {{ block.shopify_attributes }}>
+          {% if block.settings.heading != blank %}<h2>{{ block.settings.heading | escape }}</h2>{% endif %}
+          <ul>
+            {% for link in block.settings.menu.links %}<li><a href="{{ link.url }}">{{ link.title | escape }}</a></li>{% endfor %}
+          </ul>
+          {% if request.design_mode and block.settings.menu == blank %}<p class="bazar-editor-note">Оберіть погоджене меню для цієї колонки.</p>{% endif %}
+        </nav>
+      {% endfor %}
+      <div class="bazar-footer__apps">
+        <h2>Завантажуйте додаток</h2>
+        {% render 'bazar-destination', label: 'App Store', url: section.settings.app_store_url, icon: 'apple', class: 'bazar-footer__app-button' %}
+        {% render 'bazar-destination', label: 'Google Play', url: section.settings.google_play_url, icon: 'google-play', class: 'bazar-footer__app-button' %}
+      </div>
+    </div>
+    <div class="bazar-footer__bottom">
+      <p>© {{ 'now' | date: '%Y' }} BAZAR. Усі права захищені.</p>
+      <nav class="bazar-footer__legal" aria-label="Правова інформація">
+        {% render 'bazar-destination', label: 'Публічна оферта', url: section.settings.public_offer_url %}
+        {% render 'bazar-destination', label: 'Політика конфіденційності', url: section.settings.privacy_url %}
+        {% render 'bazar-destination', label: 'Умови використання', url: section.settings.terms_url %}
+      </nav>
+      {% if section.settings.show_localization %}
+        {% form 'localization', class: 'bazar-footer__localization' %}
+          {% if localization.available_languages.size > 1 %}
+            <label for="BazarLanguage-{{ section.id }}">Мова</label>
+            <select id="BazarLanguage-{{ section.id }}" name="language_code">{% for language in localization.available_languages %}<option value="{{ language.iso_code }}"{% if language.iso_code == localization.language.iso_code %} selected{% endif %}>{{ language.endonym_name | escape }}</option>{% endfor %}</select>
+          {% endif %}
+          {% if localization.available_countries.size > 1 %}
+            <label for="BazarCountry-{{ section.id }}">Країна та валюта</label>
+            <select id="BazarCountry-{{ section.id }}" name="country_code">{% for country in localization.available_countries %}<option value="{{ country.iso_code }}"{% if country.iso_code == localization.country.iso_code %} selected{% endif %}>{{ country.name | escape }} · {{ country.currency.iso_code }}</option>{% endfor %}</select>
+          {% endif %}
+          {% if localization.available_languages.size > 1 or localization.available_countries.size > 1 %}<button class="bazar-button bazar-button--outline" type="submit">Застосувати</button>{% endif %}
+        {% endform %}
+      {% endif %}
+    </div>
+    {% if request.design_mode %}
+      <div class="bazar-editor-note">Неналаштовані адреси:
+        {% if section.settings.facebook_url == blank %}<span>Facebook;</span>{% endif %}
+        {% if section.settings.instagram_url == blank %}<span>Instagram;</span>{% endif %}
+        {% if section.settings.threads_url == blank %}<span>Threads;</span>{% endif %}
+        {% if section.settings.telegram_url == blank %}<span>Telegram;</span>{% endif %}
+        {% if section.settings.app_store_url == blank %}<span>App Store;</span>{% endif %}
+        {% if section.settings.google_play_url == blank %}<span>Google Play;</span>{% endif %}
+        {% if section.settings.public_offer_url == blank %}<span>Публічна оферта;</span>{% endif %}
+        {% if section.settings.privacy_url == blank %}<span>Конфіденційність;</span>{% endif %}
+        {% if section.settings.terms_url == blank %}<span>Умови;</span>{% endif %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% schema %}
+{
+  "name": "BAZAR — підвал",
+  "tag": "section",
+  "class": "bazar-footer-section",
+  "enabled_on": {
+    "groups": [
+      "footer"
+    ]
+  },
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Порожні адреси показуються як неактивні елементи. Вкажіть лише погоджені сторінки й акаунти BAZAR; загальних адрес соцмереж за замовчуванням немає."
+    },
+    {
+      "type": "url",
+      "id": "facebook_url",
+      "label": "Facebook — адреса"
+    },
+    {
+      "type": "url",
+      "id": "instagram_url",
+      "label": "Instagram — адреса"
+    },
+    {
+      "type": "url",
+      "id": "threads_url",
+      "label": "Threads — адреса"
+    },
+    {
+      "type": "url",
+      "id": "telegram_url",
+      "label": "Telegram — адреса"
+    },
+    {
+      "type": "url",
+      "id": "app_store_url",
+      "label": "App Store — адреса"
+    },
+    {
+      "type": "url",
+      "id": "google_play_url",
+      "label": "Google Play — адреса"
+    },
+    {
+      "type": "url",
+      "id": "public_offer_url",
+      "label": "Публічна оферта — адреса"
+    },
+    {
+      "type": "url",
+      "id": "privacy_url",
+      "label": "Політика конфіденційності — адреса"
+    },
+    {
+      "type": "url",
+      "id": "terms_url",
+      "label": "Умови використання — адреса"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_localization",
+      "label": "Показувати доступні мови й країни",
+      "default": false,
+      "info": "Показує лише налаштовані Shopify Markets/мови; не створює вигаданий список валют."
+    }
+  ],
+  "max_blocks": 3,
+  "blocks": [
+    {
+      "type": "menu",
+      "name": "Колонка посилань",
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Заголовок"
+        },
+        {
+          "type": "link_list",
+          "id": "menu",
+          "label": "Погоджене меню"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "BAZAR — підвал",
+      "blocks": [
+        {
+          "type": "menu",
+          "settings": {
+            "heading": "Покупцям"
+          }
+        },
+        {
+          "type": "menu",
+          "settings": {
+            "heading": "Про компанію"
+          }
+        },
+        {
+          "type": "menu",
+          "settings": {
+            "heading": "Особистий кабінет"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

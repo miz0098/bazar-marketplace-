@@ -1,0 +1,52 @@
+{% comment %}Adapted from bazar-category-blocks@105d10f. Use merchant-selected Shopify collections/images instead of initial-letter/fake tiles.{% endcomment %}
+{% if section.settings.collections.size > 0 %}
+  <div class="bazar-ui bazar-home">
+    <div class="bazar-container">
+      {% if section.settings.heading != blank %}<h2 class="bazar-home__title">{{ section.settings.heading | escape }}</h2>{% endif %}
+      <div class="bazar-category-grid">
+        {% for collection in section.settings.collections %}
+          <a class="bazar-category-card" href="{{ collection.url }}">
+            {% if collection.featured_image != blank %}{{ collection.featured_image | image_url: width: 400 | image_tag: widths: '160, 240, 400', sizes: '(max-width: 767px) 45vw, 160px', loading: 'lazy', alt: '', class: 'bazar-category-card__image' }}{% endif %}
+            <span>{{ collection.title | escape }}</span>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% elsif request.design_mode %}
+  <div class="bazar-ui bazar-container bazar-editor-note">BAZAR: оберіть реальні колекції для блоку «Популярні категорії».</div>
+{% endif %}
+{% schema %}
+{
+  "name": "BAZAR — категорії",
+  "tag": "section",
+  "enabled_on": {
+    "templates": [
+      "index"
+    ]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Заголовок",
+      "default": "Популярні категорії"
+    },
+    {
+      "type": "collection_list",
+      "id": "collections",
+      "label": "Погоджені колекції",
+      "limit": 8
+    },
+    {
+      "type": "paragraph",
+      "content": "Показуються лише обрані реальні Shopify-колекції. Банери, промо, товари та бренди залишені на наступне погодження."
+    }
+  ],
+  "presets": [
+    {
+      "name": "BAZAR — категорії"
+    }
+  ]
+}
+{% endschema %}

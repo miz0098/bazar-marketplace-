@@ -1,0 +1,42 @@
+/* B2.1: namespaced adaptation of bazar-global.css@105d10f. No body/native button overrides. */
+:root {
+  --bazar-color-blue: var(--color-primary-button-background, #0f172a);
+  --bazar-color-on-blue: var(--color-primary-button-text, #fff);
+  --bazar-color-navy: #0f172a;
+  --bazar-color-text: #1f2937;
+  --bazar-color-muted: #64748b;
+  --bazar-color-border: #e5eaf2;
+  --bazar-color-surface: #fff;
+  --bazar-color-surface-soft: #f6f8fb;
+  --bazar-font-family: Inter, var(--font-body--family, system-ui), system-ui, sans-serif;
+  --bazar-space-xs: 8px;
+  --bazar-space-sm: 12px;
+  --bazar-space-md: 16px;
+  --bazar-space-lg: 24px;
+  --bazar-space-xl: 32px;
+  --bazar-space-2xl: 48px;
+  --bazar-space-3xl: 64px;
+  --bazar-container-width: var(--page-width, 100%);
+  --bazar-container-padding: 24px;
+  --bazar-radius-sm: 8px;
+  --bazar-radius-md: 12px;
+  --bazar-radius-lg: 16px;
+}
+.bazar-ui { color: var(--bazar-color-text); font-family: var(--bazar-font-family); font-size: 14px; line-height: 1.5; }
+.bazar-ui *, .bazar-ui *::before, .bazar-ui *::after { box-sizing: border-box; }
+.bazar-container { width: min(calc(100% - var(--bazar-container-padding) * 2), var(--bazar-container-width)); margin-inline: auto; }
+.bazar-ui svg { display: block; width: 24px; height: 24px; }
+.bazar-ui a { color: inherit; text-decoration: none; }
+.bazar-ui a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.bazar-ui :is(button, input, select, summary) { font: inherit; }
+.bazar-ui :is(a, button, summary, input, select):focus-visible { outline: 2px solid var(--bazar-color-navy); outline-offset: 4px; }
+.bazar-ui .bazar-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 8px 20px; border: 1px solid transparent; border-radius: 8px; background: var(--bazar-color-blue); color: var(--bazar-color-on-blue); font-weight: 600; cursor: pointer; text-decoration: none; }
+.bazar-ui .bazar-button:hover { filter: brightness(.9); text-decoration: none; }
+.bazar-ui .bazar-button--outline { border-color: var(--bazar-color-border); background: var(--bazar-color-surface); color: var(--bazar-color-navy); }
+.bazar-ui .bazar-button:disabled, .bazar-ui [aria-disabled='true'] { cursor: default; opacity: .6; }
+.bazar-logo { display: inline-flex; align-items: center; flex-shrink: 0; }
+.bazar-logo__asset { display: block; }
+.bazar-ui .bazar-logo__svg { width: 144px; height: auto; }
+.bazar-editor-note { padding: 12px; border: 1px dashed #64748b; border-radius: 8px; color: #0f172a; background: #f6f8fb; font-size: 13px; }
+@media (max-width: 767px) { :root { --bazar-container-padding: 16px; } .bazar-ui .bazar-logo__svg { width: 112px; } }
+@media (prefers-reduced-motion: reduce) { .bazar-ui *, .bazar-ui *::before, .bazar-ui *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }

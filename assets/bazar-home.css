@@ -1,0 +1,15 @@
+/* Bounded adaptation of bazar-home@105d10f; merchandising order/claims remain deferred. */
+.bazar-home { background: var(--bazar-color-surface); padding-block: 16px 24px; }
+.bazar-home-hero { display: grid; gap: 24px; align-items: start; }
+.bazar-home-hero--with-menu { grid-template-columns: 220px minmax(0, 1fr); }
+.bazar-home-catalog { font-size: 13px; }
+.bazar-home-hero__media { min-width: 0; border-radius: 12px; overflow: hidden; }
+.bazar-home-hero__media picture { display: block; }
+.bazar-home-hero__image { display: block; width: 100%; height: auto; }
+.bazar-home__title { margin: 0 0 16px; font: 600 24px/1.35 var(--bazar-font-family); color: var(--bazar-color-navy); }
+.bazar-category-grid { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 16px; }
+.bazar-category-card { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; font-weight: 600; overflow-wrap: anywhere; min-width: 0; padding: 8px; border-radius: 8px; }
+.bazar-category-card:hover { background: var(--bazar-color-surface-soft); }
+.bazar-category-card__image { width: 100%; height: auto; aspect-ratio: 1; object-fit: contain; }
+@media (max-width: 1023px) { .bazar-category-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } .bazar-home-hero--with-menu { grid-template-columns: 180px minmax(0, 1fr); } }
+@media (max-width: 767px) { .bazar-home-hero--with-menu { grid-template-columns: minmax(0, 1fr); } .bazar-home-catalog { display: none; } .bazar-category-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

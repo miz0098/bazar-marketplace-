@@ -1,0 +1,39 @@
+{% doc %}
+  Presentation adapted from bazar-header-actions@105d10f. No demo auth, profile paths or fake counts.
+  @param {object} section - Header settings.
+{% enddoc %}
+<header-actions class="bazar-header-actions">
+  {% if section.settings.bazar_favorites_url != blank %}
+    <a class="bazar-header-action" href="{{ section.settings.bazar_favorites_url }}">
+      {% render 'bazar-icon', name: 'heart' %}<span>Обране</span>
+    </a>
+  {% else %}
+    <span class="bazar-header-action" aria-disabled="true" title="Обране — очікує інтеграції">
+      {% render 'bazar-icon', name: 'heart' %}<span>Обране<span class="bazar-header-pending">Очікує інтеграції</span></span>
+    </span>
+  {% endif %}
+  {% if section.settings.bazar_account_ready and shop.customer_accounts_enabled %}
+    <a class="bazar-header-action" href="{{ routes.account_url }}" rel="nofollow">
+      {{ 'icon-account.svg' | inline_asset_content }}<span>Профіль</span>
+    </a>
+  {% else %}
+    <span class="bazar-header-action" aria-disabled="true" title="Профіль — очікує інтеграції">
+      {{ 'icon-account.svg' | inline_asset_content }}<span>Профіль<span class="bazar-header-pending">Очікує інтеграції</span></span>
+    </span>
+  {% endif %}
+  {% if settings.cart_type == 'drawer' and template.name != 'cart' %}
+    <button class="bazar-header-action button-unstyled" type="button" on:click="#cart-drawer/toggle"
+      aria-haspopup="dialog" aria-expanded="false" aria-controls="cart-drawer" aria-label="Кошик" aria-describedby="cart-bubble-text">
+  {% else %}
+    <a class="bazar-header-action" href="{{ routes.cart_url }}" aria-label="Кошик" aria-describedby="cart-bubble-text">
+  {% endif %}
+      <cart-icon class="bazar-header-cart">
+        {{ 'icon-cart.svg' | inline_asset_content }}
+        {% render 'cart-bubble', limit: 100 %}
+      </cart-icon>
+      <span>Кошик</span>
+  {% if settings.cart_type == 'drawer' and template.name != 'cart' %}</button>{% else %}</a>{% endif %}
+  <span ref="liveRegion" class="visually-hidden" role="status"></span>
+</header-actions>
+<script src="{{ 'cart-icon.js' | asset_url }}" type="module"></script>
+<script src="{{ 'header-actions.js' | asset_url }}" type="module"></script>

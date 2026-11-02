@@ -1,0 +1,18 @@
+{% doc %}
+  BAZAR logo mark with blue shopping-bag icon and BAZAR wordmark.
+
+  @param {string} [class] - Additional class name.
+{% enddoc %}
+
+<a
+  href="{{ routes.root_url }}"
+  class="bazar-logo{% if class != blank %} {{ class }}{% endif %}"
+  aria-label="BAZAR"
+>
+  <span
+    class="bazar-logo__asset"
+    aria-hidden="true"
+  >
+    {{ 'bazar-logo.svg' | inline_asset_content }}
+  </span>
+</a>
