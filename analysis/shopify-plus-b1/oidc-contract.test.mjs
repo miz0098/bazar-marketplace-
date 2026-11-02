@@ -1,0 +1,41 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {generateKeyPairSync, sign} from 'node:crypto';
+import {inspectLocalIdToken, validateConfiguration} from './oidc-contract.mjs';
+const {privateKey, publicKey} = generateKeyPairSync('rsa', {modulusLength: 2048});
+const wrongKey = generateKeyPairSync('rsa', {modulusLength: 2048}).publicKey;
+const expected = {issuer:'https://issuer.example.test', audience:'local-contract-client', kid:'local-only', nonce:'one-transaction-nonce', now:2000000000};
+// Protocol fixture only, using the published OIDC example email. No account/email is generated or provisioned.
+const base = {iss:expected.issuer, aud:expected.audience, sub:'opaque-local-subject', nonce:expected.nonce, iat:expected.now-60, exp:expected.now+60, email:'janedoe@example.com', email_verified:true};
+function token(changes = {}, header = {}) {
+ const parts = [{alg:'RS256',kid:expected.kid,...header},{...base,...changes}].map(v=>Buffer.from(JSON.stringify(v)).toString('base64url'));
+ return [...parts,sign('RSA-SHA256',Buffer.from(parts.join('.')),privateKey).toString('base64url')].join('.');
+}
+const check = (changes, message, header) => assert.throws(()=>inspectLocalIdToken(token(changes,header),publicKey,expected),{message});
+test('locally signed contract fixture satisfies contract but never issues a customer session',()=>assert.deepEqual(inspectLocalIdToken(token(),publicKey,expected),{contractSatisfied:true,sessionIssued:false}));
+test('phone-only token cannot satisfy Shopify email contract',()=>check({email:undefined,phone_number:'+380000000000'},'REAL_EMAIL_REQUIRED'));
+test('blank email is rejected',()=>check({email:' '},'REAL_EMAIL_REQUIRED'));
+test('unverified email cannot be promoted',()=>check({email_verified:false},'VERIFIED_EMAIL_REQUIRED'));
+test('truthy string is not a verified email boolean',()=>check({email_verified:'true'},'VERIFIED_EMAIL_REQUIRED'));
+test('missing verification is rejected',()=>check({email_verified:undefined},'VERIFIED_EMAIL_REQUIRED'));
+test('wrong issuer rejected',()=>check({iss:'https://other.example.test'},'ISSUER_OR_AUDIENCE'));
+test('wrong audience rejected',()=>check({aud:'other-client'},'ISSUER_OR_AUDIENCE'));
+test('nonce mismatch rejected',()=>check({nonce:'another-transaction'},'SUBJECT_OR_NONCE'));
+test('subject cannot be empty',()=>check({sub:''},'SUBJECT_OR_NONCE'));
+test('expired token rejected',()=>check({exp:expected.now},'TOKEN_TIME'));
+test('future issued token rejected',()=>check({iat:expected.now+1},'TOKEN_TIME'));
+test('not-yet-valid token rejected',()=>check({nbf:expected.now+1},'TOKEN_TIME'));
+test('non-numeric expiry rejected',()=>check({exp:String(expected.now+60)},'TOKEN_TIME'));
+test('unsigned algorithm rejected',()=>check({},'ALGORITHM_OR_KEY',{alg:'none'}));
+test('HS256 is outside Shopify contract',()=>check({},'ALGORITHM_OR_KEY',{alg:'HS256'}));
+test('untrusted key ID rejected',()=>check({},'ALGORITHM_OR_KEY',{kid:'other'}));
+test('wrong signing key rejected',()=>assert.throws(()=>inspectLocalIdToken(token(),wrongKey,expected),{message:'SIGNATURE'}));
+test('tampered claims rejected',()=>{const parts=token().split('.');parts[1]=Buffer.from(JSON.stringify({...base,sub:'attacker'})).toString('base64url');assert.throws(()=>inspectLocalIdToken(parts.join('.'),publicKey,expected),{message:'SIGNATURE'});});
+test('malformed token rejected',()=>assert.throws(()=>inspectLocalIdToken('not-a-jwt',publicKey,expected),{message:'TOKEN_FORMAT'}));
+const config = {plusVerified:true,realEmailEnrollment:true,flow:'authorization_code',pkce:'S256',logout:'rp_initiated',refreshTokens:true,firebaseAuth:false,endpoints:Object.fromEntries(['authorization','token','jwks','discovery'].map(k=>[k,`https://issuer.example.test/${k}`]))};
+test('local configuration can describe prerequisites without proving them',()=>assert.equal(validateConfiguration(config).eligibleForFurtherProof,true));
+test('unverified Plus does not become available just because it is selected',()=>assert.ok(validateConfiguration({...config,plusVerified:undefined}).blockers.includes('PLUS_ENTITLEMENT_UNVERIFIED')));
+test('phone-only enrollment remains blocked',()=>assert.ok(validateConfiguration({...config,realEmailEnrollment:false}).blockers.includes('VERIFIED_EMAIL_ENROLLMENT_REQUIRED')));
+test('implicit flow, plain PKCE, Firebase Auth and unsupported logout rejected',()=>assert.equal(validateConfiguration({...config,flow:'implicit',pkce:'plain',firebaseAuth:true,logout:'back_channel'}).blockers.length,4));
+test('non-HTTPS and missing endpoints fail configuration',()=>assert.equal(validateConfiguration({...config,endpoints:{token:'http://issuer.example.test/token'}}).blockers.length,4));
+test('refresh omission is an explicit long-session proof gap',()=>assert.ok(validateConfiguration({...config,refreshTokens:false}).blockers.includes('LONG_SESSION_REFRESH_UNPROVEN')));

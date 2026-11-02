@@ -1,0 +1,32 @@
+{
+  "accessed": "2026-11-02",
+  "source": "https://wiki.meest-group.com/api/files/openAPI_ua.json",
+  "http_status": 200,
+  "sha256": "72ee8a7718cea99212b145eae578b65e5ccfc786931d17b40152fffc92bff19f",
+  "spec_version": "2.0",
+  "read_only": true,
+  "carrier_operations_called": false,
+  "paths": {
+    "/citySearch": [
+      "post"
+    ],
+    "/branchTypes": [
+      "get"
+    ],
+    "/branchSearch": [
+      "post"
+    ],
+    "/calculate": [
+      "post"
+    ],
+    "/parcel": [
+      "post"
+    ],
+    "/parcelStatus/{parcelID}": [
+      "get"
+    ],
+    "/tracking/{trackNumber}": [
+      "get"
+    ]
+  }
+}
