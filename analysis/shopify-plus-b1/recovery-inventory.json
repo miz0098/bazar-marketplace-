@@ -1,0 +1,1011 @@
+{
+  "base": "026c01b1cac15436f16c3f68d1ad1f85e2ea6ccc",
+  "source_branch": "bazar-latest-shopify",
+  "source": "105d10fb6b8e65c5f163016aa8c69072e85faa0e",
+  "phase_a": "2e901f8aaeb1166ff0827eb63a6363ed18c9c437",
+  "files": [
+    {
+      "status": "A",
+      "path": "assets/bazar-account.css",
+      "blob": "5eea4c17a581e35967609ad6c2e81698ebe791ac",
+      "reference_ids": "25, 33, 13, 16",
+      "reusability": "Presentation candidate; account data/routing needs redesign of technical integration",
+      "dependencies": [],
+      "corrections": "Replace local/session storage authority and /profile History-route assumptions; current accounts use supported extensions/routes and owner-authorized APIs. Scope selectors; verify unresolved palette/grid/type tokens and all responsive breakpoints.",
+      "risk": "High"
+    },
+    {
+      "status": "A",
+      "path": "assets/bazar-account.js",
+      "blob": "7623412d49bd299e08cf879a56c1ceeee28c2071",
+      "reference_ids": "25, 33, 13, 16",
+      "reusability": "Presentation candidate; account data/routing needs redesign of technical integration",
+      "dependencies": [],
+      "corrections": "Replace local/session storage authority and /profile History-route assumptions; current accounts use supported extensions/routes and owner-authorized APIs.",
+      "risk": "Critical"
+    },
+    {
+      "status": "A",
+      "path": "assets/bazar-auth.css",
+      "blob": "9f7e5e07068096d73a17e1e642513a9892b766d1",
+      "reference_ids": "01, 15, 20, 22 (mislabeled), 23",
+      "reusability": "Markup/style candidate; not an authentication service",
+      "dependencies": [],
+      "corrections": "Compare phone/OTP/error/focus styles with approved module; adapt to approved IdP-hosted flow, remove unsupported legacy route assumptions. Scope selectors; verify unresolved palette/grid/type tokens and all responsive breakpoints.",
+      "risk": "High"
+    },
+    {
+      "status": "A",
+      "path": "assets/bazar-auth.js",
+      "blob": "e480432c494848698798425a75722d2c32abd5d0",
+      "reference_ids": "01, 15, 20, 22 (mislabeled), 23",
+      "reusability": "Presentation behavior only; auth authority rejected",
+      "dependencies": [],
+      "corrections": "Replace UI-only OTP acceptance, browser auth flags and optional BazarSmsAuth fallbacks; use approved hosted OIDC transaction/session boundary.",
+      "risk": "Critical"
+    },
+    {
+      "status": "A",
+      "path": "assets/bazar-catalog.css",
+      "blob": "3b46be6467eafa8bc9740bc6ed8edce2bfe592fa",
+      "reference_ids": "11, 28, 23, 09",
+      "reusability": "Selective catalog/filter/navigation recovery",
+      "dependencies": [],
+      "corrections": "Map real Shopify collections/facets/routes; validate filters/sort/page/deep links and mobile drawer; preserve native pagination consumers. Scope selectors; verify unresolved palette/grid/type tokens and all responsive breakpoints.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "assets/bazar-collections-index.css",
+      "blob": "447f81ad0356018b81a0f359fdbc6c18dae65c5e",
+      "reference_ids": "11, 28, 23, 09",
+      "reusability": "Selective catalog/filter/navigation recovery",
+      "dependencies": [],
+      "corrections": "Map real Shopify collections/facets/routes; validate filters/sort/page/deep links and mobile drawer; preserve native pagination consumers. Scope selectors; verify unresolved palette/grid/type tokens and all responsive breakpoints.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "assets/bazar-collections-index.js",
+      "blob": "4a46977ce54198ce819ec65c958b7901f93deadb",
+      "reference_ids": "11, 28, 23, 09",
+      "reusability": "Selective catalog/filter/navigation recovery",
+      "dependencies": [],
+      "corrections": "Map real Shopify collections/facets/routes; validate filters/sort/page/deep links and mobile drawer; preserve native pagination consumers.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "assets/bazar-favorites-modal.css",
+      "blob": "040e4f0184d390bde6398acfd94719082c483031",
+      "reference_ids": "13, 15, 33, 09",
+      "reusability": "UI/guest-state candidate only",
+      "dependencies": [],
+      "corrections": "Implement owner-scoped persistent wishlist via API/app; reconcile guest data only by approved policy, remove hardcoded /profile assumptions and validate canonical variants. Scope selectors; verify unresolved palette/grid/type tokens and all responsive breakpoints.",
+      "risk": "High"
+    },
+    {
+      "status": "A",
+      "path": "assets/bazar-favorites-modal.js",
+      "blob": "3a6b59be969a71bed446789a1af36cc9d18af1bf",
+      "reference_ids": "13, 15, 33, 09",
+      "reusability": "UI/guest-state candidate only",
+      "dependencies": [],
+      "corrections": "Implement owner-scoped persistent wishlist via API/app; reconcile guest data only by approved policy, remove hardcoded /profile assumptions and validate canonical variants.",
+      "risk": "High"
+    },
+    {
+      "status": "A",
+      "path": "assets/bazar-footer.css",
+      "blob": "a9da05b9af7258625732a467dce2301b60857a51",
+      "reference_ids": "06, 10, 15, 19, 29; C9",
+      "reusability": "Selective footer recovery",
+      "dependencies": [],
+      "corrections": "Confirm actual legal/contact/social/app links and locale/currency placement; preserve group/editor settings, remove placeholder links and unsupported profile paths. Scope selectors; verify unresolved palette/grid/type tokens and all responsive breakpoints.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "assets/bazar-global.css",
+      "blob": "33eac06874cea35fea07a78cc1ad1f5b4bc41a89",
+      "reference_ids": "02–09, 15, 20–24, 27, 29",
+      "reusability": "Recover minimal hunks only",
+      "dependencies": [],
+      "corrections": "Reconcile global tokens/cascade and BAZAR loaders with Horizon; keep module dependency order and editor lifecycle; avoid global regressions and duplicated assets. Scope selectors; verify unresolved palette/grid/type tokens and all responsive breakpoints.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "assets/bazar-header.css",
+      "blob": "8b9dd56f3913fca2003eeb189d97e545ecd25cf0",
+      "reference_ids": "06, 23, 29, 30; C1/C4/C9",
+      "reusability": "Selective shell recovery",
+      "dependencies": [],
+      "corrections": "Resolve final desktop/mobile menu and colors; retain Horizon editor behavior, keyboard/drawer focus and cart/search integrations; replace auth links, prove no duplicate shell. Scope selectors; verify unresolved palette/grid/type tokens and all responsive breakpoints.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "assets/bazar-header.js",
+      "blob": "ecb10c6d9bdf50aa449cdd2db7cb04a32b2f5355",
+      "reference_ids": "06, 23, 29, 30; C1/C4/C9",
+      "reusability": "Selective shell recovery",
+      "dependencies": [],
+      "corrections": "Resolve final desktop/mobile menu and colors; retain Horizon editor behavior, keyboard/drawer focus and cart/search integrations; replace auth links, prove no duplicate shell.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "assets/bazar-home-hero.js",
+      "blob": "823ea615562716f56792c913ec609f21f973c6d3",
+      "reference_ids": "06, 30, 32; C1/C2",
+      "reusability": "Selective homepage recovery",
+      "dependencies": [],
+      "corrections": "Confirm v1.0/v1.2/wireframe section order, approved assets and blue/purple tokens; use real links/catalog and editable merchant settings.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "assets/bazar-home.css",
+      "blob": "6a16741d732cf4b4914bd51da81712cfab219146",
+      "reference_ids": "06, 30, 32; C1/C2",
+      "reusability": "Selective homepage recovery",
+      "dependencies": [],
+      "corrections": "Confirm v1.0/v1.2/wireframe section order, approved assets and blue/purple tokens; use real links/catalog and editable merchant settings. Scope selectors; verify unresolved palette/grid/type tokens and all responsive breakpoints.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "assets/bazar-logo.svg",
+      "blob": "e82083fc0bdb004064a249ee45becacb20784af6",
+      "reference_ids": "06, 23, 29, 30; C1/C4/C9",
+      "reusability": "Selective shell recovery",
+      "dependencies": [],
+      "corrections": "Resolve final desktop/mobile menu and colors; retain Horizon editor behavior, keyboard/drawer focus and cart/search integrations; replace auth links, prove no duplicate shell. Compare exact artwork and retain vector provenance; no claim this is the original PNG export.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "assets/bazar-product.css",
+      "blob": "bb8689c0f07ce881e7e89f85981619e6cfcda4fa",
+      "reference_ids": "09, 11, 26, 06",
+      "reusability": "Selective catalog/product presentation",
+      "dependencies": [],
+      "corrections": "Verify canonical variants/availability/price, metafield/review ownership and gallery/a11y; preserve Shopify cart and no duplicate checkout authority. Scope selectors; verify unresolved palette/grid/type tokens and all responsive breakpoints.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "assets/bazar-product.js",
+      "blob": "9411681f31874f115d662d924e635c88437757e4",
+      "reference_ids": "09, 11, 26, 06",
+      "reusability": "Selective catalog/product presentation",
+      "dependencies": [],
+      "corrections": "Verify canonical variants/availability/price, metafield/review ownership and gallery/a11y; preserve Shopify cart and no duplicate checkout authority.",
+      "risk": "High"
+    },
+    {
+      "status": "A",
+      "path": "assets/bazar-promo-special-offers.svg",
+      "blob": "3d53c4a332459d74dacb8074a886987214515455",
+      "reference_ids": "06, 30, 32; C1/C2",
+      "reusability": "Selective homepage recovery",
+      "dependencies": [],
+      "corrections": "Confirm v1.0/v1.2/wireframe section order, approved assets and blue/purple tokens; use real links/catalog and editable merchant settings. Compare exact artwork and retain vector provenance; no claim this is the original PNG export.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "assets/bazar-toast.css",
+      "blob": "15d748d26f7a5866791394daf729ca71dcfb4b30",
+      "reference_ids": "07, 15, 24",
+      "reusability": "Feedback UI candidate",
+      "dependencies": [],
+      "corrections": "Use live operation states only; escaping, aria-live, focus/reduced motion and auto-dismiss must match approved feedback rules. Scope selectors; verify unresolved palette/grid/type tokens and all responsive breakpoints.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "assets/bazar-toast.js",
+      "blob": "4dc8c3e09f9b3c12e5dc831e0e53c08a9fa6143d",
+      "reference_ids": "07, 15, 24",
+      "reusability": "Feedback UI candidate",
+      "dependencies": [],
+      "corrections": "Use live operation states only; escaping, aria-live, focus/reduced motion and auto-dismiss must match approved feedback rules.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "assets/bazar-wishlist-store.js",
+      "blob": "7dd2e0194f57da64b8f1c31833e172658d879501",
+      "reference_ids": "13, 15, 33, 09",
+      "reusability": "UI/guest-state candidate only",
+      "dependencies": [],
+      "corrections": "Implement owner-scoped persistent wishlist via API/app; reconcile guest data only by approved policy, remove hardcoded /profile assumptions and validate canonical variants.",
+      "risk": "High"
+    },
+    {
+      "status": "A",
+      "path": "sections/bazar-account-dashboard.liquid",
+      "blob": "cc48477e96832a94e8d348a4bc9af0ab29d403fc",
+      "reference_ids": "25, 33, 13, 16",
+      "reusability": "Presentation candidate; account data/routing needs redesign of technical integration",
+      "dependencies": [
+        "bazar-account-provider-data",
+        "bazar-account-sidebar",
+        "bazar-account.css",
+        "bazar-account.js"
+      ],
+      "corrections": "Replace local/session storage authority and /profile History-route assumptions; current accounts use supported extensions/routes and owner-authorized APIs.",
+      "risk": "High"
+    },
+    {
+      "status": "A",
+      "path": "sections/bazar-auth-activate-account.liquid",
+      "blob": "01decf22606478f947b2f2a79e7787e101ade795",
+      "reference_ids": "01, 15, 20, 22 (mislabeled), 23",
+      "reusability": "Do not wire by default",
+      "dependencies": [
+        "bazar-auth-modal"
+      ],
+      "corrections": "Hold legacy account route/template; do not recover as current accounts or add password/activation/reset UX.",
+      "risk": "High"
+    },
+    {
+      "status": "A",
+      "path": "sections/bazar-auth-login.liquid",
+      "blob": "842fb9caae3a1f643cb6b4ea29d594566c7b5698",
+      "reference_ids": "01, 15, 20, 22 (mislabeled), 23",
+      "reusability": "Markup/style candidate; not an authentication service",
+      "dependencies": [
+        "bazar-auth-modal"
+      ],
+      "corrections": "Compare phone/OTP/error/focus styles with approved module; adapt to approved IdP-hosted flow, remove unsupported legacy route assumptions.",
+      "risk": "High"
+    },
+    {
+      "status": "A",
+      "path": "sections/bazar-auth-register.liquid",
+      "blob": "b1327d7e37f84de574b0d9c50829643c1155b0c6",
+      "reference_ids": "01, 15, 20, 22 (mislabeled), 23",
+      "reusability": "Markup/style candidate; not an authentication service",
+      "dependencies": [
+        "bazar-auth-modal"
+      ],
+      "corrections": "Compare phone/OTP/error/focus styles with approved module; adapt to approved IdP-hosted flow, remove unsupported legacy route assumptions.",
+      "risk": "High"
+    },
+    {
+      "status": "A",
+      "path": "sections/bazar-auth-reset-password.liquid",
+      "blob": "faf1b3054c7bdd7a614d7b8bbf7ba7c4035574d9",
+      "reference_ids": "01, 15, 20, 22 (mislabeled), 23",
+      "reusability": "Do not wire by default",
+      "dependencies": [
+        "bazar-auth-modal"
+      ],
+      "corrections": "Hold legacy account route/template; do not recover as current accounts or add password/activation/reset UX.",
+      "risk": "High"
+    },
+    {
+      "status": "A",
+      "path": "sections/bazar-category-blocks.liquid",
+      "blob": "9d848120368519bf19157144f61cfe3ced82e674",
+      "reference_ids": "06, 30, 32; C1/C2",
+      "reusability": "Selective homepage recovery",
+      "dependencies": [],
+      "corrections": "Confirm v1.0/v1.2/wireframe section order, approved assets and blue/purple tokens; use real links/catalog and editable merchant settings.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "sections/bazar-collections-index.liquid",
+      "blob": "cb8598734f9013dacd06fb40ed19ce461627049e",
+      "reference_ids": "11, 28, 23, 09",
+      "reusability": "Selective catalog/filter/navigation recovery",
+      "dependencies": [
+        "bazar-catalog-data",
+        "bazar-catalog-icon",
+        "bazar-collection-url",
+        "bazar-collections-index.css",
+        "bazar-collections-index.js"
+      ],
+      "corrections": "Map real Shopify collections/facets/routes; validate filters/sort/page/deep links and mobile drawer; preserve native pagination consumers.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "sections/bazar-footer.liquid",
+      "blob": "1c14f51c20255113f3d173b4d31ccc4102cab051",
+      "reference_ids": "06, 10, 15, 19, 29; C9",
+      "reusability": "Selective footer recovery",
+      "dependencies": [
+        "bazar-footer.css",
+        "bazar-logo"
+      ],
+      "corrections": "Confirm actual legal/contact/social/app links and locale/currency placement; preserve group/editor settings, remove placeholder links and unsupported profile paths.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "sections/bazar-home-hero.liquid",
+      "blob": "c4a065926a1692bc801190cbb60910ff8bcfcd86",
+      "reference_ids": "06, 30, 32; C1/C2",
+      "reusability": "Selective homepage recovery",
+      "dependencies": [
+        "bazar-home-hero.js"
+      ],
+      "corrections": "Confirm v1.0/v1.2/wireframe section order, approved assets and blue/purple tokens; use real links/catalog and editable merchant settings.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "sections/bazar-main-collection.liquid",
+      "blob": "4a737283d0041b103cd853a89fc2e2127a6f5998",
+      "reference_ids": "11, 28, 23, 09",
+      "reusability": "Selective catalog/filter/navigation recovery",
+      "dependencies": [
+        "bazar-catalog-filter",
+        "bazar-product-card",
+        "pagination-controls"
+      ],
+      "corrections": "Map real Shopify collections/facets/routes; validate filters/sort/page/deep links and mobile drawer; preserve native pagination consumers.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "sections/bazar-main-product.liquid",
+      "blob": "c9ce881e4fde394fd7949063a14db8ed3369feb7",
+      "reference_ids": "09, 11, 26, 06",
+      "reusability": "Selective catalog/product presentation",
+      "dependencies": [
+        "bazar-product-gallery",
+        "bazar-product.js"
+      ],
+      "corrections": "Verify canonical variants/availability/price, metafield/review ownership and gallery/a11y; preserve Shopify cart and no duplicate checkout authority.",
+      "risk": "High"
+    },
+    {
+      "status": "A",
+      "path": "sections/bazar-product-rail.liquid",
+      "blob": "a6d86fa7b859563c1ef65a6476bb9111a4cde91f",
+      "reference_ids": "09, 11, 26, 06",
+      "reusability": "Selective catalog/product presentation",
+      "dependencies": [
+        "bazar-product-card"
+      ],
+      "corrections": "Verify canonical variants/availability/price, metafield/review ownership and gallery/a11y; preserve Shopify cart and no duplicate checkout authority.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "sections/bazar-product-recommendations.liquid",
+      "blob": "9e0b311a93c5d76b3178b9d6312ead5f5676606b",
+      "reference_ids": "09, 11, 26, 06",
+      "reusability": "Selective catalog/product presentation",
+      "dependencies": [
+        "bazar-product-card",
+        "product-recommendations.js"
+      ],
+      "corrections": "Verify canonical variants/availability/price, metafield/review ownership and gallery/a11y; preserve Shopify cart and no duplicate checkout authority.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "sections/bazar-promo-banners.liquid",
+      "blob": "bd3eccc89bc4d5a71d22efd829c168474638a27d",
+      "reference_ids": "06, 30, 32; C1/C2",
+      "reusability": "Selective homepage recovery",
+      "dependencies": [
+        "bazar-promo-special-offers.svg"
+      ],
+      "corrections": "Confirm v1.0/v1.2/wireframe section order, approved assets and blue/purple tokens; use real links/catalog and editable merchant settings.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "sections/bazar-recently-viewed.liquid",
+      "blob": "30a34f34fce183fc5a232e7a4f07e4b28d40e632",
+      "reference_ids": "09, 11, 26, 06",
+      "reusability": "Selective catalog/product presentation",
+      "dependencies": [],
+      "corrections": "Validate consent/retention and canonical IDs/media; guest recent-view storage is not server/customer authority; compare missing/empty states.",
+      "risk": "Medium"
+    },
+    {
+      "status": "M",
+      "path": "sections/footer-group.json",
+      "blob": "d0fb8faa7532a8a938514bde7d9e31e446b79f14",
+      "reference_ids": "06, 10, 15, 19, 29; C9",
+      "reusability": "Selective footer recovery",
+      "dependencies": [
+        "section:bazar-footer"
+      ],
+      "corrections": "Confirm actual legal/contact/social/app links and locale/currency placement; preserve group/editor settings, remove placeholder links and unsupported profile paths.",
+      "risk": "Medium"
+    },
+    {
+      "status": "M",
+      "path": "sections/header-group.json",
+      "blob": "d4173ee56fb044cdf11bca97d846d9f9164e9e86",
+      "reference_ids": "06, 23, 29, 30; C1/C4/C9",
+      "reusability": "Selective shell recovery",
+      "dependencies": [
+        "section:header"
+      ],
+      "corrections": "Resolve final desktop/mobile menu and colors; retain Horizon editor behavior, keyboard/drawer focus and cart/search integrations; replace auth links, prove no duplicate shell.",
+      "risk": "High"
+    },
+    {
+      "status": "M",
+      "path": "sections/header.liquid",
+      "blob": "60f2808857bb54a650f5aafb8d82b33a1ee6c2b8",
+      "reference_ids": "06, 23, 29, 30; C1/C4/C9",
+      "reusability": "Selective shell recovery",
+      "dependencies": [
+        "bazar-header-desktop",
+        "bazar-header.css",
+        "bazar-header.js",
+        "contrast-override",
+        "header-actions",
+        "header-row",
+        "header.js",
+        "localization-form",
+        "search",
+        "slideshow-styles"
+      ],
+      "corrections": "Resolve final desktop/mobile menu and colors; retain Horizon editor behavior, keyboard/drawer focus and cart/search integrations; replace auth links, prove no duplicate shell.",
+      "risk": "High"
+    },
+    {
+      "status": "A",
+      "path": "snippets/bazar-account-provider-data.liquid",
+      "blob": "9243ed77580733dce063e49a01486eda8a1ff417",
+      "reference_ids": "25, 33, 13, 16",
+      "reusability": "Presentation candidate; account data/routing needs redesign of technical integration",
+      "dependencies": [],
+      "corrections": "Replace bounded 20-order/20-address bootstrap and empty feature arrays with chosen account API/extension contract; never equate SMS browser flag to Liquid customer.",
+      "risk": "High"
+    },
+    {
+      "status": "A",
+      "path": "snippets/bazar-account-sidebar.liquid",
+      "blob": "abe36234b5e0c14ea28c3a0023f545a23282563c",
+      "reference_ids": "25, 33, 13, 16",
+      "reusability": "Presentation candidate; account data/routing needs redesign of technical integration",
+      "dependencies": [],
+      "corrections": "Replace local/session storage authority and /profile History-route assumptions; current accounts use supported extensions/routes and owner-authorized APIs.",
+      "risk": "High"
+    },
+    {
+      "status": "A",
+      "path": "snippets/bazar-auth-icon.liquid",
+      "blob": "8bc5aba4b49e14e15a6ee3253c1a16ad906d5186",
+      "reference_ids": "01, 15, 20, 22 (mislabeled), 23",
+      "reusability": "Markup/style candidate; not an authentication service",
+      "dependencies": [],
+      "corrections": "Compare phone/OTP/error/focus styles with approved module; adapt to approved IdP-hosted flow, remove unsupported legacy route assumptions.",
+      "risk": "High"
+    },
+    {
+      "status": "A",
+      "path": "snippets/bazar-auth-modal.liquid",
+      "blob": "b83331f74c39b3fc16e9ab83acb32ab8e2611536",
+      "reference_ids": "01, 15, 20, 22 (mislabeled), 23",
+      "reusability": "Markup/style candidate; not an authentication service",
+      "dependencies": [
+        "bazar-auth-icon",
+        "bazar-auth.css",
+        "bazar-auth.js",
+        "bazar-phone-input",
+        "bazar-sms-code-input"
+      ],
+      "corrections": "Compare phone/OTP/error/focus styles with approved module; adapt to approved IdP-hosted flow, remove unsupported legacy route assumptions.",
+      "risk": "High"
+    },
+    {
+      "status": "A",
+      "path": "snippets/bazar-catalog-data.liquid",
+      "blob": "f32f00f9c2a885bc088d56d27eff2f7d999c9865",
+      "reference_ids": "11, 28, 23, 09",
+      "reusability": "Selective catalog/filter/navigation recovery",
+      "dependencies": [],
+      "corrections": "Replace hardcoded category taxonomy with approved merchant menus/collections and tested stable handles; preserve Ukrainian labels.",
+      "risk": "High"
+    },
+    {
+      "status": "A",
+      "path": "snippets/bazar-catalog-filter.liquid",
+      "blob": "66724315c9eef45296896f7d38890c5b1dfe047f",
+      "reference_ids": "11, 28, 23, 09",
+      "reusability": "Selective catalog/filter/navigation recovery",
+      "dependencies": [],
+      "corrections": "Map real Shopify collections/facets/routes; validate filters/sort/page/deep links and mobile drawer; preserve native pagination consumers.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "snippets/bazar-catalog-icon.liquid",
+      "blob": "aaec5ffde93916efdf96d8db0d24c1ac69ff4604",
+      "reference_ids": "11, 28, 23, 09",
+      "reusability": "Selective catalog/filter/navigation recovery",
+      "dependencies": [],
+      "corrections": "Map real Shopify collections/facets/routes; validate filters/sort/page/deep links and mobile drawer; preserve native pagination consumers.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "snippets/bazar-catalog-menu.liquid",
+      "blob": "550ec97237f6b0788413f642176afd707afbbc9d",
+      "reference_ids": "06, 23, 29, 30; C1/C4/C9",
+      "reusability": "Selective shell recovery",
+      "dependencies": [
+        "bazar-catalog-data",
+        "bazar-catalog-icon",
+        "bazar-collection-url"
+      ],
+      "corrections": "Resolve final desktop/mobile menu and colors; retain Horizon editor behavior, keyboard/drawer focus and cart/search integrations; replace auth links, prove no duplicate shell.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "snippets/bazar-collection-url.liquid",
+      "blob": "c4f14d760fcaff2e9a995dc83fe1886c5d79390f",
+      "reference_ids": "11, 28, 23, 09",
+      "reusability": "Selective catalog/filter/navigation recovery",
+      "dependencies": [],
+      "corrections": "Resolve real collection URLs/handles; no inferred/placeholder route may become a broken link.",
+      "risk": "High"
+    },
+    {
+      "status": "A",
+      "path": "snippets/bazar-favorites-modal.liquid",
+      "blob": "abd2410d37055b18dc9613bd019036c032bdbfaa",
+      "reference_ids": "13, 15, 33, 09",
+      "reusability": "UI/guest-state candidate only",
+      "dependencies": [],
+      "corrections": "Implement owner-scoped persistent wishlist via API/app; reconcile guest data only by approved policy, remove hardcoded /profile assumptions and validate canonical variants.",
+      "risk": "High"
+    },
+    {
+      "status": "A",
+      "path": "snippets/bazar-header-actions.liquid",
+      "blob": "34a7fdf132a4cdb6d92f7f63bd18da27e359419d",
+      "reference_ids": "06, 23, 29, 30; C1/C4/C9",
+      "reusability": "Selective shell recovery",
+      "dependencies": [
+        "bazar-auth-icon",
+        "bazar-auth-modal",
+        "bazar-favorites-modal",
+        "bazar-wishlist-data"
+      ],
+      "corrections": "Resolve final desktop/mobile menu and colors; retain Horizon editor behavior, keyboard/drawer focus and cart/search integrations; replace auth links, prove no duplicate shell.",
+      "risk": "High"
+    },
+    {
+      "status": "A",
+      "path": "snippets/bazar-header-desktop.liquid",
+      "blob": "c069fd3b9e264b075a160c7695ad6d367463863f",
+      "reference_ids": "06, 23, 29, 30; C1/C4/C9",
+      "reusability": "Selective shell recovery",
+      "dependencies": [
+        "bazar-catalog-menu",
+        "bazar-header-actions",
+        "bazar-logo"
+      ],
+      "corrections": "Resolve final desktop/mobile menu and colors; retain Horizon editor behavior, keyboard/drawer focus and cart/search integrations; replace auth links, prove no duplicate shell.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "snippets/bazar-logo.liquid",
+      "blob": "0855f5f11fb71eaf09b78b64e2d19e4da46983f9",
+      "reference_ids": "06, 23, 29, 30; C1/C4/C9",
+      "reusability": "Selective shell recovery",
+      "dependencies": [],
+      "corrections": "Resolve final desktop/mobile menu and colors; retain Horizon editor behavior, keyboard/drawer focus and cart/search integrations; replace auth links, prove no duplicate shell.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "snippets/bazar-phone-input.liquid",
+      "blob": "454b314569bcaf6cb573440fce7816fc4132eae1",
+      "reference_ids": "01, 15, 20, 22 (mislabeled), 23",
+      "reusability": "Markup/style candidate; not an authentication service",
+      "dependencies": [],
+      "corrections": "Compare phone/OTP/error/focus styles with approved module; adapt to approved IdP-hosted flow, remove unsupported legacy route assumptions.",
+      "risk": "High"
+    },
+    {
+      "status": "A",
+      "path": "snippets/bazar-product-card.liquid",
+      "blob": "667d59fe1a9a74d325859738ac434e2339be1b67",
+      "reference_ids": "09, 11, 26, 06",
+      "reusability": "Selective catalog/product presentation",
+      "dependencies": [],
+      "corrections": "Resolve blue/orange CTA and badge/rating/price/variant rules; use actual Shopify data, not sample discounts or backend competing totals.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "snippets/bazar-product-gallery.liquid",
+      "blob": "123e28b0236f43bdb4bc41b2609a1da5082f77b2",
+      "reference_ids": "09, 11, 26, 06",
+      "reusability": "Selective catalog/product presentation",
+      "dependencies": [],
+      "corrections": "Verify canonical variants/availability/price, metafield/review ownership and gallery/a11y; preserve Shopify cart and no duplicate checkout authority.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "snippets/bazar-sms-code-input.liquid",
+      "blob": "d156daf614df10eb939484324a6ab1f3a7c384ba",
+      "reference_ids": "01, 15, 20, 22 (mislabeled), 23",
+      "reusability": "Markup/style candidate; not an authentication service",
+      "dependencies": [],
+      "corrections": "Compare phone/OTP/error/focus styles with approved module; adapt to approved IdP-hosted flow, remove unsupported legacy route assumptions.",
+      "risk": "High"
+    },
+    {
+      "status": "A",
+      "path": "snippets/bazar-wishlist-data.liquid",
+      "blob": "8760e78253666d5c021901e2f4f853076eb6e085",
+      "reference_ids": "13, 15, 33, 09",
+      "reusability": "UI/guest-state candidate only",
+      "dependencies": [],
+      "corrections": "Implement owner-scoped persistent wishlist via API/app; reconcile guest data only by approved policy, remove hardcoded /profile assumptions and validate canonical variants.",
+      "risk": "High"
+    },
+    {
+      "status": "M",
+      "path": "snippets/pagination-controls.liquid",
+      "blob": "850266b53d9e01b3a5d48735bfbe876db65a08b4",
+      "reference_ids": "11, 28, 23, 09",
+      "reusability": "Selective catalog/filter/navigation recovery",
+      "dependencies": [],
+      "corrections": "Map real Shopify collections/facets/routes; validate filters/sort/page/deep links and mobile drawer; preserve native pagination consumers.",
+      "risk": "Medium"
+    },
+    {
+      "status": "M",
+      "path": "snippets/scripts.liquid",
+      "blob": "cb0e09f0116fa216f01c2076c4475e171b707f2e",
+      "reference_ids": "02–09, 15, 20–24, 27, 29",
+      "reusability": "Recover minimal hunks only",
+      "dependencies": [
+        "accordion-custom.js",
+        "anchored-popover.js",
+        "auto-close-details.js",
+        "bazar-favorites-modal.js",
+        "bazar-toast.js",
+        "bazar-wishlist-store.js",
+        "cart-discount.js",
+        "comparison-slider.js",
+        "component-quantity-selector.js",
+        "component.js",
+        "dialog.js",
+        "events.js",
+        "floating-panel.js",
+        "fly-to-cart.js",
+        "focus.js",
+        "layered-slideshow.js",
+        "localization.js",
+        "media-gallery.js",
+        "media.js",
+        "money-formatting.js",
+        "morph.js",
+        "overflow-list.js",
+        "page-view-event.js",
+        "paginated-list-aspect-ratio.js",
+        "paginated-list.js",
+        "performance.js",
+        "popover-polyfill.js",
+        "price-per-item.js",
+        "product-card.js",
+        "product-form.js",
+        "product-inventory.js",
+        "product-price.js",
+        "product-sku.js",
+        "quick-add.js",
+        "recently-viewed-products.js",
+        "rte-formatter.js",
+        "scroll-container.js",
+        "scrolling.js",
+        "section-hydration.js",
+        "section-renderer.js",
+        "show-more.js",
+        "slideshow.js",
+        "standard-actions-override.js",
+        "sticky-add-to-cart.js",
+        "theme-drawer.js",
+        "utilities.js",
+        "variant-picker.js",
+        "video-background.js",
+        "view-event-elements.js",
+        "view-transitions.js",
+        "volume-pricing-info.js",
+        "volume-pricing.js"
+      ],
+      "corrections": "Reconcile global tokens/cascade and BAZAR loaders with Horizon; keep module dependency order and editor lifecycle; avoid global regressions and duplicated assets.",
+      "risk": "High"
+    },
+    {
+      "status": "M",
+      "path": "snippets/stylesheets.liquid",
+      "blob": "dfc119b2bde4932acc9285ffb16c0530623043ce",
+      "reference_ids": "02–09, 15, 20–24, 27, 29",
+      "reusability": "Recover minimal hunks only",
+      "dependencies": [
+        "base.css",
+        "bazar-catalog.css",
+        "bazar-favorites-modal.css",
+        "bazar-global.css",
+        "bazar-home.css",
+        "bazar-product.css",
+        "bazar-toast.css",
+        "overflow-list.css"
+      ],
+      "corrections": "Reconcile global tokens/cascade and BAZAR loaders with Horizon; keep module dependency order and editor lifecycle; avoid global regressions and duplicated assets.",
+      "risk": "High"
+    },
+    {
+      "status": "M",
+      "path": "templates/collection.json",
+      "blob": "b486f8f4a2e2952fbe21d4060c8826ac7bba6977",
+      "reference_ids": "11, 28, 23, 09",
+      "reusability": "Selective catalog/filter/navigation recovery",
+      "dependencies": [
+        "section:bazar-main-collection"
+      ],
+      "corrections": "Map real Shopify collections/facets/routes; validate filters/sort/page/deep links and mobile drawer; preserve native pagination consumers.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "templates/customers/account.json",
+      "blob": "c67b4cb54c6173eb80a019342b7639a92e2ec16e",
+      "reference_ids": "01, 15, 20, 22 (mislabeled), 23",
+      "reusability": "Do not wire by default",
+      "dependencies": [
+        "section:bazar-account-dashboard"
+      ],
+      "corrections": "Hold legacy account route/template; do not recover as current accounts or add password/activation/reset UX.",
+      "risk": "High"
+    },
+    {
+      "status": "A",
+      "path": "templates/customers/activate_account.json",
+      "blob": "8e2fd40e3414bb0843fa0b2e09b6d130edcfe4d7",
+      "reference_ids": "01, 15, 20, 22 (mislabeled), 23",
+      "reusability": "Do not wire by default",
+      "dependencies": [
+        "section:bazar-auth-activate-account"
+      ],
+      "corrections": "Hold legacy account route/template; do not recover as current accounts or add password/activation/reset UX.",
+      "risk": "High"
+    },
+    {
+      "status": "A",
+      "path": "templates/customers/login.json",
+      "blob": "ca82000f5dc66008566dcd03e1cf061c2c0c0755",
+      "reference_ids": "01, 15, 20, 22 (mislabeled), 23",
+      "reusability": "Do not wire by default",
+      "dependencies": [
+        "section:bazar-auth-login"
+      ],
+      "corrections": "Hold legacy account route/template; do not recover as current accounts or add password/activation/reset UX.",
+      "risk": "High"
+    },
+    {
+      "status": "A",
+      "path": "templates/customers/register.json",
+      "blob": "f77b90d51578b6e33b0fed2bea9a6cc98ca447f7",
+      "reference_ids": "01, 15, 20, 22 (mislabeled), 23",
+      "reusability": "Do not wire by default",
+      "dependencies": [
+        "section:bazar-auth-register"
+      ],
+      "corrections": "Hold legacy account route/template; do not recover as current accounts or add password/activation/reset UX.",
+      "risk": "High"
+    },
+    {
+      "status": "A",
+      "path": "templates/customers/reset_password.json",
+      "blob": "b8f622caa41f64fee9ec6ffa48e07eeb3a580293",
+      "reference_ids": "01, 15, 20, 22 (mislabeled), 23",
+      "reusability": "Do not wire by default",
+      "dependencies": [
+        "section:bazar-auth-reset-password"
+      ],
+      "corrections": "Hold legacy account route/template; do not recover as current accounts or add password/activation/reset UX.",
+      "risk": "High"
+    },
+    {
+      "status": "M",
+      "path": "templates/index.json",
+      "blob": "0d77fcfcbc6780b6d35ca0321165547f64b0cda7",
+      "reference_ids": "06, 30, 32; C1/C2",
+      "reusability": "Selective homepage recovery",
+      "dependencies": [
+        "section:bazar-category-blocks",
+        "section:bazar-home-hero",
+        "section:bazar-product-rail",
+        "section:bazar-promo-banners"
+      ],
+      "corrections": "Recover reviewed composition after dependencies; replace shopify:// image/collection handles with verified development-store resources; do not overwrite live settings.",
+      "risk": "Medium"
+    },
+    {
+      "status": "M",
+      "path": "templates/list-collections.json",
+      "blob": "79c27755431e05f5965eb2bc741c17f18b30b039",
+      "reference_ids": "11, 28, 23, 09",
+      "reusability": "Selective catalog/filter/navigation recovery",
+      "dependencies": [
+        "section:bazar-collections-index"
+      ],
+      "corrections": "Map real Shopify collections/facets/routes; validate filters/sort/page/deep links and mobile drawer; preserve native pagination consumers.",
+      "risk": "Medium"
+    },
+    {
+      "status": "A",
+      "path": "templates/page.profile.json",
+      "blob": "0bef3e7fd2b12ed02c5205918c0771c681abe0f8",
+      "reference_ids": "25, 33, 13, 16",
+      "reusability": "Presentation candidate; account data/routing needs redesign of technical integration",
+      "dependencies": [
+        "section:bazar-account-dashboard"
+      ],
+      "corrections": "Hold until route choice; a page template does not register /profile nested paths. Prove direct-load/auth behavior.",
+      "risk": "High"
+    },
+    {
+      "status": "M",
+      "path": "templates/product.json",
+      "blob": "20e26074216e21aa71457601983361809210c2dc",
+      "reference_ids": "09, 11, 26, 06",
+      "reusability": "Selective catalog/product presentation",
+      "dependencies": [
+        "section:bazar-main-product",
+        "section:bazar-product-recommendations",
+        "section:bazar-recently-viewed"
+      ],
+      "corrections": "Recover section composition only after required sections/metafields exist; preserve merchant product-template assignments and settings.",
+      "risk": "High"
+    }
+  ],
+  "images": [
+    {
+      "file": "Authentication Module Desktop v1.2 (FINAL).PNG",
+      "sha256": "1a27c3d149c2d982fa8d9d2679c056b61476cefe4d39f1f629974e26e26fda82"
+    },
+    {
+      "file": "BAZAR Design System v1.0.PNG",
+      "sha256": "12c302f8d343c245bc7f16c2c18e943ce2d6c99e59a0d62d9acdb66a7c5e6a0d"
+    },
+    {
+      "file": "BAZAR Design System ΓÇö Colors v1.0 .PNG",
+      "sha256": "320d66beccb26206e55c4098c0d358f71919158869b9f3d75d58fae3a8783a20"
+    },
+    {
+      "file": "BAZAR Design System ΓÇö Grid & Spacing v1.0 (FINAL).PNG",
+      "sha256": "e70af65af01637f34cb56a19289bdcd140b22d436e48ceb4ff3f78a4cfeaae96"
+    },
+    {
+      "file": "BAZAR Design System ΓÇö Typography v1.0 (FINAL) .PNG",
+      "sha256": "e1ac5c631cf13434df546538b90e5af9fb42fdee7f8e756f2cdbb39ccec73d81"
+    },
+    {
+      "file": "BAZAR Home Page Desktop ΓÇö v1.2.PNG",
+      "sha256": "97c0f90b59b63f4e3d0c1e8fd0ebe42af40f041aec8b7fc5c7b4fbf754ba4b58"
+    },
+    {
+      "file": "BAZAR UI Kit v1.0.PNG",
+      "sha256": "05e724b38d7bef4c912ff9a822aedcf7cde89011460661e32f7c0aec5419d5cd"
+    },
+    {
+      "file": "Buttons.PNG",
+      "sha256": "7ea8df5b06612e8c3da6936a473fc67fe170f695d315c291c5970b832a72b288"
+    },
+    {
+      "file": "Cards.PNG",
+      "sha256": "b7a19cad02779f48a76e4ab402453619b9375a704fb9caa8a97ff20542332e28"
+    },
+    {
+      "file": "Cart Page Desktop v1.1 (FINAL).PNG",
+      "sha256": "47890780ec3152df6fb504bf66169204b9820085056c5c991004e97e359cf25b"
+    },
+    {
+      "file": "Catalog Page Desktop v1.2.PNG",
+      "sha256": "188e83db7081f0c87de668e422f1f94879b04bd5a4311e75626bf2ce59f54010"
+    },
+    {
+      "file": "Checkout Desktop v1.0 (FINAL).PNG",
+      "sha256": "5d6eb377f10f3f7c9bffcad931a0b42929580a9c41f60b237db8f49ffd035b6b"
+    },
+    {
+      "file": "Empty States Module Desktop v1.0 (FINAL).PNG",
+      "sha256": "ae36526012ac1f4801b24db3891135d1681725888750788495a251e0d67972a1"
+    },
+    {
+      "file": "Empty States.PNG",
+      "sha256": "1aa41beee78a042ca01f2c56eacdc4901135d8a3c68c48587318b3a78965f5f4"
+    },
+    {
+      "file": "Global UI Components v1.0 (FINAL).PNG",
+      "sha256": "bb016a7e8238d6d8d019ca2139f0e487a166037b6e346d6b3e086e32c6390e6b"
+    },
+    {
+      "file": "Help Center Desktop v1.0 .PNG",
+      "sha256": "5582a637b1f56f38efab0cab3ad0ee36c3aad17151a45d3d2da985e92b16e3dc"
+    },
+    {
+      "file": "Icons.PNG",
+      "sha256": "5fbfc9d30c2bdda342d3561ec78344534270ac3b94f8f7197c1ed71f29726511"
+    },
+    {
+      "file": "Illustration System.PNG",
+      "sha256": "6456e4912a6c1c426579314c3bc8165bbcdac03cdf36f45073c9136a38ec1aee"
+    },
+    {
+      "file": "Information Pages Module Desktop v1.0 (FINAL).PNG",
+      "sha256": "86e72369aa1541fb2790e7ebd0b80d4c5376428512b76624d6c6daa0c42a5213"
+    },
+    {
+      "file": "Inputs.PNG",
+      "sha256": "55464d460fcd586379b801b9cfbd477d8e4fef5ba12acee571d4dcf664ebd116"
+    },
+    {
+      "file": "Loaders (Skeleton, Spinner, Progress).PNG",
+      "sha256": "ca968727b787e693312250cbc49b727acbcaa3d44eeddb7750278ad0bd269e1d"
+    },
+    {
+      "file": "Modals.PNG",
+      "sha256": "5fbfc9d30c2bdda342d3561ec78344534270ac3b94f8f7197c1ed71f29726511"
+    },
+    {
+      "file": "Navigation.PNG",
+      "sha256": "73301ea5a7f7c649a0462849cef6a6bedd61412db0fbd611fd8a8a5dc626294f"
+    },
+    {
+      "file": "Notifications.PNG",
+      "sha256": "0b67fa263fdbfe1a033edb0e23c416c2030d31f5388e74aa42ca09005207312f"
+    },
+    {
+      "file": "Order Details Page v1.0 (FINAL.PNG",
+      "sha256": "d0703d1066585306f8d24b8ecdf08f1fb67ebdb7cfe2f7ff782b51ab9bb8cbdf"
+    },
+    {
+      "file": "Product Page Desktop v1.2.PNG",
+      "sha256": "26d999dc6e146462ba47115978161b4bc68d6d252d3242e83fe7ac4a2a36f67e"
+    },
+    {
+      "file": "Responsive Rules.PNG",
+      "sha256": "c120da3be2e8fdf095b0c047bb63f1b73906e79917f739b27fc4716838770ce2"
+    },
+    {
+      "file": "Search Experience Desktop v1.0 (FINAL).PNG",
+      "sha256": "23e6786f5cbdfc829ba0fc542ede68ecedeeeb7755b9188f3005197f5e8a72e0"
+    },
+    {
+      "file": "Shopify Components.PNG",
+      "sha256": "a3c19ebf10577e59c209f04496c4f8bf3f97709a0bafa225adcff09cbdbfc667"
+    },
+    {
+      "file": "UI Design Home Page v1.0..PNG",
+      "sha256": "375cf99c6e6aa84b9d16ac366ae34024103c318f20c40583e1b690631b76e2cd"
+    },
+    {
+      "file": "UX Architecture v1.0.PNG",
+      "sha256": "6b02705c1dbd96a5b5a1ee596b55290cb7199903969f62f2025120f79e6dfc36"
+    },
+    {
+      "file": "Wireframe ╨│╨╛╨╗╨╛╨▓╨╜╨╛╤û╠ê ╤ü╤é╨╛╤Ç╤û╨╜╨║╨╕ (Desktop).PNG",
+      "sha256": "9965c38fccaf480a3cf702eefdc024c766fb664fce3b0a75d59be7547f81c9da"
+    },
+    {
+      "file": "╨₧╤ü╨╛╨▒╨╕╤ü╤é╨╕╨╕╠å ╨║╨░╨▒╤û╨╜╨╡╤é v1.1.PNG",
+      "sha256": "019ccebf3a6336e6ffccd665eb82416e8f2cf41fe6fd46d812996250b58d32d7"
+    }
+  ]
+}
