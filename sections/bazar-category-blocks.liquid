@@ -6,7 +6,7 @@
       <div class="bazar-category-grid">
         {% for collection in section.settings.collections %}
           <a class="bazar-category-card" href="{{ collection.url }}">
-            {% if collection.featured_image != blank %}{{ collection.featured_image | image_url: width: 400 | image_tag: widths: '160, 240, 400', sizes: '(max-width: 767px) 45vw, 160px', loading: 'lazy', alt: '', class: 'bazar-category-card__image' }}{% endif %}
+            {% if collection.featured_image != blank %}{{ collection.featured_image | image_url: width: 400 | image_tag: widths: '160, 240, 400', sizes: '(max-width: 767px) 45vw, 160px', loading: 'lazy', alt: collection.title, class: 'bazar-category-card__image' }}{% endif %}
             <span>{{ collection.title | escape }}</span>
           </a>
         {% endfor %}
@@ -40,7 +40,7 @@
     },
     {
       "type": "paragraph",
-      "content": "Показуються лише обрані реальні Shopify-колекції. Банери, промо, товари та бренди залишені на наступне погодження."
+      "content": "Показуються лише обрані реальні Shopify-колекції. Головна сторінка використовує лише погоджені ресурси й реальні колекції."
     }
   ],
   "presets": [

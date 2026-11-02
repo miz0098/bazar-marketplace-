@@ -1,0 +1,26 @@
+# B3.2 — Homepage reference comparison
+
+Primary exact source: **`design-reference/storefront/BAZAR Home Page Desktop ΓÇö v1.2.PNG`**. Supporting filenames are resolved from the immutable33-file inventory: `BAZAR Design System v1.0.PNG`, the Unicode-named FINAL Grid & Spacing and FINAL Typography boards, `Buttons.PNG`, `Cards.PNG`, `Responsive Rules.PNG`, `Navigation.PNG`, `Icons.PNG`. No filename normalized and no original re-encoded. Prior B3/B3.1 decisions remain authoritative.
+
+| Approved region | Implemented coverage | Remaining discrepancy / evidence boundary |
+|---|---|---|
+| Hero + left category menu | Extend existing hero into image-backed carousel; actual configured menu; desktop/mobile pictures; previous/next/dots/keyboard; actual optional campaign links/copy. | Actual standalone banner art/copy missing. Natural asset aspect ratio is preserved; matching desktop art should be approximately4:1. Mobile proportions depend on genuine selected artwork. No artificial product picture/banner. |
+| Benefits below hero | Five-item framed strip, configured original icon image and confirmed heading/text. Optional256px desktop offset aligns with240px sidebar+16px gap. | Claims such as delivery threshold/14-day returns/support hours are not copied from screenshot as facts. Original icon exports must be supplied. |
+| Popular categories | Eight genuine selected collection cards, title/image/link, framed tiles,8/4/2 responsive grid. | Actual category editorial image and title length affect height. No “view all”/category-scroll affordance without an agreed actual destination/rail behavior. Header remains the mobile category-navigation entry. |
+| Three promo banners | Three configured image regions, real links, optional genuine text. | Exported banners and campaign records needed; baked-in art text should not be duplicated with optional headings. No fake deadline/countdown; timer omitted. |
+| Hot offers/product rail | Existing BAZAR canonical cards with actual collection/featured selection, price/discount/availability and existing variant-safe add. Context-only compact styling, five desktop columns and bounded scrollable list. | Source's small icon-only add, ratings, swatches/countdowns are not fabricated. Existing accessible text CTA/availability produce greater card height. Genuine media/title lengths and actual discount data differ from illustrative board products. |
+| Brands | Configured logo/name/actual URL only;8/4/2 grid. | Missing original logos; grid reflow rather than the board's potential brand-scroll arrow. No fictional logos or inferred routes. |
+| Newsletter band | Supported native customer form after explicit readiness/consent; inactive otherwise; actual server errors/submitted-request copy. | Source's decorative mail artwork is unavailable. Neutral B3.1 surface and approved blue CTA replace the screenshot's pale-violet/purple accents; required consent adds a visible row. No promise of successful subscribed state without Shopify confirmation/merchant DOI behavior. |
+| Header/footer/shared foundation | Byte-identical B3.1 shell/tokens: blue#003EFF, hover#0035D9, active#002BB3, Inter, desktop content1380. | Inherited missing exact logo/icon/app-badge exports and real destinations remain; this phase does not silently redesign them. |
+
+## Composition decision
+
+Rendered storefront region controls order: **hero/menu → benefits → categories → promotions → hot offers/featured collection rail → brands → newsletter → existing footer**. The primary image's right-hand “Структура головної сторінки” annotation is not storefront content. Its narrative new-products entry does not justify inventing a second default product rail absent from the rendered composition. Collection products and featured-product choices are two content sources of the same approved rail.
+
+## Local visual evidence
+
+[Desktop](analysis/shopify-homepage-b3-2/previews/local-desktop.png) and [mobile](analysis/shopify-homepage-b3-2/previews/local-mobile.png) screenshots are **prominently labeled synthetic fixtures**: no BAZAR catalog/campaign/brand/claim data. They were inspected for region order, hierarchy, card density, controls and responsive reflow. The first review prompted more compact homepage-only card CSS and the configurable benefit alignment. The fixtures intentionally use generic locally labeled rectangles rather than imitate missing artwork.
+
+At320/390 mobile: two category/product/brand columns, stacked promos/newsletter, existing header catalog disclosure. At768: four category/brand columns and three visible rail cards; at1024: four rail cards; at1440: eight categories/brands and five rail cards. Product content scrolls within its finite track; the document does not overflow horizontally. Benefits reflow from five to three to two columns. Carousel controls retain44px targets, no autoplay and no forced image crop. Mobile copy overlays move below media if configured, avoiding unreadable text on narrow art; no new mobile navigation feature is invented.
+
+Missing assets/real content prevent measured full-page parity. No aligned full-page pixel diff, numerical match percentage, live Shopify screenshot or actual iPhone/Safari acceptance is claimed. Original33 PNG byte hashes are in [source evidence](analysis/shopify-homepage-b3-2/source-evidence.json).

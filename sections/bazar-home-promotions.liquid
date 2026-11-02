@@ -1,0 +1,61 @@
+{% assign count = 0 %}{% for block in section.blocks %}{% if block.settings.image != blank %}{% assign count = count | plus: 1 %}{% endif %}{% endfor %}
+{% if count > 0 %}<div class="bazar-ui bazar-home"><div class="bazar-container bazar-home-promotions">
+{% for block in section.blocks %}{% if block.settings.image != blank %}<article {{ block.shopify_attributes }}>
+{% assign promotion_alt = block.settings.image_alt | default: block.settings.image.alt | default: block.settings.heading | default: 'Переглянути пропозицію' %}
+{% if block.settings.link != blank %}<a href="{{ block.settings.link }}">{% endif %}
+{{ block.settings.image | image_url: width: 1000 | image_tag: widths: '400,700,1000', sizes: '(max-width: 767px) 100vw, 33vw', alt: promotion_alt, loading: 'lazy' }}
+{% if block.settings.link != blank %}</a>{% endif %}
+{% if block.settings.heading != blank %}<h2>{{ block.settings.heading | escape }}</h2>{% endif %}
+{% if block.settings.link != blank and block.settings.label != blank %}<a href="{{ block.settings.link }}">{{ block.settings.label | escape }}</a>{% endif %}
+</article>{% endif %}{% endfor %}</div></div>
+{% elsif request.design_mode %}<p class="bazar-ui bazar-container bazar-editor-note">Додайте до трьох справжніх промобанерів та погоджені посилання. Без вигаданих знижок чи таймерів.</p>{% endif %}
+{% schema %}
+{
+  "name": "BAZAR — промобанери",
+  "enabled_on": {
+    "templates": [
+      "index"
+    ]
+  },
+  "settings": [],
+  "presets": [
+    {
+      "name": "BAZAR — промобанери"
+    }
+  ],
+  "max_blocks": 3,
+  "blocks": [
+    {
+      "type": "promotion",
+      "name": "Промобанер",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Погоджений промобанер"
+        },
+        {
+          "type": "text",
+          "id": "image_alt",
+          "label": "Опис зображення"
+        },
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Погоджений заголовок, за потреби"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Справжня адреса акції"
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Текст посилання, за потреби"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

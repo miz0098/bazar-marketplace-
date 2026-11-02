@@ -1,0 +1,66 @@
+{
+  "scope": "LOCAL synthetic cart API/section responses, actual native Horizon modules; no merchant tests",
+  "results": [
+    {
+      "name": "Actual Liquid cart object renders images, options, unit/line prices, server discount and total",
+      "result": "passed"
+    },
+    {
+      "name": "Checkout is genuine cart form checkout submit; promo honestly deferred, no fake wallets",
+      "result": "passed"
+    },
+    {
+      "name": "Native quantity event uses exact line key, confirmed section HTML and authoritative updated totals",
+      "result": "passed"
+    },
+    {
+      "name": "Bundled native drawer hydration and cart-icon count synchronize after confirmed page mutation",
+      "result": "passed"
+    },
+    {
+      "name": "Native decrement and direct input obey quantity state",
+      "result": "passed"
+    },
+    {
+      "name": "Delayed removal keeps row until server confirms; busy checkout/keyboard guards",
+      "result": "passed"
+    },
+    {
+      "name": "422 inventory refusal preserves row, restores quantity, announces error and permits retry",
+      "result": "passed"
+    },
+    {
+      "name": "Uncertain network result locks mutations/checkout, exposes reload, never claims success/retries",
+      "result": "passed"
+    },
+    {
+      "name": "Desktop/tablet/mobile breakpoints and axe WCAG A/AA",
+      "result": "passed"
+    },
+    {
+      "name": "Keyboard focus and reduced-motion compatible markup",
+      "result": "passed"
+    },
+    {
+      "name": "Labeled local desktop/mobile screenshots saved",
+      "result": "passed"
+    },
+    {
+      "name": "Unavailable variant disables the complete quantity group and keeps removal available",
+      "result": "passed"
+    },
+    {
+      "name": "No-JavaScript fallback uses supported native cart POST and real remove URL",
+      "result": "passed"
+    },
+    {
+      "name": "Last confirmed removal renders honest empty state and working shopping link",
+      "result": "passed"
+    },
+    {
+      "name": "No browser runtime exceptions",
+      "result": "passed"
+    }
+  ],
+  "errors": []
+}

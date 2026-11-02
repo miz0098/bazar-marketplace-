@@ -1,22 +1,43 @@
-{% comment %}Selective structural recovery from bazar-home-hero@105d10f; synthetic artwork, claims and autoplay removed.{% endcomment %}
-{% assign hero_alt = section.settings.image_alt | default: section.settings.image.alt | default: 'Головний банер BAZAR' %}
-{% if section.settings.image != blank %}
-  <div class="bazar-ui bazar-home">
-    <div class="bazar-container bazar-home-hero{% if section.settings.menu.links.size > 0 %} bazar-home-hero--with-menu{% endif %}">
-      {% if section.settings.menu.links.size > 0 %}<nav class="bazar-home-catalog" aria-label="Категорії товарів">{% render 'bazar-catalog-links', menu: section.settings.menu %}</nav>{% endif %}
-      <div class="bazar-home-hero__media">
-        {% if section.settings.link != blank %}<a href="{{ section.settings.link }}">{% endif %}
-          <picture>
-            {% if section.settings.mobile_image != blank %}<source media="(max-width: 767px)" srcset="{{ section.settings.mobile_image | image_url: width: 900 }}">{% endif %}
-            {{ section.settings.image | image_url: width: 2000 | image_tag: widths: '600, 900, 1200, 1600, 2000', sizes: '(min-width: 1024px) 80vw, 100vw', loading: 'eager', fetchpriority: 'high', alt: hero_alt, class: 'bazar-home-hero__image' }}
-          </picture>
-        {% if section.settings.link != blank %}</a>{% endif %}
+{% liquid
+  assign slide_count = 0
+  for block in section.blocks
+    if block.settings.image != blank
+      assign slide_count = slide_count | plus: 1
+    endif
+  endfor
+%}
+<script src="{{ 'bazar-home.js' | asset_url }}" type="module"></script>
+{% if slide_count > 0 or section.settings.image != blank %}
+<div class="bazar-ui bazar-home">
+  <div class="bazar-container bazar-home-hero{% if section.settings.menu.links.size > 0 %} bazar-home-hero--with-menu{% endif %}">
+    {% if section.settings.menu.links.size > 0 %}<nav class="bazar-home-catalog" aria-label="Категорії товарів">{% render 'bazar-catalog-links', menu: section.settings.menu %}</nav>{% endif %}
+    <bazar-home-carousel class="bazar-home-hero__media" role="region" aria-roledescription="карусель" aria-label="Головні пропозиції" tabindex="0">
+      <div id="BazarSlides-{{ section.id }}">
+        {% if slide_count > 0 %}
+          {% assign rendered_slides = 0 %}
+          {% for block in section.blocks %}{% if block.settings.image != blank %}
+            {% assign eager = false %}{% if rendered_slides == 0 %}{% assign eager = true %}{% endif %}
+            <div data-home-slide {{ block.shopify_attributes }}>
+              {% render 'bazar-home-slide', content: block.settings, eager: eager %}
+            </div>
+            {% assign rendered_slides = rendered_slides | plus: 1 %}
+          {% endif %}{% endfor %}
+        {% else %}
+          <div data-home-slide>{% render 'bazar-home-slide', content: section.settings, eager: true %}</div>
+        {% endif %}
       </div>
-    </div>
+      {% if slide_count > 1 %}
+        <div class="bazar-home-carousel__controls" data-carousel-controls hidden>
+          <button type="button" data-slide-prev aria-controls="BazarSlides-{{ section.id }}" aria-label="Попередній слайд">{{ 'icon-chevron-left.svg' | inline_asset_content }}</button>
+          <div class="bazar-home-carousel__dots">{% for index in (1..slide_count) %}<button type="button" data-slide-index="{{ index | minus: 1 }}" aria-label="Перейти до слайда {{ index }}" aria-controls="BazarSlides-{{ section.id }}" aria-pressed="false"><span aria-hidden="true"></span></button>{% endfor %}</div>
+          <span class="visually-hidden" data-slide-status role="status" aria-live="polite" aria-atomic="true"></span>
+          <button type="button" data-slide-next aria-controls="BazarSlides-{{ section.id }}" aria-label="Наступний слайд">{{ 'icon-chevron-right.svg' | inline_asset_content }}</button>
+        </div>
+      {% endif %}
+    </bazar-home-carousel>
   </div>
-{% elsif request.design_mode %}
-  <div class="bazar-ui bazar-container bazar-editor-note">BAZAR: додайте погоджений банер та його опис. Банер прихований від покупців, доки зображення відсутнє.</div>
-{% endif %}
+</div>
+{% elsif request.design_mode %}<div class="bazar-ui bazar-container bazar-editor-note">Додайте погоджені зображення до слайдів або одиночного банера BAZAR. Покупці не бачать цей порожній блок.</div>{% endif %}
 {% schema %}
 {
   "name": "BAZAR — головний банер",
@@ -29,7 +50,7 @@
   "settings": [
     {
       "type": "paragraph",
-      "content": "Оберіть оригінальний погоджений банер. Без зображення блок не показується покупцям. Тексти, посилання й категорії редагуються; вигаданих товарів або обіцянок доставки немає."
+      "content": "Оберіть погоджені зображення. Слайди з блоків мають пріоритет над одиночним банером. Без зображень покупці не бачать технічних повідомлень."
     },
     {
       "type": "image_picker",
@@ -60,6 +81,50 @@
   "presets": [
     {
       "name": "BAZAR — головний банер"
+    }
+  ],
+  "max_blocks": 5,
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Слайд",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Погоджений банер"
+        },
+        {
+          "type": "image_picker",
+          "id": "mobile_image",
+          "label": "Мобільне зображення"
+        },
+        {
+          "type": "text",
+          "id": "image_alt",
+          "label": "Опис зображення"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Посилання"
+        },
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Заголовок, якщо не вбудовано в зображення"
+        },
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Погоджений підзаголовок"
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Текст посилання"
+        }
+      ]
     }
   ]
 }

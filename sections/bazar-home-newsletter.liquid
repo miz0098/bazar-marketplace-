@@ -1,0 +1,64 @@
+{% if section.settings.show %}
+<div class="bazar-ui bazar-home"><div class="bazar-container bazar-home-newsletter">
+  <div><h2>{{ section.settings.heading | escape }}</h2>{% if section.settings.text != blank %}<p>{{ section.settings.text | escape }}</p>{% endif %}</div>
+  {% if section.settings.enabled and section.settings.consent_text != blank %}
+    {% assign newsletter_id = 'BazarNewsletter-' | append: section.id %}
+    {% form 'customer', id: newsletter_id %}
+      <input type="hidden" name="contact[tags]" value="newsletter">
+      <label class="visually-hidden" for="NewsletterEmail-{{ section.id }}">Електронна пошта</label>
+      <div class="bazar-home-newsletter__fields"><input id="NewsletterEmail-{{ section.id }}" type="email" name="contact[email]" value="{{ form.email | escape }}" autocomplete="email" required placeholder="Введіть ваш e-mail"><button class="bazar-button" type="submit">Підписатися</button></div>
+      <label class="bazar-home-newsletter__consent"><input type="checkbox" name="contact[accepts_marketing]" value="true" required> {{ section.settings.consent_text | escape }}</label>
+      {% if form.errors %}<div role="alert">{{ form.errors | default_errors }}</div>{% endif %}
+      {% if form.posted_successfully? %}<p role="status">Запит на підписку надіслано. За потреби перевірте електронну пошту.</p>{% endif %}
+    {% endform %}
+  {% else %}
+    <div><fieldset disabled class="bazar-home-newsletter__fields"><legend class="visually-hidden">Підписка наразі недоступна</legend><label class="visually-hidden" for="NewsletterInactive-{{ section.id }}">Електронна пошта</label><input id="NewsletterInactive-{{ section.id }}" type="email" placeholder="Введіть ваш e-mail"><button type="button" class="bazar-button">Підписатися</button></fieldset><p>Підписка наразі недоступна.</p></div>
+  {% endif %}
+</div></div>
+{% endif %}
+{% if request.design_mode %}<p class="bazar-ui bazar-container bazar-editor-note">Для активації: покажіть блок, перевірте Shopify email-маркетинг та подвійне підтвердження, додайте юридично погоджений текст згоди, після цього увімкніть форму. Успіх показується лише з відповіді Shopify.</p>{% endif %}
+{% schema %}
+{
+  "name": "BAZAR — розсилка",
+  "enabled_on": {
+    "templates": [
+      "index"
+    ]
+  },
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show",
+      "label": "Показувати блок",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Заголовок",
+      "default": "Підпишіться на розсилку"
+    },
+    {
+      "type": "text",
+      "id": "text",
+      "label": "Погоджений опис"
+    },
+    {
+      "type": "checkbox",
+      "id": "enabled",
+      "label": "Механізм і згода перевірені: увімкнути форму",
+      "default": false
+    },
+    {
+      "type": "textarea",
+      "id": "consent_text",
+      "label": "Юридично погоджений текст згоди"
+    }
+  ],
+  "presets": [
+    {
+      "name": "BAZAR — розсилка"
+    }
+  ]
+}
+{% endschema %}

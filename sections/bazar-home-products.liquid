@@ -1,0 +1,78 @@
+{% liquid
+  assign products = section.settings.collection.products
+  if section.settings.products.size > 0
+    assign products = section.settings.products
+  endif
+%}
+{% if products.size > 0 %}
+{{ 'bazar-catalog.css' | asset_url | stylesheet_tag }}
+<script type="module" src="{{ 'bazar-catalog.js' | asset_url }}"></script>
+<script type="module" src="{{ 'product-card.js' | asset_url }}"></script>
+<script type="module" src="{{ 'bazar-home.js' | asset_url }}"></script>
+<div class="bazar-ui bazar-home"><div class="bazar-container">
+  <div class="bazar-home__heading">
+    {% if section.settings.heading != blank %}<h2 class="bazar-home__title">{{ section.settings.heading | escape }}</h2>{% endif %}
+    {% if section.settings.collection != blank %}<a href="{{ section.settings.collection.url }}">Переглянути всі</a>{% endif %}
+  </div>
+  <bazar-home-rail>
+    <ul id="BazarRail-{{ section.id }}" class="bazar-home-products" data-home-track tabindex="0" aria-label="Товари" role="list">
+      {% for product in products limit: section.settings.max_products %}<li>
+        {% content_for 'block', type: '_product-card', id: 'static-product-card', closest.product: product, product_view_context: 'home' %}
+      </li>{% endfor %}
+    </ul>
+    <div class="bazar-home-rail__controls" data-rail-controls hidden>
+      <button type="button" data-rail-prev aria-controls="BazarRail-{{ section.id }}" aria-label="Попередні товари">{{ 'icon-chevron-left.svg' | inline_asset_content }}</button>
+      <button type="button" data-rail-next aria-controls="BazarRail-{{ section.id }}" aria-label="Наступні товари">{{ 'icon-chevron-right.svg' | inline_asset_content }}</button>
+    </div>
+  </bazar-home-rail>
+</div></div>
+{% elsif request.design_mode %}<p class="bazar-ui bazar-container bazar-editor-note">Оберіть справжню колекцію або окремі товари. Список окремих товарів має пріоритет. Без підставних карток, цін чи відгуків.</p>{% endif %}
+{% schema %}
+{
+  "name": "BAZAR — товари",
+  "enabled_on": {
+    "templates": [
+      "index"
+    ]
+  },
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Заголовок",
+      "default": "Гарячі пропозиції"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Колекція товарів"
+    },
+    {
+      "type": "product_list",
+      "id": "products",
+      "label": "Або вибрані товари",
+      "limit": 12
+    },
+    {
+      "type": "range",
+      "id": "max_products",
+      "label": "Максимум товарів",
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "default": 10
+    },
+    {
+      "type": "checkbox",
+      "id": "bazar_catalog_cards",
+      "label": "Спільні картки BAZAR",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "BAZAR — товари"
+    }
+  ]
+}
+{% endschema %}

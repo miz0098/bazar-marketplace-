@@ -1,0 +1,54 @@
+{% assign count = 0 %}{% for block in section.blocks %}{% if block.settings.heading != blank %}{% assign count = count | plus: 1 %}{% endif %}{% endfor %}
+{% if count > 0 %}<div class="bazar-ui bazar-home"><div class="bazar-container"><ul class="bazar-home-benefits{% if section.settings.align_with_catalog %} bazar-home-benefits--with-menu{% endif %}" role="list">
+{% for block in section.blocks %}{% if block.settings.heading != blank %}<li {{ block.shopify_attributes }}>
+{% if block.settings.icon != blank %}{{ block.settings.icon | image_url: width: 96 | image_tag: alt: '', loading: 'lazy', class: 'bazar-home-benefits__icon' }}{% endif %}
+<div><h2>{{ block.settings.heading | escape }}</h2>{% if block.settings.text != blank %}<p>{{ block.settings.text | escape }}</p>{% endif %}</div>
+</li>{% endif %}{% endfor %}</ul></div></div>
+{% elsif request.design_mode %}<p class="bazar-ui bazar-container bazar-editor-note">Додайте підтверджені переваги та погоджені іконки. Твердження про доставку, гарантії чи підтримку не підставляються автоматично.</p>{% endif %}
+{% schema %}
+{
+  "name": "BAZAR — переваги",
+  "enabled_on": {
+    "templates": [
+      "index"
+    ]
+  },
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "align_with_catalog",
+      "label": "На широких екранах вирівняти під банером праворуч від меню",
+      "default": false
+    }
+  ],
+  "presets": [
+    {
+      "name": "BAZAR — переваги"
+    }
+  ],
+  "max_blocks": 5,
+  "blocks": [
+    {
+      "type": "benefit",
+      "name": "Підтверджена перевага",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "icon",
+          "label": "Погоджена іконка"
+        },
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Підтверджений заголовок"
+        },
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Погоджений опис"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

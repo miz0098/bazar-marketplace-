@@ -1,0 +1,24 @@
+{
+  "scope": "Local Theme Check only",
+  "command": "shopify theme check --path . --output json",
+  "cli": "5.0.0",
+  "errors": 0,
+  "warnings": 318,
+  "baseline": {
+    "phase": "B3.1",
+    "errors": 0,
+    "warnings": 317
+  },
+  "warning_delta": 1,
+  "warning_types": {
+    "ExcessiveSettingsCount": 1,
+    "ValidScopedCSSClass": 173,
+    "OrphanedSnippet": 139,
+    "UnusedDocParam": 5
+  },
+  "new_warning": {
+    "file": "snippets/bazar-home-slide.liquid",
+    "check": "OrphanedSnippet",
+    "note": "Literal calls in hero source are retained; no suppression."
+  }
+}

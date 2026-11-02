@@ -1,0 +1,54 @@
+{
+  "scope": "Local LiquidJS fixture + Chromium only; no Shopify/merchant/provider operations",
+  "checks": [
+    {
+      "name": "Default Liquid render: six required header elements, no fake auth or legacy hrefs",
+      "result": "passed"
+    },
+    {
+      "name": "Unconfigured footer destinations are inert; all nine slots identifiable in editor",
+      "result": "passed"
+    },
+    {
+      "name": "Configured footer destinations and actual collection fixtures render only configured links",
+      "result": "passed"
+    },
+    {
+      "name": "Search GET submits Ukrainian and special-character query to Shopify route contract",
+      "result": "passed"
+    },
+    {
+      "name": "Catalog keyboard disclosure: Enter, focusable links, Escape restores summary, outside click closes",
+      "result": "passed"
+    },
+    {
+      "name": "Native Horizon cart-icon receives actual standard-event contract and updates badge/live region",
+      "result": "passed"
+    },
+    {
+      "name": "Native Horizon drawer delegation, aria-expanded, Escape and focus restoration",
+      "result": "passed"
+    },
+    {
+      "name": "Responsive layout: no horizontal overflow at 320/390/768/1024/1440, default and configured",
+      "result": "passed"
+    },
+    {
+      "name": "Section unload/load safely remounts catalog disclosure",
+      "result": "passed"
+    },
+    {
+      "name": "Axe WCAG 2 A/AA: default and configured local component fixtures",
+      "result": "passed"
+    },
+    {
+      "name": "Screenshots captured from local defaults, not represented as merchant previews",
+      "result": "passed"
+    },
+    {
+      "name": "No browser runtime errors",
+      "result": "passed"
+    }
+  ],
+  "errors": []
+}
