@@ -1,0 +1,25 @@
+{{ 'bazar-pdp.css' | asset_url | stylesheet_tag }}
+{{ 'bazar-catalog.css' | asset_url | stylesheet_tag }}
+<script type="module" src="{{ 'bazar-catalog.js' | asset_url }}"></script>
+<script type="module" src="{{ 'product-recommendations.js' | asset_url }}"></script>
+<product-recommendations id="product-recommendations-{{ section.id }}" class="bazar-ui bazar-container bazar-pdp-recommendations" data-url="{{ routes.product_recommendations_url }}?limit={{ section.settings.max_products }}" data-section-id="{{ section.id }}" data-product-id="{{ product.id }}" data-intent="related" data-recommendations-performed="{{ recommendations.performed }}" data-hydration-key="product-recommendations-{{ section.id }}">
+  {% if recommendations.performed and recommendations.products_count > 0 %}
+    <h2>Рекомендовано для вас</h2>
+    <ul class="bazar-pdp-recommendations__list" role="list">
+      {% for product in recommendations.products limit: section.settings.max_products %}<li>
+        {% content_for 'block', type: '_product-card', id: 'static-product-card', closest.product: product, product_view_context: 'recommendation' %}
+      </li>{% endfor %}
+    </ul>
+  {% endif %}
+</product-recommendations>
+{% schema %}
+{
+  "name": "BAZAR — рекомендації",
+  "enabled_on": {"templates": ["product"]},
+  "settings": [
+    {"type": "range", "id": "max_products", "label": "Кількість рекомендацій", "min": 2, "max": 10, "step": 1, "default": 8},
+    {"type": "checkbox", "id": "bazar_catalog_cards", "label": "Спільні картки BAZAR", "default": true},
+    {"type": "paragraph", "content": "Показує лише відповідь Shopify Recommendations. Без випадкових товарів, відгуків чи підставних карток."}
+  ]
+}
+{% endschema %}

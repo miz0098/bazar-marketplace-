@@ -1,0 +1,10 @@
+{% doc %}
+  Safe supported merchant metafield presentation. No arbitrary JSON/HTML interpretation.
+  @param {object} field - Shopify metafield
+{% enddoc %}
+{% if field.value != blank %}
+  {% case field.type %}
+    {% when 'rich_text_field' %}{{ field | metafield_tag }}
+    {% when 'multi_line_text_field', 'single_line_text_field' %}<div>{{ field.value | escape | newline_to_br }}</div>
+  {% endcase %}
+{% endif %}

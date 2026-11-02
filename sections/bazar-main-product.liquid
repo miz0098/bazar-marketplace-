@@ -1,0 +1,45 @@
+{{ 'bazar-pdp.css' | asset_url | stylesheet_tag }}
+<script type="module" src="{{ 'bazar-pdp.js' | asset_url }}"></script>
+<script type="application/ld+json">{{ product | structured_data }}</script>
+<bazar-product class="bazar-ui bazar-container bazar-pdp" data-section-id="{{ section.id }}" data-product-id="{{ product.id }}">
+  <nav aria-label="Навігаційний шлях"><ol class="bazar-pdp__breadcrumbs">
+    <li><a href="{{ routes.root_url }}">Головна</a></li>
+    {% if collection != blank %}<li><a href="{{ collection.url }}">{{ collection.title | escape }}</a></li>{% endif %}
+    <li aria-current="page">{{ product.title | escape }}</li>
+  </ol></nav>
+  <div class="bazar-pdp__top{% if section.settings.information != blank %} bazar-pdp__top--information{% endif %}">
+    {% render 'bazar-pdp-gallery', product: product %}
+    <div class="bazar-pdp__summary">
+      {% render 'bazar-pdp-state', product: product %}
+      <fieldset class="bazar-pdp__options" data-pdp-options><legend class="visually-hidden">Варіант товару</legend>
+        {% content_for 'block', type: 'variant-picker', id: 'variant-picker', closest.product: product %}
+      </fieldset>
+      <noscript><p>Для вибору іншого варіанта без JavaScript скористайтеся формою нижче.</p>
+        <form action="{{ product.url }}" method="get"><label>Варіант <select name="variant">
+          {% for variant in product.variants limit: 250 %}<option value="{{ variant.id }}" {% if variant.id == product.selected_or_first_available_variant.id %}selected{% endif %}>{{ variant.title | escape }}{% unless variant.available %} — недоступний{% endunless %}</option>{% endfor %}
+        </select></label><button class="bazar-button bazar-button--outline">Обрати</button></form>
+        {% if product.variants_count > 250 %}<p>Повний вибір варіантів потребує JavaScript.</p>{% endif %}
+      </noscript>
+      {% render 'bazar-pdp-purchase', product: product %}
+      <p class="bazar-pdp__feedback" role="status" aria-live="polite" data-pdp-feedback></p>
+      <button class="bazar-button bazar-button--outline" type="button" data-pdp-retry hidden>Повторити вибір варіанта</button>
+      <a class="bazar-pdp__cart-link" href="{{ routes.cart_url }}" data-pdp-cart-link hidden>Перевірити кошик</a>
+    </div>
+    {% if section.settings.information != blank %}<aside class="bazar-pdp__information" aria-label="Інформація про замовлення">{{ section.settings.information }}</aside>{% endif %}
+  </div>
+  {% render 'bazar-pdp-panels', product: product %}
+  {% if request.design_mode %}<p class="bazar-editor-note">Інформаційна панель і вкладки показують лише справжній вміст. Налаштуйте джерела характеристик/додаткової інформації; додайте блоки застосунків для відгуків або запитань. Остаточні палітра, типографіка та геометрія залишаються на погодженні.</p>{% endif %}
+</bazar-product>
+{% schema %}
+{
+  "name": "BAZAR — товар",
+  "enabled_on": {"templates": ["product"]},
+  "blocks": [{"type": "@app"}],
+  "settings": [
+    {"type": "richtext", "id": "information", "label": "Підтверджена інформація про замовлення", "info": "Без вигаданих термінів доставки, гарантій чи умов. Можна підключити справжнє динамічне джерело."},
+    {"type": "text", "id": "specifications", "label": "Мета-поле характеристик: namespace.key", "default": "custom.specifications"},
+    {"type": "text", "id": "additional_information", "label": "Мета-поле додаткової інформації: namespace.key", "default": "custom.additional_information"},
+    {"type": "paragraph", "content": "Підтримуються rich_text_field, multi_line_text_field та single_line_text_field. Порожні/непідтримувані поля приховано. Визначення мета-полів і застосунки цей шаблон не створює."}
+  ]
+}
+{% endschema %}

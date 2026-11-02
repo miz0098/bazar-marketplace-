@@ -1,0 +1,25 @@
+{% doc %}
+  Server-authoritative selected variant presentation; refreshed from native option-value section responses.
+  @param {product} product - Actual Shopify product
+{% enddoc %}
+{% liquid
+  assign variant = product.selected_or_first_available_variant
+  assign sale = false
+  if variant != blank and variant.compare_at_price > variant.price
+    assign sale = true
+    assign savings = variant.compare_at_price | minus: variant.price
+    assign percentage = savings | times: 100.0 | divided_by: variant.compare_at_price | floor
+  endif
+%}
+<div data-pdp-state data-variant-id="{{ variant.id }}">
+  <div class="bazar-pdp__headline"><h1>{{ product.title | escape }}</h1>
+    <span class="bazar-pdp__favorite" role="img" aria-label="Обране — очікує інтеграції" title="Обране — очікує інтеграції">{% render 'bazar-icon', name: 'heart' %}</span>
+  </div>
+  {% if product.vendor != blank %}<p>{{ product.vendor | escape }}</p>{% endif %}
+  {% if variant.sku != blank %}<p class="bazar-pdp__muted">Артикул: {{ variant.sku | escape }}</p>{% endif %}
+  {% if variant != blank %}
+    <div class="bazar-pdp__price"><strong>{{ variant.price | money_with_currency }}</strong>{% if sale and percentage > 0 %}<span class="bazar-pdp__discount">−{{ percentage }}%</span>{% endif %}</div>
+    {% if sale %}<p class="bazar-pdp__previous"><s><span class="visually-hidden">Попередня ціна </span>{{ variant.compare_at_price | money_with_currency }}</s> <span>Економія {{ savings | money_with_currency }}</span></p>{% endif %}
+    <p class="bazar-pdp__availability">{% if variant.available %}Доступний до замовлення{% else %}Немає в наявності{% endif %}</p>
+  {% else %}<p class="bazar-pdp__availability">Така комбінація варіантів недоступна.</p>{% endif %}
+</div>

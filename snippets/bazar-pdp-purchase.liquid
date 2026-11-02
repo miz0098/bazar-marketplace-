@@ -1,0 +1,45 @@
+{% doc %}
+  Native Horizon product-form/add-to-cart/quantity components with Ukrainian labels and no click-success animation.
+  @param {product} product - Actual Shopify product
+{% enddoc %}
+{% liquid
+  assign variant = product.selected_or_first_available_variant
+  assign can_purchase = false
+  if variant != blank and variant.available
+    assign can_purchase = true
+    if variant.inventory_management == 'shopify' and variant.inventory_policy == 'deny' and variant.quantity_rule.min > variant.inventory_quantity
+      assign can_purchase = false
+    endif
+    if product.requires_selling_plan
+      assign can_purchase = false
+    endif
+  endif
+  assign form_id = 'BazarProductForm-' | append: section.id
+  assign initial_quantity = variant.quantity_rule.min | default: 1
+%}
+<product-form-component data-section-id="{{ section.id }}" data-product-id="{{ product.id }}" data-product-url="{{ product.url }}" data-quantity-default="{{ initial_quantity }}" data-quantity-error-max="Перевищено дозволену кількість." data-pdp-can-purchase="{{ can_purchase }}">
+  <div ref="liveRegion" class="visually-hidden" aria-live="off"></div>
+  {% form 'product', product, id: form_id %}
+    <input type="hidden" name="id" ref="variantId" value="{{ variant.id }}" {% unless can_purchase %}disabled{% endunless %}>
+    {% if product.requires_selling_plan %}<p data-pdp-plan>Цей товар потребує плану покупки. Інтеграція планів покупки очікує налаштування.</p>{% endif %}
+    <div class="product-form-buttons" ref="productFormButtons">
+      <fieldset class="bazar-pdp__quantity" data-pdp-quantity {% unless can_purchase %}disabled{% endunless %}>
+      <label for="PdpQuantity-{{ section.id }}">Кількість</label>
+      <div class="quantity-selector-wrapper" ref="quantitySelectorWrapper">
+        <quantity-selector-component class="quantity-selector" ref="quantitySelector" data-variant-id="{{ variant.id }}">
+          <button type="button" name="minus" ref="minusButton" on:click="/decreaseQuantity" aria-label="Зменшити кількість">−</button>
+          <input id="PdpQuantity-{{ section.id }}" type="number" name="quantity" ref="quantityInput" value="{{ initial_quantity }}" min="{{ initial_quantity }}" data-min="{{ initial_quantity }}" {% if variant.quantity_rule.max %}max="{{ variant.quantity_rule.max }}"{% endif %} step="{{ variant.quantity_rule.increment | default: 1 }}" data-cart-quantity="{{ cart | item_count_for_variant: variant.id }}" on:blur="/setQuantity" on:focus="/selectInputValue" aria-label="Кількість" {% unless can_purchase %}disabled{% endunless %}>
+          <button type="button" name="plus" ref="plusButton" on:click="/increaseQuantity" aria-label="Збільшити кількість">+</button>
+        </quantity-selector-component>
+      </div>
+      <p class="bazar-pdp__rules" ref="quantityRules">Мінімум: {{ initial_quantity }}. Крок: {{ variant.quantity_rule.increment | default: 1 }}.{% if variant.quantity_rule.max %} Максимум: {{ variant.quantity_rule.max }}.{% endif %}</p>
+      </fieldset>
+      <span class="product-form-text__error hidden" ref="addToCartTextError"><span aria-hidden="true">!</span></span>
+      <add-to-cart-component ref="addToCartButtonContainer" data-add-to-cart-animation="false">
+        <button class="bazar-button bazar-button--outline" type="submit" name="add" ref="addToCartButton" {% unless can_purchase %}disabled{% endunless %}>
+          {% if can_purchase %}Додати в кошик{% elsif variant == blank %}Варіант недоступний{% elsif variant.available == false %}Немає в наявності{% else %}Замовлення недоступне{% endif %}
+        </button>
+      </add-to-cart-component>
+    </div>
+  {% endform %}
+</product-form-component>
