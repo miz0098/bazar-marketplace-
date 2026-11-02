@@ -1,0 +1,9 @@
+BAZAR.UA FIGMA IMPORT PACK
+
+1. Create Figma file 'BAZAR.UA — Official Design'.
+2. Create pages corresponding to numbered directories.
+3. Drag PNG files into their corresponding pages. Preserve originals unchanged.
+4. Mark approved frames only after explicit user confirmation.
+5. Images are raster references, NOT editable Figma components.
+6. Keep these originals as visual baseline for Codex and screenshot review.
+7. Do not use these images to overwrite Shopify code until approved.
