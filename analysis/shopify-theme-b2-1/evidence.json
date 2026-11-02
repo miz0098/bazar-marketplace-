@@ -1,0 +1,296 @@
+{
+  "date": "2026-11-02",
+  "scope": "B2.1 source and local fixture checks, not merchant preview/integration tests",
+  "base": "026c01b1cac15436f16c3f68d1ad1f85e2ea6ccc",
+  "recovery_source": "105d10fb6b8e65c5f163016aa8c69072e85faa0e",
+  "audits": {
+    "phase_a": "2e901f8aaeb1166ff0827eb63a6363ed18c9c437",
+    "phase_b1": "5a01190ff5c88b6df627923d851492226336462b"
+  },
+  "tools": {
+    "node": "v24.19.0",
+    "shopify_cli": "5.0.0",
+    "theme_check_version": "unknown (CLI output)",
+    "liquidjs": "10.24.0",
+    "browser": "system Chromium via existing Playwright"
+  },
+  "theme_check": {
+    "base_valid": true,
+    "base_errors": 0,
+    "base_warnings": 300,
+    "base_counts": {
+      "warning:ExcessiveSettingsCount": 1,
+      "warning:ValidScopedCSSClass": 173,
+      "warning:OrphanedSnippet": 121,
+      "warning:UnusedDocParam": 5
+    },
+    "final_valid": true,
+    "final_errors": 0,
+    "final_warnings": 307,
+    "final_counts": {
+      "warning:ExcessiveSettingsCount": 1,
+      "warning:ValidScopedCSSClass": 173,
+      "warning:OrphanedSnippet": 128,
+      "warning:UnusedDocParam": 5
+    }
+  },
+  "structural_check_groups_passed": 11,
+  "browser_check_groups_passed": 12,
+  "native_public_events_bundle": {
+    "url": "https://cdn.shopify.com/storefront/standard-events.js",
+    "sha256": "adff22682d096037de4659b01c07410d79bb32bc061f7f58ef190ff91ff2e283"
+  },
+  "theme_files": [
+    {
+      "path": "assets/bazar-footer.css",
+      "sha256": "28f283c416f354dfeec5f31d19150d6c7fba69cecc3db10a06500570e22de8af",
+      "recovery_source_blob": "a9da05b9af7258625732a467dce2301b60857a51"
+    },
+    {
+      "path": "assets/bazar-global.css",
+      "sha256": "4c48aca5885e352737535c510d8a4b5a2c687cb644d83f64bc927e6584ab125e",
+      "recovery_source_blob": "33eac06874cea35fea07a78cc1ad1f5b4bc41a89"
+    },
+    {
+      "path": "assets/bazar-header.css",
+      "sha256": "14a587f945eca7d1598a03075b344b996f3fb8523b933b7752877aaf2efa198c",
+      "recovery_source_blob": "8b9dd56f3913fca2003eeb189d97e545ecd25cf0"
+    },
+    {
+      "path": "assets/bazar-header.js",
+      "sha256": "312d6c33013041dac8398772cd1a6698bbd7b478c3735efe582a1367a9a2b76b",
+      "recovery_source_blob": "ecb10c6d9bdf50aa449cdd2db7cb04a32b2f5355"
+    },
+    {
+      "path": "assets/bazar-home.css",
+      "sha256": "54af910dfe7d56eaede9addc26e79330a6acdd55bb03ea2a199dae9058045eaf",
+      "recovery_source_blob": "6a16741d732cf4b4914bd51da81712cfab219146"
+    },
+    {
+      "path": "assets/bazar-logo.svg",
+      "sha256": "850b650474385453db98f309f6eb77041889f74a9439f9f6237e9d2dbf3f9498",
+      "recovery_source_blob": "e82083fc0bdb004064a249ee45becacb20784af6"
+    },
+    {
+      "path": "config/settings_schema.json",
+      "sha256": "15f55a7c410802cf307a1391015dfee9f910ae6845a769c3dba1fcd1d03867ae",
+      "base_blob": "6fddb2d2bd3dbec7812863d10c6750e2baf16a7f",
+      "recovery_source_blob": "6fddb2d2bd3dbec7812863d10c6750e2baf16a7f"
+    },
+    {
+      "path": "layout/theme.liquid",
+      "sha256": "262ba9903988d84960e3c3e123f269fbf61b53e8e262a27aa1a933028399986b",
+      "base_blob": "351b84b81f16d20cd9ec810c16d4ca0cb0dc24f9",
+      "recovery_source_blob": "351b84b81f16d20cd9ec810c16d4ca0cb0dc24f9"
+    },
+    {
+      "path": "sections/bazar-category-blocks.liquid",
+      "sha256": "acda85529c61f64080b30ef22b05a8c646f40184eddd182fe93cb4092ecedac1",
+      "recovery_source_blob": "9d848120368519bf19157144f61cfe3ced82e674"
+    },
+    {
+      "path": "sections/bazar-footer.liquid",
+      "sha256": "4f4ce10c00b8c0af32522e3ddbeca13f8ddf38cd9447443c9181ec1c203e2f6f",
+      "recovery_source_blob": "1c14f51c20255113f3d173b4d31ccc4102cab051"
+    },
+    {
+      "path": "sections/bazar-home-hero.liquid",
+      "sha256": "dace4b41fb63a690e56587e6b14d4a84b97aa61162ee05121bfb6ffeecd56c20",
+      "recovery_source_blob": "c4a065926a1692bc801190cbb60910ff8bcfcd86"
+    },
+    {
+      "path": "sections/footer-group.json",
+      "sha256": "50875e58a2c86e3f056fb75ef19d3262db99f0af9316c340822c206d10649af0",
+      "base_blob": "55f51409698391a0bd33fc8dbafb89fdffc5c5ce",
+      "recovery_source_blob": "d0fb8faa7532a8a938514bde7d9e31e446b79f14"
+    },
+    {
+      "path": "sections/header-group.json",
+      "sha256": "f577e08f9e8ed8dffbe26975a39243d9ebe8e87c8092d5d0b13b4d5514ab57c1",
+      "base_blob": "921788beded91e837e467e56e22379185a70c56a",
+      "recovery_source_blob": "d4173ee56fb044cdf11bca97d846d9f9164e9e86"
+    },
+    {
+      "path": "sections/header.liquid",
+      "sha256": "2406360cdb24301707b5039ff63cf0bb314f2879e17cb6fbd4d181e1b604d4df",
+      "base_blob": "af0fed1dda2e1fcb7753ba7030f36c172db0622b",
+      "recovery_source_blob": "60f2808857bb54a650f5aafb8d82b33a1ee6c2b8"
+    },
+    {
+      "path": "snippets/bazar-catalog-links.liquid",
+      "sha256": "f8332c76f1433357ebcafaca52fc5df15ca4e318230bad4c77acc69d18ca915d"
+    },
+    {
+      "path": "snippets/bazar-destination.liquid",
+      "sha256": "1a334548d058af3b0704a0c8e74db51e3516661c84dac934eb8759f663095bc6"
+    },
+    {
+      "path": "snippets/bazar-foundation.liquid",
+      "sha256": "1f910dad0ff8d27aad78eb8e56cf2a4a7b00dee177ca7fb89ed8a5f6e95e8da8"
+    },
+    {
+      "path": "snippets/bazar-header-actions.liquid",
+      "sha256": "c8312d593850916102909f1ec56c73dae6b2760555ab52993a01a20c4782c762",
+      "recovery_source_blob": "34a7fdf132a4cdb6d92f7f63bd18da27e359419d"
+    },
+    {
+      "path": "snippets/bazar-header-desktop.liquid",
+      "sha256": "5f1a1899c14c512364bb3a404fdce57c59d9c537eff0845d3b55d3a367cc8064",
+      "recovery_source_blob": "c069fd3b9e264b075a160c7695ad6d367463863f"
+    },
+    {
+      "path": "snippets/bazar-icon.liquid",
+      "sha256": "885d4345fef1bd57c9647806d777d9f17ad35fc6d9d70ea5efe455d3af981ff1"
+    },
+    {
+      "path": "snippets/bazar-logo.liquid",
+      "sha256": "e4fcb7a87344a295f0cc3dea6036b0298a00d3015aefe76cd16207bedc2ae28c",
+      "recovery_source_blob": "0855f5f11fb71eaf09b78b64e2d19e4da46983f9"
+    },
+    {
+      "path": "templates/index.json",
+      "sha256": "9d22f72ce099fec928f9aa71220b46f81efe5dfe996f9d396a565b8b63fcbd84",
+      "base_blob": "25b2ed5d06cf4181134246fd21687769d7721345",
+      "recovery_source_blob": "0d77fcfcbc6780b6d35ca0321165547f64b0cda7"
+    }
+  ],
+  "images": [
+    {
+      "file": "Authentication Module Desktop v1.2 (FINAL).PNG",
+      "sha256": "1a27c3d149c2d982fa8d9d2679c056b61476cefe4d39f1f629974e26e26fda82"
+    },
+    {
+      "file": "BAZAR Design System v1.0.PNG",
+      "sha256": "12c302f8d343c245bc7f16c2c18e943ce2d6c99e59a0d62d9acdb66a7c5e6a0d"
+    },
+    {
+      "file": "BAZAR Design System ΓÇö Colors v1.0 .PNG",
+      "sha256": "320d66beccb26206e55c4098c0d358f71919158869b9f3d75d58fae3a8783a20"
+    },
+    {
+      "file": "BAZAR Design System ΓÇö Grid & Spacing v1.0 (FINAL).PNG",
+      "sha256": "e70af65af01637f34cb56a19289bdcd140b22d436e48ceb4ff3f78a4cfeaae96"
+    },
+    {
+      "file": "BAZAR Design System ΓÇö Typography v1.0 (FINAL) .PNG",
+      "sha256": "e1ac5c631cf13434df546538b90e5af9fb42fdee7f8e756f2cdbb39ccec73d81"
+    },
+    {
+      "file": "BAZAR Home Page Desktop ΓÇö v1.2.PNG",
+      "sha256": "97c0f90b59b63f4e3d0c1e8fd0ebe42af40f041aec8b7fc5c7b4fbf754ba4b58"
+    },
+    {
+      "file": "BAZAR UI Kit v1.0.PNG",
+      "sha256": "05e724b38d7bef4c912ff9a822aedcf7cde89011460661e32f7c0aec5419d5cd"
+    },
+    {
+      "file": "Buttons.PNG",
+      "sha256": "7ea8df5b06612e8c3da6936a473fc67fe170f695d315c291c5970b832a72b288"
+    },
+    {
+      "file": "Cards.PNG",
+      "sha256": "b7a19cad02779f48a76e4ab402453619b9375a704fb9caa8a97ff20542332e28"
+    },
+    {
+      "file": "Cart Page Desktop v1.1 (FINAL).PNG",
+      "sha256": "47890780ec3152df6fb504bf66169204b9820085056c5c991004e97e359cf25b"
+    },
+    {
+      "file": "Catalog Page Desktop v1.2.PNG",
+      "sha256": "188e83db7081f0c87de668e422f1f94879b04bd5a4311e75626bf2ce59f54010"
+    },
+    {
+      "file": "Checkout Desktop v1.0 (FINAL).PNG",
+      "sha256": "5d6eb377f10f3f7c9bffcad931a0b42929580a9c41f60b237db8f49ffd035b6b"
+    },
+    {
+      "file": "Empty States Module Desktop v1.0 (FINAL).PNG",
+      "sha256": "ae36526012ac1f4801b24db3891135d1681725888750788495a251e0d67972a1"
+    },
+    {
+      "file": "Empty States.PNG",
+      "sha256": "1aa41beee78a042ca01f2c56eacdc4901135d8a3c68c48587318b3a78965f5f4"
+    },
+    {
+      "file": "Global UI Components v1.0 (FINAL).PNG",
+      "sha256": "bb016a7e8238d6d8d019ca2139f0e487a166037b6e346d6b3e086e32c6390e6b"
+    },
+    {
+      "file": "Help Center Desktop v1.0 .PNG",
+      "sha256": "5582a637b1f56f38efab0cab3ad0ee36c3aad17151a45d3d2da985e92b16e3dc"
+    },
+    {
+      "file": "Icons.PNG",
+      "sha256": "5fbfc9d30c2bdda342d3561ec78344534270ac3b94f8f7197c1ed71f29726511"
+    },
+    {
+      "file": "Illustration System.PNG",
+      "sha256": "6456e4912a6c1c426579314c3bc8165bbcdac03cdf36f45073c9136a38ec1aee"
+    },
+    {
+      "file": "Information Pages Module Desktop v1.0 (FINAL).PNG",
+      "sha256": "86e72369aa1541fb2790e7ebd0b80d4c5376428512b76624d6c6daa0c42a5213"
+    },
+    {
+      "file": "Inputs.PNG",
+      "sha256": "55464d460fcd586379b801b9cfbd477d8e4fef5ba12acee571d4dcf664ebd116"
+    },
+    {
+      "file": "Loaders (Skeleton, Spinner, Progress).PNG",
+      "sha256": "ca968727b787e693312250cbc49b727acbcaa3d44eeddb7750278ad0bd269e1d"
+    },
+    {
+      "file": "Modals.PNG",
+      "sha256": "5fbfc9d30c2bdda342d3561ec78344534270ac3b94f8f7197c1ed71f29726511"
+    },
+    {
+      "file": "Navigation.PNG",
+      "sha256": "73301ea5a7f7c649a0462849cef6a6bedd61412db0fbd611fd8a8a5dc626294f"
+    },
+    {
+      "file": "Notifications.PNG",
+      "sha256": "0b67fa263fdbfe1a033edb0e23c416c2030d31f5388e74aa42ca09005207312f"
+    },
+    {
+      "file": "Order Details Page v1.0 (FINAL.PNG",
+      "sha256": "d0703d1066585306f8d24b8ecdf08f1fb67ebdb7cfe2f7ff782b51ab9bb8cbdf"
+    },
+    {
+      "file": "Product Page Desktop v1.2.PNG",
+      "sha256": "26d999dc6e146462ba47115978161b4bc68d6d252d3242e83fe7ac4a2a36f67e"
+    },
+    {
+      "file": "Responsive Rules.PNG",
+      "sha256": "c120da3be2e8fdf095b0c047bb63f1b73906e79917f739b27fc4716838770ce2"
+    },
+    {
+      "file": "Search Experience Desktop v1.0 (FINAL).PNG",
+      "sha256": "23e6786f5cbdfc829ba0fc542ede68ecedeeeb7755b9188f3005197f5e8a72e0"
+    },
+    {
+      "file": "Shopify Components.PNG",
+      "sha256": "a3c19ebf10577e59c209f04496c4f8bf3f97709a0bafa225adcff09cbdbfc667"
+    },
+    {
+      "file": "UI Design Home Page v1.0..PNG",
+      "sha256": "375cf99c6e6aa84b9d16ac366ae34024103c318f20c40583e1b690631b76e2cd"
+    },
+    {
+      "file": "UX Architecture v1.0.PNG",
+      "sha256": "6b02705c1dbd96a5b5a1ee596b55290cb7199903969f62f2025120f79e6dfc36"
+    },
+    {
+      "file": "Wireframe ╨│╨╛╨╗╨╛╨▓╨╜╨╛╤û╠ê ╤ü╤é╨╛╤Ç╤û╨╜╨║╨╕ (Desktop).PNG",
+      "sha256": "9965c38fccaf480a3cf702eefdc024c766fb664fce3b0a75d59be7547f81c9da"
+    },
+    {
+      "file": "╨₧╤ü╨╛╨▒╨╕╤ü╤é╨╕╨╕╠å ╨║╨░╨▒╤û╨╜╨╡╤é v1.1.PNG",
+      "sha256": "019ccebf3a6336e6ffccd665eb82416e8f2cf41fe6fd46d812996250b58d32d7"
+    }
+  ],
+  "merchant_access_verified": false,
+  "plus_activation_verified": false,
+  "deployed": false,
+  "palette_default": "inherit",
+  "container_default": "inherit"
+}

@@ -1,0 +1,31 @@
+{% doc %}
+  Responsive adaptation of bazar-header-desktop@105d10f inside Horizon header-component.
+  @param {object} section - Header settings.
+{% enddoc %}
+<div class="bazar-ui bazar-header" ref="headerRowTop">
+  <div class="bazar-container bazar-header__inner">
+    {% render 'bazar-logo' %}
+    <div class="bazar-catalog" ref="headerDrawerContainer">
+      <details class="bazar-catalog-details">
+        <summary class="bazar-button">{% render 'bazar-icon', name: 'catalog' %}<span>Каталог</span></summary>
+        <nav class="bazar-catalog-panel" aria-label="Каталог товарів" ref="headerMenu">
+          {% if section.settings.bazar_catalog_menu.links.size > 0 %}
+            {% render 'bazar-catalog-links', menu: section.settings.bazar_catalog_menu %}
+          {% else %}
+            <a href="{{ routes.all_products_collection_url }}">Усі товари</a>
+          {% endif %}
+        </nav>
+      </details>
+    </div>
+    <form action="{{ routes.search_url }}" method="get" role="search" class="bazar-header__search">
+      <label class="visually-hidden" for="BazarSearch-{{ section.id }}">Пошук товарів</label>
+      <input id="BazarSearch-{{ section.id }}" type="search" name="q" value="{{ search.terms | escape }}" placeholder="Пошук товарів, брендів, категорій…">
+      <input type="hidden" name="options[prefix]" value="last">
+      <button type="submit" class="bazar-button" aria-label="Пошук">{{ 'icon-search.svg' | inline_asset_content }}</button>
+    </form>
+    {% render 'bazar-header-actions', section: section %}
+  </div>
+  {% if request.design_mode %}
+    <p class="bazar-container bazar-editor-note">BAZAR: профіль потребує підтвердженої інтеграції. Обране та меню налаштовуються в цьому розділі. Палітра й контейнер — у налаштуваннях основи дизайну.</p>
+  {% endif %}
+</div>

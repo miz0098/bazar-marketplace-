@@ -1,0 +1,11 @@
+{% doc %}
+  Render a configured link or an honest non-interactive label. No fallback URLs.
+  @param {string} label - Visible label.
+  @param {string} [url] - Merchant-approved destination.
+  @param {string} [icon] - Optional BAZAR icon name.
+  @param {string} [class] - Optional scoped class.
+{% enddoc %}
+{% if url != blank %}<a class="{{ class }}" href="{{ url }}">{% else %}<span class="{{ class }}" aria-disabled="true" title="Адресу не налаштовано">{% endif %}
+  {% if icon != blank %}{% render 'bazar-icon', name: icon %}{% endif %}
+  <span>{{ label | escape }}</span>
+{% if url != blank %}</a>{% else %}</span>{% endif %}

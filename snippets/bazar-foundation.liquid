@@ -1,0 +1,39 @@
+{% doc %}
+  Loads scoped BAZAR foundation; conflicting design presets remain explicitly selectable.
+{% enddoc %}
+{{ 'bazar-global.css' | asset_url | stylesheet_tag }}
+{{ 'bazar-header.css' | asset_url | stylesheet_tag }}
+{{ 'bazar-footer.css' | asset_url | stylesheet_tag }}
+{{ 'bazar-home.css' | asset_url | stylesheet_tag }}
+{% liquid
+  assign bazar_medium = settings.bazar_font | font_modify: 'weight', '600'
+  assign bazar_bold = settings.bazar_font | font_modify: 'weight', '700'
+%}
+{% style %}
+  {{ settings.bazar_font | font_face: font_display: 'swap' }}
+  {{ bazar_medium | font_face: font_display: 'swap' }}
+  {{ bazar_bold | font_face: font_display: 'swap' }}
+  :root {
+    {% if settings.bazar_font != blank %}
+      --bazar-font-family: {{ settings.bazar_font.family }}, {{ settings.bazar_font.fallback_families }};
+    {% endif %}
+    {% case settings.bazar_palette %}
+      {% when 'overview' %}
+        --bazar-color-blue: #165dff;
+        --bazar-color-on-blue: #fff;
+      {% when 'colors' %}
+        --bazar-color-blue: #1e88e5;
+        --bazar-color-on-blue: #0f172a;
+    {% endcase %}
+    {% case settings.bazar_container %}
+      {% when 'grid' %}
+        --bazar-container-width: 1380px;
+        --bazar-container-padding: 30px;
+      {% when 'responsive' %}
+        --bazar-container-width: 1320px;
+        --bazar-container-padding: 32px;
+    {% endcase %}
+  }
+  @media (max-width: 767px) { :root { --bazar-container-padding: 16px; } }
+{% endstyle %}
+<script src="{{ 'bazar-header.js' | asset_url }}" type="module"></script>

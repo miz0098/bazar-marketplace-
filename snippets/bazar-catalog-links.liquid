@@ -1,0 +1,20 @@
+{% doc %}
+  Merchant-owned catalog navigation; no hardcoded taxonomy or fabricated collections.
+  @param {object} menu - Shopify link_list.
+{% enddoc %}
+<ul class="bazar-catalog-list">
+  {% for link in menu.links %}
+    <li>
+      <a href="{{ link.url }}"{% if link.current %} aria-current="page"{% endif %}>{{ link.title | escape }}</a>
+      {% if link.links.size > 0 %}
+        <ul>
+          {% for child in link.links %}
+            <li><a href="{{ child.url }}"{% if child.current %} aria-current="page"{% endif %}>{{ child.title | escape }}</a>
+              {% if child.links.size > 0 %}<ul>{% for leaf in child.links %}<li><a href="{{ leaf.url }}">{{ leaf.title | escape }}</a></li>{% endfor %}</ul>{% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </li>
+  {% endfor %}
+</ul>

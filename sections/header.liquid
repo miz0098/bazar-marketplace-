@@ -362,13 +362,16 @@
     {% endif %}
   "
 >
+  {%- if request.page_type == 'index' -%}
+    <h1 class="visually-hidden">{{ shop.name }}</h1>
+  {%- endif -%}
+  {% if section.settings.bazar_layout %}
+    {% render 'bazar-header-desktop', section: section %}
+  {% else %}
   <div class="header__underlay header__underlay-closed"></div>
   <div
     class="header__underlay header__underlay-open"
   ></div>
-  {%- if request.page_type == 'index' -%}
-    <h1 class="visually-hidden">{{ shop.name }}</h1>
-  {%- endif -%}
   {% for row in rows %}
     {% liquid
       assign background = 'background_color_' | append: row
@@ -461,6 +464,7 @@
     <div class="header__row header__navigation-bar-row">
       {{ navigation_bar }}
     </div>
+  {% endif %}
   {% endif %}
 </header-component>
 
@@ -1184,6 +1188,30 @@
   "tag": "header",
   "class": "header-section",
   "settings": [
+    {
+      "type": "checkbox",
+      "id": "bazar_layout",
+      "label": "Відновлений заголовок BAZAR",
+      "default": true
+    },
+    {
+      "type": "link_list",
+      "id": "bazar_catalog_menu",
+      "label": "BAZAR: меню каталогу"
+    },
+    {
+      "type": "url",
+      "id": "bazar_favorites_url",
+      "label": "BAZAR: сторінка обраного",
+      "info": "Залиште порожнім до інтеграції. Не вказуйте вигадану адресу."
+    },
+    {
+      "type": "checkbox",
+      "id": "bazar_account_ready",
+      "label": "BAZAR: поточні акаунти налаштовані",
+      "default": false,
+      "info": "Вмикати лише після перевірки Shopify Customer Accounts/OIDC. Поки вимкнено — профіль очікує інтеграції."
+    },
     {
       "type": "header",
       "content": "t:content.logo"
