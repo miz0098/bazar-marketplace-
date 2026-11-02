@@ -1,0 +1,401 @@
+{
+  "scope": "Static inventory only; not Liquid execution, Theme Check, or runtime verification.",
+  "branches": [
+    "origin/bazar-latest-shopify 105d10fb6b8e65c5f163016aa8c69072e85faa0e",
+    "origin/codex/approved-screens-audit d692237c81324730858c7d83c896e12a01d798c2",
+    "origin/codex/audit-shopify-migration 09f25c2719974df45cf013abd6134c1b59a735f1",
+    "origin/codex/autonomous-workflow 1c817756d0cf366edefd331dc47c9991a384609a",
+    "origin/codex/bazar-full-functional-simulation-f24 074577ef868844410c2b2dceb14b15fc7e07260e",
+    "origin/codex/bazar-remove-demo-flows 62972426cc29e7ff9e941d1db0345aef46c8187f",
+    "origin/codex/contract-001-api-adrs 35ab9b5a5f63da1ae513c07b109558034fe86f22",
+    "origin/codex/phase-b-catalog-cart b178c955fa9691e0d5e232371b50917bd2ad77cf",
+    "origin/codex/phase-c-checkout d5d1a26c3858beb37bf639c5a9715948acc8832c",
+    "origin/codex/phase-d-phone-auth 806560d19377c319914d4d17826bace13e57fcb6",
+    "origin/codex/phase-e1-profile 4a22fef199998c5381134298b95a2e407a2d11b2",
+    "origin/codex/phase-e2-messages-support a5922ed3e79e7eb054c70aa8a8deffbd82b68651",
+    "origin/codex/phase-f1-api-foundation 432f06613e6e85dda5e3c26897454ca6d0a2c91e",
+    "origin/codex/phase-f10-shopify-gap-audit 706cf35d439e30ded848b534961d87b2f575cb3a",
+    "origin/codex/phase-f11-storefront-completion 84f2cad878d7ade1481ac5a1b24ad6430af23793",
+    "origin/codex/phase-f12-customer-account 164f5f42104cede49e6ddeb08f0cb16191a3bfbf",
+    "origin/codex/phase-f13-messages-notifications 856dd5a776a0c30b705cf6a639c3ce9f3a9735b4",
+    "origin/codex/phase-f14-order-lifecycle 68f8d2f9f79fdcc7bffc11ccbacbe76beac12aab",
+    "origin/codex/phase-f15-browser-checkout bc2a3630ea372a04a944f01f9cde447c8b258edf",
+    "origin/codex/phase-f16-discounts-checkout e088efeba273ecd69e1cd439c79b1fcda918ef23",
+    "origin/codex/phase-f17-notification-center f07d0c0e0b03d8f1a9fa1501476a457fb794f2f4",
+    "origin/codex/phase-f18-functional-readiness-audit 7e4ccf7bd3624ceb16e32ce6daa03a99efbe389d",
+    "origin/codex/phase-f19-business-rules ea97712a0803c7564193560371d83a239eeadf3c",
+    "origin/codex/phase-f2-postgresql ee5e18ccf2412bf3cc3a9dbdceafd017d0925298",
+    "origin/codex/phase-f20-catalog-completion 81c72a56ffd35a940caedc687c28cf0e6c5cd87f",
+    "origin/codex/phase-f21-storefront-integration f7a803944a163be3a41cdc6e519485963a36bb7e",
+    "origin/codex/phase-f22-1-financial-rounding fbca0d8abd754e44cd85254fbd866c1371b5d45f",
+    "origin/codex/phase-f22-multi-seller-checkout 8758feb80c4fe1096c78c5ce29de8f079e0fd66d",
+    "origin/codex/phase-f23-order-lifecycle 9f8543e5386585a2b9edd50f882214f9596582c8",
+    "origin/codex/phase-f24-customer-account-communications 3bcf8e655d6f17e0d5cb84fafdc83691a1e30a6b",
+    "origin/codex/phase-f25-seller-dashboard 32d46f13941b653f21c6372aa3d2e2e988a78557",
+    "origin/codex/phase-f26-staff-crm d3d76a8d706c202549749bdd7edde0a5182722ca",
+    "origin/codex/phase-f3-business-api 53ac311fe5318ea2f01b3c017e9559a5e9797274",
+    "origin/codex/phase-f4-server-auth 37c10e0497bff2719086349f0fe798ebc7ea837b",
+    "origin/codex/phase-f5-discounts-promotions d43f17e7bfe303a2f38b5da24a1bcf42c273b50a",
+    "origin/codex/phase-f6-orders-checkout b7972f51c75d6eac0291ed9ee74ca0458887f111",
+    "origin/codex/phase-f7-delivery-shipping a5f87b08ca14abc279a2f19e754fa8ce3946cdb5",
+    "origin/codex/phase-f8-payment-infrastructure 6ffb258247f93bfe95057d3fc83ad898ac037a75",
+    "origin/codex/phase-f9-cart-checkout-integration 176d1dc82295a9243a9969d85a7ae25c7a77d572",
+    "origin/codex/phase1-storefront 2eed964cc845a5855e3741d1af92e0e3defd9754",
+    "origin/codex/reaudit-latest-shopify 9269b25e30aa4638c84d2b68bbc2e85c81e5633d",
+    "origin/design-reference-storefront 026c01b1cac15436f16c3f68d1ad1f85e2ea6ccc",
+    "origin/main e05f33faeb3270a8d6546d8a5a1b81fe1d371ea5",
+    "origin/vps-migration 141af11ccc8102ee892a5154c8cb0155eb8cf3e4"
+  ],
+  "sources": {
+    "origin/main": {
+      "sha": "e05f33faeb3270a8d6546d8a5a1b81fe1d371ea5",
+      "theme_directory_counts": {
+        "assets": 122,
+        "blocks": 95,
+        "config": 2,
+        "layout": 3,
+        "locales": 52,
+        "sections": 43,
+        "snippets": 121,
+        "templates": 14
+      },
+      "layout_tree": "de0f7da3e8b8d8434bdfac0d7139ca1a00089005",
+      "bazar_theme_files": [],
+      "json_templates_parsed": 12,
+      "json_template_parse_failures": [],
+      "missing_literal_snippet_or_section_references": []
+    },
+    "origin/bazar-latest-shopify": {
+      "sha": "105d10fb6b8e65c5f163016aa8c69072e85faa0e",
+      "theme_directory_counts": {
+        "assets": 144,
+        "blocks": 95,
+        "config": 2,
+        "layout": 3,
+        "locales": 52,
+        "sections": 58,
+        "snippets": 139,
+        "templates": 20
+      },
+      "layout_tree": "de0f7da3e8b8d8434bdfac0d7139ca1a00089005",
+      "bazar_theme_files": [
+        "assets/bazar-account.css",
+        "assets/bazar-account.js",
+        "assets/bazar-auth.css",
+        "assets/bazar-auth.js",
+        "assets/bazar-catalog.css",
+        "assets/bazar-collections-index.css",
+        "assets/bazar-collections-index.js",
+        "assets/bazar-favorites-modal.css",
+        "assets/bazar-favorites-modal.js",
+        "assets/bazar-footer.css",
+        "assets/bazar-global.css",
+        "assets/bazar-header.css",
+        "assets/bazar-header.js",
+        "assets/bazar-home-hero.js",
+        "assets/bazar-home.css",
+        "assets/bazar-logo.svg",
+        "assets/bazar-product.css",
+        "assets/bazar-product.js",
+        "assets/bazar-promo-special-offers.svg",
+        "assets/bazar-toast.css",
+        "assets/bazar-toast.js",
+        "assets/bazar-wishlist-store.js",
+        "sections/bazar-account-dashboard.liquid",
+        "sections/bazar-auth-activate-account.liquid",
+        "sections/bazar-auth-login.liquid",
+        "sections/bazar-auth-register.liquid",
+        "sections/bazar-auth-reset-password.liquid",
+        "sections/bazar-category-blocks.liquid",
+        "sections/bazar-collections-index.liquid",
+        "sections/bazar-footer.liquid",
+        "sections/bazar-home-hero.liquid",
+        "sections/bazar-main-collection.liquid",
+        "sections/bazar-main-product.liquid",
+        "sections/bazar-product-rail.liquid",
+        "sections/bazar-product-recommendations.liquid",
+        "sections/bazar-promo-banners.liquid",
+        "sections/bazar-recently-viewed.liquid",
+        "snippets/bazar-account-provider-data.liquid",
+        "snippets/bazar-account-sidebar.liquid",
+        "snippets/bazar-auth-icon.liquid",
+        "snippets/bazar-auth-modal.liquid",
+        "snippets/bazar-catalog-data.liquid",
+        "snippets/bazar-catalog-filter.liquid",
+        "snippets/bazar-catalog-icon.liquid",
+        "snippets/bazar-catalog-menu.liquid",
+        "snippets/bazar-collection-url.liquid",
+        "snippets/bazar-favorites-modal.liquid",
+        "snippets/bazar-header-actions.liquid",
+        "snippets/bazar-header-desktop.liquid",
+        "snippets/bazar-logo.liquid",
+        "snippets/bazar-phone-input.liquid",
+        "snippets/bazar-product-card.liquid",
+        "snippets/bazar-product-gallery.liquid",
+        "snippets/bazar-sms-code-input.liquid",
+        "snippets/bazar-wishlist-data.liquid"
+      ],
+      "json_templates_parsed": 18,
+      "json_template_parse_failures": [],
+      "missing_literal_snippet_or_section_references": []
+    },
+    "origin/design-reference-storefront": {
+      "sha": "026c01b1cac15436f16c3f68d1ad1f85e2ea6ccc",
+      "theme_directory_counts": {
+        "assets": 122,
+        "blocks": 95,
+        "config": 2,
+        "layout": 3,
+        "locales": 52,
+        "sections": 43,
+        "snippets": 121,
+        "templates": 14
+      },
+      "layout_tree": "de0f7da3e8b8d8434bdfac0d7139ca1a00089005",
+      "bazar_theme_files": [],
+      "json_templates_parsed": 12,
+      "json_template_parse_failures": [],
+      "missing_literal_snippet_or_section_references": []
+    },
+    "origin/vps-migration": {
+      "sha": "141af11ccc8102ee892a5154c8cb0155eb8cf3e4",
+      "theme_directory_counts": {
+        "assets": 122,
+        "blocks": 95,
+        "config": 2,
+        "layout": 3,
+        "locales": 52,
+        "sections": 43,
+        "snippets": 121,
+        "templates": 14
+      },
+      "layout_tree": "de0f7da3e8b8d8434bdfac0d7139ca1a00089005",
+      "bazar_theme_files": [],
+      "json_templates_parsed": 12,
+      "json_template_parse_failures": [],
+      "missing_literal_snippet_or_section_references": []
+    }
+  },
+  "images": [
+    {
+      "file": "Authentication Module Desktop v1.2 (FINAL).PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "1a27c3d149c2d982fa8d9d2679c056b61476cefe4d39f1f629974e26e26fda82"
+    },
+    {
+      "file": "BAZAR Design System v1.0.PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "12c302f8d343c245bc7f16c2c18e943ce2d6c99e59a0d62d9acdb66a7c5e6a0d"
+    },
+    {
+      "file": "BAZAR Design System ΓÇö Colors v1.0 .PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "320d66beccb26206e55c4098c0d358f71919158869b9f3d75d58fae3a8783a20"
+    },
+    {
+      "file": "BAZAR Design System ΓÇö Grid & Spacing v1.0 (FINAL).PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "e70af65af01637f34cb56a19289bdcd140b22d436e48ceb4ff3f78a4cfeaae96"
+    },
+    {
+      "file": "BAZAR Design System ΓÇö Typography v1.0 (FINAL) .PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "e1ac5c631cf13434df546538b90e5af9fb42fdee7f8e756f2cdbb39ccec73d81"
+    },
+    {
+      "file": "BAZAR Home Page Desktop ΓÇö v1.2.PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "97c0f90b59b63f4e3d0c1e8fd0ebe42af40f041aec8b7fc5c7b4fbf754ba4b58"
+    },
+    {
+      "file": "BAZAR UI Kit v1.0.PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "05e724b38d7bef4c912ff9a822aedcf7cde89011460661e32f7c0aec5419d5cd"
+    },
+    {
+      "file": "Buttons.PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "7ea8df5b06612e8c3da6936a473fc67fe170f695d315c291c5970b832a72b288"
+    },
+    {
+      "file": "Cards.PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "b7a19cad02779f48a76e4ab402453619b9375a704fb9caa8a97ff20542332e28"
+    },
+    {
+      "file": "Cart Page Desktop v1.1 (FINAL).PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "47890780ec3152df6fb504bf66169204b9820085056c5c991004e97e359cf25b"
+    },
+    {
+      "file": "Catalog Page Desktop v1.2.PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "188e83db7081f0c87de668e422f1f94879b04bd5a4311e75626bf2ce59f54010"
+    },
+    {
+      "file": "Checkout Desktop v1.0 (FINAL).PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "5d6eb377f10f3f7c9bffcad931a0b42929580a9c41f60b237db8f49ffd035b6b"
+    },
+    {
+      "file": "Empty States Module Desktop v1.0 (FINAL).PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "ae36526012ac1f4801b24db3891135d1681725888750788495a251e0d67972a1"
+    },
+    {
+      "file": "Empty States.PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "1aa41beee78a042ca01f2c56eacdc4901135d8a3c68c48587318b3a78965f5f4"
+    },
+    {
+      "file": "Global UI Components v1.0 (FINAL).PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "bb016a7e8238d6d8d019ca2139f0e487a166037b6e346d6b3e086e32c6390e6b"
+    },
+    {
+      "file": "Help Center Desktop v1.0 .PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "5582a637b1f56f38efab0cab3ad0ee36c3aad17151a45d3d2da985e92b16e3dc"
+    },
+    {
+      "file": "Icons.PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "5fbfc9d30c2bdda342d3561ec78344534270ac3b94f8f7197c1ed71f29726511"
+    },
+    {
+      "file": "Illustration System.PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "6456e4912a6c1c426579314c3bc8165bbcdac03cdf36f45073c9136a38ec1aee"
+    },
+    {
+      "file": "Information Pages Module Desktop v1.0 (FINAL).PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "86e72369aa1541fb2790e7ebd0b80d4c5376428512b76624d6c6daa0c42a5213"
+    },
+    {
+      "file": "Inputs.PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "55464d460fcd586379b801b9cfbd477d8e4fef5ba12acee571d4dcf664ebd116"
+    },
+    {
+      "file": "Loaders (Skeleton, Spinner, Progress).PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "ca968727b787e693312250cbc49b727acbcaa3d44eeddb7750278ad0bd269e1d"
+    },
+    {
+      "file": "Modals.PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "5fbfc9d30c2bdda342d3561ec78344534270ac3b94f8f7197c1ed71f29726511"
+    },
+    {
+      "file": "Navigation.PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "73301ea5a7f7c649a0462849cef6a6bedd61412db0fbd611fd8a8a5dc626294f"
+    },
+    {
+      "file": "Notifications.PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "0b67fa263fdbfe1a033edb0e23c416c2030d31f5388e74aa42ca09005207312f"
+    },
+    {
+      "file": "Order Details Page v1.0 (FINAL.PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "d0703d1066585306f8d24b8ecdf08f1fb67ebdb7cfe2f7ff782b51ab9bb8cbdf"
+    },
+    {
+      "file": "Product Page Desktop v1.2.PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "26d999dc6e146462ba47115978161b4bc68d6d252d3242e83fe7ac4a2a36f67e"
+    },
+    {
+      "file": "Responsive Rules.PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "c120da3be2e8fdf095b0c047bb63f1b73906e79917f739b27fc4716838770ce2"
+    },
+    {
+      "file": "Search Experience Desktop v1.0 (FINAL).PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "23e6786f5cbdfc829ba0fc542ede68ecedeeeb7755b9188f3005197f5e8a72e0"
+    },
+    {
+      "file": "Shopify Components.PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "a3c19ebf10577e59c209f04496c4f8bf3f97709a0bafa225adcff09cbdbfc667"
+    },
+    {
+      "file": "UI Design Home Page v1.0..PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "375cf99c6e6aa84b9d16ac366ae34024103c318f20c40583e1b690631b76e2cd"
+    },
+    {
+      "file": "UX Architecture v1.0.PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "6b02705c1dbd96a5b5a1ee596b55290cb7199903969f62f2025120f79e6dfc36"
+    },
+    {
+      "file": "Wireframe ╨│╨╛╨╗╨╛╨▓╨╜╨╛╤û╠ê ╤ü╤é╨╛╤Ç╤û╨╜╨║╨╕ (Desktop).PNG",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "9965c38fccaf480a3cf702eefdc024c766fb664fce3b0a75d59be7547f81c9da"
+    },
+    {
+      "file": "╨₧╤ü╨╛╨▒╨╕╤ü╤é╨╕╨╕╠å ╨║╨░╨▒╤û╨╜╨╡╤é v1.1.PNG",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "019ccebf3a6336e6ffccd665eb82416e8f2cf41fe6fd46d812996250b58d32d7"
+    }
+  ],
+  "manifest_names_not_on_disk": [
+    "BAZAR Design System ΓÇö Colors v1.0 .PNG",
+    "BAZAR Design System ΓÇö Grid & Spacing v1.0 (FINAL).PNG",
+    "BAZAR Design System ΓÇö Typography v1.0 (FINAL) .PNG",
+    "BAZAR Home Page Desktop ΓÇö v1.2.PNG",
+    "Wireframe ╨│╨╛╨╗╨╛╨▓╨╜╨╛╤û╠ê ╤ü╤é╨╛╤Ç╤û╨╜╨║╨╕ (Desktop).PNG",
+    "╨₧╤ü╨╛╨▒╨╕╤ü╤é╨╕╨╕╠å ╨║╨░╨▒╤û╨╜╨╡╤é v1.1.PNG"
+  ],
+  "disk_names_not_in_manifest": [
+    "BAZAR Design System ΓÇö Colors v1.0 .PNG",
+    "BAZAR Design System ΓÇö Grid & Spacing v1.0 (FINAL).PNG",
+    "BAZAR Design System ΓÇö Typography v1.0 (FINAL) .PNG",
+    "BAZAR Home Page Desktop ΓÇö v1.2.PNG",
+    "Wireframe ╨│╨╛╨╗╨╛╨▓╨╜╨╛╤û╠ê ╤ü╤é╨╛╤Ç╤û╨╜╨║╨╕ (Desktop).PNG",
+    "╨₧╤ü╨╛╨▒╨╕╤ü╤é╨╕╨╕╠å ╨║╨░╨▒╤û╨╜╨╡╤é v1.1.PNG"
+  ],
+  "duplicate_image_groups": [
+    [
+      "Icons.PNG",
+      "Modals.PNG"
+    ]
+  ]
+}
