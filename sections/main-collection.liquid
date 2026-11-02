@@ -1,3 +1,18 @@
+{% # theme-check-disable-next-line UnknownFilter %}
+<collection-component view-event-payload="{{ collection | standard_event_data: 'view' | escape }}">
+{% if section.settings.bazar_catalog %}
+  {% render 'bazar-collection-heading' %}
+  {% paginate collection.products by section.settings.products_per_page %}
+    {% capture bazar_cards %}
+      {% for product in collection.products %}
+        <li class="bazar-catalog__item">
+          {% content_for 'block', type: '_product-card', id: 'product-card', closest.product: product, product_view_context: 'collection' %}
+        </li>
+      {% endfor %}
+    {% endcapture %}
+    {% render 'bazar-collection', cards: bazar_cards, paginate: paginate %}
+  {% endpaginate %}
+{% else %}
 
 
 <script
@@ -32,8 +47,7 @@
 <div
   class="section-background{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
 ></div>
-{% # theme-check-disable-next-line UnknownFilter %}
-<collection-component view-event-payload="{{ collection | standard_event_data: 'view' | escape }}">
+
   <results-list
     class="section product-grid-container{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
     style="--padding-block-start: {{ section.settings.padding-block-start }}px; --padding-block-end: {{ section.settings.padding-block-end }}px;"
@@ -88,15 +102,85 @@
       {% endpaginate %}
     </div>
   </results-list>
+
+
+{% endif %}
+
 </collection-component>
 
 {% schema %}
 {
   "name": "t:names.collection_container",
   "enabled_on": {
-    "templates": ["collection"]
+    "templates": [
+      "collection"
+    ]
   },
   "settings": [
+    {
+      "type": "checkbox",
+      "id": "bazar_catalog",
+      "label": "Каталог BAZAR",
+      "default": true
+    },
+    {
+      "type": "link_list",
+      "id": "bazar_category_menu",
+      "label": "Меню категорій",
+      "info": "Лише налаштована ієрархія. Shopify не створює батьківські колекції автоматично."
+    },
+    {
+      "type": "paragraph",
+      "content": "Палітра, масштаб заголовків і геометрія залишаються на погодженні. Картки BAZAR мають сталий склад; вкладені налаштування карток Horizon діють у режимі Horizon."
+    },
+    {
+      "type": "select",
+      "id": "bazar_grid",
+      "label": "Сітка товарів (геометрія не погоджена)",
+      "default": "adaptive",
+      "options": [
+        {
+          "value": "adaptive",
+          "label": "Адаптивна за шириною картки"
+        },
+        {
+          "value": "reference",
+          "label": "Кандидат Responsive Rules: 2/3/4/5"
+        }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "bazar_card_min",
+      "label": "Мінімальна ширина картки",
+      "min": 160,
+      "max": 260,
+      "step": 10,
+      "unit": "px",
+      "default": 200
+    },
+    {
+      "type": "range",
+      "id": "bazar_sidebar_width",
+      "label": "Ширина бічної панелі",
+      "min": 200,
+      "max": 300,
+      "step": 10,
+      "unit": "px",
+      "default": 240
+    },
+    {
+      "type": "checkbox",
+      "id": "bazar_show_filters",
+      "label": "Показувати доступні фільтри Shopify",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "bazar_show_sort",
+      "label": "Показувати сортування Shopify",
+      "default": true
+    },
     {
       "type": "select",
       "id": "layout_type",

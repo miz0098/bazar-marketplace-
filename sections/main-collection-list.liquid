@@ -1,3 +1,25 @@
+{% if section.settings.bazar_collections %}
+  {{ 'bazar-catalog.css' | asset_url | stylesheet_tag }}
+  {{ 'bazar-home.css' | asset_url | stylesheet_tag }}
+  <section class="bazar-ui bazar-container bazar-collections" aria-labelledby="CollectionsHeading-{{ section.id }}">
+    <nav aria-label="Навігаційний шлях"><ol class="bazar-catalog__breadcrumbs"><li><a href="{{ routes.root_url }}">Головна</a></li><li aria-current="page">Колекції</li></ol></nav>
+    <h1 id="CollectionsHeading-{{ section.id }}">Колекції</h1>
+    {% paginate collections by 24 %}
+      <ul class="bazar-collections__grid" role="list">
+        {% for collection in collections %}
+          <li><a href="{{ collection.url }}">
+            {% if collection.featured_image != blank %}
+              {% assign image_alt = collection.featured_image.alt | default: collection.title %}
+              {{ collection.featured_image | image_url: width: 480 | image_tag: loading: 'lazy', alt: image_alt }}
+            {% endif %}
+            <h2>{{ collection.title | escape }}</h2>
+          </a></li>
+        {% else %}<li>Колекцій поки немає.</li>{% endfor %}
+      </ul>
+      {% render 'bazar-pagination', paginate: paginate %}
+    {% endpaginate %}
+  </section>
+{% else %}
 
 
 {% liquid
@@ -65,6 +87,8 @@
   %}
 </div>
 
+{% endif %}
+
 {% schema %}
 {
   "name": "t:names.collection_list",
@@ -102,9 +126,22 @@
     }
   ],
   "disabled_on": {
-    "groups": ["header", "footer"]
+    "groups": [
+      "header",
+      "footer"
+    ]
   },
   "settings": [
+    {
+      "type": "checkbox",
+      "id": "bazar_collections",
+      "label": "Колекції BAZAR",
+      "default": true
+    },
+    {
+      "type": "paragraph",
+      "content": "Показує реальні колекції Shopify, по 24 на сторінку. Вкладені блоки й налаштування карток діють у режимі Horizon. Остаточний вигляд сторінки колекцій потребує погодження."
+    },
     {
       "type": "header",
       "content": "t:content.cards_layout"

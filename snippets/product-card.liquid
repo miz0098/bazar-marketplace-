@@ -22,6 +22,7 @@
 {% endstyle %}
 
 {% liquid
+  assign bazar_card = section.settings.bazar_catalog | default: section.settings.bazar_catalog_cards
   assign has_quick_add = false
   if settings.quick_add and product.available
     assign has_quick_add = true
@@ -60,10 +61,11 @@
 %}
 
 <product-card
-  class="product-card size-style"
+  class="product-card size-style{% if bazar_card %} bazar-card bazar-ui{% endif %}"
   style="{% render 'size-style', settings: block_settings %}"
+  {% if bazar_card %}data-no-navigation{% endif %}
   data-product-id="{{ product.id }}"
-  id="product-card-{{ block.id }}"
+  id="product-card-{{ block.id }}{% if bazar_card %}-{{ product.id }}{% endif %}"
   {% if settings.transition_to_main_product %}
     data-product-transition="true"
     data-featured-media-url="{{ featured_media_url }}"
@@ -115,7 +117,11 @@
       {% if block_settings.padding-block-end > 0 %}--zoom-out-padding-block-end: min(var(--padding-xs), {{ block_settings.padding-block-end | times: 0.7}}px);{% endif %}
     "
   >
-    {{ children }}
+    {% if bazar_card and product != blank %}
+      {% render 'bazar-card-content', product: product, card_id: product_card_id %}
+    {% else %}
+      {{ children }}
+    {% endif %}
   </div>
 </product-card>
 

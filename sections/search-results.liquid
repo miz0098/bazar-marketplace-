@@ -1,3 +1,7 @@
+{% if section.settings.bazar_catalog_cards %}
+  {{ 'bazar-catalog.css' | asset_url | stylesheet_tag }}
+  <script type="module" src="{{ 'bazar-catalog.js' | asset_url }}"></script>
+{% endif %}
 
 
 <script
@@ -79,6 +83,16 @@
 {
   "name": "t:names.search_results",
   "settings": [
+    {
+      "type": "checkbox",
+      "id": "bazar_catalog_cards",
+      "label": "Картки BAZAR у результатах пошуку",
+      "default": true
+    },
+    {
+      "type": "paragraph",
+      "content": "Пошук, підказки та фільтри залишаються Shopify. У режимі BAZAR склад картки сталий; вкладені блоки карток діють у режимі Horizon."
+    },
     {
       "type": "paragraph",
       "content": "t:content.edit_empty_state_collection_in_theme_settings"

@@ -9,7 +9,9 @@
 -%}
 
 {% capture children %}
-  {% content_for 'blocks', closest.product: product %}
+  {% unless section.settings.bazar_catalog or section.settings.bazar_catalog_cards %}
+    {% content_for 'blocks', closest.product: product %}
+  {% endunless %}
 {% endcapture %}
 
 {% render 'product-card', children: children, product: product, product_view_context: product_view_context %}

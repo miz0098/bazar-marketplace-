@@ -1,0 +1,15 @@
+{% doc %}
+  Standard Shopify pagination URLs, including filter/sort state.
+  @param {object} paginate - Shopify pagination
+{% enddoc %}
+{% if paginate.pages > 1 %}
+      <nav class="bazar-catalog__pagination" aria-label="Сторінки каталогу">
+        {% if paginate.previous %}<a href="{{ paginate.previous.url }}" aria-label="Попередня сторінка">←</a>{% endif %}
+        {% for part in paginate.parts %}
+          {% if part.is_link %}<a href="{{ part.url }}" aria-label="Сторінка {{ part.title | escape }}">{{ part.title }}</a>
+          {% elsif part.title != '&hellip;' and part.title != '…' %}<span aria-current="page" aria-label="Сторінка {{ part.title | escape }}">{{ part.title }}</span>
+          {% else %}<span>{{ part.title }}</span>{% endif %}
+        {% endfor %}
+        {% if paginate.next %}<a href="{{ paginate.next.url }}" aria-label="Наступна сторінка">→</a>{% endif %}
+      </nav>
+    {% endif %}
