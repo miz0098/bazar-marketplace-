@@ -5,7 +5,7 @@
   @param {string} [icon] - Optional BAZAR icon name.
   @param {string} [class] - Optional scoped class.
 {% enddoc %}
-{% if url != blank %}<a class="{{ class }}" href="{{ url }}">{% else %}<span class="{{ class }}" aria-disabled="true" title="Адресу не налаштовано">{% endif %}
+{% if url != blank %}<a class="{{ class }}" href="{{ url }}">{% else %}<span class="{{ class }}" aria-disabled="true" title="{{ label | escape }} — наразі недоступно">{% endif %}
   {% if icon != blank %}{% render 'bazar-icon', name: icon %}{% endif %}
   <span>{{ label | escape }}</span>
 {% if url != blank %}</a>{% else %}</span>{% endif %}

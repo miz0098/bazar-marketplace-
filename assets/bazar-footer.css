@@ -22,3 +22,19 @@
 .bazar-footer__localization select { max-width: 100%; padding: 8px; border: 1px solid var(--bazar-color-border); background: #fff; color: var(--bazar-color-navy); }
 @media (max-width: 1023px) { .bazar-footer__main { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; } .bazar-footer__brand { grid-column: 1 / -1; } }
 @media (max-width: 767px) { .bazar-footer__main { grid-template-columns: repeat(2, minmax(0, 1fr)); } .bazar-footer__apps { grid-column: 1 / -1; } .bazar-footer__bottom { align-items: flex-start; flex-direction: column; } }
+
+/* Framed footer from the repeated page compositions, including FINAL cart. */
+.bazar-footer { border: 1px solid var(--bazar-color-border); border-radius: var(--bazar-radius-md); width: min(calc(100% - 32px),1440px); margin: 32px auto 24px; }
+.bazar-footer__main { gap: 24px; padding-block: 32px; }
+.bazar-footer__nav a { color: var(--bazar-color-navy); font: var(--bazar-type-small); min-height: 32px; }
+.bazar-footer__app-button { color: var(--bazar-color-navy); background: var(--bazar-color-surface); }
+.bazar-footer__brand .bazar-logo__svg { width: 160px; }
+.bazar-footer__bottom { font: var(--bazar-type-caption); }
+@media (max-width: 767px) {
+  .bazar-footer { width: calc(100% - 16px); margin-block: 24px 16px; }
+  .bazar-footer__main { gap: 24px 16px; padding-block: 24px; }
+  .bazar-footer__nav a { display: flex; align-items: center; min-height: 44px; }
+  .bazar-footer__bottom { gap: 16px; }
+  .bazar-footer__legal { gap: 8px 16px; }
+  .bazar-footer__legal > * { min-height: 44px; }
+}

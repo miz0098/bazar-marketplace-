@@ -2122,53 +2122,7 @@
     "settings": [
       {
         "type": "paragraph",
-        "content": "Палітра та ширина мають суперечливі PNG-версії. До окремого погодження залиште «Успадкувати Horizon». Налаштування діють лише на відновлені компоненти BAZAR."
-      },
-      {
-        "type": "font_picker",
-        "id": "bazar_font",
-        "label": "Шрифт BAZAR",
-        "default": "inter_n4"
-      },
-      {
-        "type": "select",
-        "id": "bazar_palette",
-        "label": "Палітра — потрібне погодження",
-        "default": "inherit",
-        "options": [
-          {
-            "value": "inherit",
-            "label": "Успадкувати Horizon"
-          },
-          {
-            "value": "overview",
-            "label": "Огляд: синій #165DFF"
-          },
-          {
-            "value": "colors",
-            "label": "Colors: синій #1E88E5"
-          }
-        ]
-      },
-      {
-        "type": "select",
-        "id": "bazar_container",
-        "label": "Контейнер — потрібне погодження",
-        "default": "inherit",
-        "options": [
-          {
-            "value": "inherit",
-            "label": "Успадкувати Horizon"
-          },
-          {
-            "value": "grid",
-            "label": "Grid & Spacing: 1380 px"
-          },
-          {
-            "value": "responsive",
-            "label": "Responsive Rules: 1320 px"
-          }
-        ]
+        "content": "Погоджено B3.1: Inter, сині основні кнопки, контейнер Grid & Spacing 1380 px; адаптація Responsive Rules. Стилі обмежено компонентами BAZAR. Попередні палітри та шрифт Horizon не застосовуються."
       }
     ]
   }

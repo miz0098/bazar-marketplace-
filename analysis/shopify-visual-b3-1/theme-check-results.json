@@ -1,0 +1,17 @@
+{
+  "scope": "Local Theme Check, no merchant connection",
+  "cli": "5.0.0",
+  "errors": 0,
+  "warnings": 317,
+  "baseline": {
+    "errors": 0,
+    "warnings": 317
+  },
+  "warning_delta": 0,
+  "warning_types": {
+    "ExcessiveSettingsCount": 1,
+    "ValidScopedCSSClass": 173,
+    "OrphanedSnippet": 138,
+    "UnusedDocParam": 5
+  }
+}
