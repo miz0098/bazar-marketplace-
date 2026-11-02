@@ -1,0 +1,94 @@
+{
+  "scope": "LOCAL synthetic fixtures, actual Horizon modules; no merchant tests",
+  "results": [
+    {
+      "name": "Real-template summary: title/vendor/SKU/currency, pending favorites and no fabricated rating",
+      "result": "passed"
+    },
+    {
+      "name": "Gallery: selected main image, thumbnails, Arrow/Home/End/Space keyboard navigation",
+      "result": "passed"
+    },
+    {
+      "name": "Native variant request updates exact purchasable ID, current/compare prices, discount, SKU and image",
+      "result": "passed"
+    },
+    {
+      "name": "Unavailable variant remains selected and cannot add; availability/quantity update without fallback",
+      "result": "passed"
+    },
+    {
+      "name": "Impossible option combination clears variant ID/price and never substitutes first available",
+      "result": "passed"
+    },
+    {
+      "name": "Direct unavailable variant URL renders its genuine unavailable state",
+      "result": "passed"
+    },
+    {
+      "name": "Pending variant blocks submit until exact response settles",
+      "result": "passed"
+    },
+    {
+      "name": "Variant fetch failure locks stale purchase; explicit retry restores server-confirmed selection",
+      "result": "passed"
+    },
+    {
+      "name": "Rapid option changes ignore aborted/stale response and preserve latest variant",
+      "result": "passed"
+    },
+    {
+      "name": "Native quantity plus/minus obey min/max/increment and reject invalid typed quantity",
+      "result": "passed"
+    },
+    {
+      "name": "Native cart POST uses selected variant/exact quantity; confirmed native cart count and success only after response",
+      "result": "passed"
+    },
+    {
+      "name": "Rejected add shows truthful server error and no success; recoverable retry remains possible",
+      "result": "passed"
+    },
+    {
+      "name": "Unknown POST outcome stays locked with cart link and no automatic retry/success",
+      "result": "passed"
+    },
+    {
+      "name": "Confirmed add followed by cart refresh failure never claims confirmation",
+      "result": "passed"
+    },
+    {
+      "name": "Typed content panels: actual description/spec/additional only, keyboard tab semantics and no invented reviews",
+      "result": "passed"
+    },
+    {
+      "name": "Genuine media only: video flag/native deferred markup, model static preview, empty gallery has no placeholder product",
+      "result": "passed"
+    },
+    {
+      "name": "Required selling-plan products are explicitly unavailable until plan integration, no arbitrary plan",
+      "result": "passed"
+    },
+    {
+      "name": "Native recommendation request renders only returned products; no catalog/random fallback",
+      "result": "passed"
+    },
+    {
+      "name": "No-JavaScript baseline retains media, readable panels, variant GET fallback and real product POST",
+      "result": "passed"
+    },
+    {
+      "name": "Responsive desktop/laptop/tablet/mobile: no horizontal overflow at 320/390/767/768/1023/1024/1439/1440",
+      "result": "passed"
+    },
+    {
+      "name": "axe A/AA on desktop/mobile PDP and changed/out-of-stock state",
+      "result": "passed"
+    },
+    {
+      "name": "Labeled local screenshots saved; no browser runtime exceptions",
+      "result": "passed"
+    }
+  ],
+  "errors": []
+}

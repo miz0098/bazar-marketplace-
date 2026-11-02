@@ -1,0 +1,35 @@
+{% doc %}
+  Only actual merchant description, supported typed metafields and configured app blocks. No sample reviews/Q&A.
+  @param {product} product - Actual Shopify product
+{% enddoc %}
+{% liquid
+  assign spec_key = section.settings.specifications | split: '.'
+  assign extra_key = section.settings.additional_information | split: '.'
+  assign specifications = product.metafields[spec_key[0]][spec_key[1]]
+  assign additional = product.metafields[extra_key[0]][extra_key[1]]
+%}
+{% capture spec_content %}{% render 'bazar-pdp-metafield', field: specifications %}{% endcapture %}
+{% capture extra_content %}{% render 'bazar-pdp-metafield', field: additional %}{% endcapture %}
+{% capture app_content %}{% for block in section.blocks %}{% if block.type == '@app' %}{% render block %}{% endif %}{% endfor %}{% endcapture %}
+{% liquid
+  assign spec_content = spec_content | strip
+  assign extra_content = extra_content | strip
+  assign app_content = app_content | strip
+%}
+{% if product.description != blank or spec_content != blank or extra_content != blank or app_content != blank %}
+  <div class="bazar-pdp__panels" data-pdp-panels>
+    <nav class="bazar-pdp__tabs" aria-label="Відомості про товар">
+      {% if product.description != blank %}<a href="#PdpDescription-{{ section.id }}" data-pdp-tab>Опис</a>{% endif %}
+      {% if spec_content != blank %}<a href="#PdpSpecifications-{{ section.id }}" data-pdp-tab>Характеристики</a>{% endif %}
+      {% if extra_content != blank %}<a href="#PdpAdditional-{{ section.id }}" data-pdp-tab>Додаткова інформація</a>{% endif %}
+      {% if app_content != blank %}<a href="#PdpApps-{{ section.id }}" data-pdp-tab>Відгуки та запитання</a>{% endif %}
+    </nav>
+    {% if product.description != blank %}<section id="PdpDescription-{{ section.id }}" data-pdp-panel><div class="bazar-pdp__overview">
+      <div><h2>Про товар</h2><div class="rte">{{ product.description }}</div></div>
+      {% if spec_content != blank %}<div><h2>Характеристики</h2>{{ spec_content }}<a href="#PdpSpecifications-{{ section.id }}" data-pdp-panel-link>Показати всі характеристики</a></div>{% endif %}
+    </div></section>{% endif %}
+    {% if spec_content != blank %}<section id="PdpSpecifications-{{ section.id }}" data-pdp-panel><h2>Характеристики</h2>{{ spec_content }}</section>{% endif %}
+    {% if extra_content != blank %}<section id="PdpAdditional-{{ section.id }}" data-pdp-panel><h2>Додаткова інформація</h2>{{ extra_content }}</section>{% endif %}
+    {% if app_content != blank %}<section id="PdpApps-{{ section.id }}" data-pdp-panel>{{ app_content }}</section>{% endif %}
+  </div>
+{% endif %}

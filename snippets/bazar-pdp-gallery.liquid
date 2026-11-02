@@ -1,0 +1,30 @@
+{% doc %}
+  Source-based thumbnail anatomy; genuine Shopify media, native deferred video. Models are static previews only.
+  @param {product} product - Actual Shopify product
+{% enddoc %}
+{% assign selected_media = product.selected_or_first_available_variant.featured_media | default: product.featured_media %}
+<bazar-product-gallery class="bazar-pdp-gallery" data-selected-media-id="{{ selected_media.id }}">
+  {% if product.media.size > 1 %}<nav class="bazar-pdp-gallery__thumbs" aria-label="Медіа товару">
+    {% for media in product.media %}
+      <a href="#PdpMedia-{{ section.id }}-{{ media.id }}" data-pdp-thumb="{{ media.id }}" aria-label="Показати медіа {{ forloop.index }}: {{ media.alt | default: product.title | escape }}">
+        {% assign alt = media.alt | default: product.title %}
+        {{ media.preview_image | image_url: width: 160 | image_tag: loading: 'lazy', alt: alt }}
+        {% if media.media_type == 'video' or media.media_type == 'external_video' %}<span class="visually-hidden">Відео</span>{% endif %}
+      </a>
+    {% endfor %}
+  </nav>{% endif %}
+  <div class="bazar-pdp-gallery__stage">
+    {% for media in product.media %}
+      <figure id="PdpMedia-{{ section.id }}-{{ media.id }}" data-pdp-media="{{ media.id }}">
+        {% assign alt = media.alt | default: product.title %}
+        {% case media.media_type %}
+          {% when 'video', 'external_video' %}
+            {% render 'video', video: media, video_alt: alt, video_autoplay: false, video_loop: false, disable_controls: false %}
+          {% else %}
+            {% assign loading = 'lazy' %}{% if media.id == selected_media.id %}{% assign loading = 'eager' %}{% endif %}
+            {{ media.preview_image | image_url: width: 1600 | image_tag: widths: '320, 640, 960, 1200, 1600', sizes: '(max-width: 767px) 92vw, 50vw', loading: loading, alt: alt }}
+        {% endcase %}
+      </figure>
+    {% else %}<p>Зображення товару відсутнє.</p>{% endfor %}
+  </div>
+</bazar-product-gallery>

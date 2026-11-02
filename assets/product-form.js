@@ -892,6 +892,10 @@ class ProductFormComponent extends Component {
 
       // Fetch and update cart quantity for the new variant
       this.#refreshCart().then((cart) => this.#updateCartQuantity(cart));
+    } catch (error) {
+      // Rapid option changes intentionally abort the previous section request.
+      // Do not turn its rejected event promise into an unhandled async listener error.
+      if (error?.name !== 'AbortError') console.warn('[product-form] Variant update failed:', error);
     } finally {
       // Only clear the flag if no newer variant selection has started
       if (generation === this.#variantChangeGeneration) {
