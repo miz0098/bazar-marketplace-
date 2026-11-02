@@ -1,0 +1,212 @@
+{
+  "scope": "Local synthetic LiquidJS/Chromium rendering; no merchant acceptance",
+  "results": [
+    {
+      "name": "Real bundled Inter loads with Ukrainian sample checks at regular/medium/semibold/bold weights",
+      "result": "passed"
+    },
+    {
+      "name": "Approved blue tokens override dark Horizon defaults; scoped body/heading roles",
+      "result": "passed"
+    },
+    {
+      "name": "Unavailable profile/favorites stay inert without customer technical status; actual cart/search destinations",
+      "result": "passed"
+    },
+    {
+      "name": "Catalog disclosure keyboard, Escape focus return, outside click and accessible search control",
+      "result": "passed"
+    },
+    {
+      "name": "Footer required platform set and configured links only, no generic app destination or forbidden platforms",
+      "result": "passed"
+    },
+    {
+      "name": "320/390/768/1024/1280/1440 shared shell overflow, geometry, search and 44px action targets",
+      "result": "passed"
+    },
+    {
+      "name": "Empty cart defeats hostile native H2 font/96px sizing at all required widths",
+      "result": "passed"
+    },
+    {
+      "name": "WCAG A/AA local shell and empty cart at mobile/desktop",
+      "result": "passed"
+    },
+    {
+      "name": "Labeled local full shell/empty screenshots, reduced motion and visible keyboard focus",
+      "result": "passed"
+    }
+  ],
+  "errors": [],
+  "measurements": [
+    {
+      "width": 320,
+      "overflow": false,
+      "container": 288,
+      "search": 288,
+      "actions": [
+        {
+          "w": 44.5625,
+          "h": 48
+        },
+        {
+          "w": 48.21875,
+          "h": 48
+        },
+        {
+          "w": 44,
+          "h": 48
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "overflow": false,
+      "container": 358,
+      "search": 358,
+      "actions": [
+        {
+          "w": 44.5625,
+          "h": 48
+        },
+        {
+          "w": 48.21875,
+          "h": 48
+        },
+        {
+          "w": 44,
+          "h": 48
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "overflow": false,
+      "container": 720,
+      "search": 720,
+      "actions": [
+        {
+          "w": 44.5625,
+          "h": 48
+        },
+        {
+          "w": 48.21875,
+          "h": 48
+        },
+        {
+          "w": 44,
+          "h": 48
+        }
+      ]
+    },
+    {
+      "width": 1024,
+      "overflow": false,
+      "container": 976,
+      "search": 509,
+      "actions": [
+        {
+          "w": 44.5625,
+          "h": 48
+        },
+        {
+          "w": 48.21875,
+          "h": 48
+        },
+        {
+          "w": 44,
+          "h": 48
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "overflow": false,
+      "container": 1140,
+      "search": 593,
+      "actions": [
+        {
+          "w": 44.5625,
+          "h": 48
+        },
+        {
+          "w": 48.21875,
+          "h": 48
+        },
+        {
+          "w": 44,
+          "h": 48
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "overflow": false,
+      "container": 1380,
+      "search": 833,
+      "actions": [
+        {
+          "w": 44.5625,
+          "h": 48
+        },
+        {
+          "w": 48.21875,
+          "h": 48
+        },
+        {
+          "w": 44,
+          "h": 48
+        }
+      ]
+    },
+    {
+      "emptyWidth": 320,
+      "font": "\"Bazar Inter\", Inter, system-ui, sans-serif",
+      "size": "20px",
+      "line": "28px",
+      "transform": "none",
+      "width": 288
+    },
+    {
+      "emptyWidth": 390,
+      "font": "\"Bazar Inter\", Inter, system-ui, sans-serif",
+      "size": "20px",
+      "line": "28px",
+      "transform": "none",
+      "width": 358
+    },
+    {
+      "emptyWidth": 768,
+      "font": "\"Bazar Inter\", Inter, system-ui, sans-serif",
+      "size": "24px",
+      "line": "32px",
+      "transform": "none",
+      "width": 720
+    },
+    {
+      "emptyWidth": 1024,
+      "font": "\"Bazar Inter\", Inter, system-ui, sans-serif",
+      "size": "24px",
+      "line": "32px",
+      "transform": "none",
+      "width": 976
+    },
+    {
+      "emptyWidth": 1280,
+      "font": "\"Bazar Inter\", Inter, system-ui, sans-serif",
+      "size": "24px",
+      "line": "32px",
+      "transform": "none",
+      "width": 1140
+    },
+    {
+      "emptyWidth": 1440,
+      "font": "\"Bazar Inter\", Inter, system-ui, sans-serif",
+      "size": "24px",
+      "line": "32px",
+      "transform": "none",
+      "width": 1380
+    }
+  ]
+}

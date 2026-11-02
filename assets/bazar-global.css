@@ -1,42 +1,105 @@
-/* B2.1: namespaced adaptation of bazar-global.css@105d10f. No body/native button overrides. */
+/* B3.1 approved roles. Scoped consumers only; native Horizon variables are untouched.
+   Inter by Rasmus Andersson, SIL OFL 1.1; see bazar-inter-license.txt. */
+@font-face {
+  font-family: 'Bazar Inter';
+  src: url('bazar-inter-variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
 :root {
-  --bazar-color-blue: var(--color-primary-button-background, #0f172a);
-  --bazar-color-on-blue: var(--color-primary-button-text, #fff);
+  --bazar-color-blue: #003eff;
+  --bazar-color-blue-hover: #0035d9;
+  --bazar-color-blue-active: #002bb3;
+  --bazar-color-on-blue: #fff;
+  --bazar-color-focus: #003eff;
   --bazar-color-navy: #0f172a;
-  --bazar-color-text: #1f2937;
-  --bazar-color-muted: #64748b;
-  --bazar-color-border: #e5eaf2;
+  --bazar-color-text: #2b2f36;
+  --bazar-color-muted: #5c6168;
+  --bazar-color-border: #d1d5db;
   --bazar-color-surface: #fff;
-  --bazar-color-surface-soft: #f6f8fb;
-  --bazar-font-family: Inter, var(--font-body--family, system-ui), system-ui, sans-serif;
+  --bazar-color-surface-soft: #f3f4f6;
+  --bazar-color-page: #f8fafc;
+  --bazar-color-success: #22c55e;
+  --bazar-color-warning: #f59e0b;
+  --bazar-color-error: #ef4444;
+  --bazar-color-info: #3b82f6;
+  --bazar-color-success-text: #166534;
+  --bazar-color-error-text: #b91c1c;
+  --bazar-font-family: 'Bazar Inter', Inter, system-ui, sans-serif;
+  --bazar-type-display: 700 48px/56px var(--bazar-font-family);
+  --bazar-type-h1: 700 40px/48px var(--bazar-font-family);
+  --bazar-type-h2: 600 32px/40px var(--bazar-font-family);
+  --bazar-type-h3: 600 24px/32px var(--bazar-font-family);
+  --bazar-type-h4: 600 20px/28px var(--bazar-font-family);
+  --bazar-type-h5: 500 18px/24px var(--bazar-font-family);
+  --bazar-type-h6: 500 16px/22px var(--bazar-font-family);
+  --bazar-type-body: 400 14px/20px var(--bazar-font-family);
+  --bazar-type-small: 400 13px/18px var(--bazar-font-family);
+  --bazar-type-caption: 400 12px/16px var(--bazar-font-family);
+  --bazar-type-button: 600 14px/20px var(--bazar-font-family);
+  --bazar-type-navigation: 500 15px/20px var(--bazar-font-family);
+  --bazar-type-price: 700 24px/28px var(--bazar-font-family);
+  --bazar-space-xxs: 4px;
   --bazar-space-xs: 8px;
   --bazar-space-sm: 12px;
   --bazar-space-md: 16px;
   --bazar-space-lg: 24px;
   --bazar-space-xl: 32px;
+  --bazar-space-40: 40px;
   --bazar-space-2xl: 48px;
+  --bazar-space-56: 56px;
   --bazar-space-3xl: 64px;
-  --bazar-container-width: var(--page-width, 100%);
-  --bazar-container-padding: 24px;
+  --bazar-space-72: 72px;
+  --bazar-space-80: 80px;
+  --bazar-radius-xs: 4px;
   --bazar-radius-sm: 8px;
   --bazar-radius-md: 12px;
   --bazar-radius-lg: 16px;
+  --bazar-shadow-sm: 0 1px 2px rgba(16,24,40,.05);
+  --bazar-shadow-md: 0 4px 12px rgba(16,24,40,.08);
+  --bazar-shadow-lg: 0 12px 24px rgba(16,24,40,.12);
+  --bazar-shadow-xl: 0 24px 48px rgba(16,24,40,.16);
+  --bazar-container-width: 1380px;
+  --bazar-container-padding: 30px;
 }
-.bazar-ui { color: var(--bazar-color-text); font-family: var(--bazar-font-family); font-size: 14px; line-height: 1.5; }
+@media (min-width: 1024px) and (max-width: 1439px) { :root { --bazar-container-width: 1140px; --bazar-container-padding: 24px; } }
+@media (min-width: 768px) and (max-width: 1023px) { :root { --bazar-container-width: 720px; --bazar-container-padding: 24px; } }
+@media (max-width: 767px) { :root { --bazar-container-width: 100%; --bazar-container-padding: 16px; } }
+/* Direct BAZAR roles defeat native Horizon heading family/case/spacing rules. */
+.bazar-ui :is(h1,h2,h3,h4,h5,h6) { font-family: var(--bazar-font-family); font-style: normal; text-transform: none; letter-spacing: normal; color: var(--bazar-color-navy); }
+.bazar-ui h1 { font: var(--bazar-type-h1); letter-spacing: -.01em; }
+.bazar-ui h2 { font: var(--bazar-type-h2); letter-spacing: -.01em; }
+.bazar-ui h3 { font: var(--bazar-type-h3); }
+.bazar-ui h4 { font: var(--bazar-type-h4); }
+.bazar-ui h5 { font: var(--bazar-type-h5); }
+.bazar-ui h6 { font: var(--bazar-type-h6); }
+.bazar-ui { color: var(--bazar-color-text); font-family: var(--bazar-font-family); font-size: 14px; line-height: 20px; }
 .bazar-ui *, .bazar-ui *::before, .bazar-ui *::after { box-sizing: border-box; }
 .bazar-container { width: min(calc(100% - var(--bazar-container-padding) * 2), var(--bazar-container-width)); margin-inline: auto; }
 .bazar-ui svg { display: block; width: 24px; height: 24px; }
 .bazar-ui a { color: inherit; text-decoration: none; }
 .bazar-ui a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .bazar-ui :is(button, input, select, summary) { font: inherit; }
-.bazar-ui :is(a, button, summary, input, select):focus-visible { outline: 2px solid var(--bazar-color-navy); outline-offset: 4px; }
-.bazar-ui .bazar-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 8px 20px; border: 1px solid transparent; border-radius: 8px; background: var(--bazar-color-blue); color: var(--bazar-color-on-blue); font-weight: 600; cursor: pointer; text-decoration: none; }
-.bazar-ui .bazar-button:hover { filter: brightness(.9); text-decoration: none; }
-.bazar-ui .bazar-button--outline { border-color: var(--bazar-color-border); background: var(--bazar-color-surface); color: var(--bazar-color-navy); }
+.bazar-ui :is(a, button, summary, input, select):focus-visible { outline: 2px solid var(--bazar-color-focus); outline-offset: 4px; }
+.bazar-ui .bazar-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 8px 20px; border: 1px solid transparent; border-radius: 8px; background: var(--bazar-color-blue); color: var(--bazar-color-on-blue); font: var(--bazar-type-button); cursor: pointer; text-decoration: none; }
+.bazar-ui .bazar-button:hover { background: var(--bazar-color-blue-hover); text-decoration: none; }
+.bazar-ui .bazar-button:active { background: var(--bazar-color-blue-active); }
+.bazar-ui .bazar-button--outline:hover, .bazar-ui .bazar-button--outline:active { background: var(--bazar-color-surface-soft); }
+.bazar-ui .bazar-button--outline { border-color: var(--bazar-color-blue); background: var(--bazar-color-surface); color: var(--bazar-color-blue); }
 .bazar-ui .bazar-button:disabled, .bazar-ui [aria-disabled='true'] { cursor: default; opacity: .6; }
 .bazar-logo { display: inline-flex; align-items: center; flex-shrink: 0; }
 .bazar-logo__asset { display: block; }
 .bazar-ui .bazar-logo__svg { width: 144px; height: auto; }
 .bazar-editor-note { padding: 12px; border: 1px dashed #64748b; border-radius: 8px; color: #0f172a; background: #f6f8fb; font-size: 13px; }
-@media (max-width: 767px) { :root { --bazar-container-padding: 16px; } .bazar-ui .bazar-logo__svg { width: 112px; } }
+@media (max-width: 767px) { .bazar-ui .bazar-logo__svg { width: 112px; } }
 @media (prefers-reduced-motion: reduce) { .bazar-ui *, .bazar-ui *::before, .bazar-ui *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }
+
+.bazar-ui .bazar-logo__svg text { font-family: var(--bazar-font-family); }
+.bazar-header .bazar-header-action { font: var(--bazar-type-caption); }
+
+.bazar-ui :is(button,input,select,textarea,summary,label,legend) { font-family: var(--bazar-font-family); }
+@media (max-width: 767px) {
+  .bazar-ui h1 { font: var(--bazar-type-h2); }
+  .bazar-ui h2 { font: var(--bazar-type-h3); }
+}

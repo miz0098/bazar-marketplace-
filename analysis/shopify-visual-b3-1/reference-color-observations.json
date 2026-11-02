@@ -1,0 +1,65 @@
+{
+  "scope": "Read-only raster observations in approved primary button regions; gradients differ, not a pixel-parity score",
+  "regions": [
+    {
+      "reference": "BAZAR Home Page Desktop ΓÇö v1.2.PNG",
+      "box": [
+        215,
+        14,
+        316,
+        50
+      ],
+      "filtered_pixels": 3140,
+      "median_rgb": [
+        2,
+        67,
+        252
+      ]
+    },
+    {
+      "reference": "Cart Page Desktop v1.1 (FINAL).PNG",
+      "box": [
+        1123,
+        445,
+        1436,
+        490
+      ],
+      "filtered_pixels": 13438,
+      "median_rgb": [
+        0,
+        55,
+        253
+      ]
+    },
+    {
+      "reference": "Catalog Page Desktop v1.2.PNG",
+      "box": [
+        217,
+        20,
+        316,
+        54
+      ],
+      "filtered_pixels": 3054,
+      "median_rgb": [
+        2,
+        64,
+        253
+      ]
+    },
+    {
+      "reference": "Product Page Desktop v1.2.PNG",
+      "box": [
+        641,
+        451,
+        813,
+        489
+      ],
+      "filtered_pixels": 5561,
+      "median_rgb": [
+        1,
+        62,
+        252
+      ]
+    }
+  ]
+}

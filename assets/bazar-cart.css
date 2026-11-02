@@ -96,7 +96,7 @@
 }
 .bazar-cart__error {
   grid-column:2/-1;
-  color:#a01818
+  color:var(--bazar-color-error-text)
 }
 .bazar-cart__summary {
   border:1px solid var(--bazar-color-border,#e3e5eb);
@@ -154,7 +154,7 @@
   pointer-events:none
 }
 .bazar-cart :focus-visible {
-  outline:2px solid currentColor;
+  outline:2px solid var(--bazar-color-focus);
   outline-offset:4px
 }
 @media(max-width:1439px) {
@@ -215,3 +215,17 @@
     overflow-wrap:anywhere
   }
 }
+
+/* Empty-state role must not inherit native Horizon's fluid H2. */
+.bazar-cart__empty h2 { font: var(--bazar-type-h3); letter-spacing: normal; margin: 0 0 16px; overflow-wrap: anywhere; }
+.bazar-cart__empty p { font: var(--bazar-type-body); margin: 0 0 24px; }
+.bazar-cart h1 { font: var(--bazar-type-h2); }
+.bazar-cart__details h2 { font: 600 16px/24px var(--bazar-font-family); }
+.bazar-cart__summary h2 { font: var(--bazar-type-h6); font-weight: 700; }
+@media (max-width: 767px) {
+  .bazar-cart h1 { font: var(--bazar-type-h3); }
+  .bazar-cart__empty h2 { font: var(--bazar-type-h4); }
+}
+
+.bazar-cart__line-total { font: 700 18px/24px var(--bazar-font-family); }
+.bazar-cart__total dd { font: var(--bazar-type-price); }

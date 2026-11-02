@@ -8,8 +8,8 @@
       {% render 'bazar-icon', name: 'heart' %}<span>Обране</span>
     </a>
   {% else %}
-    <span class="bazar-header-action" aria-disabled="true" title="Обране — очікує інтеграції">
-      {% render 'bazar-icon', name: 'heart' %}<span>Обране<span class="bazar-header-pending">Очікує інтеграції</span></span>
+    <span class="bazar-header-action" aria-disabled="true" title="Обране наразі недоступне">
+      {% render 'bazar-icon', name: 'heart' %}<span>Обране</span>
     </span>
   {% endif %}
   {% if section.settings.bazar_account_ready and shop.customer_accounts_enabled %}
@@ -17,8 +17,8 @@
       {{ 'icon-account.svg' | inline_asset_content }}<span>Профіль</span>
     </a>
   {% else %}
-    <span class="bazar-header-action" aria-disabled="true" title="Профіль — очікує інтеграції">
-      {{ 'icon-account.svg' | inline_asset_content }}<span>Профіль<span class="bazar-header-pending">Очікує інтеграції</span></span>
+    <span class="bazar-header-action" aria-disabled="true" title="Профіль наразі недоступний">
+      {{ 'icon-account.svg' | inline_asset_content }}<span>Профіль</span>
     </span>
   {% endif %}
   {% if settings.cart_type == 'drawer' and template.name != 'cart' %}
