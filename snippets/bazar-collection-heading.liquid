@@ -1,0 +1,30 @@
+{% doc %}Collection assets and merchant-configured breadcrumbs. No inferred Shopify parent relationship.{% enddoc %}
+{{ 'bazar-catalog.css' | asset_url | stylesheet_tag }}
+<script type="module" src="{{ 'bazar-catalog.js' | asset_url }}"></script>
+<div class="bazar-ui bazar-container bazar-catalog__intro">
+  <nav aria-label="Навігаційний шлях"><ol class="bazar-catalog__breadcrumbs">
+    <li><a href="{{ routes.root_url }}">Головна</a></li>
+    {% liquid
+      assign breadcrumb_found = false
+      assign category_menu = section.settings.bazar_category_menu
+    %}
+    {% for parent in category_menu.links %}
+      {% if breadcrumb_found %}{% break %}{% endif %}
+      {% for child in parent.links %}
+        {% if child.type == 'collection_link' and child.object.id == collection.id %}
+          <li><a href="{{ parent.url }}">{{ parent.title | escape }}</a></li>
+          {% assign breadcrumb_found = true %}{% break %}
+        {% endif %}
+        {% for grandchild in child.links %}
+          {% if grandchild.type == 'collection_link' and grandchild.object.id == collection.id %}
+            <li><a href="{{ parent.url }}">{{ parent.title | escape }}</a></li>
+            <li><a href="{{ child.url }}">{{ child.title | escape }}</a></li>
+            {% assign breadcrumb_found = true %}{% break %}
+          {% endif %}
+        {% endfor %}
+        {% if breadcrumb_found %}{% break %}{% endif %}
+      {% endfor %}
+    {% endfor %}
+    <li aria-current="page">{{ collection.title | escape }}</li>
+  </ol></nav>
+</div>

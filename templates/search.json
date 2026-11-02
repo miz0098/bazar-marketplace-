@@ -169,7 +169,10 @@
         "padding-inline-end": 0,
         "background_color": "{{ settings.color_palette.background }}",
         "padding-block-start": 40,
-        "padding-block-end": 40
+        "padding-block-end": 40,
+        "bazar_catalog_cards": true,
+        "enable_infinite_scroll": false,
+        "products_per_page": 24
       }
     }
   },

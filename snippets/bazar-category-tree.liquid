@@ -1,0 +1,16 @@
+{% doc %}
+  Real menu tree, at most Shopify's three menu levels. Used only in the catalog.
+  @param {object} links - Merchant menu links
+  @param {number} depth - Current depth
+{% enddoc %}
+<ul class="bazar-catalog__categories">
+  {% for link in links %}
+    <li>
+      <a href="{{ link.url }}" {% if link.type == 'collection_link' and link.object.id == collection.id %}aria-current="page"{% endif %}>{{ link.title | escape }}</a>
+      {% if link.links != blank and depth < 3 %}
+        {% assign next_depth = depth | plus: 1 %}
+        {% render 'bazar-category-tree', links: link.links, depth: next_depth %}
+      {% endif %}
+    </li>
+  {% endfor %}
+</ul>

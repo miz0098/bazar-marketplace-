@@ -7,7 +7,7 @@
     {% render 'bazar-logo' %}
     <div class="bazar-catalog" ref="headerDrawerContainer">
       <details class="bazar-catalog-details">
-        <summary class="bazar-button">{% render 'bazar-icon', name: 'catalog' %}<span>Каталог</span></summary>
+        <summary class="bazar-button" aria-label="Каталог">{% render 'bazar-icon', name: 'catalog' %}<span>Каталог</span></summary>
         <nav class="bazar-catalog-panel" aria-label="Каталог товарів" ref="headerMenu">
           {% if section.settings.bazar_catalog_menu.links.size > 0 %}
             {% render 'bazar-catalog-links', menu: section.settings.bazar_catalog_menu %}

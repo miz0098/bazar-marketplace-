@@ -1,0 +1,266 @@
+{
+  "date": "2026-11-02",
+  "scope": "B2.2 local contracts/source only; no merchant preview/integration",
+  "branch": "codex/shopify-catalog-restoration-b2-2",
+  "base": "75db8b898e2435ecc67cfdeb4ae4c0b7e01891b4",
+  "pr_base": "codex/shopify-theme-restoration-b2-1",
+  "eventual_target": "design-reference-storefront",
+  "pr_dependency": 43,
+  "audit_refs": {
+    "41": "2e901f8aaeb1166ff0827eb63a6363ed18c9c437",
+    "42": "5a01190ff5c88b6df627923d851492226336462b"
+  },
+  "recovery_source": "105d10fb6b8e65c5f163016aa8c69072e85faa0e",
+  "tools": {
+    "node": "v24.19.0",
+    "shopify_cli": "5.0.0",
+    "theme_check_engine": "unknown (CLI output)",
+    "liquidjs": "10.24.0",
+    "playwright": "1.64.1",
+    "axe_core": "4.14.0",
+    "chromium": "154.0.8037.57"
+  },
+  "theme_check": {
+    "baseline": {
+      "valid": true,
+      "errors": 0,
+      "warnings": 307,
+      "categories": {
+        "ExcessiveSettingsCount": 1,
+        "ValidScopedCSSClass": 173,
+        "OrphanedSnippet": 128,
+        "UnusedDocParam": 5
+      }
+    },
+    "final": {
+      "valid": true,
+      "errors": 0,
+      "warnings": 312,
+      "categories": {
+        "ExcessiveSettingsCount": 1,
+        "ValidScopedCSSClass": 173,
+        "OrphanedSnippet": 133,
+        "UnusedDocParam": 5
+      }
+    }
+  },
+  "structural_groups_passed": 9,
+  "browser_groups_passed": 17,
+  "b2_1_regression_groups_passed": 12,
+  "browser_runtime_errors": [],
+  "axe_fixture_violations": {
+    "desktop": 0,
+    "mobile": 0
+  },
+  "native_events_bundle_sha256": "adff22682d096037de4659b01c07410d79bb32bc061f7f58ef190ff91ff2e283",
+  "theme_files": [
+    {
+      "path": "assets/bazar-catalog.css",
+      "sha256": "6025f7b626f9c87083c76fcf5921918791eaf58bff71f9993514a871b3e77717"
+    },
+    {
+      "path": "assets/bazar-catalog.js",
+      "sha256": "8c99b42fa2563d08ef14b18a3dee9531f8cf59ee696df8c5cd1b94e4bf1f876e"
+    },
+    {
+      "path": "blocks/_product-card.liquid",
+      "sha256": "63f1b8da13f8b892c93fafc65f7b0920d527faa0597a9af64684382c3006131d"
+    },
+    {
+      "path": "sections/main-collection-list.liquid",
+      "sha256": "babd2b7e8b185cd65a6fdfd9f5d8c93938160c9489cbb58e452e14937316211c"
+    },
+    {
+      "path": "sections/main-collection.liquid",
+      "sha256": "ee7d746ad1e76245ff5ac94fee94d1317032041d3284787fb2a21a8ee247fd42"
+    },
+    {
+      "path": "sections/search-results.liquid",
+      "sha256": "dfce828727972bd1c90af33a1abefe894bf21c513fc5e6999a7317dc49a08ca3"
+    },
+    {
+      "path": "snippets/bazar-card-content.liquid",
+      "sha256": "ad9a0f262bc93689ff624435a7a833d89154368d2f67ccef88932f194d2b869e"
+    },
+    {
+      "path": "snippets/bazar-category-tree.liquid",
+      "sha256": "f437d74873a3da846a609f2d1a999a950a4cb518d93099d9999c44d50f0af527"
+    },
+    {
+      "path": "snippets/bazar-collection-heading.liquid",
+      "sha256": "5215136fa6bdc8dff1cefd63fa8bcac39d1e5990d90370df27c793952ae9bc25"
+    },
+    {
+      "path": "snippets/bazar-collection.liquid",
+      "sha256": "f911f8537bab284e5db1de591a86c32d0f7b934e3d3b110ce42614e19f74555a"
+    },
+    {
+      "path": "snippets/bazar-header-desktop.liquid",
+      "sha256": "a28d654803b2e0498c0f04e24bc8479c3a9d49fd1eeccdd1ecb1cedacb0ec3c8"
+    },
+    {
+      "path": "snippets/bazar-pagination.liquid",
+      "sha256": "3f808b0d73fe22994020ec27cf2e0c53653c6e2ed46c84f8435f3662f250a410"
+    },
+    {
+      "path": "snippets/product-card.liquid",
+      "sha256": "dcb9fb0d724b91c5f48f4d29754f8ac06779f99543bf214a58366c52fcf713b1"
+    },
+    {
+      "path": "templates/collection.json",
+      "sha256": "ee9d37d653f5e4e979917272395f814799b66314960f19b771d5a3f8ccd403d6"
+    },
+    {
+      "path": "templates/list-collections.json",
+      "sha256": "184e3d3a3fd2d8a62b9004ddcb52ad05ffcf8cfed79db17a0f0225b42f5ceebc"
+    },
+    {
+      "path": "templates/search.json",
+      "sha256": "442057b33190208945ebc01c8b19397cc6986222651ae7f565674ce8807e5ecb"
+    }
+  ],
+  "original_pngs": [
+    {
+      "path": "design-reference/storefront/Authentication Module Desktop v1.2 (FINAL).PNG",
+      "sha256": "1a27c3d149c2d982fa8d9d2679c056b61476cefe4d39f1f629974e26e26fda82"
+    },
+    {
+      "path": "design-reference/storefront/BAZAR Design System v1.0.PNG",
+      "sha256": "12c302f8d343c245bc7f16c2c18e943ce2d6c99e59a0d62d9acdb66a7c5e6a0d"
+    },
+    {
+      "path": "design-reference/storefront/BAZAR Design System ΓÇö Colors v1.0 .PNG",
+      "sha256": "320d66beccb26206e55c4098c0d358f71919158869b9f3d75d58fae3a8783a20"
+    },
+    {
+      "path": "design-reference/storefront/BAZAR Design System ΓÇö Grid & Spacing v1.0 (FINAL).PNG",
+      "sha256": "e70af65af01637f34cb56a19289bdcd140b22d436e48ceb4ff3f78a4cfeaae96"
+    },
+    {
+      "path": "design-reference/storefront/BAZAR Design System ΓÇö Typography v1.0 (FINAL) .PNG",
+      "sha256": "e1ac5c631cf13434df546538b90e5af9fb42fdee7f8e756f2cdbb39ccec73d81"
+    },
+    {
+      "path": "design-reference/storefront/BAZAR Home Page Desktop ΓÇö v1.2.PNG",
+      "sha256": "97c0f90b59b63f4e3d0c1e8fd0ebe42af40f041aec8b7fc5c7b4fbf754ba4b58"
+    },
+    {
+      "path": "design-reference/storefront/BAZAR UI Kit v1.0.PNG",
+      "sha256": "05e724b38d7bef4c912ff9a822aedcf7cde89011460661e32f7c0aec5419d5cd"
+    },
+    {
+      "path": "design-reference/storefront/Buttons.PNG",
+      "sha256": "7ea8df5b06612e8c3da6936a473fc67fe170f695d315c291c5970b832a72b288"
+    },
+    {
+      "path": "design-reference/storefront/Cards.PNG",
+      "sha256": "b7a19cad02779f48a76e4ab402453619b9375a704fb9caa8a97ff20542332e28"
+    },
+    {
+      "path": "design-reference/storefront/Cart Page Desktop v1.1 (FINAL).PNG",
+      "sha256": "47890780ec3152df6fb504bf66169204b9820085056c5c991004e97e359cf25b"
+    },
+    {
+      "path": "design-reference/storefront/Catalog Page Desktop v1.2.PNG",
+      "sha256": "188e83db7081f0c87de668e422f1f94879b04bd5a4311e75626bf2ce59f54010"
+    },
+    {
+      "path": "design-reference/storefront/Checkout Desktop v1.0 (FINAL).PNG",
+      "sha256": "5d6eb377f10f3f7c9bffcad931a0b42929580a9c41f60b237db8f49ffd035b6b"
+    },
+    {
+      "path": "design-reference/storefront/Empty States Module Desktop v1.0 (FINAL).PNG",
+      "sha256": "ae36526012ac1f4801b24db3891135d1681725888750788495a251e0d67972a1"
+    },
+    {
+      "path": "design-reference/storefront/Empty States.PNG",
+      "sha256": "1aa41beee78a042ca01f2c56eacdc4901135d8a3c68c48587318b3a78965f5f4"
+    },
+    {
+      "path": "design-reference/storefront/Global UI Components v1.0 (FINAL).PNG",
+      "sha256": "bb016a7e8238d6d8d019ca2139f0e487a166037b6e346d6b3e086e32c6390e6b"
+    },
+    {
+      "path": "design-reference/storefront/Help Center Desktop v1.0 .PNG",
+      "sha256": "5582a637b1f56f38efab0cab3ad0ee36c3aad17151a45d3d2da985e92b16e3dc"
+    },
+    {
+      "path": "design-reference/storefront/Icons.PNG",
+      "sha256": "5fbfc9d30c2bdda342d3561ec78344534270ac3b94f8f7197c1ed71f29726511"
+    },
+    {
+      "path": "design-reference/storefront/Illustration System.PNG",
+      "sha256": "6456e4912a6c1c426579314c3bc8165bbcdac03cdf36f45073c9136a38ec1aee"
+    },
+    {
+      "path": "design-reference/storefront/Information Pages Module Desktop v1.0 (FINAL).PNG",
+      "sha256": "86e72369aa1541fb2790e7ebd0b80d4c5376428512b76624d6c6daa0c42a5213"
+    },
+    {
+      "path": "design-reference/storefront/Inputs.PNG",
+      "sha256": "55464d460fcd586379b801b9cfbd477d8e4fef5ba12acee571d4dcf664ebd116"
+    },
+    {
+      "path": "design-reference/storefront/Loaders (Skeleton, Spinner, Progress).PNG",
+      "sha256": "ca968727b787e693312250cbc49b727acbcaa3d44eeddb7750278ad0bd269e1d"
+    },
+    {
+      "path": "design-reference/storefront/Modals.PNG",
+      "sha256": "5fbfc9d30c2bdda342d3561ec78344534270ac3b94f8f7197c1ed71f29726511"
+    },
+    {
+      "path": "design-reference/storefront/Navigation.PNG",
+      "sha256": "73301ea5a7f7c649a0462849cef6a6bedd61412db0fbd611fd8a8a5dc626294f"
+    },
+    {
+      "path": "design-reference/storefront/Notifications.PNG",
+      "sha256": "0b67fa263fdbfe1a033edb0e23c416c2030d31f5388e74aa42ca09005207312f"
+    },
+    {
+      "path": "design-reference/storefront/Order Details Page v1.0 (FINAL.PNG",
+      "sha256": "d0703d1066585306f8d24b8ecdf08f1fb67ebdb7cfe2f7ff782b51ab9bb8cbdf"
+    },
+    {
+      "path": "design-reference/storefront/Product Page Desktop v1.2.PNG",
+      "sha256": "26d999dc6e146462ba47115978161b4bc68d6d252d3242e83fe7ac4a2a36f67e"
+    },
+    {
+      "path": "design-reference/storefront/Responsive Rules.PNG",
+      "sha256": "c120da3be2e8fdf095b0c047bb63f1b73906e79917f739b27fc4716838770ce2"
+    },
+    {
+      "path": "design-reference/storefront/Search Experience Desktop v1.0 (FINAL).PNG",
+      "sha256": "23e6786f5cbdfc829ba0fc542ede68ecedeeeb7755b9188f3005197f5e8a72e0"
+    },
+    {
+      "path": "design-reference/storefront/Shopify Components.PNG",
+      "sha256": "a3c19ebf10577e59c209f04496c4f8bf3f97709a0bafa225adcff09cbdbfc667"
+    },
+    {
+      "path": "design-reference/storefront/UI Design Home Page v1.0..PNG",
+      "sha256": "375cf99c6e6aa84b9d16ac366ae34024103c318f20c40583e1b690631b76e2cd"
+    },
+    {
+      "path": "design-reference/storefront/UX Architecture v1.0.PNG",
+      "sha256": "6b02705c1dbd96a5b5a1ee596b55290cb7199903969f62f2025120f79e6dfc36"
+    },
+    {
+      "path": "design-reference/storefront/Wireframe ╨│╨╛╨╗╨╛╨▓╨╜╨╛╤û╠ê ╤ü╤é╨╛╤Ç╤û╨╜╨║╨╕ (Desktop).PNG",
+      "sha256": "9965c38fccaf480a3cf702eefdc024c766fb664fce3b0a75d59be7547f81c9da"
+    },
+    {
+      "path": "design-reference/storefront/╨₧╤ü╨╛╨▒╨╕╤ü╤é╨╕╨╕╠å ╨║╨░╨▒╤û╨╜╨╡╤é v1.1.PNG",
+      "sha256": "019ccebf3a6336e6ffccd665eb82416e8f2cf41fe6fd46d812996250b58d32d7"
+    }
+  ],
+  "merchant_access": false,
+  "plus_activation_verified": false,
+  "deployed": false,
+  "merged": false,
+  "public_documentation_read_only_http_200": [
+    "https://shopify.dev/docs/storefronts/themes/navigation-search/filtering/storefront-filtering",
+    "https://shopify.dev/docs/api/liquid/objects/variant",
+    "https://shopify.dev/docs/api/ajax/reference/cart",
+    "https://shopify.dev/docs/api/liquid/tags/paginate"
+  ]
+}

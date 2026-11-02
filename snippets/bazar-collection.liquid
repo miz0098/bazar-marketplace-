@@ -1,0 +1,104 @@
+{% doc %}
+  Paginated Shopify collection with server-rendered GET facets; sort control belongs to the same form.
+  @param {string} cards - Canonical Horizon product-card block output
+  @param {object} paginate - Shopify pagination object
+{% enddoc %}
+{% liquid
+  assign form_id = 'BazarFacets-' | append: section.id
+  assign sort_by = collection.sort_by | default: collection.default_sort_by
+  assign reset_url = collection.url | append: '?sort_by=' | append: sort_by
+%}
+<div class="bazar-ui bazar-container bazar-collection bazar-collection--{{ section.settings.bazar_grid }}" style="--bazar-card-min: {{ section.settings.bazar_card_min }}px; --bazar-sidebar: {{ section.settings.bazar_sidebar_width }}px;">
+  <details class="bazar-catalog__sidebar" open data-bazar-sidebar>
+    <summary>Категорії та фільтри</summary>
+    <div class="bazar-catalog__panel">
+      {% if section.settings.bazar_category_menu != blank %}
+        <nav aria-label="Категорії колекції">
+          <h2>Категорії</h2>
+          {% render 'bazar-category-tree', links: section.settings.bazar_category_menu.links, depth: 1 %}
+        </nav>
+      {% elsif request.design_mode %}
+        <p class="bazar-editor-note">Виберіть справжнє меню категорій у налаштуваннях секції.</p>
+      {% endif %}
+      <form id="{{ form_id }}" method="get" action="{{ collection.url }}" class="bazar-catalog__facets">
+        {% unless section.settings.bazar_show_sort %}<input type="hidden" name="sort_by" value="{{ sort_by | escape }}">{% endunless %}
+        {% for filter in collection.filters %}
+          {% if section.settings.bazar_show_filters %}
+            {% case filter.type %}
+              {% when 'list', 'boolean' %}
+                <fieldset><legend>{{ filter.label | escape }}</legend>
+                  {% for value in filter.values %}
+                    <label class="bazar-catalog__filter-value">
+                      <input type="checkbox" name="{{ value.param_name | escape }}" value="{{ value.value | escape }}" {% if value.active %}checked{% elsif value.count == 0 %}disabled{% endif %}>
+                      <span>{{ value.label | escape }} <span class="bazar-catalog__muted">({{ value.count }})</span></span>
+                    </label>
+                  {% endfor %}
+                </fieldset>
+              {% when 'price_range' %}
+                <fieldset><legend>{{ filter.label | escape }} ({{ cart.currency.iso_code | default: localization.country.currency.iso_code | escape }})</legend>
+                  <div class="bazar-catalog__price-range">
+                    <label>Від <input type="number" inputmode="decimal" min="0" step="any" name="{{ filter.min_value.param_name | escape }}" {% if filter.min_value.value != nil %}value="{{ filter.min_value.value | divided_by: 100.0 }}"{% endif %} max="{{ filter.range_max | divided_by: 100.0 }}"></label>
+                    <label>До <input type="number" inputmode="decimal" min="0" step="any" name="{{ filter.max_value.param_name | escape }}" {% if filter.max_value.value != nil %}value="{{ filter.max_value.value | divided_by: 100.0 }}"{% endif %} max="{{ filter.range_max | divided_by: 100.0 }}" placeholder="{{ filter.range_max | divided_by: 100.0 }}"></label>
+                  </div>
+                </fieldset>
+            {% endcase %}
+          {% else %}
+            {% for value in filter.active_values %}<input type="hidden" name="{{ value.param_name | escape }}" value="{{ value.value | escape }}">{% endfor %}
+            {% if filter.type == 'price_range' %}
+              {% if filter.min_value.value != nil %}<input type="hidden" name="{{ filter.min_value.param_name | escape }}" value="{{ filter.min_value.value | divided_by: 100.0 }}">{% endif %}
+              {% if filter.max_value.value != nil %}<input type="hidden" name="{{ filter.max_value.param_name | escape }}" value="{{ filter.max_value.value | divided_by: 100.0 }}">{% endif %}
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+        <button class="bazar-button bazar-button--outline" type="submit">Застосувати</button>
+        <a class="bazar-catalog__reset" href="{{ reset_url | escape }}">Скинути фільтри</a>
+      </form>
+    </div>
+  </details>
+  <div class="bazar-catalog__results">
+    <div class="bazar-catalog__toolbar">
+      <div><h1>{{ collection.title | escape }}</h1><p>Товарів: {{ collection.products_count }}</p></div>
+      {% if section.settings.bazar_show_sort and collection.sort_options != blank %}
+        <div class="bazar-catalog__sort">
+          <label for="BazarSort-{{ section.id }}">Сортування</label>
+          <select id="BazarSort-{{ section.id }}" name="sort_by" form="{{ form_id }}">
+            {% for option in collection.sort_options %}
+              <option value="{{ option.value | escape }}" {% if option.value == sort_by %}selected{% endif %}>
+                {% case option.value %}
+                  {% when 'manual' %}Рекомендовані
+                  {% when 'best-selling' %}Популярні
+                  {% when 'title-ascending' %}Назва: А–Я
+                  {% when 'title-descending' %}Назва: Я–А
+                  {% when 'price-ascending' %}Ціна: за зростанням
+                  {% when 'price-descending' %}Ціна: за спаданням
+                  {% when 'created-ascending' %}Спочатку давніші
+                  {% when 'created-descending' %}Спочатку новіші
+                  {% else %}{{ option.name | escape }}
+                {% endcase %}
+              </option>
+            {% endfor %}
+          </select>
+          <button type="submit" form="{{ form_id }}" class="bazar-button bazar-button--outline">Сортувати</button>
+        </div>
+      {% endif %}
+    </div>
+    <ul class="bazar-catalog__active" aria-label="Вибрані фільтри">
+      {% for filter in collection.filters %}
+        {% for value in filter.active_values %}
+          <li><a href="{{ value.url_to_remove }}">{{ filter.label | escape }}: {{ value.label | escape }} <span class="visually-hidden">— прибрати</span><span aria-hidden="true"> ×</span></a></li>
+        {% endfor %}
+        {% if filter.type == 'price_range' %}
+          {% if filter.min_value.value != nil or filter.max_value.value != nil %}
+            <li><a href="{{ filter.url_to_remove }}">{{ filter.label | escape }}: {{ filter.min_value.value | default: 0 | money }} – {{ filter.max_value.value | default: filter.range_max | money }} <span class="visually-hidden">— прибрати</span><span aria-hidden="true"> ×</span></a></li>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+    </ul>
+    {% if collection.products.size > 0 %}
+      <ul class="bazar-catalog__grid" role="list">{{ cards }}</ul>
+    {% else %}
+      <div class="bazar-catalog__empty"><h2>Товарів не знайдено</h2><p>Змініть фільтри або перегляньте інші категорії.</p><a href="{{ reset_url | escape }}">Скинути фільтри</a></div>
+    {% endif %}
+    {% render 'bazar-pagination', paginate: paginate %}
+  </div>
+</div>

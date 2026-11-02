@@ -90,7 +90,8 @@
         "gradient_direction": "to top",
         "padding-block-start": 48,
         "padding-block-end": 48
-      }
+      },
+      "disabled": true
     },
     "main": {
       "type": "main-collection",
@@ -211,7 +212,11 @@
         "padding-inline-end": 0,
         "background_color": "{{ settings.color_palette.background }}",
         "padding-block-start": 0,
-        "padding-block-end": 32
+        "padding-block-end": 32,
+        "bazar_catalog": true,
+        "enable_infinite_scroll": false,
+        "products_per_page": 24,
+        "bazar_grid": "adaptive"
       }
     }
   },

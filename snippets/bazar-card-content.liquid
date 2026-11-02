@@ -1,0 +1,55 @@
+{% doc %}
+  BAZAR content mode of Horizon's canonical product-card; no parallel card renderer.
+  @param {product} product - Real Shopify product
+  @param {string} card_id - Unique form suffix
+{% enddoc %}
+{% liquid
+  assign variant = product.selected_or_first_available_variant
+  assign discounted = false
+  if product.variants_count == 1 and variant.compare_at_price > variant.price
+    assign discounted = true
+    assign discount_percent = variant.compare_at_price | minus: variant.price | times: 100.0 | divided_by: variant.compare_at_price | floor
+  endif
+  assign direct_add = false
+  if product.variants_count == 1 and variant.available and product.requires_selling_plan == false
+    assign direct_add = true
+    if variant.quantity_rule.min > 1 or variant.quantity_rule.increment > 1
+      assign direct_add = false
+    endif
+    if product.quantity_price_breaks_configured?
+      assign direct_add = false
+    endif
+  endif
+  assign form_id = 'BazarCard-' | append: card_id | md5
+  assign image_alt = product.featured_image.alt | default: product.title
+%}
+<div class="bazar-card__media">
+  <a href="{{ product.url }}" tabindex="-1" aria-hidden="true">
+    {% if product.featured_image != blank %}
+      {{ product.featured_image | image_url: width: 640 | image_tag: loading: 'lazy', widths: '180, 320, 480, 640', sizes: '(max-width: 767px) 45vw, 240px', alt: image_alt }}
+    {% else %}<span class="bazar-card__no-image">Зображення відсутнє</span>{% endif %}
+  </a>
+  {% if discounted and discount_percent > 0 %}<span class="bazar-card__discount">−{{ discount_percent }}%</span>{% endif %}
+  <span class="bazar-card__favorite" role="img" aria-label="Обране — очікує інтеграції" title="Обране — очікує інтеграції">{% render 'bazar-icon', name: 'heart' %}</span>
+</div>
+<h2 class="bazar-card__title"><a href="{{ product.url }}">{{ product.title | escape }}</a></h2>
+<div class="bazar-card__prices">
+  <span>{% if product.price_varies %}Від {{ product.price_min | money_with_currency }}{% else %}{{ variant.price | money_with_currency }}{% endif %}</span>
+  {% if discounted %}<s><span class="visually-hidden">Попередня ціна </span>{{ variant.compare_at_price | money_with_currency }}</s>{% endif %}
+</div>
+<p class="bazar-card__availability">{% if product.available %}Доступний до замовлення{% else %}Немає в наявності{% endif %}</p>
+{% if direct_add %}
+  <bazar-card-form>
+    {% form 'product', product, id: form_id, class: 'bazar-card__form' %}
+      <input type="hidden" name="id" value="{{ variant.id }}">
+      <input type="hidden" name="quantity" value="1">
+      <button class="bazar-button bazar-button--outline" type="submit" name="add">Додати в кошик</button>
+      <p class="bazar-card__message" role="status" aria-live="polite" data-bazar-cart-message></p>
+      <a href="{{ routes.cart_url }}" class="bazar-card__cart-link" hidden>Перевірити кошик</a>
+    {% endform %}
+  </bazar-card-form>
+{% elsif product.available %}
+  <a class="bazar-button bazar-button--outline" href="{{ product.url }}">{% if product.variants_count > 1 %}Обрати варіант{% else %}Переглянути товар{% endif %}</a>
+{% else %}
+  <button class="bazar-button bazar-button--outline" type="button" disabled>Немає в наявності</button>
+{% endif %}
