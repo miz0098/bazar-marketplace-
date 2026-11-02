@@ -1,0 +1,217 @@
+.bazar-cart {
+  padding-block:24px 48px
+}
+.bazar-cart nav {
+  font-size:.875rem;
+  margin-bottom:24px
+}
+.bazar-cart h1 {
+  font-weight:700;
+  font-size:clamp(1.5rem,2.5vw,2rem);
+  display:flex;
+  align-items:center;
+  gap:16px
+}
+.bazar-cart h1 small {
+  font-size:.875rem;
+  font-weight:400;
+  padding:4px 8px;
+  background:var(--bazar-color-surface-soft,#f5f6f8);
+  border-radius:4px
+}
+.bazar-cart__layout {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(280px,340px);
+  gap:32px;
+  align-items:start
+}
+.bazar-cart__items {
+  display:grid;
+  gap:8px
+}
+.bazar-cart__item {
+  border:1px solid var(--bazar-color-border,#e3e5eb);
+  border-radius:8px;
+  padding:16px;
+  display:grid;
+  grid-template-columns:100px minmax(0,1fr) 132px auto 44px;
+  gap:16px;
+  align-items:center
+}
+.bazar-cart__image img {
+  width:100%;
+  height:120px;
+  object-fit:contain
+}
+.bazar-cart__details h2 {
+  font-weight:600;
+  font-size:1rem;
+  line-height:1.5;
+  margin:0 0 8px
+}
+.bazar-cart__details p,.bazar-cart__details dl {
+  font-size:.8125rem;
+  margin:6px 0
+}
+.bazar-cart dl div {
+  display:flex;
+  gap:8px
+}
+.bazar-cart dd {
+  margin:0
+}
+.bazar-cart__quantity fieldset {
+  border:0;
+  padding:0;
+  margin:0;
+  min-width:0
+}
+.bazar-cart__quantity .quantity-selector {
+  width:132px;
+  min-width:0;
+  border:1px solid var(--bazar-color-border,#e3e5eb);
+  border-radius:6px
+}
+.bazar-cart__quantity .quantity-selector button {
+  min-height:44px;
+  width:44px;
+  min-width:44px
+}
+.bazar-cart__quantity input {
+  min-width:0;
+  width:44px
+}
+.bazar-cart__remove {
+  border:0;
+  background:transparent;
+  color:inherit;
+  cursor:pointer;
+  min-height:44px;
+  min-width:44px;
+  padding:4px
+}
+.bazar-cart__remove svg {
+  width:24px;
+  height:24px
+}
+.bazar-cart__error {
+  grid-column:2/-1;
+  color:#a01818
+}
+.bazar-cart__summary {
+  border:1px solid var(--bazar-color-border,#e3e5eb);
+  border-radius:8px;
+  padding:24px
+}
+.bazar-cart__summary h2 {
+  font-weight:700;
+  font-size:1.125rem;
+  margin:0 0 24px
+}
+.bazar-cart__summary dl {
+  display:grid;
+  gap:16px
+}
+.bazar-cart__summary dl div {
+  justify-content:space-between;
+  align-items:baseline
+}
+.bazar-cart__summary dd {
+  text-align:end
+}
+.bazar-cart__summary p {
+  font-size:.8125rem;
+  line-height:1.6
+}
+.bazar-cart__summary .bazar-button {
+  width:100%;
+  margin-block:12px 16px
+}
+.bazar-cart__summary>a {
+  display:block;
+  text-align:center
+}
+.bazar-cart__total {
+  border-top:1px solid var(--bazar-color-border,#e3e5eb);
+  padding-top:20px;
+  font-weight:700
+}
+.bazar-cart__empty {
+  padding-block:64px;
+  text-align:center
+}
+.bazar-cart__reload {
+  display:none
+}
+.bazar-cart [data-cart-uncertain] .bazar-cart__reload {
+  display:inline-block
+}
+.bazar-cart [aria-busy=true] .bazar-cart__items,.bazar-cart [data-cart-uncertain] .bazar-cart__items {
+  pointer-events:none;
+  opacity:.65
+}
+.bazar-cart [aria-busy=true] button[name=checkout],.bazar-cart [data-cart-uncertain] button[name=checkout] {
+  pointer-events:none
+}
+.bazar-cart :focus-visible {
+  outline:2px solid currentColor;
+  outline-offset:4px
+}
+@media(max-width:1439px) {
+  .bazar-cart__layout {
+    gap:24px;
+    grid-template-columns:minmax(0,1fr) 300px
+  }
+  .bazar-cart__item {
+    grid-template-columns:80px minmax(0,1fr) 132px;
+    gap:12px
+  }
+  .bazar-cart__line-total {
+    grid-column:2
+  }
+  .bazar-cart__remove {
+    grid-column:3;
+    grid-row:2;
+    justify-self:end
+  }
+}
+@media(max-width:1023px) {
+  .bazar-cart__layout {
+    grid-template-columns:1fr
+  }
+  .bazar-cart__summary {
+    max-width:100%
+  }
+}
+@media(max-width:767px) {
+  .bazar-cart__item {
+    grid-template-columns:64px minmax(0,1fr);
+    padding:12px
+  }
+  .bazar-cart__image {
+    align-self:start
+  }
+  .bazar-cart__image img {
+    height:80px
+  }
+  .bazar-cart__quantity {
+    grid-column:2
+  }
+  .bazar-cart__line-total {
+    grid-column:2
+  }
+  .bazar-cart__remove {
+    grid-column:1;
+    grid-row:2;
+    justify-self:center
+  }
+  .bazar-cart__summary {
+    padding:20px
+  }
+  .bazar-cart__error {
+    grid-column:1/-1
+  }
+  .bazar-cart__line-total {
+    overflow-wrap:anywhere
+  }
+}

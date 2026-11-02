@@ -1,0 +1,65 @@
+{{ 'bazar-cart.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'component-cart-items.js' | asset_url }}" type="module" fetchpriority="low"></script>
+<script src="{{ 'component-cart-quantity-selector.js' | asset_url }}" type="module" fetchpriority="low"></script>
+<div class="bazar-ui bazar-container bazar-cart">
+  <nav aria-label="Навігаційний шлях"><a href="{{ routes.root_url }}">Головна</a><span aria-hidden="true"> › </span><span>Кошик</span></nav>
+  <cart-items-component data-section-id="{{ section.id }}">
+    <h1>Кошик <small><span ref="cartItemCount">{{ cart.item_count }}</span> од.</small></h1>
+    <p id="bazar-cart-feedback" role="status" aria-live="polite" aria-atomic="true"></p>
+    <a class="bazar-cart__reload" href="{{ routes.cart_url }}">Перезавантажити кошик</a>
+    {% if cart.empty? %}
+      <div class="bazar-cart__empty"><h2>Ваш кошик порожній</h2><p>Додайте товари, щоб продовжити покупки.</p><a class="bazar-button" href="{{ routes.all_products_collection_url }}">Перейти до покупок</a></div>
+    {% else %}
+      <div class="bazar-cart__layout">
+        <form action="{{ routes.cart_url }}" method="post" id="bazar-cart-form">
+          <div class="bazar-cart__items">
+            {% for item in cart.items %}
+              <article class="bazar-cart__item" ref="cartItemRows[]" data-key="{{ item.key | escape }}" data-confirmed-quantity="{{ item.quantity }}" data-parent-key="{{ item.parent_relationship.parent.key | escape }}">
+                <a class="bazar-cart__image" href="{{ item.url }}" aria-label="{{ item.product.title | escape }}">
+                  {% if item.image %}{{ item.image | image_url: width: 360 | image_tag: alt: item.product.title, loading: 'lazy', widths: '120,240,360', sizes: '(max-width: 767px) 80px, 120px' }}{% endif %}
+                </a>
+                <div class="bazar-cart__details">
+                  <h2><a href="{{ item.url }}">{{ item.product.title | escape }}</a></h2>
+                  {% unless item.product.has_only_default_variant %}<dl>{% for option in item.options_with_values %}<div><dt>{{ option.name | escape }}:</dt><dd>{{ option.value | escape }}</dd></div>{% endfor %}</dl>{% endunless %}
+                  {% for property in item.properties %}{% assign first_character = property.first | slice: 0 %}{% if property.last != blank and first_character != '_' %}<p>{{ property.first | escape }}: {{ property.last | escape }}</p>{% endif %}{% endfor %}
+                  {% if item.selling_plan_allocation %}<p>{{ item.selling_plan_allocation.selling_plan.name | escape }}</p>{% endif %}
+                  {% for component in item.item_components %}<p>{{ component.title | escape }} × {{ component.quantity }}</p>{% endfor %}
+                  <p>Ціна за одиницю: {{ item.final_price | money_with_currency }}</p>
+                  {% if item.original_price > item.final_price %}<s>{{ item.original_price | money_with_currency }}</s>{% endif %}
+                  {% if item.variant.available %}<p>Доступний до замовлення</p>{% elsif item.variant.available == false %}<p>Наразі недоступний</p>{% endif %}
+                  {% for discount in item.line_level_discount_allocations %}<p>{{ discount.discount_application.title | escape }}: −{{ discount.amount | money_with_currency }}</p>{% endfor %}
+                </div>
+                <div class="bazar-cart__quantity">
+                  {% assign can_update = item.instructions.can_update_quantity | default: true, allow_false: true %}
+                  <fieldset {% if can_update == false or item.variant.available == false or item.variant == blank %}disabled{% endif %}><legend class="visually-hidden">Кількість: {{ item.product.title | escape }}</legend>
+                  {% render 'quantity-selector' , product: item.product, variant: item.variant, in_cart_quantity: item.quantity, line_index: item.index, can_update_quantity: can_update, bazar: true %}</fieldset>
+                </div>
+                <strong class="bazar-cart__line-total">{{ item.final_line_price | money_with_currency }}</strong>
+                {% assign can_remove = item.instructions.can_remove | default: true, allow_false: true %}
+                {% if can_remove %}<button type="button" class="bazar-cart__remove" on:click="/onLineItemRemove/{{ forloop.index }}" aria-label="Видалити {{ item.product.title | escape }}">{{ 'icon-delete.svg' | inline_asset_content }}</button>{% endif %}
+                <noscript>{% if can_remove %}<a href="{{ item.url_to_remove }}">Видалити {{ item.product.title | escape }}</a>{% endif %}</noscript>
+                <div class="bazar-cart__error hidden" ref="cartItemErrorContainer-{{ forloop.index }}" role="alert"><span ref="cartItemError-{{ forloop.index }}"></span></div>
+              </article>
+            {% endfor %}
+          </div>
+          <noscript><button class="bazar-button" type="submit" name="update">Оновити кошик</button></noscript>
+        </form>
+        <aside class="bazar-cart__summary" aria-label="Підсумок замовлення">
+          <h2>Підсумок замовлення</h2>
+          <dl>
+            <div><dt>Товари ({{ cart.item_count }})</dt><dd>{{ cart.items_subtotal_price | money_with_currency }}</dd></div>
+            {% for discount in cart.cart_level_discount_applications %}<div><dt>{{ discount.title | escape }}</dt><dd>−{{ discount.total_allocated_amount | money_with_currency }}</dd></div>{% endfor %}
+            <div class="bazar-cart__total"><dt>Разом у кошику</dt><dd>{{ cart.total_price | money_with_currency }}</dd></div>
+          </dl>
+          <p>{% if cart.taxes_included %}Податки включено.{% else %}Податки розраховуються під час оформлення.{% endif %} Доставка та остаточна сума визначаються під час оформлення замовлення.</p>
+          <p>Промокод можна ввести під час оформлення замовлення. Застосування перевіряє Shopify.</p>
+          <button class="bazar-button" type="submit" name="checkout" form="bazar-cart-form">Оформити замовлення</button>
+          <a href="{{ routes.all_products_collection_url }}">Продовжити покупки</a>
+        </aside>
+      </div>
+    {% endif %}
+  </cart-items-component>
+</div>
+{% schema %}
+{"name":"BAZAR — Кошик","settings":[],"presets":[{"name":"BAZAR — Кошик"}]}
+{% endschema %}
