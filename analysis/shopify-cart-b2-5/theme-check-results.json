@@ -1,0 +1,19 @@
+{
+  "command": "shopify theme check --path . --output json",
+  "CLI": "5.0.0",
+  "scope": "Local static analysis; no merchant connection",
+  "errors": 0,
+  "warnings": 317,
+  "baseline": {
+    "phase": "B2.4",
+    "errors": 0,
+    "warnings": 317
+  },
+  "warning_delta": 0,
+  "warning_types": {
+    "ExcessiveSettingsCount": 1,
+    "ValidScopedCSSClass": 173,
+    "OrphanedSnippet": 138,
+    "UnusedDocParam": 5
+  }
+}

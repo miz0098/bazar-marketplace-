@@ -2,6 +2,7 @@
   This snippet is used to render the quantity selector for a product.
   It is used in the product page, the cart page and the quick order list.
 
+  @param {boolean} [bazar] - Use Ukrainian BAZAR cart labels
   @param {object} product - the product to render the quantity selector for
   @param {object} [variant] - the specific variant to use (for cart items), if not provided uses selected_or_first_available_variant
   @param {number} [in_cart_quantity] - the quantity in the cart to set the input value
@@ -55,7 +56,7 @@
         disabled
       {% endif %}
     >
-      <span class="visually-hidden">{{ 'accessibility.decrease_quantity' | t }}</span
+      <span class="visually-hidden">{% if bazar %}Зменшити кількість{% else %}{{ 'accessibility.decrease_quantity' | t }}{% endif %}</span
       ><span class="svg-wrapper icon-plus">
         {{- 'icon-minus.svg' | inline_asset_content -}}
       </span>
@@ -71,7 +72,7 @@
       on:focus="/selectInputValue"
       ref="quantityInput"
       aria-live="polite"
-      aria-label="{{ 'accessibility.quantity' | t }}"
+      aria-label="{% if bazar %}Кількість{% else %}{{ 'accessibility.quantity' | t }}{% endif %}"
       {% if line_index %}
         data-cart-line="{{ line_index | plus: 1 }}"
       {% endif %}
@@ -93,7 +94,7 @@
         disabled
       {% endif %}
     >
-      <span class="visually-hidden">{{ 'accessibility.increase_quantity' | t }}</span
+      <span class="visually-hidden">{% if bazar %}Збільшити кількість{% else %}{{ 'accessibility.increase_quantity' | t }}{% endif %}</span
       ><span class="svg-wrapper icon-plus">
         {{- 'icon-plus.svg' | inline_asset_content -}}
       </span>

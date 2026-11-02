@@ -60,7 +60,8 @@
         "background_color": "{{ settings.color_palette.background }}",
         "padding-block-start": 24,
         "padding-block-end": 0
-      }
+      },
+      "disabled": true
     },
     "product_list_NNFgcy": {
       "type": "product-list",
@@ -245,10 +246,16 @@
         "background_color": "{{ settings.color_palette.background }}",
         "padding-block-start": 48,
         "padding-block-end": 48
-      }
+      },
+      "disabled": true
+    },
+    "bazar-cart": {
+      "type": "bazar-main-cart",
+      "settings": {}
     }
   },
   "order": [
+    "bazar-cart",
     "cart-section",
     "product_list_NNFgcy"
   ]

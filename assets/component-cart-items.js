@@ -19,6 +19,9 @@ import {
   StandardEvents,
 } from '@shopify/events';
 
+// Serialize native page/drawer quantity mutations against the same cart.
+let cartMutationInProgress = false;
+
 /** @typedef {import('./utilities').TextComponent} TextComponent */
 
 /**
@@ -26,7 +29,7 @@ import {
  *
  * @typedef {object} Refs
  * @property {HTMLElement[]} quantitySelectors - The quantity selector elements.
- * @property {HTMLTableRowElement[]} cartItemRows - The cart item rows.
+ * @property {HTMLElement[]} cartItemRows - The cart item rows.
  * @property {TextComponent} cartTotal - The cart total.
  *
  * @extends {Component<Refs>}
@@ -158,44 +161,6 @@ export class CartItemsComponent extends createViewEventElement(Component) {
       quantity: 0,
       action: 'clear',
     });
-
-    const cartItemRowToRemove = this.refs.cartItemRows[line - 1];
-
-    if (!cartItemRowToRemove) return;
-
-    const rowsToRemove = [
-      cartItemRowToRemove,
-      // Get all nested lines of the row to remove
-      ...this.refs.cartItemRows.filter((row) => row.dataset.parentKey === cartItemRowToRemove.dataset.key),
-    ];
-
-    // If the cart item row is the last row, optimistically trigger the cart empty state
-    const isEmptyCart = rowsToRemove.length == this.refs.cartItemRows.length;
-
-    const template = document.getElementById('empty-cart-template');
-    if (isEmptyCart && template instanceof HTMLTemplateElement) {
-      const clone = document.importNode(template.content, true);
-
-      startViewTransition(() => {
-        document.getElementById('cart-drawer-heading')?.remove();
-        this.replaceChildren(clone);
-      }, [this.isDrawer ? 'empty-cart-drawer' : 'empty-cart-page']);
-
-      return;
-    }
-
-    // Add class to the row to trigger the animation
-    rowsToRemove.forEach((row) => {
-      const remove = () => row.remove();
-
-      if (prefersReducedMotion()) return remove();
-
-      row.style.setProperty('--row-height', `${row.clientHeight}px`);
-      row.classList.add('removing');
-
-      // Remove the row after the animation ends
-      onAnimationEnd(row, remove);
-    });
   }
 
   /**
@@ -206,11 +171,20 @@ export class CartItemsComponent extends createViewEventElement(Component) {
    * @param {string} config.action - The action.
    */
   updateQuantity(config) {
+    if (cartMutationInProgress || this.hasAttribute('aria-busy') || this.dataset.cartUncertain) return;
+    if (!this.refs.cartItemRows[config.line - 1]?.dataset.key) return;
+    cartMutationInProgress = true;
+    this.setAttribute('aria-busy', 'true');
+    // Keep other cart surfaces inert until this authoritative response settles.
+    const otherCarts = [...document.querySelectorAll('cart-items-component')]
+      .filter((cart) => cart !== this && !cart.hasAttribute('inert'));
+    otherCarts.forEach((cart) => cart.setAttribute('inert', ''));
     const cartPerformaceUpdateMarker = cartPerformance.createStartingMarker(`${config.action}:user-action`);
 
     this.#disableCartItems();
 
     const { line, quantity } = config;
+    this.#cartFeedback("Оновлення кошика…");
     const { cartTotal } = this.refs;
 
     const cartItemsComponents = document.querySelectorAll('cart-items-component');
@@ -222,7 +196,7 @@ export class CartItemsComponent extends createViewEventElement(Component) {
     });
 
     const body = JSON.stringify({
-      line: line,
+      id: this.refs.cartItemRows[line - 1]?.dataset.key,
       quantity: quantity,
       sections: Array.from(sectionsToUpdate).join(','),
       sections_url: window.location.pathname,
@@ -231,18 +205,21 @@ export class CartItemsComponent extends createViewEventElement(Component) {
     cartTotal?.shimmer();
 
     const deferredUpdatePromise = CartLinesUpdateEvent.createPromise();
+    // The initiating component handles failures below. A cart page can have no
+    // external subscriber; consume its notification rejection in that case.
     const lineId = this.refs.cartItemRows[line - 1]?.dataset.key ?? '';
-    this.dispatchEvent(
-      new CartLinesUpdateEvent({
-        action: config.action === 'change' && quantity > 0 ? 'update' : 'remove',
-        context: 'cart',
-        lines: [{ id: lineId, quantity }],
-        promise: deferredUpdatePromise.promise,
-      })
-    );
+    const updateEvent = new CartLinesUpdateEvent({
+      action: config.action === 'change' && quantity > 0 ? 'update' : 'remove',
+      context: 'cart',
+      lines: [{ id: lineId, quantity }],
+      promise: deferredUpdatePromise.promise,
+    });
+    updateEvent.promise?.catch(() => {});
+    this.dispatchEvent(updateEvent);
 
     fetch(`${Theme.routes.cart_change_url}`, fetchConfig('json', { body }))
       .then((response) => {
+        if (!response.ok && response.status !== 422) throw new Error(`Cart update failed: ${response.status}`);
         return response.text();
       })
       .then((responseText) => {
@@ -250,12 +227,16 @@ export class CartItemsComponent extends createViewEventElement(Component) {
 
         resetShimmer(this);
 
-        if (parsedResponseText.errors) {
+        if (parsedResponseText.errors || parsedResponseText.status >= 400) {
+          parsedResponseText.errors = parsedResponseText.errors || parsedResponseText.description || "Не вдалося оновити кошик.";
           this.#handleCartError(line, parsedResponseText);
           deferredUpdatePromise.reject(new Error(parsedResponseText.errors));
           return;
         }
 
+        if (!Array.isArray(parsedResponseText.items) || !parsedResponseText.sections?.[this.sectionId]) {
+          throw new Error('Cart response is incomplete');
+        }
         const newSectionHTML = new DOMParser().parseFromString(
           parsedResponseText.sections[this.sectionId],
           'text/html'
@@ -279,14 +260,25 @@ export class CartItemsComponent extends createViewEventElement(Component) {
           },
         });
 
-        morphSection(this.sectionId, parsedResponseText.sections[this.sectionId], {
+        return morphSection(this.sectionId, parsedResponseText.sections[this.sectionId], {
           mode: this.isDrawer ? 'hydration' : 'full',
+        }).then(() => {
+          this.#updateCartQuantitySelectorButtonStates();
+          document.getElementById('bazar-cart-feedback')?.replaceChildren(document.createTextNode('Кошик оновлено.'));
         });
-
-        this.#updateCartQuantitySelectorButtonStates();
       })
       .catch((error) => {
         console.error(error);
+        this.#cartFeedback("Не вдалося підтвердити оновлення. Перезавантажте кошик перед наступною зміною.");
+        this.dataset.cartUncertain = "true";
+        for (const cart of otherCarts) {
+          cart.removeAttribute('inert');
+          cart.dataset.cartUncertain = 'true';
+          cart.querySelector('.bazar-cart__items')?.setAttribute('inert', '');
+          cart.querySelector('button[name="checkout"]')?.setAttribute('disabled', '');
+          const feedback = cart.querySelector('#bazar-cart-feedback');
+          if (feedback) feedback.textContent = 'Оновлення не підтверджено. Перезавантажте кошик.';
+        }
         deferredUpdatePromise.reject(error);
 
         this.dispatchEvent(
@@ -297,7 +289,13 @@ export class CartItemsComponent extends createViewEventElement(Component) {
         );
       })
       .finally(() => {
-        this.#enableCartItems();
+        this.removeAttribute('aria-busy');
+        // An uncertain POST outcome requires a reload; never automatically retry.
+        if (!this.dataset.cartUncertain) {
+          cartMutationInProgress = false;
+          otherCarts.forEach((cart) => cart.removeAttribute('inert'));
+          this.#enableCartItems();
+        }
         cartPerformance.measureFromMarker(cartPerformaceUpdateMarker);
       });
   }
@@ -314,7 +312,7 @@ export class CartItemsComponent extends createViewEventElement(Component) {
 
     if (!quantityInput) throw new Error('Quantity input not found');
 
-    quantityInput.value = quantityInput.defaultValue;
+    quantityInput.value = this.refs.cartItemRows[line - 1]?.dataset.confirmedQuantity ?? quantityInput.defaultValue;
 
     const cartItemError = this.refs[`cartItemError-${line}`];
     const cartItemErrorContainer = this.refs[`cartItemErrorContainer-${line}`];
@@ -322,6 +320,7 @@ export class CartItemsComponent extends createViewEventElement(Component) {
     if (!(cartItemError instanceof HTMLElement)) throw new Error('Cart item error not found');
     if (!(cartItemErrorContainer instanceof HTMLElement)) throw new Error('Cart item error container not found');
 
+    this.#cartFeedback("Не вдалося оновити кошик. Перевірте повідомлення біля товару.");
     cartItemError.textContent = parsedResponseText.errors;
     cartItemErrorContainer.classList.remove('hidden');
 
@@ -391,8 +390,15 @@ export class CartItemsComponent extends createViewEventElement(Component) {
   /**
    * Disables the cart items.
    */
+  #cartFeedback(message) {
+    const feedback = this.querySelector('#bazar-cart-feedback');
+    if (feedback) feedback.textContent = message;
+  }
+
   #disableCartItems() {
     this.classList.add('cart-items-disabled');
+    this.querySelector('.bazar-cart__items')?.setAttribute('inert', '');
+    this.querySelector('button[name="checkout"]')?.setAttribute('disabled', '');
   }
 
   /**
@@ -400,6 +406,8 @@ export class CartItemsComponent extends createViewEventElement(Component) {
    */
   #enableCartItems() {
     this.classList.remove('cart-items-disabled');
+    this.querySelector('.bazar-cart__items')?.removeAttribute('inert');
+    this.querySelector('button[name="checkout"]')?.removeAttribute('disabled');
   }
 
   /**

@@ -1,0 +1,74 @@
+{
+  "scope": "LOCAL FIXTURES ONLY; no Shopify merchant integration",
+  "results": [
+    {
+      "name": "Canonical card render: images/titles/currency and honest pending favorites; no fabricated reviews",
+      "result": "passed"
+    },
+    {
+      "name": "Variant safety: only single purchasable variant; plans/rules/volume and options require PDP",
+      "result": "passed"
+    },
+    {
+      "name": "Discount uses same real variant compare-at pair, no multi-variant percentage",
+      "result": "passed"
+    },
+    {
+      "name": "Configured category hierarchy, breadcrumb ancestors and current collection",
+      "result": "passed"
+    },
+    {
+      "name": "Facet/sort GET contract preserves selections, encoded labels and decimals, resets page",
+      "result": "passed"
+    },
+    {
+      "name": "Selected removal and bounded pagination retain server-supplied URL state",
+      "result": "passed"
+    },
+    {
+      "name": "No configured filters and empty collection produce honest finite empty state",
+      "result": "passed"
+    },
+    {
+      "name": "Confirmed local Ajax cart sends exact variant, keeps pending lock and updates native cart icon",
+      "result": "passed"
+    },
+    {
+      "name": "Rejected 422 displays server error safely, re-enables button, emits no success",
+      "result": "passed"
+    },
+    {
+      "name": "Unknown POST outcome never retries or claims success and stays locked with cart link",
+      "result": "passed"
+    },
+    {
+      "name": "Confirmed add with failed cart refresh remains uncertain; no automatic duplicate POST",
+      "result": "passed"
+    },
+    {
+      "name": "Without JavaScript, standard product POST form and facet GET controls remain usable",
+      "result": "passed"
+    },
+    {
+      "name": "Mobile disclosure keyboard Enter/Escape restores focus; editor section-load initializes",
+      "result": "passed"
+    },
+    {
+      "name": "Responsive no overflow at 320/390/768/1024/1440 in adaptive/reference modes",
+      "result": "passed"
+    },
+    {
+      "name": "Collection index and search-card mode use actual shared Liquid paths; empty index honest",
+      "result": "passed"
+    },
+    {
+      "name": "axe WCAG A/AA scans of desktop and mobile catalog fixtures",
+      "result": "passed"
+    },
+    {
+      "name": "Local labeled desktop/mobile screenshots captured, no runtime exceptions",
+      "result": "passed"
+    }
+  ],
+  "errors": []
+}
