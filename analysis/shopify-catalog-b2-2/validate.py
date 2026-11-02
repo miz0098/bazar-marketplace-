@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Read-only B2.2 structural/scope assertions. Not Shopify merchant tests."""
-import hashlib,json,re,subprocess
+import hashlib,json,re,subprocess,sys
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 BASE='75db8b898e2435ecc67cfdeb4ae4c0b7e01891b4'
@@ -32,6 +32,23 @@ for p in (ROOT/'sections').glob('*.liquid'):
 for path in ['sections/main-collection.liquid','sections/main-collection-list.liquid','sections/search-results.liquid']:
  old=schema(git('show',BASE+':'+path));new=schema(read(path));assert all(x in new['settings'] for x in old['settings'])
 ok('All section schemas/unique IDs valid and original native settings preserved')
+sys.dont_write_bytecode=True
+from check_section_tags import violations
+previous=git('show','7df5cf9:sections/main-collection.liquid')
+assert violations(previous)==[{'tag':'javascript','line':24,'inside':['if']}]
+current=read('sections/main-collection.liquid')
+script_pattern=r'{% javascript %}([\s\S]*?){% endjavascript %}'
+old_script=re.search(script_pattern,previous);new_script=re.search(script_pattern,current)
+assert old_script[1]==new_script[1]
+assert [line for line in re.sub(script_pattern,'',previous).splitlines() if line.strip()]==[line for line in re.sub(script_pattern,'',current).splitlines() if line.strip()]
+assert read('templates/collection.json')==git('show','7df5cf9:templates/collection.json')+'\n'
+subprocess.run(['node','--check','--input-type=module'],input=new_script[1],text=True,capture_output=True,check=True)
+
+for folder in ['sections','blocks','snippets','layout']:
+ for path in (ROOT/folder).rglob('*.liquid'):
+  assert not violations(path.read_text()),path
+ok('Shopify top-level section-tag constraint: previous upload failure reproduced; all Liquid files now pass')
+
 count=0
 for parent in ['templates','sections']:
  for p in (ROOT/parent).rglob('*.json'):

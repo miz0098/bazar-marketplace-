@@ -70,3 +70,19 @@ Early development runs failed on local harness handling of Shopify form/content 
 - Authentication/OIDC/SMS/accounts, checkout, payment/wallet/order/refund/carriers/sync: outside B2.2; **zero such operations performed**. Independent application/database suites were not run because those applications remain untouched.
 
 No production or merchant configuration, subscription, DNS or database change. No live order/payment/SMS, PR merge, theme publication or PDP restoration. Source review is ready with these explicit limits; stop after the stacked B2.2 PR.
+
+## PR #44 upload-error correction — fresh validation
+
+Source before correction: `7df5cf9`. Branch: `codex/shopify-catalog-restoration-b2-2`. The owner-reported Shopify compiler rejection exposed a gap: Theme Check returned zero errors and local fixtures strip `{% javascript %}`, so neither had caught its invalid nesting. No claim of previous server-side acceptance is made.
+
+| Newly executed check | Result |
+|---|---|
+| New `check_section_tags.py` on the original working file before correction | **Expected failure reproduced:** only `sections/main-collection.liquid`, `javascript` at line 24 inside `if`. |
+| Same checker after moving the unchanged JavaScript block to top level | **273 Liquid files passed**; section-level `javascript`/`stylesheet`/`schema` directives no longer nested in Liquid control blocks. Targeted source check, not a substitute for Shopify's compiler. |
+| `python3 analysis/shopify-catalog-b2-2/validate.py` | **10 groups passed**: previous nine plus the nesting regression. Confirms exact original JavaScript body and remaining nonblank section lines preserved, JavaScript syntax, collection template byte preservation, all schema/asset/template checks and 33/33 PNG integrity against the approved base. |
+| Shopify CLI 5.0.0 `theme check --path . --output json` | **Exit 0, valid true, 0 errors / 312 warnings**. Unchanged categories: 173 scoped-CSS, 133 orphaned-snippet, five unused-doc, one settings-count. No suppression added. |
+| `node analysis/shopify-theme-b2-1/browser-check.mjs` | **12 groups passed**, exit 0; fresh local fixture regression. |
+| `node analysis/shopify-catalog-b2-2/browser-check.mjs` | **17 groups passed**, exit 0; fresh local catalog/cart contract regression, including desktop/mobile axe scans and no runtime exceptions. |
+| `git diff --check`, staged whitespace, protected runtime/image scope | Passed. Only the section's JavaScript placement changes storefront source; template, settings, other runtime files and all originals remain unchanged. |
+
+New machine results: [upload-fix-validation.json](analysis/shopify-catalog-b2-2/upload-fix-validation.json). Legacy browser scripts' generated artifacts were restored after capturing fresh results, preserving their historical evidence. Tooling is unchanged from the versions above. No Shopify authentication, API request, remote theme inspection, upload or live integration test was performed; the existing theme ID and compiler errors came from the owner. Actual remote acceptance cannot be re-tested under this task's no-upload restriction. The template reference is valid locally; its reported missing-section error was consequential to rejection of the section, not a separate missing repository file.

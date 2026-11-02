@@ -1,0 +1,171 @@
+{
+  "date": "2026-11-02",
+  "source_before_fix": "7df5cf9a2ce41863323da35111e87c9364e10d08",
+  "branch": "codex/shopify-catalog-restoration-b2-2",
+  "pr": 44,
+  "owner_reported_theme_id": "192306544952",
+  "remote_operations": 0,
+  "remote_compiler_acceptance": "not tested: upload prohibited",
+  "reproduction": {
+    "before_fix": "javascript line 24 nested inside if (expected failure)",
+    "after_fix": "273 Liquid files pass top-level section-tag guard"
+  },
+  "theme_file": "sections/main-collection.liquid",
+  "fixed_file_sha256": "eb4616c3e4f7482f305c7a281959bcff44ef4a41899c7865753ab08dce9c3d33",
+  "collection_template_changed": false,
+  "script_body_changed": false,
+  "other_section_body_changed": false,
+  "structural_groups_passed": 10,
+  "structural_groups": [
+    "Stack ancestry and bounded theme/docs-only scope; no independent apps/checkout/PDP/infrastructure changes",
+    "B2.1 foundation byte-preserved except explicit mobile catalog accessible-name correction; Horizon 4.1.1",
+    "All section schemas/unique IDs valid and original native settings preserved",
+    "Shopify top-level section-tag constraint: previous upload failure reproduced; all Liquid files now pass",
+    "14 template/group JSON structures; native card block data retained; finite pagination selected",
+    "Single canonical product-card mode, dependencies resolved, no source demo auth/storage/merchandising fallback imported",
+    "Server-side bounded collections/facets/sort contracts; bundled cart section request; no collision with header catalog class",
+    "33 original PNGs byte-identical to B2.1",
+    "All new storefront/test JavaScript syntax valid",
+    "Working and staged whitespace checks"
+  ],
+  "original_png_count": 33,
+  "theme_check": {
+    "valid": true,
+    "errors": 0,
+    "warnings": 312,
+    "categories": {
+      "ExcessiveSettingsCount": 1,
+      "ValidScopedCSSClass": 173,
+      "OrphanedSnippet": 133,
+      "UnusedDocParam": 5
+    }
+  },
+  "b2_1_local_regression": {
+    "scope": "Local LiquidJS fixture + Chromium only; no Shopify/merchant/provider operations",
+    "checks": [
+      {
+        "name": "Default Liquid render: six required header elements, no fake auth or legacy hrefs",
+        "result": "passed"
+      },
+      {
+        "name": "Unconfigured footer destinations are inert; all nine slots identifiable in editor",
+        "result": "passed"
+      },
+      {
+        "name": "Configured footer destinations and actual collection fixtures render only configured links",
+        "result": "passed"
+      },
+      {
+        "name": "Search GET submits Ukrainian and special-character query to Shopify route contract",
+        "result": "passed"
+      },
+      {
+        "name": "Catalog keyboard disclosure: Enter, focusable links, Escape restores summary, outside click closes",
+        "result": "passed"
+      },
+      {
+        "name": "Native Horizon cart-icon receives actual standard-event contract and updates badge/live region",
+        "result": "passed"
+      },
+      {
+        "name": "Native Horizon drawer delegation, aria-expanded, Escape and focus restoration",
+        "result": "passed"
+      },
+      {
+        "name": "Responsive layout: no horizontal overflow at 320/390/768/1024/1440, default and configured",
+        "result": "passed"
+      },
+      {
+        "name": "Section unload/load safely remounts catalog disclosure",
+        "result": "passed"
+      },
+      {
+        "name": "Axe WCAG 2 A/AA: default and configured local component fixtures",
+        "result": "passed"
+      },
+      {
+        "name": "Screenshots captured from local defaults, not represented as merchant previews",
+        "result": "passed"
+      },
+      {
+        "name": "No browser runtime errors",
+        "result": "passed"
+      }
+    ],
+    "errors": []
+  },
+  "b2_2_local_regression": {
+    "scope": "LOCAL FIXTURES ONLY; no Shopify merchant integration",
+    "results": [
+      {
+        "name": "Canonical card render: images/titles/currency and honest pending favorites; no fabricated reviews",
+        "result": "passed"
+      },
+      {
+        "name": "Variant safety: only single purchasable variant; plans/rules/volume and options require PDP",
+        "result": "passed"
+      },
+      {
+        "name": "Discount uses same real variant compare-at pair, no multi-variant percentage",
+        "result": "passed"
+      },
+      {
+        "name": "Configured category hierarchy, breadcrumb ancestors and current collection",
+        "result": "passed"
+      },
+      {
+        "name": "Facet/sort GET contract preserves selections, encoded labels and decimals, resets page",
+        "result": "passed"
+      },
+      {
+        "name": "Selected removal and bounded pagination retain server-supplied URL state",
+        "result": "passed"
+      },
+      {
+        "name": "No configured filters and empty collection produce honest finite empty state",
+        "result": "passed"
+      },
+      {
+        "name": "Confirmed local Ajax cart sends exact variant, keeps pending lock and updates native cart icon",
+        "result": "passed"
+      },
+      {
+        "name": "Rejected 422 displays server error safely, re-enables button, emits no success",
+        "result": "passed"
+      },
+      {
+        "name": "Unknown POST outcome never retries or claims success and stays locked with cart link",
+        "result": "passed"
+      },
+      {
+        "name": "Confirmed add with failed cart refresh remains uncertain; no automatic duplicate POST",
+        "result": "passed"
+      },
+      {
+        "name": "Without JavaScript, standard product POST form and facet GET controls remain usable",
+        "result": "passed"
+      },
+      {
+        "name": "Mobile disclosure keyboard Enter/Escape restores focus; editor section-load initializes",
+        "result": "passed"
+      },
+      {
+        "name": "Responsive no overflow at 320/390/768/1024/1440 in adaptive/reference modes",
+        "result": "passed"
+      },
+      {
+        "name": "Collection index and search-card mode use actual shared Liquid paths; empty index honest",
+        "result": "passed"
+      },
+      {
+        "name": "axe WCAG A/AA scans of desktop and mobile catalog fixtures",
+        "result": "passed"
+      },
+      {
+        "name": "Local labeled desktop/mobile screenshots captured, no runtime exceptions",
+        "result": "passed"
+      }
+    ],
+    "errors": []
+  }
+}
